@@ -5,14 +5,30 @@ import { CHARACTER_BY_ID, DEFAULT_CHARACTER } from '../../shared/characters.js';
 import { SHOP_BY_ID, DEFAULT_EQUIP } from '../../shared/shop.js';
 import { cleanLook, lookScales } from '../../shared/look.js';
 import { patternTexture, textSprite, shadowTexture, stripeTexture } from './textures.js';
+import { smoothGeometry, metal, std, polish, pbr } from './look.js';
 
 const geo = {};
-function G(key, fn) { return geo[key] || (geo[key] = fn()); }
+// vormen worden automatisch gladder gemaakt (ronde randen, meer segmenten)
+function G(key, fn) { return geo[key] || (geo[key] = smoothGeometry(fn())); }
 const matCache = new Map();
+// (heette vroeger 'lambert'): nu een echt materiaal dat reageert op licht en schaduw
 export function lambert(color, extra = {}) {
   const key = color + JSON.stringify(extra);
-  if (!matCache.has(key)) matCache.set(key, new THREE.MeshLambertMaterial({ color, flatShading: true, ...extra }));
+  if (!matCache.has(key)) matCache.set(key, pbr({ color, roughness: 0.62, metalness: 0, ...extra }));
   return matCache.get(key);
+}
+
+// Band met afgeronde schouders (as langs y, net als een cilinder van 1 bij 1)
+function tyreGeometry() {
+  const pts = [];
+  const ri = 0.62, ro = 1, hw = 0.5, rr = 0.2;
+  pts.push(new THREE.Vector2(ri, -hw));
+  for (let i = 0; i <= 6; i++) { const a = -Math.PI / 2 + (i / 6) * (Math.PI / 2); pts.push(new THREE.Vector2(ro - rr + Math.cos(a) * rr, -hw + rr + Math.sin(a) * rr)); }
+  for (let i = 0; i <= 6; i++) { const a = (i / 6) * (Math.PI / 2); pts.push(new THREE.Vector2(ro - rr + Math.cos(a) * rr, hw - rr + Math.sin(a) * rr)); }
+  pts.push(new THREE.Vector2(ri, hw));
+  const g = new THREE.LatheGeometry(pts, 28);
+  g.userData.smooth = true;
+  return g;
 }
 
 function mesh(g, m, x = 0, y = 0, z = 0) {
@@ -97,7 +113,7 @@ function buildMascotHead(ch) {
       break;
     }
     case 'wafel':
-      hat.add(mesh(G('wafel', () => new THREE.CylinderGeometry(0.42, 0.42, 0.12, 18)), new THREE.MeshLambertMaterial({ map: patternTexture('wafel') }), 0, 0.38, 0));
+      hat.add(mesh(G('wafel', () => new THREE.CylinderGeometry(0.42, 0.42, 0.12, 18)), std({ map: patternTexture('wafel') }), 0, 0.38, 0));
       break;
     case 'molen': {
       hat.add(mesh(G('molenRomp', () => new THREE.CylinderGeometry(0.12, 0.2, 0.42, 8)), lambert('#7b5a3a'), 0, 0.52, 0));
@@ -124,7 +140,7 @@ function buildMascotHead(ch) {
       }
       break;
     case 'kaas': {
-      const k = mesh(G('kaas', () => new THREE.CylinderGeometry(0.42, 0.42, 0.3, 3)), new THREE.MeshLambertMaterial({ map: patternTexture('kaasgaten'), flatShading: true }), 0, 0.46, 0);
+      const k = mesh(G('kaas', () => new THREE.CylinderGeometry(0.42, 0.42, 0.3, 3)), std({ map: patternTexture('kaasgaten'), roughness: 0.7 }), 0, 0.46, 0);
       k.rotation.y = Math.PI;
       hat.add(k);
       break;
@@ -275,7 +291,7 @@ function buildHat(kind) {
   const g = new THREE.Group();
   switch (kind) {
     case 'feestmuts': {
-      g.add(mesh(G('muts', () => new THREE.ConeGeometry(0.2, 0.5, 12)), new THREE.MeshLambertMaterial({ map: stripeTexture('#ff5fa2', '#ffd23f', 6) }), 0, 0.22, 0));
+      g.add(mesh(G('muts', () => new THREE.ConeGeometry(0.2, 0.5, 12)), std({ map: stripeTexture('#ff5fa2', '#ffd23f', 6) }), 0, 0.22, 0));
       g.add(mesh(G('pompon', () => new THREE.SphereGeometry(0.07, 8, 6)), lambert('#ffffff'), 0, 0.48, 0));
       g.rotation.z = 0.15;
       break;
@@ -305,7 +321,7 @@ function buildHat(kind) {
       break;
     }
     case 'kaas': {
-      const k = mesh(G('kaashoed', () => new THREE.CylinderGeometry(0.34, 0.34, 0.22, 3)), new THREE.MeshLambertMaterial({ map: patternTexture('kaasgaten'), flatShading: true }), 0, 0.08, 0);
+      const k = mesh(G('kaashoed', () => new THREE.CylinderGeometry(0.34, 0.34, 0.22, 3)), std({ map: patternTexture('kaasgaten'), roughness: 0.7 }), 0, 0.08, 0);
       k.rotation.x = Math.PI / 2;
       k.rotation.z = Math.PI / 2;
       g.add(k);
@@ -330,7 +346,7 @@ function buildHat(kind) {
       break;
     }
     case 'kroon': {
-      const gold = new THREE.MeshPhongMaterial({ color: '#ffcf33', shininess: 120, specular: '#fff6c0', emissive: '#3a2a00', flatShading: true });
+      const gold = metal({ color: '#ffcf33', roughness: 0.22, emissive: '#2a1e00' });
       g.add(mesh(G('kroonring', () => new THREE.CylinderGeometry(0.26, 0.26, 0.12, 14, 1, true)), gold, 0, 0.02, 0));
       for (let i = 0; i < 6; i++) {
         const a = (i / 6) * Math.PI * 2;
@@ -522,6 +538,8 @@ const MODELS = {
 
 // ---------- de kart ----------
 export class KartView {
+  static realShadows = true; // echte schaduwen (uit bij lage kwaliteit)
+
   constructor({ character = DEFAULT_CHARACTER, cosmetics = DEFAULT_EQUIP, look = null, name = '', showName = false, nameColor = '#ffffff' } = {}) {
     this.group = new THREE.Group();
     this.body = new THREE.Group();
@@ -541,10 +559,12 @@ export class KartView {
     sh.position.y = 0.04;
     sh.renderOrder = 1;
     this.group.add(sh);
+    this.blob = sh; // zachte contactschaduw onder de kart
 
-    this.paint = new THREE.MeshPhongMaterial({ color: '#3a8ef6', flatShading: true, shininess: 40 });
-    this.rimMat = new THREE.MeshPhongMaterial({ color: '#d0d4da', flatShading: true });
-    this.M = { paint: this.paint, dark: lambert('#2b2d36'), metal: new THREE.MeshPhongMaterial({ color: '#c5ccd6', shininess: 90, flatShading: true }) };
+    // glimmende autolak, chroom en matte kunststof
+    this.paint = pbr({ color: '#3a8ef6', roughness: 0.3, metalness: 0.15 });
+    this.rimMat = metal({ color: '#d0d4da', roughness: 0.25 });
+    this.M = { paint: this.paint, dark: lambert('#2b2d36', { roughness: 0.75 }), metal: metal({ color: '#c5ccd6' }) };
     this.flameMat = new THREE.MeshBasicMaterial({ color: '#ff9a1f', transparent: true, opacity: 0.85 });
     this.chassis = new THREE.Group();
     this.body.add(this.chassis);
@@ -554,7 +574,7 @@ export class KartView {
     const capeGeo = new THREE.PlaneGeometry(0.92, 1.05, 6, 8);
     capeGeo.translate(0, -0.525, 0);
     this.capeBase = Float32Array.from(capeGeo.attributes.position.array);
-    this.capeMat = new THREE.MeshLambertMaterial({ color: '#d62828', side: THREE.DoubleSide });
+    this.capeMat = std({ color: '#d62828', side: THREE.DoubleSide, roughness: 0.8 });
     this.cape = new THREE.Mesh(capeGeo, this.capeMat);
     this.cape.position.set(0, 1.18, -0.2);
     this.cape.visible = false;
@@ -594,19 +614,26 @@ export class KartView {
     const spec = make(this.chassis, this.M);
     this.spec = spec;
     // wielen
-    const tyre = lambert('#1d1f24');
+    const tyre = lambert('#1d1f24', { roughness: 0.92 });
     this.wheels = spec.wheels.map(([x, y, z, r, front, w = 0.3]) => {
       const steerG = new THREE.Group();
       steerG.position.set(x, y, z);
       const spinG = new THREE.Group();
-      const t = mesh(G('tyre', () => new THREE.CylinderGeometry(1, 1, 1, 14)), tyre);
+      const t = mesh(G('tyreR', tyreGeometry), tyre);
       t.rotation.z = Math.PI / 2;
       t.scale.set(r, w, r);
       spinG.add(t);
-      const rim = mesh(G('rim', () => new THREE.CylinderGeometry(1, 1, 1, 6)), spec.gold ? lambert('#ffcf33') : this.rimMat);
+      const rim = mesh(G('rimR', () => new THREE.CylinderGeometry(1, 1, 1, 20)), spec.gold ? metal({ color: '#ffcf33', roughness: 0.25 }) : this.rimMat);
       rim.rotation.z = Math.PI / 2;
-      rim.scale.set(r * 0.53, w + 0.02, r * 0.53);
+      rim.scale.set(r * 0.62, w * 0.86, r * 0.62);
       spinG.add(rim);
+      // spaken, zodat je de wielen ziet draaien
+      for (let sp = 0; sp < 3; sp++) {
+        const bar = mesh(G('spaak', () => new THREE.BoxGeometry(1, 1, 1)), this.M.dark);
+        bar.scale.set(w * 0.9 + 0.04, r * 0.16, r * 1.1);
+        bar.rotation.x = (sp / 3) * Math.PI;
+        spinG.add(bar);
+      }
       steerG.add(spinG);
       this.chassis.add(steerG);
       return { steerG, spinG, front, r };
@@ -716,6 +743,13 @@ export class KartView {
     this.placeTag();
     this.applyHat();
     this.applyPaint();
+    this.castShadows();
+  }
+
+  castShadows() {
+    if (!KartView.realShadows) return;
+    polish(this.body, { round: false, cast: true });
+    this.cape.castShadow = true;
   }
 
   applyHat() {
@@ -749,14 +783,15 @@ export class KartView {
       this.capeMat.dispose();
       if (cl.pattern) {
         this.capeMat = cl.pattern === 'goud'
-          ? new THREE.MeshPhongMaterial({ map: patternTexture('goud'), side: THREE.DoubleSide, shininess: 100, specular: '#fff6c0', emissive: '#4a3400' })
-          : new THREE.MeshLambertMaterial({ map: patternTexture(cl.pattern, cl.colors && cl.colors[0]), side: THREE.DoubleSide });
+          ? pbr({ map: patternTexture('goud'), side: THREE.DoubleSide, metalness: 0.75, roughness: 0.28, emissive: '#3a2800' })
+          : std({ map: patternTexture(cl.pattern, cl.colors && cl.colors[0]), side: THREE.DoubleSide, roughness: 0.8 });
       } else {
-        this.capeMat = new THREE.MeshLambertMaterial({ color: cl.colors[0], side: THREE.DoubleSide });
+        this.capeMat = std({ color: cl.colors[0], side: THREE.DoubleSide, roughness: 0.8 });
       }
       this.cape.material = this.capeMat;
     }
     this.sparkle = !!(cl && cl.sparkle);
+    this.castShadows();
     // banden
     const bd = SHOP_BY_ID[this.cos.banden];
     const bl = bd && bd.look;
@@ -778,13 +813,13 @@ export class KartView {
     const p = this.paint;
     p.map = null;
     p.emissive.set('#000000');
-    p.shininess = 40;
-    p.specular.set('#222222');
+    const phys = p.isMeshStandardMaterial;
+    if (phys) { p.metalness = 0.15; p.roughness = 0.3; } else p.shininess = 50;
     if (!look) p.color.set(this.modelPaint || this.character.kart);
     else {
       p.color.set(look.color);
-      if (look.pattern === 'koe') p.map = patternTexture('koe');
-      if (look.metal) { p.shininess = 160; p.specular.set('#ffffff'); }
+      if (look.pattern === 'koe') { p.map = patternTexture('koe'); if (phys) { p.roughness = 0.6; p.metalness = 0; } }
+      if (look.metal) { if (phys) { p.metalness = 0.95; p.roughness = 0.12; } else p.shininess = 140; }
       if (look.glow) p.emissive.set(look.glow).multiplyScalar(0.35);
     }
     this.glow = look && look.glow ? look.glow : null;
@@ -795,8 +830,17 @@ export class KartView {
   update(dt, st) {
     this.t += dt;
     const g = this.group;
-    g.position.set(st.x, 0, st.z);
-    g.rotation.y = st.h;
+    const y = st.y || 0;
+    g.position.set(st.x, y, st.z);
+    // neus omhoog over de schans, omlaag bij de landing
+    this.pitch = (this.pitch || 0) + ((st.pitch || 0) - (this.pitch || 0)) * Math.min(1, dt * 10);
+    g.rotation.set(-this.pitch, st.h, 0, 'YXZ');
+    if (this.blob) {
+      this.blob.position.y = 0.04 - y;
+      const sc = 1 / (1 + y * 0.22);
+      this.blob.scale.set(sc, sc, sc);
+      this.blob.material.opacity = (KartView.realShadows ? 0.45 : 1) * sc;
+    }
     const b = this.body;
 
     this.wheelSpin += (st.speed || 0) * dt;

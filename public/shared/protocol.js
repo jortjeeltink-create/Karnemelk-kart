@@ -6,7 +6,7 @@ import { round } from './util.js';
 export const FULL_FIELDS = [
   'x', 'z', 'h', 'vx', 'vz', 'drift', 'driftT', 'hopT', 'boostT', 'bumpT', 'spinT', 'shieldT',
   'item', 'itemN', 'itemRoll', 'pd', 'pi', 'lap', 'cp', 'lapStart', 'bestLap', 'finished', 'finishTime',
-  'wrongT', 'ack', 'place', 'maxMul',
+  'wrongT', 'ack', 'place', 'maxMul', 'y', 'vy', 'air', 'airT', 'ramp',
 ];
 
 export function encodeFull(k) {
@@ -38,7 +38,7 @@ export function encodeVisual(k) {
   if (k.hopT > 0) flags |= F.HOP;
   if (k.finished) flags |= F.FINISHED;
   if (k.connected !== false) flags |= F.CONNECTED;
-  return [k.kid, round(k.x, 2), round(k.z, 2), round(k.h, 3), round(k.vx, 1), round(k.vz, 1), flags, k.lap, k.place, k.item ? 1 : 0];
+  return [k.kid, round(k.x, 2), round(k.z, 2), round(k.h, 3), round(k.vx, 1), round(k.vz, 1), flags, k.lap, k.place, k.item ? 1 : 0, round(k.y || 0, 2)];
 }
 
 export function decodeVisual(a) {
@@ -49,7 +49,7 @@ export function decodeVisual(a) {
     driftLevel: (flags >> 2) & 3,
     boost: !!(flags & F.BOOST), shield: !!(flags & F.SHIELD), spin: !!(flags & F.SPIN),
     bump: !!(flags & F.BUMP), hop: !!(flags & F.HOP), finished: !!(flags & F.FINISHED), connected: !!(flags & F.CONNECTED),
-    lap: a[7], place: a[8], hasItem: !!a[9],
+    lap: a[7], place: a[8], hasItem: !!a[9], y: a[10] || 0,
   };
 }
 

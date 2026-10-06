@@ -100,6 +100,9 @@ export class Sound {
       case 'rocket': this.noise(1.0, { vol: 0.4 * v, freq: 400, slide: 3000, q: 0.6 }); break;
       case 'horn': this.tone(392, 0.16, { vol: 0.2 * v, type: 'square' }); this.tone(494, 0.16, { vol: 0.16 * v, type: 'square' }); this.tone(392, 0.2, { vol: 0.2 * v, type: 'square', delay: 0.2 }); this.tone(494, 0.2, { vol: 0.16 * v, type: 'square', delay: 0.2 }); break;
       case 'wrong': this.tone(330, 0.2, { vol: 0.12 * v, type: 'square' }); break;
+      case 'jump': this.noise(0.45, { vol: 0.3 * v, freq: 500, slide: 1800, q: 0.9 }); this.tone(330, 0.35, { vol: 0.1 * v, type: 'triangle', slide: 500 }); break;
+      case 'land': this.noise(0.22, { vol: 0.5 * v, freq: 200, q: 0.7, type: 'lowpass' }); this.tone(90, 0.25, { vol: 0.35 * v, type: 'sine', slide: -40 }); break;
+      case 'ring': [988, 1318, 1760].forEach((f, i) => this.tone(f, 0.16, { vol: 0.14 * v, type: 'triangle', delay: i * 0.05 })); this.noise(0.5, { vol: 0.2 * v, freq: 2500, slide: 2500, q: 1.5 }); break;
       default: break;
     }
   }

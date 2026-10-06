@@ -1,6 +1,6 @@
 // Eén race in de browser: 3D-wereld, eigen kart (voorspeld), andere karts (live), camera en effecten.
 import * as THREE from '../../vendor/three.module.min.js';
-import { DT } from '../../shared/constants.js';
+import { DT, JUMP } from '../../shared/constants.js';
 import { TRACK_BY_ID } from '../../shared/tracks.js';
 import { buildTrack } from '../../shared/trackgeo.js';
 import { decodeVisual, decodeEntity, decodeFull } from '../../shared/protocol.js';
@@ -21,11 +21,12 @@ export function getTrack(id) {
 }
 
 const INTERP_MS = 110;
-const LOCAL_TYPES = new Set(['boost', 'miniturbo', 'wall', 'obstacle', 'hazard', 'lap', 'finish', 'shield', 'spawn', 'hop', 'horn']);
+const LOCAL_TYPES = new Set(['boost', 'miniturbo', 'wall', 'obstacle', 'hazard', 'lap', 'finish', 'shield', 'spawn', 'hop', 'horn', 'jump', 'land', 'ring']);
+const JUMP_WORDS = ['WIEEE!', 'HOEPLA!', 'VLIEGEN!', 'YIHAA!'];
 const HORN_WORDS = ['TOET!', 'TOET TOET!', 'PIEP PIEP!', 'AAN DE KANT!', 'BOEM BOEM!'];
 const DRIFT_COLORS = ['#d8d8d8', '#ffffff', '#ffd23f', '#ff5fd2'];
 const BUMP_WORDS = ['BOTS!', 'BOEM!', 'BONK!', 'KLABAM!', 'PATS!'];
-const HAZARD_WORDS = { koe: 'BOE!', tram: 'TING TING!', heftruck: 'PIEP!', botsauto: 'BOTS!', krab: 'KNIP!', egel: 'AU!', sneeuwbal: 'PLOF!', rolbos: 'RITSEL!', meteoriet: 'KABOEM!', ufo: 'BLIEP!' };
+const HAZARD_WORDS = { koe: 'BOE!', tram: 'TING TING!', heftruck: 'PIEP!', botsauto: 'BOTS!', krab: 'KNIP!', egel: 'AU!', sneeuwbal: 'PLOF!', rolbos: 'RITSEL!', meteoriet: 'KABOEM!', ufo: 'BLIEP!', trekker: 'TOET TOET!', taxi: 'HONK!', lavabal: 'HEET!' };
 
 export class RaceClient {
   constructor(app, msg) {
@@ -35,8 +36,10 @@ export class RaceClient {
     this.def = TRACK_BY_ID[msg.trackId];
     this.laps = msg.laps;
     this.practice = msg.practice;
+    KartView.realShadows = app.engine.shadowSize > 0;
     this.world = buildWorld(this.track, app.engine.qualityLevel);
     this.scene = this.world.scene;
+    app.engine.renderer.toneMappingExposure = this.world.th.exposure ?? 0.95;
     this.camera = new THREE.PerspectiveCamera(70, app.engine.w / app.engine.h, 0.1, 2600);
     this.effects = new Effects(this.scene);
     this.me = msg.you;
@@ -95,6 +98,11 @@ export class RaceClient {
       };
     }
     else this.hud.spectate('Je kijkt mee. Bij de volgende race doe je mee!');
+    // shaders alvast op de achtergrond klaarzetten, zodat de start niet hapert
+    try {
+      const r = app.engine.renderer;
+      if (r.compileAsync && r.extensions.has('KHR_parallel_shader_compile')) r.compileAsync(this.scene, this.camera).catch(() => {});
+    } catch { /* oudere browser */ }
     app.sound.startEngine();
     app.sound.startMusic(this.world.th.music);
     this.hud.big(this.def.name, this.practice ? 'Oefenrace' : `${this.def.place} • ${this.laps} rondes`, 2200, 'title');
@@ -255,6 +263,33 @@ export class RaceClient {
       case 'hop':
         if (mine) S.play('hop');
         break;
+      case 'jump':
+        S.play('jump', mine ? 1 : this.distVol(kx, kz) * 0.7);
+        if (mine) this.effects.popup(JUMP_WORDS[Math.floor(Math.random() * JUMP_WORDS.length)], kx, 3.6, kz, '#ffd23f');
+        for (let i = 0; i < 4; i++) this.effects.puff(kx + (Math.random() - 0.5) * 2, 1.2, kz + (Math.random() - 0.5) * 2, '#d8d2c8', 1.4, 0.5);
+        break;
+      case 'land': {
+        const vol = mine ? 1 : this.distVol(kx, kz);
+        S.play('land', vol * Math.min(1, 0.4 + (ev.p || 6) / 14));
+        const dust = this.world.th.night ? '#5a5f78' : this.world.th.shoulder[0];
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2;
+          this.effects.puff(kx + Math.cos(a) * 1.2, 0.4, kz + Math.sin(a) * 1.2, dust, 1.6, 0.7);
+        }
+        if (mine) { this.shake = Math.max(this.shake, Math.min(0.5, (ev.p || 0) * 0.035)); this.app.controls.vibrate(25); }
+        break;
+      }
+      case 'ring': {
+        const rg = this.track.rings[ev.id];
+        this.world.flashRing(ev.id);
+        if (rg) this.effects.burst(rg.x, rg.y, rg.z, { n: 26, colors: ['#ffd23f', '#ffffff', '#ff9a1f'], speed: 8, up: 1, size: [0.8, 0.2] });
+        if (mine) {
+          S.play('ring');
+          this.effects.popup('BOOSTRING!', kx, (rg ? rg.y : 3) + 1.5, kz, '#ffd23f');
+          this.app.controls.vibrate(20);
+        } else S.play('ring', this.distVol(kx, kz) * 0.5);
+        break;
+      }
       case 'wall':
         if (mine) { S.play('wall'); this.shake = Math.max(this.shake, 0.25); this.app.controls.vibrate(20); }
         else S.play('wall', this.distVol(kx, kz) * 0.5);
@@ -329,7 +364,7 @@ export class RaceClient {
       let steps = 0;
       const k = this.pred.kart;
       while (this.simSteps < target && steps < 30) {
-        this.prev = { x: k.x, z: k.z, h: k.h };
+        this.prev = { x: k.x, z: k.z, h: k.h, y: k.y || 0 };
         this.simSteps++;
         const r = this.pred.step(inp, this.simSteps * DT, this.localEmit);
         if (this.sendSeq == null) this.sendSeq = r.seq;
@@ -360,7 +395,9 @@ export class RaceClient {
         const x = this.prev ? this.prev.x + (p.x - this.prev.x) * a : p.x;
         const z = this.prev ? this.prev.z + (p.z - this.prev.z) * a : p.z;
         const h = this.prev ? lerpAngle(this.prev.h, p.h, a) : p.h;
+        const y = this.prev && this.prev.y != null ? this.prev.y + ((p.y || 0) - this.prev.y) * a : p.y || 0;
         st = {
+          y, pitch: p.air ? clamp((p.vy || 0) * 0.025, -0.3, 0.3) : p.ramp ? 0.19 : 0,
           x: x + this.corr.x, z: z + this.corr.z, h: h + this.corr.h, speed: Math.hypot(p.vx, p.vz) * Math.sign(p.vx * Math.sin(p.h) + p.vz * Math.cos(p.h) || 1),
           steer: inp ? inp.steer : 0, drift: p.drift, driftLevel: driftLevel(p.driftT), boost: p.boostT > 0, shield: p.shieldT > 0,
           spin: p.spinT > 0, bump: p.bumpT > 0, hop: p.hopT > 0, finished: !!p.finished, offroad: p.surface === 'berm',
@@ -425,9 +462,9 @@ export class RaceClient {
   interpolate(k, renderT, dt) {
     const buf = k.buf;
     let v;
-    let x, z, h;
+    let x, z, h, y = 0;
     if (!buf.length) {
-      v = k.v; x = v.x; z = v.z; h = v.h;
+      v = k.v; x = v.x; z = v.z; h = v.h; y = v.y || 0;
     } else {
       let i = buf.length - 1;
       while (i > 0 && buf[i].t > renderT) i--;
@@ -437,11 +474,12 @@ export class RaceClient {
         x = a.v.x + (b.v.x - a.v.x) * u;
         z = a.v.z + (b.v.z - a.v.z) * u;
         h = lerpAngle(a.v.h, b.v.h, u);
+        y = (a.v.y || 0) + ((b.v.y || 0) - (a.v.y || 0)) * u;
         v = u < 0.5 ? a.v : b.v;
       } else {
         // geen nieuwere status: kort doortrekken met de snelheid
         const ex = clamp((renderT - a.t) / 1000, 0, 0.25);
-        x = a.v.x + a.v.vx * ex; z = a.v.z + a.v.vz * ex; h = a.v.h;
+        x = a.v.x + a.v.vx * ex; z = a.v.z + a.v.vz * ex; h = a.v.h; y = a.v.y || 0;
         v = a.v;
       }
     }
@@ -452,8 +490,12 @@ export class RaceClient {
     k.steerS = (k.steerS || 0) + (steer - (k.steerS || 0)) * Math.min(1, dt * 8);
     const loc = this.track.locate(x, z, k.hint ?? -1);
     k.hint = loc.i;
+    // stijgen of dalen -> neus omhoog of omlaag
+    const vy = (y - (k.lastY ?? y)) / Math.max(dt, 0.001);
+    k.lastY = y;
+    k.vyS = (k.vyS || 0) + (vy - (k.vyS || 0)) * Math.min(1, dt * 10);
     return {
-      x, z, h, speed, steer: k.steerS, drift: v.drift, driftLevel: v.driftLevel, boost: v.boost, shield: v.shield,
+      x, z, h, y, pitch: y > 0.05 ? clamp(k.vyS * 0.025, -0.3, 0.3) : 0, speed, steer: k.steerS, drift: v.drift, driftLevel: v.driftLevel, boost: v.boost, shield: v.shield,
       spin: v.spin, bump: v.bump, hop: v.hop, finished: v.finished, offroad: Math.abs(loc.d) > this.track.halfW + 0.4,
     };
   }
@@ -549,6 +591,8 @@ export class RaceClient {
     const target = myState || (this.pickWatch() || {}).st;
     if (!target) return;
     c.tx = target.x; c.tz = target.z;
+    this.world.followShadow(target.x, target.z);
+    c.ty = (c.ty || 0) + ((target.y || 0) - (c.ty || 0)) * Math.min(1, dt * 7);
     const finished = myState && myState.finished && this.karts.get(this.me).finishedAt && this.time - this.karts.get(this.me).finishedAt > 1.2;
 
     // hoge karts (monstertruck, tractor) krijgen een hogere camera
@@ -556,7 +600,8 @@ export class RaceClient {
     const lift = view ? view.driverBase.y : 0;
     let dist = (portrait ? 8.6 : 6.9) + lift * 1.2;
     let height = (portrait ? 3.7 : 2.75) + lift * 1.1;
-    let fov = (portrait ? 80 : 68) + (target.boost ? 9 : 0);
+    const spd = Math.min(1.4, Math.abs(target.speed || 0) / 27);
+    let fov = (portrait ? 78 : 66) + spd * 4 + (target.boost ? 8 : 0);
     let yawTarget = target.h;
     let look = portrait ? 6 : 4.5;
     if (finished) { yawTarget = target.h + Math.PI + Math.sin(this.time * 0.3) * 0.6; dist = 6.5; height = 2.2; look = 0; }
@@ -574,7 +619,7 @@ export class RaceClient {
     } else {
       c.yaw = lerpAngle(c.yaw, yawTarget, 1 - Math.exp(-dt * (finished ? 2 : 6.5)));
       const fx = Math.sin(c.yaw), fz = Math.cos(c.yaw);
-      const px = target.x - fx * dist, pz = target.z - fz * dist, py = height;
+      const px = target.x - fx * dist, pz = target.z - fz * dist, py = height + c.ty * 0.8;
       if (!c.init) { c.x = px; c.y = py; c.z = pz; c.init = true; }
       const k = 1 - Math.exp(-dt * 12);
       c.x += (px - c.x) * k; c.y += (py - c.y) * k; c.z += (pz - c.z) * k;
@@ -585,7 +630,7 @@ export class RaceClient {
         sy = (Math.random() - 0.5) * this.shake * 0.6;
       }
       cam.position.set(c.x + sx, c.y + sy, c.z);
-      cam.lookAt(target.x + fx * look, 1.0 + lift * 0.7, target.z + fz * look);
+      cam.lookAt(target.x + fx * look, 1.0 + lift * 0.7 + c.ty * 0.75, target.z + fz * look);
       c.fov += (fov - c.fov) * Math.min(1, dt * 4);
     }
     if (Math.abs(cam.fov - c.fov) > 0.05) { cam.fov = c.fov; cam.updateProjectionMatrix(); }
@@ -624,6 +669,7 @@ export class RaceClient {
   }
 
   destroy() {
+    this.app.engine.renderer.toneMappingExposure = 0.95;
     this.app.controls.onHorn = null;
     this.app.controls.unmount();
     this.app.sound.stopEngine();

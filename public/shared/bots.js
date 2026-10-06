@@ -24,6 +24,7 @@ export function initBot(k, level, rand) {
     revT: 0,
     holdT: 0,
     itemSkill: lv.items,
+    ringSkill: rand() < lv.items,
     phase: rand() * 10,
     rand,
   };
@@ -57,6 +58,14 @@ export function botInput(k, track, ctx, autopilot = false) {
     }
   }
 
+  // goede bots mikken op de boostringen
+  if (!autopilot && b.ringSkill && track.rings.length) {
+    for (const rg of track.rings) {
+      const ds = wrapDs(rg.s - k.s, L);
+      if (ds > 2 && ds < 55) { lane = rg.d; break; }
+    }
+  }
+
   // obstakels ontwijken (vast, bewegend en plassen)
   const avoid = (os, od, r) => {
     const ds = wrapDs(os - k.s, L);
@@ -65,7 +74,7 @@ export function botInput(k, track, ctx, autopilot = false) {
       lane = Math.abs(left - k.d) < Math.abs(right - k.d) && left > -track.halfW + 1.5 ? left : right < track.halfW - 1.5 ? right : left;
     }
   };
-  for (const o of track.obstacles) avoid(o.s, o.d, o.r);
+  if (!k.air) for (const o of track.obstacles) avoid(o.s, o.d, o.r);
   if (ctx && ctx.entities) {
     for (const e of ctx.entities) if (e.kind === 'plas') avoid(e.s ?? -1e9, e.d ?? 0, 2.2);
   }

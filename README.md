@@ -10,7 +10,9 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
 - **Privéroom met groepscode** van 4 letters, plus een deelbare link (`https://jouw-site/?room=ABCD`).
 - **Lobby** met wie er meedoet, wie klaar is, coureurkeuze, baankeuze, computerkarts en de uitdaging voor de verliezer. De host start de race (en kan spelers verwijderen).
 - **Opnieuw deelnemen** na een verbindingsonderbreking: je krijgt automatisch je eigen kart terug (tot 2 minuten). Wie tijdens een race binnenkomt, kijkt mee en doet de volgende race mee.
-- **9 banen**: kustweg, pretpark, stadscentrum (grachten), bos, haven, sneeuwbaan, woestijn, boerderij en een bonusbaan in de ruimte. Elk met eigen route, decor, obstakels, bewegende hindernissen, muziek en sfeer.
+- **13 banen**: kustweg, pretpark, stadscentrum (grachten), bos, haven, sneeuwbaan, woestijn, boerderij, een bonusbaan in de ruimte, en nieuw: Schansenpolder, Neonstad Nachtrace, Vulkaan Vuurrit en Duinensprong. Elk met eigen route, decor, obstakels, bewegende hindernissen, muziek en sfeer.
+- **Schansen en boostringen**: rijd met vaart over een schans en je vliegt, ook over andere karts, plassen en obstakels heen. Een mooie landing geeft een kleine turbo, en door een gouden boostring krijg je een flinke turbo. Op sommige banen spring je over sloten of lavastromen (erdoorheen rijden remt je flink af). Elke baan heeft nu ook meer turbostroken.
+- **Mooie, realistischere graphics**: filmisch licht, echte schaduwen van karts en bomen, reflecties in lak, water en metaal, een lucht met drijvende wolken, heuvels aan de horizon, graspollen langs de weg, ronde vormen en nieuwe bomen. Bij "Laag" (Instellingen) staat alles zuinig voor oudere telefoons.
 - **3 rondes** met aftellen, raketstart, live posities, minikaart, finishscherm, uitslag met podium.
 - **Botsen**: wie een kart ramt, vertraagt die en duwt hem opzij. Iedereen ziet de botsing (wolkje, geluid, trilling en "BOTS!") en de nieuwe posities live.
 - **Driften** met mini-turbo (witte, gele en roze vonken) en **power-ups**: Stroopwafel-turbo, Drie stroopwafels, Kaasschild, Karnemelkplas (glad obstakel) en Klompkanon.
@@ -184,11 +186,18 @@ Specials (te koop met MP): **Meke** (lang en dun), **Nicole** (wat steviger) en 
 | Zandstorm Canyon | Woestijn | Snel en breed, cactussen, rolbossen |
 | Karnemelk Hoeve | Boerderij | Molen, tulpenvelden, modder, koeien |
 | Melkweg Ring | Ruimte (bonus) | Planeten, zwevende melkflessen, meteoriet, ufo |
+| Schansenpolder | Polder | Vier schansen over sloten, boostringen, knotwilgen, molens, een trekker dwars over de weg |
+| Neonstad Nachtrace | Stad bij nacht | Neonlichten, verlichte flats, boostpoorten in de bochten, taxi's |
+| Vulkaan Vuurrit | Vulkaaneiland | Rokende vulkaan, schansen over lavastromen, rollende lavaballen |
+| Duinensprong | Strand bij zonsondergang | Megaschansen met ringen, snel en breed |
+
+Alle banen hebben schansen (soms met een boostring erachter) en extra turbostroken.
 
 ## Techniek
 
 - **Server**: Node.js met alleen het pakket `ws`. De server is de baas over de race (60 stappen per seconde, 20 updates per seconde naar iedere speler), zodat botsingen voor iedereen hetzelfde zijn.
-- **Browser**: Three.js (meegeleverd in `public/vendor`, geen CDN nodig) met simpele, platte vormen: 25.000 tot 45.000 driehoeken en 60 tot 300 tekenopdrachten per beeld. Automatische kwaliteit verlaagt de resolutie als een telefoon het niet bijhoudt.
+- **Browser**: Three.js (meegeleverd in `public/vendor`, geen CDN nodig). Fysiek gebaseerde materialen met omgevingslicht uit de lucht (reflecties), filmische kleuren (ACES), zonneschaduw die met de speler meeloopt, een lucht-shader met wolken en afgeronde vormen. Ongeveer 100.000 tot 270.000 driehoeken en 110 tot 380 tekenopdrachten per beeld. Kwaliteit: *Hoog* (scherpe schaduw), *Normaal* (standaard), *Laag* (geen schaduw, reflecties of wolken: snel op oude telefoons). Automatisch verlaagt de resolutie als een telefoon het niet bijhoudt, en kiest daarna Laag.
+- **Schansen**: de hoogte (`y`) zit in de gedeelde fysica, dus server en voorspelling zijn het eens. Karts met meer dan 1,3 m hoogteverschil botsen niet, wie vliegt raakt geen plassen of obstakels.
 - **Soepel rijden ondanks vertraging**: je eigen kart wordt in de browser voorspeld (met precies dezelfde code als op de server) en stilletjes gecorrigeerd. Andere karts worden vloeiend tussen updates in getekend.
 - **Geluid en muziek** worden live gemaakt met de Web Audio API; er zijn geen geluidsbestanden.
 - **Wie ben je?** Bij je eerste bezoek krijgt je telefoon een lange, geheime apparaatsleutel. Die staat in de browser én in een cookie van de server (HttpOnly, 400 dagen, bij elk bezoek verlengd). Aan die sleutel hangen je naam, MP-punten en spullen. Andere spelers zien de sleutel nooit.
@@ -210,13 +219,14 @@ tools/             baanvoorbeelden tekenen, offline-demo bouwen
 
 Getest in deze omgeving:
 
-- 22 snelle tests: banen (geen te krappe bochten of overlappende stukken), fysica, rondes en checkpoints, punten en dagbonus, winkel en betaalbaarheid, specials ("Meke (Jort)"), eigen coureur, inloggen per telefoon (ook via het cookie), overzetcode, reservekopie op de telefoon (terugzetten, vervalste kopie geweigerd), botsingen, titels, toeteren, voorspelling, lobby, herverbinden, opslag in bestand en in (nagebootste) Upstash.
+- 25 snelle tests: banen (geen te krappe bochten of overlappende stukken), elke schans op elke baan (lanceert, ring is te halen, geen muur na de landing), vliegen over karts, sloten, fysica, rondes en checkpoints, punten en dagbonus, winkel en betaalbaarheid, specials ("Meke (Jort)"), eigen coureur, inloggen per telefoon (ook via het cookie), overzetcode, reservekopie op de telefoon (terugzetten, vervalste kopie geweigerd), botsingen, titels, toeteren, voorspelling, lobby, herverbinden, opslag in bestand en in (nagebootste) Upstash.
 - Een echte race met **10 gelijktijdige spelers** via WebSockets: allemaal gefinisht, zo'n 80 botsingen die iedereen live zag, een speler die wegviel en in dezelfde kart terugkwam, punten 155 → 45 (inclusief dagbonus), winkel, alles bewaard na een herstart van de server, én teruggezet vanaf de telefoon na een herstart met een lege schijf.
-- De game in een Chromium-browser met iPhone-, iPhone SE- en Pixel-formaat en aanraakbediening, staand en liggend: naam kiezen, herladen (telefoon onthoudt je), uitnodigingslink, lobby, specials kopen, mijn coureur, alle kartmodellen en hoeden, races op alle 9 banen met het nieuwe decor, toeteren, uitslag met titels, toeschouwen, offline-demo. Zonder fouten in de console.
+- De game in een Chromium-browser met iPhone-, iPhone SE- en Pixel-formaat en aanraakbediening, staand en liggend: naam kiezen, herladen (telefoon onthoudt je), uitnodigingslink, lobby, specials kopen, mijn coureur, alle kartmodellen en hoeden, races en foto's op de banen met de nieuwe graphics (Hoog, Normaal en Laag), een echte sprong over een schans door een ring, toeteren, uitslag met titels, toeschouwen, offline-demo. Zonder fouten in de console.
 
 Niet getest, en waarom:
 
 - **Op een echte iPhone met Safari.** De werkomgeving had alleen een Chromium-browser met software-3D. Safari ondersteunt alles wat de game gebruikt, maar test het even met een paar vrienden voordat je een groot potje plant. Laat het weten als iets er vreemd uitziet.
+- **Hoe snel de nieuwe graphics op echte telefoons zijn.** Software-3D zegt daar niets over. Moderne telefoons kunnen dit soort graphics prima aan; hapert het op een oudere telefoon, zet dan Instellingen → Grafische kwaliteit op Laag.
 - **Kantelbesturing.** Werkt alleen met een echte bewegingssensor en via HTTPS. Gaat sturen precies verkeerd om, zet dan in Instellingen "Kantelrichting omdraaien" aan.
 - **Trillen** werkt op Android, maar iPhones staan trillen vanuit een website niet toe.
 - **Geluid op iPhone** valt weg als de stille-modusschakelaar aan staat; dat is een beperking van iOS.

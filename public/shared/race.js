@@ -1,6 +1,6 @@
 // De race zelf: alle karts, items, botsingen, posities en de finish.
 // Draait op de server (en in de offline-demo in de browser).
-import { DT, TICK_RATE, KART_RADIUS, FINISH_GRACE, MAX_RACE_TIME, LAPS } from './constants.js';
+import { DT, TICK_RATE, KART_RADIUS, FINISH_GRACE, MAX_RACE_TIME, LAPS, JUMP } from './constants.js';
 import { createKart, stepKart, hitKart, raceDistance } from './physics.js';
 import { botInput, autopilotInput, initBot } from './bots.js';
 import { ITEM, rollItem, ITEM_ROLL_TIME, BOX_RESPAWN } from './items.js';
@@ -27,7 +27,7 @@ export class Race {
       k.acc = 0;
       k.bumpCd = new Map();
       k.rocket = 0;
-      k.st = { rams: 0, bumped: 0, spins: 0, items: 0, boosts: 0 };
+      k.st = { rams: 0, bumped: 0, spins: 0, items: 0, boosts: 0, rings: 0, air: 0 };
       k.hornAt = -10;
       if (k.isBot) initBot(k, botLevel, rng(seed * 31 + slot * 7 + 3));
       this.karts.push(k);
@@ -99,6 +99,8 @@ export class Race {
   onKartEvent(k, type, data) {
     if (type === 'spawn' || type === 'shield' || (type === 'boost' && data.src === 'item')) k.st.items++;
     if (type === 'miniturbo') k.st.boosts++;
+    if (type === 'ring') k.st.rings++;
+    if (type === 'land') k.st.air++;
     if (type === 'spawn') {
       this.spawn(data);
       return;
@@ -206,6 +208,7 @@ export class Race {
       for (const k of this.karts) {
         if (k.finished) continue;
         if (k.kid === e.owner && e.age < (e.kind === 'plas' ? 1.0 : 0.5)) continue;
+        if (k.y > (e.kind === 'plas' ? 0.5 : 1.2)) continue; // eroverheen gesprongen
         if (Math.hypot(k.x - e.x, k.z - e.z) < e.r + KART_RADIUS * 0.85) {
           const res = hitKart(k);
           if (res === 'tol') k.st.spins++;
@@ -226,6 +229,7 @@ export class Race {
       const a = ks[i];
       for (let j = i + 1; j < ks.length; j++) {
         const b = ks[j];
+        if (Math.abs((a.y || 0) - (b.y || 0)) > JUMP.clear) continue; // de een vliegt over de ander heen
         const dx = b.x - a.x, dz = b.z - a.z;
         const d2 = dx * dx + dz * dz;
         if (d2 >= R2 * R2) continue;
@@ -369,6 +373,8 @@ export class Race {
     if (item) list.push({ key: 'itemkoning', title: 'Itemkoning', name: name(item.kid), text: `${item.value} items gebruikt` });
     const drift = best((k) => k.st.boosts, 3);
     if (drift) list.push({ key: 'driftkoning', title: 'Driftkoning', name: name(drift.kid), text: `${drift.value} drift-turbo's` });
+    const ring = best((k) => k.st.rings, 3);
+    if (ring) list.push({ key: 'ringridder', title: 'Ringridder', name: name(ring.kid), text: `${ring.value} keer door een boostring` });
     return list;
   }
 

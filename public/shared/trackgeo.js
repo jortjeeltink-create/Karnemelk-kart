@@ -1,7 +1,7 @@
 // Bouwt uit een baandefinitie (controlepunten) een bruikbare baan:
 // een gladde middenlijn met vaste tussenafstand, breedte, en hulpfuncties
 // om te bepalen waar een kart zich op de baan bevindt.
-import { KART_RADIUS } from './constants.js';
+import { KART_RADIUS, JUMP, PHYS } from './constants.js';
 import { clamp } from './util.js';
 
 const SPACING = 1.0; // meter tussen twee punten op de middenlijn
@@ -207,6 +207,30 @@ export function buildTrack(def) {
       const p = track.pointAt(s, d);
       track.itemBoxes.push({ id: track.itemBoxes.length, x: p.x, z: p.z, s, d });
     }
+  }
+
+  // schansen (w = breedte, standaard de hele weg) en boostringen erachter
+  track.ramps = (def.ramps || []).map((r, idx) => {
+    const s = (((r.t * total) % total) + total) % total;
+    const len = r.len || 6;
+    const d = r.d || 0;
+    const p = track.pointAt(s + len / 2, d);
+    return { id: idx, s, len, d, halfW: r.w ? r.w / 2 : halfW + 0.6, power: r.power || 1, H: JUMP.rampH, x: p.x, z: p.z, h: p.h, ring: !!r.ring };
+  });
+  // ringen: hangen op het hoogste punt van een sprong op volle snelheid, of los boven de weg
+  track.rings = [];
+  for (const rp of track.ramps) {
+    if (!rp.ring) continue;
+    const vy = JUMP.launch * rp.power;
+    const tPeak = vy / JUMP.gravity;
+    const s = (rp.s + rp.len + PHYS.maxSpeed * 1.05 * tPeak) % total;
+    const p = track.pointAt(s, rp.d);
+    track.rings.push({ id: track.rings.length, s, d: rp.d, y: JUMP.rampH + (vy * vy) / (2 * JUMP.gravity) + 0.7, r: 2.7, x: p.x, z: p.z, h: p.h });
+  }
+  for (const rg of def.rings || []) {
+    const s = rg.t * total;
+    const p = track.pointAt(s, rg.d || 0);
+    track.rings.push({ id: track.rings.length, s, d: rg.d || 0, y: rg.y || 2.6, r: rg.r || 2.7, x: p.x, z: p.z, h: p.h });
   }
 
   track.zones = (def.zones || []).map((zn) => ({

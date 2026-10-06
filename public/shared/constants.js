@@ -27,10 +27,24 @@ export const PHYS = {
   iceGrip: 1.4,
   offroadFactor: 0.52,
   mudFactor: 0.58,
+  waterFactor: 0.45,
   boostFactor: 1.38,
   boostAccel: 32,
   bumpFactor: 0.58,
   wallBounce: 0.35,
+};
+
+// Schansen: rijd eroverheen en je vliegt (over andere karts heen)
+export const JUMP = {
+  gravity: 30,        // m/s² omlaag
+  rampH: 1.1,         // hoogte van de schansrand
+  launch: 11,         // m/s omhoog bij volle snelheid (keer de kracht van de schans)
+  minSpeed: 8,        // langzamer dan dit: je rolt er gewoon af
+  airSteer: 0.35,     // in de lucht stuur je maar een beetje
+  minAir: 0.4,        // zo lang vliegen voor een landingsturbo
+  landBoost: 0.6,     // seconden turbo na een mooie landing
+  ringBoost: 1.5,     // seconden turbo door een boostring
+  clear: 1.3,         // zoveel hoogteverschil en karts raken elkaar niet
 };
 
 export const DRIFT_LEVELS = [0.9, 1.8, 2.9];       // seconden laden per niveau

@@ -37,66 +37,95 @@ function noise(ctx, w, h, colors, count, size, seed = 1) {
 // style: asfalt | klinkers | zand | aarde | sneeuw | snoep | melk | beton
 export function roadTexture(style) {
   return cached('road-' + style, () => {
-    const W = 256, H = 256;
+    const W = 512, H = 512;
     const c = canvas(W, H);
     const g = c.getContext('2d');
     const base = {
-      asfalt: '#5d6168', klinkers: '#8a5a4a', zand: '#d8b679', aarde: '#9a7550', sneeuw: '#e9f1f8',
+      asfalt: '#575b62', klinkers: '#8a5a4a', zand: '#d8b679', aarde: '#9a7550', sneeuw: '#e9f1f8',
       snoep: '#f3a6c8', melk: '#f4f1ea', beton: '#8e9399',
-    }[style] || '#5d6168';
+    }[style] || '#575b62';
     g.fillStyle = base;
     g.fillRect(0, 0, W, H);
     if (style === 'klinkers') {
-      for (let y = 0; y < H; y += 16) {
-        for (let x = (y / 16) % 2 ? -12 : 0; x < W; x += 24) {
-          g.fillStyle = ['#9b6151', '#8c5546', '#a46a58', '#7f4c40'][(x * 7 + y * 3) & 3];
-          g.fillRect(x + 1, y + 1, 22, 14);
+      for (let y = 0; y < H; y += 24) {
+        for (let x = (y / 24) % 2 ? -18 : 0; x < W; x += 36) {
+          const shade = ['#9b6151', '#8c5546', '#a46a58', '#7f4c40', '#94594a'][(x * 7 + y * 3 + (x >> 2)) % 5];
+          g.fillStyle = '#5c3a30';
+          g.fillRect(x, y, 36, 24);
+          g.fillStyle = shade;
+          g.fillRect(x + 2, y + 2, 32, 20);
+          g.fillStyle = 'rgba(255,255,255,0.08)';
+          g.fillRect(x + 2, y + 2, 32, 4);
         }
       }
+      noise(g, W, H, ['rgba(0,0,0,0.15)', 'rgba(255,255,255,0.08)'], 3000, 1.6, 5);
     } else if (style === 'snoep') {
-      for (let y = 0; y < H; y += 32) {
-        g.fillStyle = (y / 32) % 2 ? '#f7b7d4' : '#f19ac0';
-        g.fillRect(0, y, W, 32);
+      for (let y = 0; y < H; y += 64) {
+        g.fillStyle = (y / 64) % 2 ? '#f7b7d4' : '#f19ac0';
+        g.fillRect(0, y, W, 64);
       }
-      noise(g, W, H, ['#ffffff', '#ffe066', '#7ad3ff'], 260, 3, 4);
+      noise(g, W, H, ['#ffffff', '#ffe066', '#7ad3ff'], 900, 4, 4);
     } else if (style === 'melk') {
       const grd = g.createLinearGradient(0, 0, W, 0);
       grd.addColorStop(0, '#d9e4ff'); grd.addColorStop(0.5, '#fbfaf6'); grd.addColorStop(1, '#d9e4ff');
       g.fillStyle = grd; g.fillRect(0, 0, W, H);
-      noise(g, W, H, ['#ffffff', '#cfd9ff', '#ffe9f6'], 500, 2.5, 7);
+      noise(g, W, H, ['#ffffff', '#cfd9ff', '#ffe9f6'], 1600, 3, 7);
     } else {
       const spots = {
-        asfalt: ['#54585e', '#666a72', '#4b4f55', '#70747b'], zand: ['#cfa96b', '#e3c58f', '#c69c5e'],
-        aarde: ['#8c6845', '#a7825a', '#7c5a3a'], sneeuw: ['#ffffff', '#dbe7f2', '#cfe0ef'], beton: ['#858a90', '#999ea4', '#7b8086'],
+        asfalt: ['#4f5359', '#62666d', '#474b51', '#6c7077', '#3f4348'], zand: ['#cfa96b', '#e3c58f', '#c69c5e', '#d9b77d'],
+        aarde: ['#8c6845', '#a7825a', '#7c5a3a', '#93704c'], sneeuw: ['#ffffff', '#dbe7f2', '#cfe0ef'], beton: ['#858a90', '#999ea4', '#7b8086', '#a2a7ad'],
       }[style] || ['#54585e', '#666a72'];
-      noise(g, W, H, spots, 2400, 2.2, 3);
+      noise(g, W, H, spots, 26000, 1.4, 3);
+      noise(g, W, H, spots, 1800, 3.2, 8);
+      if (style === 'asfalt' || style === 'beton') {
+        // donkere bandensporen waar iedereen rijdt, en wat reparatieplekken
+        for (const x of [0.3, 0.7]) {
+          const grd = g.createLinearGradient(W * (x - 0.09), 0, W * (x + 0.09), 0);
+          grd.addColorStop(0, 'rgba(20,20,24,0)'); grd.addColorStop(0.5, 'rgba(20,20,24,0.22)'); grd.addColorStop(1, 'rgba(20,20,24,0)');
+          g.fillStyle = grd; g.fillRect(W * (x - 0.09), 0, W * 0.18, H);
+        }
+        const r = rng(11);
+        for (let i = 0; i < 3; i++) { g.fillStyle = 'rgba(30,32,36,0.25)'; g.fillRect(r() * W * 0.8, r() * H, 40 + r() * 70, 30 + r() * 60); }
+      }
     }
     // middenstreep en zijlijnen
     if (style === 'asfalt' || style === 'beton') {
-      g.fillStyle = 'rgba(255,255,255,0.9)';
-      g.fillRect(W / 2 - 3, 20, 6, 90);
-      g.fillRect(W / 2 - 3, 148, 6, 90);
-      g.fillStyle = 'rgba(255,255,255,0.75)';
-      g.fillRect(8, 0, 5, H); g.fillRect(W - 13, 0, 5, H);
+      g.fillStyle = 'rgba(245,245,240,0.88)';
+      g.fillRect(W / 2 - 5, 40, 10, 180);
+      g.fillRect(W / 2 - 5, 296, 10, 180);
+      g.fillStyle = 'rgba(245,245,240,0.8)';
+      g.fillRect(14, 0, 9, H); g.fillRect(W - 23, 0, 9, H);
+      noise(g, W, H, ['rgba(80,80,80,0.5)'], 500, 2, 13); // slijtage in de lijnen
     } else if (style === 'melk') {
       g.fillStyle = 'rgba(120,170,255,0.55)';
-      g.fillRect(W / 2 - 2, 0, 4, H);
+      g.fillRect(W / 2 - 4, 0, 8, H);
     } else if (style === 'sneeuw') {
       g.fillStyle = 'rgba(150,170,190,0.35)';
-      for (let x of [W * 0.3, W * 0.7]) g.fillRect(x - 6, 0, 12, H); // bandensporen
+      for (let x of [W * 0.3, W * 0.7]) g.fillRect(x - 12, 0, 24, H); // bandensporen
     }
-    return tex(c, { repeat: true });
+    return tex(c, { repeat: true, aniso: 8 });
   });
 }
 
 export function groundTexture(color, spots, seed = 2) {
   return cached('ground-' + color + spots.join(), () => {
-    const c = canvas(128, 128);
+    const S = 256;
+    const c = canvas(S, S);
     const g = c.getContext('2d');
     g.fillStyle = color;
-    g.fillRect(0, 0, 128, 128);
-    noise(g, 128, 128, spots, 900, 2, seed);
-    return tex(c, { repeat: true });
+    g.fillRect(0, 0, S, S);
+    noise(g, S, S, spots, 5200, 2, seed);
+    // korte streepjes (grassprieten, zandribbels) voor meer detail
+    const r = rng(seed + 7);
+    for (let i = 0; i < 900; i++) {
+      g.strokeStyle = spots[Math.floor(r() * spots.length)];
+      g.globalAlpha = 0.55;
+      g.lineWidth = 1;
+      const x = r() * S, y = r() * S;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + (r() - 0.5) * 3, y - 2 - r() * 4); g.stroke();
+    }
+    g.globalAlpha = 1;
+    return tex(c, { repeat: true, aniso: 8 });
   });
 }
 

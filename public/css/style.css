@@ -200,6 +200,9 @@ input.pin { letter-spacing: 10px; font-size: 24px; text-align: center; -webkit-t
 .theme-woestijn { background: linear-gradient(135deg, #ff9e57, #c76b3a); }
 .theme-boerderij { background: linear-gradient(135deg, #4aa3ff, #67bb46); }
 .theme-melkweg { background: linear-gradient(135deg, #1a0f45, #6a3fcf); }
+.theme-polder { background: linear-gradient(135deg, #3d8fe0, #5aa83c); }
+.theme-nacht { background: linear-gradient(135deg, #0b0c2a, #ff3fa4); }
+.theme-vulkaan { background: linear-gradient(135deg, #3b1712, #ff7a1a); }
 .theme-random { background: linear-gradient(135deg, #ff5fa2, #ffd23f, #3dd6d0); }
 .settings-box { display: flex; flex-direction: column; gap: 8px; background: #f6f8fd; border-radius: 16px; padding: 10px 12px; }
 .setrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-weight: 800; min-height: 40px; }
@@ -446,6 +449,7 @@ body.racing #hud { display: block; }
 .award-botskampioen { background: #fff0e3; } .award-botskampioen b { color: #c45c00; }
 .award-pechvogel { background: #e9f2ff; } .award-pechvogel b { color: #1d5bb0; }
 .award-driftkoning { background: #ffe9f4; } .award-driftkoning b { color: #c43a7a; }
+.award-ringridder { background: #e6fbf3; } .award-ringridder b { color: #11845b; }
 .screen.creator { justify-content: flex-end; padding-bottom: calc(var(--sb) + 96px); }
 .creator-card { max-height: 60vh; overflow-y: auto; gap: 8px; }
 .creator-av svg { width: 52px; height: 58px; display: block; }

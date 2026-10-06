@@ -1,53 +1,48 @@
 // 3D-achtergrond voor de menu's: je kart op een draaiplateau, en het podium na de race.
 import * as THREE from '../../vendor/three.module.min.js';
 import { KartView, lambert } from './kart.js';
+import { std, skyMaterial, environmentFor, addVariation, roundedBox } from './look.js';
 import { Effects } from './effects.js';
-import { stripeTexture, textSprite } from './textures.js';
+import { stripeTexture, textSprite, groundTexture } from './textures.js';
 
 export class Showroom {
   constructor(engine) {
     this.engine = engine;
     const s = (this.scene = new THREE.Scene());
     s.background = new THREE.Color('#9fd8ff');
-    // zachte achtergrond
-    const skyGeo = new THREE.SphereGeometry(200, 24, 12);
-    const cols = [];
-    const top = new THREE.Color('#5bb8ff'), bottom = new THREE.Color('#fff4e0');
-    for (let i = 0; i < skyGeo.attributes.position.count; i++) {
-      const y = skyGeo.attributes.position.getY(i) / 200;
-      const c = bottom.clone().lerp(top, Math.max(0, Math.min(1, y * 1.4 + 0.2)));
-      cols.push(c.r, c.g, c.b);
-    }
-    skyGeo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
-    s.add(new THREE.Mesh(skyGeo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide })));
-    s.add(new THREE.HemisphereLight('#ffffff', '#b0c4ff', 1.3));
-    const sun = new THREE.DirectionalLight('#fff6e0', 1.6);
-    sun.position.set(5, 10, 7);
+    // zelfde mooie lucht en licht als in de races
+    const th = { sky: ['#3f9cf0', '#e3f3ff'], fog: '#d6ecfb', sun: ['#fff3da', 1.6], sunDir: [0.55, 0.62, 0.55], ground: ['#79c95f'], cloudCover: 0.5 };
+    this.skyMat = skyMaterial(th);
+    const sky = new THREE.Mesh(new THREE.SphereGeometry(300, 32, 16), this.skyMat);
+    sky.renderOrder = -10;
+    s.add(sky);
+    const env = environmentFor(th);
+    if (env) { s.environment = env.texture; s.environmentIntensity = 0.9; }
+    s.add(new THREE.HemisphereLight('#ffffff', '#8fb07a', 0.55));
+    const sun = new THREE.DirectionalLight('#fff3da', 2.6);
+    sun.position.set(6, 12, 8);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(1024, 1024);
+    Object.assign(sun.shadow.camera, { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 40 });
+    sun.shadow.bias = -0.0005;
+    sun.shadow.normalBias = 0.03;
     s.add(sun);
 
-    // grasveld met koeienvlekjes-wolkjes
-    const ground = new THREE.Mesh(new THREE.CircleGeometry(80, 40), lambert('#7fd36b'));
+    // grasveld
+    const gt = groundTexture('#6fbf55', ['#63b44b', '#7bcc60', '#5aa844', '#84d468']).clone();
+    gt.needsUpdate = true;
+    gt.repeat.set(16, 16);
+    const ground = new THREE.Mesh(new THREE.CircleGeometry(80, 48), addVariation(std({ map: gt, roughness: 0.95 }), { scale: 0.05, strength: 0.3 }));
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.02;
+    ground.receiveShadow = true;
     s.add(ground);
     this.turn = new THREE.Group();
-    const plate = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.6, 0.35, 40), new THREE.MeshLambertMaterial({ map: stripeTexture('#ffffff', '#ffd23f', 16, true) }));
+    const plate = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.6, 0.35, 48), std({ map: stripeTexture('#ffffff', '#ffd23f', 16, true), roughness: 0.35 }));
     plate.position.y = 0.17;
+    plate.receiveShadow = true;
     this.turn.add(plate);
     s.add(this.turn);
-    for (let i = 0; i < 9; i++) {
-      const cloud = new THREE.Group();
-      for (let k = 0; k < 4; k++) {
-        const b = new THREE.Mesh(new THREE.SphereGeometry(1.5 + Math.random(), 10, 8), lambert('#ffffff'));
-        b.position.set(k * 1.8 - 2.7, Math.random() * 0.8, Math.random());
-        cloud.add(b);
-      }
-      const a = (i / 9) * Math.PI * 2;
-      cloud.position.set(Math.cos(a) * 45, 14 + Math.random() * 10, Math.sin(a) * 45);
-      cloud.lookAt(0, cloud.position.y, 0);
-      s.add(cloud);
-    }
-
     this.kart = new KartView({});
     this.kart.group.position.y = 0.35;
     this.turn.add(this.kart.group);
@@ -60,7 +55,8 @@ export class Showroom {
     const colors = ['#ffd23f', '#d9e2ec', '#e0a46a'];
     this.podiumSpots = [];
     for (let i = 0; i < 3; i++) {
-      const b = new THREE.Mesh(new THREE.BoxGeometry(2.8, heights[i], 3), lambert(colors[i]));
+      const b = new THREE.Mesh(roundedBox(2.8, heights[i], 3, 0.12), lambert(colors[i], { roughness: 0.3, metalness: i === 0 ? 0.5 : 0.2 }));
+      b.castShadow = true; b.receiveShadow = true;
       b.position.set(xs[i], heights[i] / 2, 0);
       this.podium.add(b);
       const num = textSprite(String(i + 1), { size: 80, color: '#ffffff', stroke: '#2b1a4a', scale: 0.012 });
@@ -115,6 +111,7 @@ export class Showroom {
 
   update(dt) {
     this.t += dt;
+    this.skyMat.uniforms.time.value = this.t;
     const portrait = this.camera.aspect < 1;
     if (this.mode === 'podium') {
       // portret: podium bovenin beeld (de uitslag staat eronder)

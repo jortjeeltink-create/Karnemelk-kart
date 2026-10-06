@@ -3,6 +3,7 @@
 // Alles met "instancing", zodat het ook op een telefoon soepel blijft.
 import * as THREE from '../../vendor/three.module.min.js';
 import { lambert } from './kart.js';
+import { std, gloss, metal, polish, treeProto, skyMaterial, environmentFor, addVariation, grainNormalMap, noiseTexture, smoothGeometry } from './look.js';
 import { stripeTexture, patternTexture } from './textures.js';
 
 const tmpM = new THREE.Matrix4();
@@ -59,7 +60,7 @@ function proto(name) {
       const flag = new THREE.BufferGeometry();
       flag.setAttribute('position', new THREE.Float32BufferAttribute([0, 4.4, 0, 0, 3.4, 0, 1.3, 3.9, 0], 3));
       flag.computeVertexNormals();
-      p = [{ geo: T(new THREE.CylinderGeometry(0.05, 0.06, 4.6, 6), 0, 2.3, 0), mat: L('#e8e8ec') }, { geo: flag, mat: new THREE.MeshLambertMaterial({ color: '#ffffff', side: THREE.DoubleSide }), tint: true }];
+      p = [{ geo: T(new THREE.CylinderGeometry(0.05, 0.06, 4.6, 6), 0, 2.3, 0), mat: L('#e8e8ec') }, { geo: flag, mat: std({ color: '#ffffff', side: THREE.DoubleSide }), tint: true }];
       break;
     }
     case 'tribune': {
@@ -67,7 +68,7 @@ function proto(name) {
         { geo: T(new THREE.BoxGeometry(12, 0.6, 1.4), 0, 0.3, 1.4), mat: L('#b7bdc4') },
         { geo: T(new THREE.BoxGeometry(12, 1.2, 1.4), 0, 0.6, 0), mat: L('#a3aab2') },
         { geo: T(new THREE.BoxGeometry(12, 1.8, 1.4), 0, 0.9, -1.4), mat: L('#8f969d') },
-        { geo: T(new THREE.BoxGeometry(12.6, 0.15, 5), 0, 4.6, -0.2), mat: new THREE.MeshLambertMaterial({ map: stripeTexture('#ffffff', '#e63946', 12, true) }) },
+        { geo: T(new THREE.BoxGeometry(12.6, 0.15, 5), 0, 4.6, -0.2), mat: std({ map: stripeTexture('#ffffff', '#e63946', 12, true) }) },
         { geo: T(new THREE.BoxGeometry(0.15, 4.6, 0.15), -6, 2.3, -2.4), mat: L('#555b66') },
         { geo: T(new THREE.BoxGeometry(0.15, 4.6, 0.15), 6, 2.3, -2.4), mat: L('#555b66') },
       ];
@@ -80,11 +81,11 @@ function proto(name) {
     case 'bordPaal': p = [{ geo: T(new THREE.BoxGeometry(0.18, 3.2, 0.18), 0, 1.6, 0), mat: L('#555b66') }]; break;
     // ---- thema's ----
     case 'surfplank': p = [{ geo: (() => { const g = new THREE.CapsuleGeometry(0.28, 1.6, 4, 8); g.scale(1, 1, 0.18); return T(g, 0, 1.0, 0); })(), mat: L('#ffffff'), tint: true }]; break;
-    case 'strandbal': p = [{ geo: T(new THREE.SphereGeometry(0.35, 10, 8), 0, 0.35, 0), mat: new THREE.MeshLambertMaterial({ map: stripeTexture('#ff4b4b', '#ffffff', 6, true) }) }]; break;
+    case 'strandbal': p = [{ geo: T(new THREE.SphereGeometry(0.35, 10, 8), 0, 0.35, 0), mat: std({ map: stripeTexture('#ff4b4b', '#ffffff', 6, true) }) }]; break;
     case 'ijskar': p = [
       { geo: T(new THREE.BoxGeometry(1.4, 0.9, 0.8), 0, 0.75, 0), mat: L('#ffffff'), tint: true },
       { geo: T(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 5), 0, 1.9, 0), mat: L('#dddddd') },
-      { geo: T(new THREE.ConeGeometry(1.0, 0.5, 8), 0, 2.6, 0), mat: new THREE.MeshLambertMaterial({ map: stripeTexture('#ff5fa2', '#ffffff', 8, true) }) },
+      { geo: T(new THREE.ConeGeometry(1.0, 0.5, 8), 0, 2.6, 0), mat: std({ map: stripeTexture('#ff5fa2', '#ffffff', 8, true) }) },
       { geo: (() => { const g = new THREE.TorusGeometry(0.2, 0.05, 6, 10); g.rotateY(Math.PI / 2); return T(g, 0.5, 0.25, 0.4); })(), mat: L('#333333') },
     ]; break;
     case 'ballonnen': p = [
@@ -113,7 +114,7 @@ function proto(name) {
     case 'varen': p = [{ geo: (() => { const g = new THREE.ConeGeometry(0.6, 0.9, 6); return T(g, 0, 0.45, 0); })(), mat: L('#ffffff'), tint: true }]; break;
     case 'paddo': p = [
       { geo: T(new THREE.CylinderGeometry(0.08, 0.1, 0.35, 6), 0, 0.17, 0), mat: L('#f6f1e4') },
-      { geo: T(new THREE.SphereGeometry(0.25, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2), 0, 0.32, 0), mat: new THREE.MeshLambertMaterial({ map: patternTexture('stippen', '#e0312b') }) },
+      { geo: T(new THREE.SphereGeometry(0.25, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2), 0, 0.32, 0), mat: std({ map: patternTexture('stippen', '#e0312b') }) },
     ]; break;
     case 'meerpaal': p = [
       { geo: T(new THREE.CylinderGeometry(0.28, 0.32, 0.8, 10), 0, 0.4, 0), mat: L('#2b2d36') },
@@ -123,7 +124,7 @@ function proto(name) {
       { geo: T(new THREE.CylinderGeometry(0.4, 0.4, 1.0, 10), 0, 0.5, 0), mat: L('#ffffff'), tint: true },
       { geo: T(new THREE.CylinderGeometry(0.42, 0.42, 0.08, 10), 0, 0.8, 0), mat: L('#333333') },
     ]; break;
-    case 'kist': p = [{ geo: T(new THREE.BoxGeometry(1.0, 1.0, 1.0), 0, 0.5, 0), mat: new THREE.MeshLambertMaterial({ map: stripeTexture('#c99b5f', '#a87b45', 6, false) }) }]; break;
+    case 'kist': p = [{ geo: T(new THREE.BoxGeometry(1.0, 1.0, 1.0), 0, 0.5, 0), mat: std({ map: stripeTexture('#c99b5f', '#a87b45', 6, false) }) }]; break;
     case 'minisneeuwpop': p = [
       { geo: T(new THREE.SphereGeometry(0.45, 10, 8), 0, 0.4, 0), mat: L('#ffffff') },
       { geo: T(new THREE.SphereGeometry(0.32, 10, 8), 0, 1.0, 0), mat: L('#ffffff') },
@@ -137,8 +138,8 @@ function proto(name) {
     case 'wagenwiel': p = [{ geo: (() => { const g = new THREE.TorusGeometry(0.6, 0.06, 5, 12); return T(g, 0, 0.6, 0); })(), mat: L('#7a5230') }, { geo: T(new THREE.BoxGeometry(1.15, 0.05, 0.05), 0, 0.6, 0), mat: L('#7a5230') }, { geo: T(new THREE.BoxGeometry(0.05, 1.15, 0.05), 0, 0.6, 0), mat: L('#7a5230') }]; break;
     case 'steentje': p = [{ geo: T(new THREE.DodecahedronGeometry(0.5, 0), 0, 0.25, 0), mat: L('#ffffff'), tint: true }]; break;
     case 'melkbus': p = [
-      { geo: T(new THREE.CylinderGeometry(0.3, 0.32, 0.7, 10), 0, 0.35, 0), mat: new THREE.MeshPhongMaterial({ color: '#d5dbe3', shininess: 80, flatShading: true }) },
-      { geo: T(new THREE.CylinderGeometry(0.16, 0.3, 0.22, 10), 0, 0.81, 0), mat: new THREE.MeshPhongMaterial({ color: '#d5dbe3', shininess: 80, flatShading: true }) },
+      { geo: T(new THREE.CylinderGeometry(0.3, 0.32, 0.7, 10), 0, 0.35, 0), mat: gloss({ color: '#d5dbe3', shininess: 80, flatShading: true }) },
+      { geo: T(new THREE.CylinderGeometry(0.16, 0.3, 0.22, 10), 0, 0.81, 0), mat: gloss({ color: '#d5dbe3', shininess: 80, flatShading: true }) },
       { geo: T(new THREE.CylinderGeometry(0.18, 0.18, 0.08, 10), 0, 0.96, 0), mat: L('#2f7de1') },
     ]; break;
     case 'schaap': p = [
@@ -146,7 +147,7 @@ function proto(name) {
       { geo: T(new THREE.SphereGeometry(0.22, 8, 6), 0, 0.85, 0.7), mat: L('#2a2a2a') },
       { geo: T(new THREE.BoxGeometry(0.6, 0.45, 0.9), 0, 0.22, 0), mat: L('#2a2a2a') },
     ]; break;
-    case 'kristal': p = [{ geo: (() => { const g = new THREE.OctahedronGeometry(0.6, 0); g.scale(0.6, 1.4, 0.6); return T(g, 0, 0.9, 0); })(), mat: new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#4a3a8a', flatShading: true }), tint: true }]; break;
+    case 'kristal': p = [{ geo: (() => { const g = new THREE.OctahedronGeometry(0.6, 0); g.scale(0.6, 1.4, 0.6); return T(g, 0, 0.9, 0); })(), mat: std({ color: '#ffffff', emissive: '#4a3a8a', flatShading: true }), tint: true }]; break;
     case 'satelliet': p = [
       { geo: T(new THREE.BoxGeometry(0.6, 0.6, 0.6), 0, 2.5, 0), mat: L('#d9e2ec') },
       { geo: T(new THREE.BoxGeometry(2.2, 0.04, 0.7), 0, 2.5, 0), mat: L('#2f4f9e', { emissive: '#101a40' }) },
@@ -215,6 +216,9 @@ const BOARDS = {
   woestijn: ['LAATSTE TANKSTATION\n300 KM', 'CACTUS AAIEN\nOP EIGEN RISICO'],
   boerderij: ['VERSE KARNEMELK\nBIJ DE BOER', 'KOEIEN HEBBEN\nVOORRANG'],
   melkweg: ['MELKWEG:\nNOG 0,5 LICHTJAAR', 'MAANKAAS\nIN DE AANBIEDING'],
+  polder: ['SLOOTJE\nSPRINGEN!', 'TREKKER\nOP DE WEG', 'VERSE KAAS\nAAN DE DIJK'],
+  nacht: ['NEON NOODLES\nOPEN TOT 4U', 'NACHTWINKEL\n24/7', 'SLAAP IS\nVOOR WATJES'],
+  vulkaan: ['HEET!\nNIET AANRAKEN', 'LAVA-IJSJES\n2 VOOR 1', 'ZONNEBRAND\nFACTOR 1000'],
 };
 
 const BOARD_BACK_GEO = new THREE.BoxGeometry(6.5, 2.5, 0.1);
@@ -472,6 +476,20 @@ export function addRoadside(ctx) {
     case 'boerderij':
       instanced(deco, proto('melkbus'), close(c(22), 0.6, 2.5, 0.4));
       instanced(deco, proto('schaap'), close(c(14), 2, 9, 1.0, () => ({ ry: rand() * 6 })));
+      break;
+    case 'polder':
+      instanced(deco, proto('melkbus'), close(c(18), 0.6, 2.5, 0.4));
+      instanced(deco, proto('schaap'), close(c(18), 2, 9, 1.0, () => ({ ry: rand() * 6 })));
+      instanced(deco, proto('fiets'), close(c(8), 0.9, 1.6, 0.8, () => ({ color: pick(['#222831', '#e63946', '#2f7de1', '#ffffff']) })));
+      break;
+    case 'nacht':
+      instanced(deco, proto('pion'), close(c(30), 0.5, 2, 0.4));
+      instanced(deco, proto('bankje'), close(c(10), 0.8, 2.5, 1.0));
+      instanced(deco, proto('vatje'), close(c(10), 0.7, 3, 0.5, () => ({ color: pick(['#ff3fa4', '#3ff6ff', '#ffe14d']) })));
+      break;
+    case 'vulkaan':
+      instanced(deco, proto('steentje'), close(c(40), 0.5, 5, 0.5, () => ({ color: pick(['#2e2624', '#3a302c', '#241d1b']), s: 0.6 + rand() * 1.2 })));
+      instanced(deco, proto('kristal'), close(c(18), 0.6, 5, 0.6, () => ({ color: pick(['#ff7a1a', '#ffb000', '#ff4a00']), s: 0.5 + rand() * 0.8, ry: rand() * 3 })));
       break;
     case 'melkweg':
       instanced(deco, proto('kristal'), close(c(26), 0.6, 5, 0.6, () => ({ color: pick(['#7cf8ff', '#ff7cf2', '#ffe14d', '#9b8cff']), s: 0.6 + rand() * 0.9, ry: rand() * 3 })));

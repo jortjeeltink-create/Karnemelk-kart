@@ -17,7 +17,7 @@ import { cleanLook, lookScales, BUILDS, HEIGHTS } from '../public/shared/look.js
 import { botInput } from '../public/shared/bots.js';
 import { Predictor } from '../public/js/game/predict.js';
 import { rng } from '../public/shared/util.js';
-import { DT, LAPS } from '../public/shared/constants.js';
+import { DT, LAPS, PHYS, JUMP } from '../public/shared/constants.js';
 
 test('er zijn minstens 8 verschillende, geldige banen', () => {
   assert.ok(TRACKS.length >= 8);
@@ -163,6 +163,86 @@ test('itemverdeling helpt de achterhoede', () => {
     return turbo;
   };
   assert.ok(count(10) > count(1) * 3);
+});
+
+// rijdt een kart met volle snelheid over een schans en geeft de gebeurtenissen terug
+function overSchans(tr, rp, { speed = PHYS.maxSpeed, before = 30 } = {}) {
+  const k = createKart(0, tr, 0);
+  const p = tr.pointAt(rp.s - before, rp.d);
+  Object.assign(k, { x: p.x, z: p.z, h: p.h, vx: Math.sin(p.h) * speed, vz: Math.cos(p.h) * speed, lap: 1 });
+  const loc = tr.locate(k.x, k.z); k.i = loc.i; k.s = loc.s;
+  const ev = [];
+  let maxY = 0, airSteps = 0;
+  const env = { time: 0, laps: 3, emit: (t, d) => ev.push({ t, ...d }) };
+  for (let n = 0; n < 200; n++) {
+    env.time = n * DT;
+    const tgt = tr.pointAt(k.s + 9, rp.d);
+    const fx = Math.sin(k.h), fz = Math.cos(k.h);
+    const dx = tgt.x - k.x, dz = tgt.z - k.z;
+    const steer = Math.max(-1, Math.min(1, Math.atan2(dx * -fz + dz * fx, dx * fx + dz * fz) * 2.4));
+    stepKart(k, { steer, gas: speed > 10 }, tr, env);
+    maxY = Math.max(maxY, k.y);
+    if (k.air) airSteps++;
+  }
+  return { k, ev, maxY, air: airSteps * DT, types: ev.map((e) => e.t) };
+}
+
+test('schansen: vliegen, door de boostring, en een landingsturbo', () => {
+  const tr = buildTrack(TRACK_BY_ID.schansenpolder);
+  assert.ok(tr.ramps.length >= 3, 'genoeg schansen');
+  const rp = tr.ramps.find((r) => r.ring);
+  const r = overSchans(tr, rp);
+  assert.ok(r.types.includes('jump'), 'kart springt');
+  assert.ok(r.maxY > 2.5, `hoog genoeg om over een kart te springen (${r.maxY.toFixed(1)} m)`);
+  assert.ok(r.air > 0.6 && r.air < 1.6, `luchttijd ${r.air.toFixed(2)} s`);
+  assert.ok(r.types.includes('ring'), 'door de boostring gevlogen');
+  assert.ok(r.types.includes('land'), 'weer geland');
+  assert.ok(r.ev.some((e) => e.t === 'boost' && e.src === 'land'), 'landingsturbo');
+  assert.equal(r.k.y, 0, 'staat weer op de grond');
+  // langzaam over de schans: nauwelijks een sprong, geen ring
+  const slow = overSchans(tr, rp, { speed: 6, before: 8 });
+  assert.ok(slow.maxY < 1.3, 'langzaam rol je er gewoon af');
+  assert.ok(!slow.types.includes('ring'));
+  // in de lucht stuur je minder
+  assert.ok(JUMP.airSteer < 0.5);
+});
+
+test('elke schans op elke baan werkt, en elke ring is te halen', () => {
+  for (const def of TRACKS) {
+    const tr = buildTrack(def);
+    for (const rp of tr.ramps) {
+      const r = overSchans(tr, rp, { before: 26 });
+      assert.ok(r.types.includes('jump'), `${def.id} schans ${rp.id} lanceert`);
+      if (rp.ring) assert.ok(r.types.includes('ring'), `${def.id} ring achter schans ${rp.id} is te halen`);
+      assert.ok(!r.types.includes('wall'), `${def.id} schans ${rp.id}: niet tegen de muur na de landing`);
+    }
+  }
+});
+
+test('in de lucht: over andere karts, plassen en obstakels heen, en de sloot', () => {
+  const tr = buildTrack(TRACK_BY_ID.schansenpolder);
+  const entrants = [0, 1].map((kid) => ({ kid, id: 'p' + kid, name: 'P' + kid, isBot: false }));
+  const race = new Race({ track: tr, entrants, startDelay: 0 });
+  race.update(0.001);
+  const [a, b] = race.karts;
+  const p = tr.pointAt(200, 0);
+  b.x = p.x; b.z = p.z; b.vx = 0; b.vz = 0; b.y = 0;
+  a.x = p.x - Math.sin(p.h) * 1.0; a.z = p.z - Math.cos(p.h) * 1.0; a.vx = Math.sin(p.h) * 25; a.vz = Math.cos(p.h) * 25;
+  a.y = 2.5; a.air = 1;
+  race.takeEvents();
+  race.kartCollisions();
+  assert.ok(!race.takeEvents().some((e) => e.type === 'bump'), 'wie vliegt, botst niet');
+  assert.equal(b.bumpT, 0);
+  a.y = 0; a.air = 0;
+  race.kartCollisions();
+  assert.ok(race.takeEvents().some((e) => e.type === 'bump'), 'op de grond wel');
+  // de hoogte gaat mee over het netwerk
+  a.y = 3.21;
+  assert.equal(decodeVisual(encodeVisual(a)).y, 3.21);
+  // sloot: zonder sprong word je flink afgeremd
+  const zn = tr.zones.find((z) => z.type === 'water');
+  assert.ok(zn, 'polder heeft sloten');
+  assert.equal(tr.zoneAt(zn.s0 + 2, 0), 'water');
 });
 
 test('botsingen vertragen de geraakte kart en duwen hem opzij', () => {

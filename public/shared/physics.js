@@ -3,7 +3,7 @@
 //
 // Conventie: kijkrichting = (sin h, cos h) in het x/z-vlak. Sturen naar rechts
 // (steer > 0) verkleint h. Rechts van de kart = (-cos h, sin h).
-import { DT, PHYS, DRIFT_LEVELS, DRIFT_BOOST, KART_RADIUS, LAPS } from './constants.js';
+import { DT, PHYS, DRIFT_LEVELS, DRIFT_BOOST, KART_RADIUS, LAPS, JUMP } from './constants.js';
 import { clamp } from './util.js';
 import { ITEM } from './items.js';
 
@@ -13,7 +13,7 @@ export function createKart(kid, track, slot) {
   const g = track.gridSlot(slot);
   const loc = track.locate(g.x, g.z);
   return {
-    kid, x: g.x, z: g.z, h: g.h, vx: 0, vz: 0,
+    kid, x: g.x, z: g.z, h: g.h, vx: 0, vz: 0, y: 0, vy: 0, air: 0, airT: 0, ramp: 0,
     i: loc.i, s: loc.s, d: loc.d, lap: 0, cp: 0,
     drift: 0, driftT: 0, hopT: 0,
     boostT: 0, bumpT: 0, spinT: 0, shieldT: 0,
@@ -105,16 +105,19 @@ export function stepKart(k, inp, track, env) {
 
   // ondergrond
   const loc = track.locate(k.x, k.z, k.i);
-  const offroad = Math.abs(loc.d) > track.halfW + 0.4;
-  const zone = track.zones.length ? track.zoneAt(loc.s, loc.d) : null;
+  const inAir = k.air > 0;
+  const offroad = !inAir && Math.abs(loc.d) > track.halfW + 0.4;
+  const zone = !inAir && track.zones.length ? track.zoneAt(loc.s, loc.d) : null;
   let maxSpd = P.maxSpeed * (k.maxMul || 1);
   let grip = P.grip;
   if (offroad) maxSpd *= k.boostT > 0 ? 0.9 : P.offroadFactor;
   if (zone === 'modder') maxSpd *= k.boostT > 0 ? 0.9 : P.mudFactor;
+  if (zone === 'water' || zone === 'lava') maxSpd *= k.boostT > 0 ? 0.75 : P.waterFactor;
+  if (zone === 'lava' && k.shieldT <= 0) k.bumpT = Math.max(k.bumpT, 0.15); // au, heet!
   if (zone === 'ijs') grip = P.iceGrip;
   if (k.boostT > 0) maxSpd *= P.boostFactor;
   if (k.bumpT > 0) maxSpd *= P.bumpFactor;
-  k.surface = zone || (offroad ? 'berm' : 'weg');
+  k.surface = inAir ? 'lucht' : zone || (offroad ? 'berm' : 'weg');
 
   // sturen en driften
   const fx0 = Math.sin(k.h), fz0 = Math.cos(k.h);
@@ -122,7 +125,7 @@ export function stepKart(k, inp, track, env) {
   const speedAbs = Math.abs(vf);
   let yaw = 0;
 
-  if (driftEdge && k.hopT <= 0 && !spinning) {
+  if (driftEdge && k.hopT <= 0 && !spinning && !inAir) {
     k.hopT = 0.3;
     emit(env, 'hop', { kid: k.kid });
   }
@@ -152,6 +155,7 @@ export function stepKart(k, inp, track, env) {
     const hi = 1 - 0.36 * clamp(speedAbs / P.maxSpeed, 0, 1);
     yaw = steer * P.turnRate * sf * hi * (vf < -0.5 ? -1 : 1);
   }
+  if (inAir) yaw *= JUMP.airSteer;
   k.h -= yaw * dt;
   if (k.h > Math.PI) k.h -= Math.PI * 2;
   else if (k.h < -Math.PI) k.h += Math.PI * 2;
@@ -161,7 +165,11 @@ export function stepKart(k, inp, track, env) {
   const rx = -fz, rz = fx;
   vf = k.vx * fx + k.vz * fz;
   let vr = k.vx * rx + k.vz * rz;
-  if (spinning) {
+  if (inAir) {
+    // vliegen: snelheid blijft, alleen turbo duwt nog
+    if (k.boostT > 0 && vf < maxSpd) vf = Math.min(maxSpd, vf + P.boostAccel * 0.5 * dt);
+    vr *= Math.exp(-1.5 * dt);
+  } else if (spinning) {
     const damp = Math.exp(-2.4 * dt);
     vf *= damp; vr *= damp;
   } else {
@@ -184,6 +192,23 @@ export function stepKart(k, inp, track, env) {
   k.vz = fz * vf + rz * vr;
   k.x += k.vx * dt;
   k.z += k.vz * dt;
+
+  // hoogte: vliegen en landen
+  if (k.air) {
+    k.vy -= JUMP.gravity * dt;
+    k.y += k.vy * dt;
+    k.airT += dt;
+    if (k.y <= 0) {
+      const impact = -k.vy;
+      k.y = 0; k.vy = 0; k.air = 0;
+      if (k.airT >= JUMP.minAir && k.spinT <= 0) {
+        k.boostT = Math.max(k.boostT, JUMP.landBoost);
+        emit(env, 'boost', { kid: k.kid, src: 'land' });
+      }
+      emit(env, 'land', { kid: k.kid, p: Math.round(impact * 10) / 10, x: k.x, z: k.z });
+      k.airT = 0;
+    }
+  }
 
   // muren
   let l2 = track.locate(k.x, k.z, loc.i);
@@ -208,6 +233,7 @@ export function stepKart(k, inp, track, env) {
 
   // vaste obstakels
   for (const o of track.obstacles) {
+    if (k.y > 1.2) break; // eroverheen gesprongen
     const dx = k.x - o.x, dz = k.z - o.z;
     const rr = o.r + KART_RADIUS;
     const d2 = dx * dx + dz * dz;
@@ -228,7 +254,7 @@ export function stepKart(k, inp, track, env) {
   }
 
   // bewegende obstakels (koe, tram, ...): positie hangt alleen af van de racetijd
-  if (track.hazards.length && env) {
+  if (track.hazards.length && env && k.y < 1.6) {
     for (const hz of track.hazards) {
       const p = track.hazardPos(hz, env.time || 0);
       const dx = k.x - p.x, dz = k.z - p.z;
@@ -249,8 +275,34 @@ export function stepKart(k, inp, track, env) {
     }
   }
 
+  // schansen: omhoog over de schans, en eraf = vliegen
+  if (!k.air && track.ramps.length) {
+    let on = null, ds = 0;
+    for (const r of track.ramps) {
+      let x = l2.s - r.s;
+      if (x < -track.L / 2) x += track.L;
+      else if (x > track.L / 2) x -= track.L;
+      if (x >= 0 && x <= r.len && Math.abs(l2.d - r.d) <= r.halfW) { on = r; ds = x; break; }
+    }
+    if (on) {
+      k.y = on.H * (ds / on.len);
+      k.ramp = on.id + 1;
+    } else if (k.ramp) {
+      const r = track.ramps[k.ramp - 1];
+      k.ramp = 0;
+      const vfNow = k.vx * Math.sin(k.h) + k.vz * Math.cos(k.h);
+      k.air = 1; k.airT = 0;
+      k.vy = vfNow > JUMP.minSpeed && k.spinT <= 0 ? JUMP.launch * r.power * clamp(vfNow / P.maxSpeed, 0.55, 1.25) : 0;
+      if (k.vy > 0) {
+        if (k.drift) { k.drift = 0; k.driftT = 0; }
+        emit(env, 'jump', { kid: k.kid, x: k.x, z: k.z });
+      }
+    } else if (k.y) k.y = 0;
+  }
+
   // turbostroken
   for (const pad of track.boostPads) {
+    if (k.air) break;
     let ds = l2.s - pad.s;
     if (ds < -track.L / 2) ds += track.L;
     if (ds >= 0 && ds <= pad.len && Math.abs(l2.d - pad.d) <= pad.halfW) {
@@ -263,6 +315,17 @@ export function stepKart(k, inp, track, env) {
   const prevS = k.s;
   k.s = l2.s; k.d = l2.d; k.i = l2.i;
   const L = track.L;
+
+  // boostringen: vlieg (of rij) er dwars doorheen
+  for (const rg of track.rings) {
+    let a = prevS - rg.s, b = k.s - rg.s;
+    if (a > L / 2) a -= L; else if (a < -L / 2) a += L;
+    if (b > L / 2) b -= L; else if (b < -L / 2) b += L;
+    if (a < 0 && b >= 0 && Math.abs(k.d - rg.d) < rg.r && Math.abs(k.y + 0.7 - rg.y) < rg.r) {
+      k.boostT = Math.max(k.boostT, JUMP.ringBoost);
+      emit(env, 'ring', { kid: k.kid, id: rg.id });
+    }
+  }
   if (!k.finished) {
     for (let c = 1; c <= 3; c++) {
       const cs = (L * c) / 4;

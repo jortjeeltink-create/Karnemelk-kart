@@ -1,5 +1,6 @@
 // WebGL-renderer, schermformaat en de tekenlus (met automatische kwaliteit).
 import * as THREE from '../../vendor/three.module.min.js';
+import { setRenderer, setLowQuality } from './look.js';
 
 export class Engine {
   constructor(canvas, settings) {
@@ -7,6 +8,13 @@ export class Engine {
     this.settings = settings;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: settings.quality !== 'laag', powerPreference: 'high-performance', alpha: false });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    // filmische kleuren en echte schaduwen
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 0.95;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = settings.quality === 'hoog' ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+    setRenderer(this.renderer);
+    setLowQuality(settings.quality === 'laag');
     this.view = null;
     this.last = performance.now();
     this.fpsT = 0; this.fpsN = 0; this.fps = 60;
@@ -28,14 +36,22 @@ export class Engine {
   }
 
   applyQuality() {
+    setLowQuality(this.qualityLevel === 'laag');
     this.ratio = this.settings.quality === 'auto' ? Math.min(this.autoRatio, Math.min(window.devicePixelRatio || 1, 2)) : this.maxRatio();
     this.renderer.setPixelRatio(this.ratio);
     this.resize();
   }
 
+  // schaduwen: 'hoog' scherp en groot, 'normaal' kleiner, 'laag' geen
+  get shadowSize() {
+    const q = this.qualityLevel;
+    return q === 'laag' ? 0 : q === 'hoog' ? 2048 : 1024;
+  }
+
   get qualityLevel() {
     const q = this.settings.quality;
-    if (q === 'auto') return this.ratio < 1.1 ? 'laag' : 'normaal';
+    // automatisch: pas 'laag' als deze telefoon het echt niet bijhield
+    if (q === 'auto') return this.downgraded && this.autoRatio < 1.1 ? 'laag' : 'normaal';
     return q;
   }
 
@@ -87,7 +103,7 @@ export class Engine {
     // te traag? resolutie omlaag. Ruim snel genoeg? langzaam weer omhoog.
     if (this.fps < 40) { this.slowFor++; this.fastFor = 0; } else if (this.fps > 57) { this.fastFor++; this.slowFor = 0; } else { this.slowFor = 0; this.fastFor = 0; }
     const max = Math.min(window.devicePixelRatio || 1, 2);
-    if (this.slowFor >= 2 && this.autoRatio > 0.75) { this.autoRatio = Math.max(0.75, this.autoRatio - 0.25); this.slowFor = 0; this.applyQuality(); }
+    if (this.slowFor >= 2 && this.autoRatio > 0.75) { this.autoRatio = Math.max(0.75, this.autoRatio - 0.25); this.slowFor = 0; this.downgraded = true; this.applyQuality(); }
     if (this.fastFor >= 6 && this.autoRatio < max) { this.autoRatio = Math.min(max, this.autoRatio + 0.25); this.fastFor = 0; this.applyQuality(); }
   }
 }
