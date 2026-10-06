@@ -4,6 +4,7 @@ services:
     name: karnemelk-kart
     runtime: node
     plan: free
+    region: frankfurt   # dichtbij Nederland: minder vertraging in de race
     buildCommand: npm install --omit=dev
     startCommand: npm start
     healthCheckPath: /health
