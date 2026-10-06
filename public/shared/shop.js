@@ -54,7 +54,7 @@ export const SHOP_ITEMS = [
   // --- specials: extra coureurs om mee te racen (alleen uiterlijk) ---
   { id: 'special_meke', slot: 'special', name: 'Meke', rarity: 'episch', price: 250, look: { character: 'meke' } },
   { id: 'special_nicole', slot: 'special', name: 'Nicole', rarity: 'episch', price: 250, look: { character: 'nicole' } },
-  { id: 'special_cherso', slot: 'special', name: 'Cherso Duif', rarity: 'episch', price: 300, look: { character: 'cherso' } },
+  { id: 'special_cherso', slot: 'special', name: 'Cherso Duif', rarity: 'episch', price: 250, look: { character: 'cherso' } },
 
   // --- capes ---
   { id: 'cape_rood', slot: 'cape', name: 'Rode cape', rarity: 'gewoon', price: 50, look: { colors: ['#d62828'] } },

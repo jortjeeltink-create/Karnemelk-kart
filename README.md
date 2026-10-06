@@ -159,7 +159,7 @@ De prijzen zijn bewust betaalbaar. Een race met vier vrienden levert al snel 40 
 
 | Soort | Items en prijzen (MP) |
 |---|---|
-| Specials | Meke 250, Nicole 250, Cherso Duif 300 |
+| Specials | Meke 250, Nicole 250, Cherso Duif 250 (na 5 online races heb je er altijd genoeg voor, ook als je steeds laatste wordt) |
 | Capes | Rode cape 50, Hemelsblauwe cape 50, Oranje feestcape 110, Boerenzakdoek-cape 130, Sterrennacht-cape 220, Regenboogcape 380, **Gouden cape 900 (Legendarisch)** |
 | Karts | Bakfietskart 70, Roze droomkart 140, Tractorkart 160, Melkwagen 220, Badkuip-kart 240, Klompkart 320, Monstertruck 380, Raketkart 450 |
 | Kartkleuren | Melkwit 30, Weidegroen 30, Kauwgomroze 40, Koningsoranje 80, Nachtblauw 80, Koeienvlekken 180, Spiegelchroom 300, Lavagloed 320 |

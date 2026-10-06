@@ -341,6 +341,9 @@ test('alles is betaalbaar: een special heb je binnen 5 races', () => {
   const specials = SHOP_ITEMS.filter((i) => i.slot === 'special');
   assert.equal(specials.length, 3);
   for (const sp of specials) assert.ok(sp.price <= after5, `${sp.name} (${sp.price} MP) haalbaar na 5 races (${after5} MP)`);
+  // zelfs wie 5 keer laatste wordt, kan elke special kopen
+  const last = computePoints(rows).d.mp;
+  for (const sp of specials) assert.ok(sp.price <= START_MP + 5 * last, `${sp.name} haalbaar na 5 keer laatste (${START_MP + 5 * last} MP)`);
   // geen enkel item kost meer dan zo'n 25 races, de gouden cape blijft het duurste
   const goud = SHOP_ITEMS.find((i) => i.id === 'cape_goud');
   assert.ok(goud.price <= 25 * third, 'gouden cape blijft bereikbaar');
