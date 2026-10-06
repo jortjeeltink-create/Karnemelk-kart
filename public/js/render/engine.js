@@ -1,6 +1,6 @@
 // WebGL-renderer, schermformaat en de tekenlus (met automatische kwaliteit).
 import * as THREE from '../../vendor/three.module.min.js';
-import { setRenderer, setLowQuality } from './look.js';
+import { setRenderer, setQuality } from './look.js';
 
 export class Engine {
   constructor(canvas, settings) {
@@ -14,12 +14,14 @@ export class Engine {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = settings.quality === 'hoog' ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
     setRenderer(this.renderer);
-    setLowQuality(settings.quality === 'laag');
     this.view = null;
     this.last = performance.now();
     this.fpsT = 0; this.fpsN = 0; this.fps = 60;
     this.slowFor = 0; this.fastFor = 0;
-    this.autoRatio = Math.min(window.devicePixelRatio || 1, 2);
+    // automatisch: begin met hooguit 1,5 pixel per punt (scheelt veel op iPad en telefoons)
+    this.autoRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+    this.slowSteps = 0;
+    this.onSlow = null; // de race kan hier o.a. schaduwen uitzetten
     this.applyQuality();
     const onResize = () => this.resize();
     window.addEventListener('resize', onResize);
@@ -36,16 +38,16 @@ export class Engine {
   }
 
   applyQuality() {
-    setLowQuality(this.qualityLevel === 'laag');
-    this.ratio = this.settings.quality === 'auto' ? Math.min(this.autoRatio, Math.min(window.devicePixelRatio || 1, 2)) : this.maxRatio();
+    setQuality(this.qualityLevel);
+    this.ratio = this.settings.quality === 'auto' ? Math.min(this.autoRatio, Math.min(window.devicePixelRatio || 1, 1.5)) : this.maxRatio();
     this.renderer.setPixelRatio(this.ratio);
     this.resize();
   }
 
   // schaduwen: 'hoog' scherp en groot, 'normaal' kleiner, 'laag' geen
+  // Echte schaduwen alleen bij 'Hoog'; anders een zachte schaduwvlek onder elke kart (veel sneller).
   get shadowSize() {
-    const q = this.qualityLevel;
-    return q === 'laag' ? 0 : q === 'hoog' ? 2048 : 1024;
+    return this.qualityLevel === 'hoog' ? 2048 : 0;
   }
 
   get qualityLevel() {
@@ -100,11 +102,21 @@ export class Engine {
     this.fps = this.fpsN / this.fpsT;
     this.fpsT = 0; this.fpsN = 0;
     if (this.settings.quality !== 'auto' || document.hidden) return;
-    // te traag? resolutie omlaag. Ruim snel genoeg? langzaam weer omhoog.
-    if (this.fps < 40) { this.slowFor++; this.fastFor = 0; } else if (this.fps > 57) { this.fastFor++; this.slowFor = 0; } else { this.slowFor = 0; this.fastFor = 0; }
-    const max = Math.min(window.devicePixelRatio || 1, 2);
-    if (this.slowFor >= 2 && this.autoRatio > 0.75) { this.autoRatio = Math.max(0.75, this.autoRatio - 0.25); this.slowFor = 0; this.downgraded = true; this.applyQuality(); }
-    if (this.fastFor >= 6 && this.autoRatio < max) { this.autoRatio = Math.min(max, this.autoRatio + 0.25); this.fastFor = 0; this.applyQuality(); }
+    // te traag? stap voor stap lichter. Ruim snel genoeg? langzaam weer iets scherper.
+    if (this.fps < 48) { this.slowFor++; this.fastFor = 0; } else if (this.fps > 58) { this.fastFor++; this.slowFor = 0; } else { this.slowFor = 0; this.fastFor = 0; }
+    if (this.slowFor >= 2) {
+      this.slowFor = 0;
+      this.slowSteps++;
+      // eerst schaduwen uit (als die aan staan), daarna steeds minder scherp
+      if (this.onSlow && this.onSlow('schaduw')) return;
+      if (this.autoRatio > 0.75) {
+        this.autoRatio = Math.max(0.75, this.autoRatio - 0.25);
+        if (this.autoRatio < 1.1) this.downgraded = true;
+        this.applyQuality();
+      }
+    }
+    const max = Math.min(window.devicePixelRatio || 1, 1.5);
+    if (this.fastFor >= 8 && this.autoRatio < max && !this.downgraded) { this.autoRatio = Math.min(max, this.autoRatio + 0.25); this.fastFor = 0; this.applyQuality(); }
   }
 }
 

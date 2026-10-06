@@ -4,15 +4,38 @@ export const CHARACTERS = [
   { id: 'kees', name: 'Kees Karnemelk', desc: 'Een vrolijk melkpak met een snor.', head: 'pak', body: '#2f7de1', skin: '#ffffff', kart: '#3a8ef6', accent: '#ffffff' },
   {
     id: 'meke', friend: true, special: 'special_meke', name: 'Meke', desc: 'Lang en dun: ziet elke bocht als eerste aankomen.', head: 'mens', body: '#7b6cff', skin: '#f6c9a5', kart: '#8f7dff', accent: '#ffd23f',
-    look: { skin: '#f6c9a5', hair: 'lang', hairColor: '#4a2f1d', shirt: '#7b6cff', height: 'extralang', build: 'dun', glasses: 'geen', facial: 'geen', heightScale: 1.42, buildScale: 0.72 },
+    look: { skin: '#f6c9a5', hair: 'lang', hairColor: '#ecc96d', shirt: '#7b6cff', height: 'extralang', build: 'dun', glasses: 'geen', facial: 'geen', heightScale: 1.42, buildScale: 0.72 },
   },
   {
-    id: 'nicole', friend: true, special: 'special_nicole', name: 'Nicole', desc: 'Rijdt stevig door en gaat geen botsing uit de weg.', head: 'mens', body: '#ff5fa2', skin: '#f6c9a5', kart: '#ff6fb0', accent: '#ffffff',
-    look: { skin: '#f6c9a5', hair: 'staart', hairColor: '#c58b3a', shirt: '#ff5fa2', height: 'normaal', build: 'stevig', glasses: 'geen', facial: 'geen', buildScale: 1.35 },
+    id: 'meike', friend: true, special: 'special_meike', name: 'Meike', desc: 'Donker haar en dun: glipt overal tussendoor.', head: 'mens', body: '#9b5de5', skin: '#f6c9a5', kart: '#8e4fd9', accent: '#ffffff',
+    look: { skin: '#f6c9a5', hair: 'lang', hairColor: '#3a2418', shirt: '#9b5de5', height: 'normaal', build: 'dun', glasses: 'geen', facial: 'geen' },
   },
   {
-    id: 'cherso', friend: true, special: 'special_cherso', name: 'Cherso Duif', desc: 'De grootste van het stel, met zijn trouwe duif op zijn hoofd.', head: 'mens', body: '#3e8e41', skin: '#e8b48a', kart: '#4caf50', accent: '#9aa5b1',
-    look: { skin: '#e8b48a', hair: 'kort', hairColor: '#1f1a17', shirt: '#3e8e41', height: 'normaal', build: 'extrastevig', glasses: 'geen', facial: 'geen', heightScale: 1.08, buildScale: 1.78, duif: true },
+    id: 'ridderkees', friend: true, special: 'special_ridderkees', name: 'Ridder Kees', desc: 'Kees in een glimmend ridderpak. Voor de eer van de karnemelk!', head: 'pak', armor: true, body: '#cfd5dd', skin: '#ffffff', kart: '#9aa3ad', accent: '#e63946',
+  },
+  {
+    id: 'ridderjort', friend: true, special: 'special_ridderjort', name: 'Ridder Jort', desc: 'Van top tot teen in harnas. Niemand weet wat er onder die helm gebeurt.', head: 'mens', armor: true, body: '#cfd5dd', skin: '#f6c9a5', kart: '#2f5fa8', accent: '#ffd23f',
+    look: { skin: '#f6c9a5', hair: 'kort', hairColor: '#4a2f1d', shirt: '#cfd5dd', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen', helm: true },
+  },
+  {
+    id: 'stan', friend: true, special: 'special_stan', name: 'Stan', desc: 'Kort, donkerbruin en altijd een beetje warrig. Net als zijn rijstijl.', head: 'mens', body: '#e63946', skin: '#f6c9a5', kart: '#d62f3c', accent: '#ffffff',
+    look: { skin: '#f6c9a5', hair: 'warrig', hairColor: '#3a2418', shirt: '#e63946', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
+  },
+  {
+    id: 'jullian', friend: true, special: 'special_jullian', name: 'Jullian', desc: 'Kaal geschoren en blond: geen haar die in de weg zit.', head: 'mens', body: '#222831', skin: '#f6c9a5', kart: '#2b3340', accent: '#ffd23f',
+    look: { skin: '#f6c9a5', hair: 'stoppels', hairColor: '#ecc96d', shirt: '#222831', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
+  },
+  {
+    id: 'melle', friend: true, special: 'special_melle', name: 'Melle', desc: 'Kort lichtblond haar en een snelle stuurhand.', head: 'mens', body: '#3dd6d0', skin: '#f6c9a5', kart: '#2fc4be', accent: '#ffffff',
+    look: { skin: '#f6c9a5', hair: 'kort', hairColor: '#f6d987', shirt: '#3dd6d0', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
+  },
+  {
+    id: 'duuk', friend: true, special: 'special_duuk', name: 'Duuk', desc: 'Kaal en aerodynamisch. Zegt hij zelf.', head: 'mens', body: '#ff7a00', skin: '#e8b48a', kart: '#ff8a1f', accent: '#222831',
+    look: { skin: '#e8b48a', hair: 'kaal', hairColor: '#4a2f1d', shirt: '#ff7a00', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
+  },
+  {
+    id: 'morris', friend: true, special: 'special_morris', name: 'Morris', desc: 'Blond met een strakke middenscheiding. Elke haar zit goed, ook na een botsing.', head: 'mens', body: '#3fbf6a', skin: '#f6c9a5', kart: '#35a95c', accent: '#ffffff',
+    look: { skin: '#f6c9a5', hair: 'scheiding', hairColor: '#ecc96d', shirt: '#3fbf6a', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
   },
   { id: 'bella', name: 'Bella Boerin', desc: 'Ruikt de modder al van verre.', head: 'strohoed', body: '#d93a3a', skin: '#f6c9a5', kart: '#e8423f', accent: '#ffd34d' },
   { id: 'dirk', name: 'Dirk Drop', desc: 'Zwart, zout en supersnel.', head: 'ruit', body: '#222831', skin: '#2a2a2e', kart: '#33373f', accent: '#ff5fa2' },

@@ -1,11 +1,11 @@
-// Uiterlijk van mensachtige coureurs (Meke, Nicole, Cherso en je eigen coureur).
+// Uiterlijk van mensachtige coureurs (Meke, Meike, Stan, Morris, ... en je eigen coureur).
 // Alleen uiterlijk: lengte en bouw veranderen niets aan snelheid of botsingen.
 
 export const SKIN_COLORS = ['#ffe3cc', '#f6c9a5', '#e8b48a', '#c98d5f', '#9b6440', '#6b4229'];
-export const HAIR_COLORS = ['#1f1a17', '#4a2f1d', '#7a4a26', '#c58b3a', '#ecc96d', '#b23a2a', '#e9e9e9', '#ff6fb0', '#4aa3ff', '#7fd36b'];
+export const HAIR_COLORS = ['#1f1a17', '#4a2f1d', '#7a4a26', '#c58b3a', '#ecc96d', '#b23a2a', '#e9e9e9', '#ff6fb0', '#4aa3ff', '#7fd36b', '#f6d987', '#3a2418'];
 export const SHIRT_COLORS = ['#2f7de1', '#e63946', '#3fbf6a', '#ffd23f', '#ff7a00', '#ff5fa2', '#7b6cff', '#222831', '#ffffff', '#3dd6d0', '#8a5a35', '#9aa5b1'];
 
-export const HAIR_STYLES = { kaal: 'Kaal', kort: 'Kort', stekels: 'Stekels', lang: 'Lang', staart: 'Staart', knot: 'Knot', krullen: 'Krullen' };
+export const HAIR_STYLES = { kaal: 'Kaal', stoppels: 'Stoppels', kort: 'Kort', warrig: 'Warrig', scheiding: 'Middenscheiding', stekels: 'Stekels', lang: 'Lang', staart: 'Staart', knot: 'Knot', krullen: 'Krullen' };
 export const HEIGHTS = { klein: { name: 'Klein', s: 0.85 }, normaal: { name: 'Normaal', s: 1 }, lang: { name: 'Lang', s: 1.2 }, extralang: { name: 'Extra lang', s: 1.38 } };
 export const BUILDS = { dun: { name: 'Dun', s: 0.78 }, normaal: { name: 'Normaal', s: 1 }, stevig: { name: 'Stevig', s: 1.3 }, extrastevig: { name: 'Extra stevig', s: 1.55 } };
 export const GLASSES = { geen: 'Geen', bril: 'Bril', zonnebril: 'Zonnebril' };

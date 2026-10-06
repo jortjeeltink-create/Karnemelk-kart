@@ -560,7 +560,7 @@ export function helpScreen(app) {
       h('h3', {}, 'Winkel'),
       h('p', {}, 'Koop andere karts (zoals de Roze droomkart, de Tractorkart of de Monstertruck), hoeden, capes, kartkleuren, bandeneffecten, lichtsporen en overwinningsposes. Zeldzaamheid: Gewoon, Ongewoon, Zeldzaam, Episch en Legendarisch. De Gouden cape is het enige Legendarische item en het duurste.'),
       h('h3', {}, 'Specials'),
-      h('p', {}, 'Meke, Nicole en Cherso Duif zijn specials: extra coureurs die je met MP-punten koopt. In de race heet je dan bijvoorbeeld "Meke (Jort)".'),
+      h('p', {}, 'Meke, Meike, Stan, Jullian, Melle, Duuk, Morris, Ridder Kees en Ridder Jort zijn specials: extra coureurs die je met MP-punten koopt. In de race heet je dan bijvoorbeeld "Meke (Jort)".'),
       h('h3', {}, 'Mijn coureur'),
       h('p', {}, 'Maak je eigen coureur: huidskleur, haar, shirt, lengte, bouw, bril en snor of baard. Kies hem in de lobby bij "Mijn coureur".'),
       h('h3', {}, 'De verliezer'),

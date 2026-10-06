@@ -2,7 +2,7 @@
 // apparaatsleutel en daaraan hangen je naam, MP-punten en spullen.
 // Werkt met elke sleutel/waarde-opslag met async get/set/del (bestand, Redis of de browser).
 import { cleanName } from './util.js';
-import { DEFAULT_EQUIP, START_MP, SHOP_BY_ID, ownsItem } from './shop.js';
+import { DEFAULT_EQUIP, START_MP, SHOP_BY_ID, ownsItem, refundRetired } from './shop.js';
 import { cleanLook, DEFAULT_LOOK } from './look.js';
 
 const DEVICE_RE = /^[A-Za-z0-9_-]{20,64}$/;
@@ -41,6 +41,7 @@ export class Profiles {
     if (p) {
       p.equipped = { ...DEFAULT_EQUIP, ...(p.equipped || {}) };
       p.look = cleanLook(p.look);
+      if (refundRetired(p)) await this.kv.set('p:' + key, p);
       this.cache.set(key, p);
     }
     return p;
@@ -165,8 +166,12 @@ export function cleanBackup(raw) {
   if (!raw || typeof raw !== 'object' || raw.v !== 1 || !KEY_RE.test(raw.key || '')) return null;
   const name = cleanName(raw.name);
   if (!name) return null;
-  const owned = [...new Set(Array.isArray(raw.owned) ? raw.owned : [])].filter((id) => typeof id === 'string' && SHOP_BY_ID[id]);
-  const profile = { key: raw.key, name, mp: int(raw.mp, 1e7), owned, equipped: { ...DEFAULT_EQUIP }, look: cleanLook(raw.look) };
+  // uit de winkel gehaalde spullen: MP terug
+  const old = { owned: [...new Set(Array.isArray(raw.owned) ? raw.owned : [])], mp: int(raw.mp, 1e7), lastCharacter: raw.lastCharacter };
+  refundRetired(old);
+  const owned = old.owned.filter((id) => typeof id === 'string' && SHOP_BY_ID[id]);
+  const profile = { key: raw.key, name, mp: old.mp, owned, equipped: { ...DEFAULT_EQUIP }, look: cleanLook(raw.look) };
+  raw = { ...raw, lastCharacter: old.lastCharacter };
   const eq = raw.equipped && typeof raw.equipped === 'object' ? raw.equipped : {};
   for (const slot of Object.keys(DEFAULT_EQUIP)) {
     const it = SHOP_BY_ID[eq[slot]];

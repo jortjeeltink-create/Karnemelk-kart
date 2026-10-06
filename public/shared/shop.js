@@ -53,8 +53,14 @@ export const SHOP_ITEMS = [
 
   // --- specials: extra coureurs om mee te racen (alleen uiterlijk) ---
   { id: 'special_meke', slot: 'special', name: 'Meke', rarity: 'episch', price: 250, look: { character: 'meke' } },
-  { id: 'special_nicole', slot: 'special', name: 'Nicole', rarity: 'episch', price: 250, look: { character: 'nicole' } },
-  { id: 'special_cherso', slot: 'special', name: 'Cherso Duif', rarity: 'episch', price: 250, look: { character: 'cherso' } },
+  { id: 'special_meike', slot: 'special', name: 'Meike', rarity: 'episch', price: 250, look: { character: 'meike' } },
+  { id: 'special_ridderkees', slot: 'special', name: 'Ridder Kees', rarity: 'episch', price: 250, look: { character: 'ridderkees' } },
+  { id: 'special_ridderjort', slot: 'special', name: 'Ridder Jort', rarity: 'episch', price: 250, look: { character: 'ridderjort' } },
+  { id: 'special_stan', slot: 'special', name: 'Stan', rarity: 'episch', price: 250, look: { character: 'stan' } },
+  { id: 'special_jullian', slot: 'special', name: 'Jullian', rarity: 'episch', price: 250, look: { character: 'jullian' } },
+  { id: 'special_melle', slot: 'special', name: 'Melle', rarity: 'episch', price: 250, look: { character: 'melle' } },
+  { id: 'special_duuk', slot: 'special', name: 'Duuk', rarity: 'episch', price: 250, look: { character: 'duuk' } },
+  { id: 'special_morris', slot: 'special', name: 'Morris', rarity: 'episch', price: 250, look: { character: 'morris' } },
 
   // --- capes ---
   { id: 'cape_rood', slot: 'cape', name: 'Rode cape', rarity: 'gewoon', price: 50, look: { colors: ['#d62828'] } },
@@ -99,6 +105,24 @@ export const SHOP_BY_ID = Object.fromEntries(SHOP_ITEMS.map((i) => [i.id, i]));
 export const DEFAULT_EQUIP = { cape: 'cape_geen', kart: 'kart_standaard', kleur: 'kleur_standaard', hoed: 'hoed_geen', banden: 'banden_gewoon', spoor: 'spoor_geen', pose: 'pose_duim' };
 export const FREE_ITEMS = SHOP_ITEMS.filter((i) => i.free).map((i) => i.id);
 export const START_MP = 150; // welkomstcadeau voor nieuwe spelers
+
+// Spullen die uit de winkel zijn gehaald: wie ze had, krijgt de MP terug.
+export const RETIRED_ITEMS = { special_nicole: 250, special_cherso: 250 };
+const RETIRED_CHARACTERS = ['nicole', 'cherso'];
+
+// Geeft het aantal teruggegeven MP terug (0 als er niks te doen was).
+export function refundRetired(p) {
+  if (!p || !Array.isArray(p.owned)) return 0;
+  let refund = 0;
+  p.owned = p.owned.filter((id) => {
+    if (RETIRED_ITEMS[id] == null) return true;
+    refund += RETIRED_ITEMS[id];
+    return false;
+  });
+  if (refund) p.mp = (p.mp || 0) + refund;
+  if (RETIRED_CHARACTERS.includes(p.lastCharacter)) p.lastCharacter = null;
+  return refund;
+}
 // Prijzen zijn zo gekozen dat je na een paar races al iets leuks kunt kopen
 // (een race met vrienden levert gemiddeld zo'n 40 tot 80 MP op).
 

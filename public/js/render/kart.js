@@ -5,7 +5,7 @@ import { CHARACTER_BY_ID, DEFAULT_CHARACTER } from '../../shared/characters.js';
 import { SHOP_BY_ID, DEFAULT_EQUIP } from '../../shared/shop.js';
 import { cleanLook, lookScales } from '../../shared/look.js';
 import { patternTexture, textSprite, shadowTexture, stripeTexture } from './textures.js';
-import { smoothGeometry, metal, std, polish, pbr } from './look.js';
+import { smoothGeometry, metal, std, polish, pbr, Q } from './look.js';
 
 const geo = {};
 // vormen worden automatisch gladder gemaakt (ronde randen, meer segmenten)
@@ -13,7 +13,7 @@ function G(key, fn) { return geo[key] || (geo[key] = smoothGeometry(fn())); }
 const matCache = new Map();
 // (heette vroeger 'lambert'): nu een echt materiaal dat reageert op licht en schaduw
 export function lambert(color, extra = {}) {
-  const key = color + JSON.stringify(extra);
+  const key = Q.mode + color + JSON.stringify(extra);
   if (!matCache.has(key)) matCache.set(key, pbr({ color, roughness: 0.62, metalness: 0, ...extra }));
   return matCache.get(key);
 }
@@ -153,7 +153,7 @@ function buildMascotHead(ch) {
   return { head, hat, top };
 }
 
-// ---------- mensen (Meke, Nicole, Cherso, je eigen coureur) ----------
+// ---------- mensen (Meke, Meike, Stan, Melle, je eigen coureur, ...) ----------
 function buildHumanHead(look) {
   const head = new THREE.Group();
   const hat = new THREE.Group(); // mensen hebben geen eigen hoed, alleen winkelhoeden
@@ -234,6 +234,43 @@ function buildHumanHead(look) {
       top = R + 0.1;
       break;
     }
+    case 'stoppels': { // kaalgeschoren: alleen een waas van korte haartjes
+      const mix = new THREE.Color(look.skin).lerp(new THREE.Color(look.hairColor), 0.6);
+      const c = mesh(G('stoppelkap', () => new THREE.SphereGeometry(R * 1.012, 18, 10, 0, Math.PI * 2, 0, Math.PI * 0.46)), lambert('#' + mix.getHexString(), { roughness: 0.9 }));
+      c.rotation.x = -0.3;
+      c.scale.x = fx;
+      head.add(c);
+      top = R + 0.01;
+      break;
+    }
+    case 'warrig': { // kort en warrig: plukjes alle kanten op
+      cap();
+      const tufts = [[0, 0.37, 0.06, 0.13], [0.15, 0.33, -0.02, 0.12], [-0.16, 0.32, 0.03, 0.12], [0.08, 0.34, -0.17, 0.12], [-0.11, 0.35, -0.13, 0.11], [0.2, 0.24, 0.17, 0.1], [-0.19, 0.26, 0.18, 0.1], [0.03, 0.29, 0.27, 0.11], [0.24, 0.12, -0.12, 0.09], [-0.24, 0.13, -0.1, 0.09]];
+      for (const [x, y, z, r] of tufts) {
+        const t = mesh(G('pluk', () => new THREE.SphereGeometry(1, 10, 8)), hairM, x * fx, y, z);
+        t.scale.set(r * 1.25, r * 0.75, r * 1.05);
+        t.rotation.set(z * 4, x * 3, x * 4);
+        head.add(t);
+      }
+      top = R + 0.1;
+      break;
+    }
+    case 'scheiding': { // middenscheiding: twee helften die naar de zijkant vallen
+      for (const sx of [-1, 1]) {
+        const half = mesh(G('scheidhelft', () => new THREE.SphereGeometry(R * 1.08, 16, 10, 0, Math.PI, 0, Math.PI * 0.52)), hairM, sx * 0.018, 0.01, 0);
+        half.rotation.set(-0.28, sx > 0 ? Math.PI / 2 : -Math.PI / 2, 0);
+        half.scale.x = fx;
+        head.add(half);
+        const fringe = mesh(G('pony', () => new THREE.SphereGeometry(1, 12, 8)), hairM, sx * 0.17 * fx, 0.2, 0.25);
+        fringe.scale.set(0.15, 0.08, 0.1);
+        fringe.rotation.z = sx * 0.6;
+        head.add(fringe);
+        const side = mesh(G('zijlok', () => new THREE.BoxGeometry(0.09, 0.26, 0.2)), hairM, sx * R * fx * 0.97, 0.02, -0.02);
+        head.add(side);
+      }
+      top = R + 0.05;
+      break;
+    }
     default: top = R; break; // kaal
   }
   // bril
@@ -262,7 +299,7 @@ function buildHumanHead(look) {
   return { head, hat, top };
 }
 
-// een kleine duif (voor Cherso Duif)
+// een kleine duif (kan op het hoofd van een coureur zitten)
 function buildDuif() {
   const g = new THREE.Group();
   const grey = lambert('#9aa5b1');
@@ -731,6 +768,7 @@ export class KartView {
     this.armR = mkArm(1);
     this.armZ = 0.15 + Math.max(0, ws - 1) * 0.25;
     d.add(this.armL, this.armR);
+    if (ch.armor) this.addArmor(ch, { ws, torsoH, torsoTop, shoulderY, human: isHuman, closed: !!(fullLook && fullLook.helm) });
     // cape tussen de schouders
     this.cape.position.set(0, shoulderY + 0.05, -0.3 * ws + 0.08);
     this.cape.scale.set(Math.max(1, ws * 0.95), hs, 1);
@@ -744,6 +782,63 @@ export class KartView {
     this.applyHat();
     this.applyPaint();
     this.castShadows();
+  }
+
+  // Ridderpak: glimmend harnas, schouderstukken, een embleem en een helm met pluim.
+  addArmor(ch, { ws, torsoH, torsoTop, shoulderY, human, closed }) {
+    const steel = metal({ color: '#d3d9e1', roughness: 0.22 });
+    const dark = metal({ color: '#8a919b', roughness: 0.35 });
+    const plume = lambert(ch.accent || '#e63946', { roughness: 0.8 });
+    this.torsoG.traverse((o) => { if (o.isMesh) o.material = steel; });
+    for (const arm of [this.armL, this.armR]) arm.children.forEach((m, i) => { m.material = i === 0 ? steel : dark; });
+    for (const sx of [-1, 1]) {
+      const p = mesh(G('schouderstuk', () => new THREE.SphereGeometry(0.2, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2)), steel, sx * (0.3 * ws + 0.02), shoulderY + 0.02, 0.01);
+      p.scale.set(1.2, 0.8, 1.15);
+      this.torsoG.add(p);
+    }
+    // embleem op de borst en een riem
+    const emb = mesh(G('embleem', () => new THREE.BoxGeometry(0.2, 0.24, 0.05)), lambert(ch.accent || '#e63946'), 0, 0.67 + torsoH * 0.62, 0.3 * ws + 0.02);
+    this.torsoG.add(emb);
+    this.torsoG.add(mesh(G('kruisV', () => new THREE.BoxGeometry(0.05, 0.2, 0.06)), lambert('#ffffff'), 0, 0.67 + torsoH * 0.62, 0.3 * ws + 0.03));
+    this.torsoG.add(mesh(G('kruisH', () => new THREE.BoxGeometry(0.16, 0.05, 0.06)), lambert('#ffffff'), 0, 0.67 + torsoH * 0.66, 0.3 * ws + 0.03));
+    const belt = mesh(G('riem', () => new THREE.CylinderGeometry(0.37, 0.37, 0.08, 22)), lambert('#5a3b22'), 0, 0.72, 0);
+    belt.scale.set(ws, 1, ws);
+    this.torsoG.add(belt);
+    // helm
+    const helm = new THREE.Group();
+    if (human) {
+      const dome = mesh(G('helmbol', () => new THREE.SphereGeometry(R * 1.16, 22, 16)), steel, 0, 0.02, 0);
+      dome.scale.set(1.0, 1.12, 1.05);
+      helm.add(dome);
+      if (closed) {
+        // dicht vizier met een kijkspleet
+        helm.add(mesh(G('vizier', () => new THREE.BoxGeometry(R * 1.5, 0.05, 0.08)), lambert('#15161a'), 0, 0.06, R * 1.12));
+        helm.add(mesh(G('vizierrand', () => new THREE.BoxGeometry(R * 1.62, 0.04, 0.06)), dark, 0, 0.12, R * 1.1));
+        for (let i = 0; i < 3; i++) for (const sx of [-1, 1]) helm.add(mesh(G('ademgat', () => new THREE.SphereGeometry(0.018, 6, 4)), lambert('#15161a'), sx * (0.06 + i * 0.05), -0.12, R * 1.13));
+      }
+      helm.add(mesh(G('helmkam', () => new THREE.BoxGeometry(0.05, 0.12, R * 2.1)), dark, 0, R * 1.22, 0));
+      const pl = mesh(G('pluim', () => new THREE.SphereGeometry(1, 12, 10)), plume, 0, R * 1.42, -0.12);
+      pl.scale.set(0.08, 0.2, 0.26);
+      pl.rotation.x = -0.6;
+      helm.add(pl);
+      this.headTop = R * 1.45;
+    } else {
+      // melkpak met open helm: Kees blijft herkenbaar
+      const dome = mesh(G('kees-helm', () => new THREE.SphereGeometry(0.47, 22, 12, 0, Math.PI * 2, 0, Math.PI / 2)), steel, 0, 0.32, 0);
+      dome.scale.set(1.0, 0.85, 0.95);
+      helm.add(dome);
+      helm.add(mesh(G('kees-helmrand', () => new THREE.CylinderGeometry(0.47, 0.47, 0.07, 24)), dark, 0, 0.33, 0));
+      helm.add(mesh(G('neusstuk', () => new THREE.BoxGeometry(0.06, 0.26, 0.05)), steel, 0, 0.2, 0.34));
+      for (const sx of [-1, 1]) helm.add(mesh(G('wangstuk', () => new THREE.BoxGeometry(0.06, 0.34, 0.4)), steel, sx * 0.36, 0.12, 0.05));
+      const pl = mesh(G('pluim', () => new THREE.SphereGeometry(1, 12, 10)), plume, 0, 0.78, -0.08);
+      pl.scale.set(0.08, 0.2, 0.26);
+      pl.rotation.x = -0.6;
+      helm.add(pl);
+      this.headTop = 0.82;
+    }
+    this.head.add(helm);
+    this.helm = helm;
+    this.figureTop = this.head.position.y + this.headTop;
   }
 
   castShadows() {

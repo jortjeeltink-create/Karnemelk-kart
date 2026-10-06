@@ -363,7 +363,7 @@ test('inloggen zonder PIN: telefoon onthoudt je, ook via het cookie', async () =
 test('overzetcode zet punten naar een nieuwe telefoon (eenmalig, verloopt)', async () => {
   const clock = { t: Date.UTC(2026, 9, 6, 12) };
   const hub = makeHub(clock);
-  const oud = await newPlayer(hub, 'Nicole');
+  const oud = await newPlayer(hub, 'Melle');
   const p = await hub.store.get(oud.profile.id);
   p.mp = 999;
   await hub.message(oud, { t: 'transferCode' });
@@ -376,7 +376,7 @@ test('overzetcode zet punten naar een nieuwe telefoon (eenmalig, verloopt)', asy
   assert.match(nieuw.last('transferFailed').msg, /klopt niet/);
   await hub.message(nieuw, { t: 'useTransfer', code: code.toLowerCase() });
   const li = nieuw.last('loggedIn');
-  assert.equal(li.profile.name, 'Nicole');
+  assert.equal(li.profile.name, 'Melle');
   assert.equal(li.profile.mp, 999);
   assert.equal(li.transferred, true);
   // nog een keer gebruiken kan niet
@@ -397,10 +397,10 @@ test('server vergeten (gratis hosting herstart): de telefoon zet naam, MP en spu
   const clock = { t: Date.UTC(2026, 9, 6, 12) };
   const signer = makeSigner('test-geheim-voor-de-reservekopie');
   const hub = makeHub(clock, { signer });
-  const a = await newPlayer(hub, 'Cherso');
+  const a = await newPlayer(hub, 'Stan');
   const p = await hub.store.get(a.profile.id);
   p.mp = 600;
-  await hub.message(a, { t: 'buy', id: 'special_cherso' });
+  await hub.message(a, { t: 'buy', id: 'special_stan' });
   await hub.message(a, { t: 'buy', id: 'kart_roze' });
   await hub.message(a, { t: 'equip', id: 'kart_roze' });
   const backup = a.last('profile').profile.backup;
@@ -413,10 +413,10 @@ test('server vergeten (gratis hosting herstart): de telefoon zet naam, MP en spu
   hub2.connect(b);
   await hub2.message(b, { t: 'hello', device: a.device, backup });
   const w = b.last('welcome').profile;
-  assert.equal(w.name, 'Cherso');
+  assert.equal(w.name, 'Stan');
   assert.equal(w.id, a.profile.id, 'zelfde profiel (en dus zelfde plek in de room)');
   assert.equal(w.mp, mp);
-  assert.ok(w.owned.includes('special_cherso') && w.owned.includes('kart_roze'));
+  assert.ok(w.owned.includes('special_stan') && w.owned.includes('kart_roze'));
   assert.equal(w.equipped.kart, 'kart_roze');
   // daarna gewoon verder: kopen werkt en de server kent je weer
   await hub2.message(b, { t: 'buy', id: 'hoed_pet' });
@@ -446,25 +446,49 @@ test('server vergeten (gratis hosting herstart): de telefoon zet naam, MP en spu
   assert.equal(off.profile.backup, undefined);
 });
 
-test('coureurs: Meke lang en dun, Nicole dikker, Cherso Duif de allerdikste', () => {
-  const meke = lookScales({ ...cleanLook(CHARACTER_BY_ID.meke.look), ...CHARACTER_BY_ID.meke.look });
-  const nicole = lookScales({ ...cleanLook(CHARACTER_BY_ID.nicole.look), ...CHARACTER_BY_ID.nicole.look });
-  const cherso = lookScales({ ...cleanLook(CHARACTER_BY_ID.cherso.look), ...CHARACTER_BY_ID.cherso.look });
-  assert.equal(CHARACTER_BY_ID.cherso.name, 'Cherso Duif');
+test('coureurs: Meke lang en dun, Meike dun, de vrienden en de ridders als specials', () => {
+  const sc = (id) => lookScales({ ...cleanLook(CHARACTER_BY_ID[id].look), ...CHARACTER_BY_ID[id].look });
+  const meke = sc('meke'), meike = sc('meike');
   assert.ok(meke.hs > 1.3 && meke.ws < 0.8, 'Meke is lang en dun');
-  assert.ok(nicole.ws > 1.2, 'Nicole is wat dikker');
-  assert.ok(cherso.ws > nicole.ws, 'Cherso is dikker dan Nicole');
-  // niemand (ook geen zelfgemaakte coureur) is dikker dan Cherso
-  const maxCustom = Math.max(...Object.values(BUILDS).map((b) => b.s));
-  assert.ok(cherso.ws > maxCustom, 'Cherso is de allerdikste');
+  assert.ok(meike.ws < 1 && meike.hs === 1, 'Meike is gewoon dun');
+  assert.equal(CHARACTER_BY_ID.meke.look.hairColor, '#ecc96d', 'Meke is blond');
+  assert.equal(CHARACTER_BY_ID.meike.look.hair, 'lang');
   const maxH = Math.max(...Object.values(HEIGHTS).map((b) => b.s));
   assert.ok(meke.hs > maxH, 'Meke is de langste');
+  // de vrienden met hun kapsels
+  assert.equal(CHARACTER_BY_ID.stan.look.hair, 'warrig');
+  assert.equal(CHARACTER_BY_ID.jullian.look.hair, 'stoppels');
+  assert.equal(CHARACTER_BY_ID.melle.look.hairColor, '#f6d987');
+  assert.equal(CHARACTER_BY_ID.duuk.look.hair, 'kaal');
+  assert.equal(CHARACTER_BY_ID.morris.look.hair, 'scheiding');
+  assert.ok(CHARACTER_BY_ID.ridderkees.armor && CHARACTER_BY_ID.ridderjort.armor && CHARACTER_BY_ID.ridderjort.look.helm, 'ridders in harnas');
+  // Nicole en Cherso Duif zijn eruit
+  assert.equal(CHARACTER_BY_ID.nicole, undefined);
+  assert.equal(CHARACTER_BY_ID.cherso, undefined);
+  // de nieuwe kapsels kun je ook zelf kiezen
+  assert.equal(cleanLook({ hair: 'scheiding' }).hair, 'scheiding');
   // bots gebruiken geen zelfgemaakte coureur en geen specials
   assert.ok(!BOT_CHARACTERS.some((c) => c.custom || c.special));
-  for (const id of ['meke', 'nicole', 'cherso']) assert.ok(CHARACTER_BY_ID[id].special, `${id} is een special`);
+  for (const id of ['meke', 'meike', 'stan', 'jullian', 'melle', 'duuk', 'morris', 'ridderkees', 'ridderjort']) assert.ok(CHARACTER_BY_ID[id].special, `${id} is een special`);
   assert.equal(racerName('Jort', 'meke'), 'Meke (Jort)');
+  assert.equal(racerName('Jort', 'ridderjort'), 'Ridder Jort (Jort)');
   assert.equal(racerName('Meke', 'meke'), 'Meke');
   assert.equal(racerName('Jort', 'kees'), 'Jort');
+});
+
+test('uit de winkel gehaalde specials: MP terug', async () => {
+  const kv = new MemKV();
+  const store = new Profiles(kv, { randomString, now: () => 0 });
+  await kv.set('p:abcdefghij', { key: 'abcdefghij', name: 'Jort', mp: 40, owned: ['special_cherso', 'special_nicole', 'cape_rood'], lastCharacter: 'cherso' });
+  const p = await store.get('abcdefghij');
+  assert.equal(p.mp, 540, '2 x 250 MP terug');
+  assert.deepEqual(p.owned, ['cape_rood']);
+  assert.equal(p.lastCharacter, null);
+  // ook via de reservekopie op de telefoon
+  const b = cleanBackup({ v: 1, key: 'abcdefghij', name: 'Jort', mp: 10, owned: ['special_cherso'], lastCharacter: 'cherso' });
+  assert.equal(b.mp, 260);
+  assert.deepEqual(b.owned, []);
+  assert.equal(b.lastCharacter, undefined);
 });
 
 test('alles is betaalbaar: een special heb je binnen 5 races', () => {
@@ -473,7 +497,7 @@ test('alles is betaalbaar: een special heb je binnen 5 races', () => {
   const third = computePoints(rows).c.mp;
   const after5 = START_MP + 5 * third;
   const specials = SHOP_ITEMS.filter((i) => i.slot === 'special');
-  assert.equal(specials.length, 3);
+  assert.ok(specials.length >= 9, 'Meke, Meike, de ridders en de vrienden');
   for (const sp of specials) assert.ok(sp.price <= after5, `${sp.name} (${sp.price} MP) haalbaar na 5 races (${after5} MP)`);
   // zelfs wie 5 keer laatste wordt, kan elke special kopen
   const last = computePoints(rows).d.mp;
@@ -503,7 +527,7 @@ test('specials: eerst kopen, dan racen als "Meke (jouw naam)"', async () => {
   const race = a.last('race');
   const mine = race.entrants.find((e) => e.kid === race.you);
   assert.equal(mine.name, 'Meke (Jort)');
-  assert.ok(race.entrants.filter((e) => e.isBot).every((e) => !['meke', 'nicole', 'cherso'].includes(e.character)));
+  assert.ok(race.entrants.filter((e) => e.isBot).every((e) => !CHARACTER_BY_ID[e.character].special));
 });
 
 test('eigen coureur: ongeldige waarden worden vervangen, anderen zien je uiterlijk', async () => {

@@ -3,7 +3,7 @@ import * as THREE from '../../vendor/three.module.min.js';
 import { rng, hashString } from '../../shared/util.js';
 import { roadTexture, groundTexture, stripeTexture, checkerTexture, arrowTexture, questionTexture, patternTexture, facadeTexture, containerTexture, textCanvas, glowTexture } from './textures.js';
 import { lambert } from './kart.js';
-import { std, gloss, metal, pbr, Q, polish, treeProto, skyMaterial, environmentFor, addVariation, grainNormalMap, noiseTexture, smoothGeometry } from './look.js';
+import { std, gloss, metal, pbr, Q, setQuality, polish, treeProto, skyMaterial, environmentFor, addVariation, grainNormalMap, noiseTexture, smoothGeometry } from './look.js';
 import { addRoadside } from './roadside.js';
 
 export const THEMES = {
@@ -608,7 +608,9 @@ export function buildWorld(track, quality = 'normaal') {
   const def = track.def;
   const th = { ...(THEMES[def.theme] || THEMES.kust), ...(def.look || {}) };
   const scene = new THREE.Scene();
-  const shadowSize = quality === 'laag' ? 0 : quality === 'hoog' ? 2048 : 1024;
+  setQuality(quality);
+  const shadowSize = quality === 'hoog' ? 2048 : 0;
+  const high = quality === 'hoog';
   const rand = rng(hashString(def.id));
   const dens = quality === 'laag' ? 0.5 : quality === 'hoog' ? 1.4 : 1;
   const animated = [];
@@ -626,10 +628,10 @@ export function buildWorld(track, quality = 'normaal') {
 
   // omgevingslicht: reflecties in lak, water en metaal
   const envRT = environmentFor(th);
-  if (envRT) { scene.environment = envRT.texture; scene.environmentIntensity = th.night ? 0.55 : 0.9; }
+  if (envRT) { scene.environment = envRT.texture; scene.environmentIntensity = (th.night ? 0.6 : 1) * (high ? 0.9 : 0.45); }
 
   // licht en schaduw (zonder omgevingslicht wat meer gewoon licht)
-  scene.add(new THREE.HemisphereLight(th.hemi[0], th.hemi[1], th.hemi[2] * (envRT ? 0.5 : 1.05)));
+  scene.add(new THREE.HemisphereLight(th.hemi[0], th.hemi[1], th.hemi[2] * (high && envRT ? 0.5 : 1.0)));
   const sunDir = new THREE.Vector3(...(th.sunDir || [0.45, 0.62, 0.35])).normalize();
   const sun = new THREE.DirectionalLight(th.sun[0], th.sun[1] * 1.45);
   sun.position.copy(sunDir).multiplyScalar(150);
@@ -669,7 +671,7 @@ export function buildWorld(track, quality = 'normaal') {
     ground.receiveShadow = true;
     scene.add(ground);
     if (th.water) {
-      const wmat = pbr({ color: th.water === 'gracht' ? '#2f5f6a' : '#1f78c0', roughness: 0.07, metalness: 0, transparent: true, opacity: 0.93 });
+      const wmat = gloss({ color: th.water === 'gracht' ? '#2f5f6a' : '#1f78c0', shininess: 150, transparent: true, opacity: 0.93 });
       const wgeo = new THREE.PlaneGeometry(2400, 2400, 48, 48);
       const water = new THREE.Mesh(wgeo, wmat);
       water.rotation.x = -Math.PI / 2;
@@ -697,7 +699,7 @@ export function buildWorld(track, quality = 'normaal') {
   roadN.needsUpdate = true;
   roadN.repeat.set((track.halfW * 2) / 2.5, 12 / 2.5);
   const wet = th.night ? 0.42 : th.road === 'sneeuw' ? 0.55 : 0.88;
-  const roadMat = addVariation(std({ map: roadT, normalMap: quality === 'laag' ? null : roadN, normalScale: new THREE.Vector2(0.55, 0.55), roughness: wet, emissive: th.stars ? '#3a3266' : '#000000' }), { scale: 0.018, strength: 0.16, detail: 0.06 });
+  const roadMat = addVariation(std({ map: roadT, normalMap: high ? roadN : null, normalScale: new THREE.Vector2(0.55, 0.55), roughness: wet, emissive: th.stars ? '#3a3266' : '#000000' }), { scale: 0.018, strength: 0.16, detail: 0.06 });
   const road = new THREE.Mesh(ribbon(track, -track.halfW, track.halfW, 0.03, 12), roadMat);
   road.receiveShadow = true;
   scene.add(road);
@@ -716,7 +718,7 @@ export function buildWorld(track, quality = 'normaal') {
       ? new THREE.MeshBasicMaterial({ map: wt, transparent: true, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })
       : std({ map: wt, side: THREE.DoubleSide, transparent: w.style === 'hek', alphaTest: w.style === 'hek' ? 0.5 : 0 });
     const wall = new THREE.Mesh(wallGeometry(track, sgn * track.wallD, w.h, w.style === 'sneeuwwal' ? 0.8 : 0), wallMat);
-    if (w.style !== 'glow') { wall.castShadow = !!shadowSize; wall.receiveShadow = true; }
+    if (w.style !== 'glow') { wall.castShadow = high; wall.receiveShadow = true; }
     scene.add(wall);
   }
 
@@ -893,7 +895,7 @@ export function buildWorld(track, quality = 'normaal') {
   // eerst de spullen vlak langs de weg (tribunes, borden, pijlen), daarna het verdere decor
   addRoadside({ track, theme, deco, rand, dens, animated, placed });
   // graspollen langs de berm en heuvels aan de horizon
-  if (th.grass) grassTufts(deco, track, rand, th.grass, Math.round((quality === 'laag' ? 500 : quality === 'hoog' ? 2600 : 1600) * (th.water === 'zee' ? 0.6 : 1)), placed);
+  if (th.grass) grassTufts(deco, track, rand, th.grass, Math.round((quality === 'laag' ? 400 : high ? 2600 : 1100) * (th.water === 'zee' ? 0.6 : 1)), placed);
   if (th.hills) hillsRing(scene, bb, th, rand);
   if (theme === 'kust') {
     const lh = landmarkSpot(8, false);
@@ -1064,8 +1066,8 @@ export function buildWorld(track, quality = 'normaal') {
     animated.push((t) => { rp.rotation.y = t * 0.05; });
   }
 
-  // bomen en gebouwen werpen schaduw (graspollen en lichtjes niet)
-  if (shadowSize) polish(deco, { round: false, cast: true });
+  // bomen en gebouwen werpen schaduw (alleen bij hoge kwaliteit; graspollen en lichtjes nooit)
+  if (shadowSize && high) polish(deco, { round: false, cast: true });
   deco.traverse((o) => { if (o.userData.noShadow) o.castShadow = false; });
 
   const world = {
@@ -1079,6 +1081,12 @@ export function buildWorld(track, quality = 'normaal') {
       sun.position.set(sx + sunDir.x * 150, sunDir.y * 150, sz + sunDir.z * 150);
     },
     flashRing(id) { const m = rings[id]; if (m) m.userData.flash = 1; },
+    // bij haperen: schaduwen uit (karts houden hun zachte vlek eronder)
+    disableShadows() {
+      if (!sun.castShadow) return false;
+      sun.castShadow = false;
+      return true;
+    },
     update(time, dt) {
       for (const f of animated) f(time, dt);
       for (const b of boxes) {
@@ -1591,7 +1599,7 @@ function windowsTexture() {
 function nightCity(deco, track, bb, rand, along, anywhere, dens, animated) {
   const tex = windowsTexture();
   const box = new THREE.BoxGeometry(1, 1, 1); box.translate(0, 0.5, 0);
-  const bmat = pbr({ map: tex, emissive: '#ffffff', emissiveMap: tex, emissiveIntensity: 0.9, roughness: 0.6, color: '#8a8fa8' });
+  const bmat = std({ map: tex, emissive: '#ffffff', emissiveMap: tex, emissiveIntensity: 0.9, roughness: 0.6, color: '#8a8fa8' });
   const roof = new THREE.BoxGeometry(1.04, 0.04, 1.04); roof.translate(0, 1.0, 0);
   const roofMat = new THREE.MeshBasicMaterial({ color: '#ff3fa4' });
   const bl = [];

@@ -1,6 +1,6 @@
 // Eén race in de browser: 3D-wereld, eigen kart (voorspeld), andere karts (live), camera en effecten.
 import * as THREE from '../../vendor/three.module.min.js';
-import { DT, JUMP } from '../../shared/constants.js';
+import { DT, JUMP, KART_RADIUS } from '../../shared/constants.js';
 import { TRACK_BY_ID } from '../../shared/tracks.js';
 import { buildTrack } from '../../shared/trackgeo.js';
 import { decodeVisual, decodeEntity, decodeFull } from '../../shared/protocol.js';
@@ -20,7 +20,7 @@ export function getTrack(id) {
   return trackCache.get(id);
 }
 
-const INTERP_MS = 110;
+const INTERP_MS = 80; // andere karts tonen we zo ver in het verleden (vloeiend tussen updates)
 const LOCAL_TYPES = new Set(['boost', 'miniturbo', 'wall', 'obstacle', 'hazard', 'lap', 'finish', 'shield', 'spawn', 'hop', 'horn', 'jump', 'land', 'ring']);
 const JUMP_WORDS = ['WIEEE!', 'HOEPLA!', 'VLIEGEN!', 'YIHAA!'];
 const HORN_WORDS = ['TOET!', 'TOET TOET!', 'PIEP PIEP!', 'AAN DE KANT!', 'BOEM BOEM!'];
@@ -85,6 +85,12 @@ export class RaceClient {
     this.cam = { yaw: this.track.pointAt(this.track.L - 20).h, x: 0, y: 0, z: 0, fov: 70, init: false };
     this.v3 = new THREE.Vector3();
     this.localEmit = (type, data) => this.handleEvent({ type, kid: data.kid ?? data.owner, ...data }, false);
+    this.localBump = new Map(); // botsingen die we zelf al voorspeld (en getoond) hebben
+    // hapert het? dan eerst de schaduwen uit
+    app.engine.onSlow = (what) => {
+      if (what === 'schaduw' && this.world.disableShadows()) { KartView.realShadows = false; return true; }
+      return false;
+    };
 
     this.hud = new Hud(app, this);
     if (this.me != null) {
@@ -195,6 +201,10 @@ export class RaceClient {
     switch (ev.type) {
       case 'bump': {
         const involved = ev.a === this.me || ev.b === this.me;
+        if (server && involved) {
+          const other = ev.a === this.me ? ev.b : ev.a;
+          if (performance.now() - (this.localBump.get(other) || 0) < 900) break; // al direct getoond
+        }
         const vol = involved ? 1 : this.distVol(ev.x, ev.z);
         S.play('bump', vol);
         if (ev.shield) {
@@ -378,6 +388,7 @@ export class RaceClient {
         this.sendBuf = []; this.sendSeq = null; this.sendT = 0;
       }
       if (k.finished && !this.finishShown) this.onMyFinish();
+      this.predictBumps();
     }
 
     // visuele correctie langzaam laten wegvloeien
@@ -457,6 +468,57 @@ export class RaceClient {
     else app.sound.updateEngine(0, false, false, false);
 
     this.updateHud(dt, rt);
+  }
+
+  // Botsingen met andere karts direct op je eigen telefoon voorspellen, zodat je
+  // de klap meteen voelt en ziet (de server bevestigt hem kort daarna).
+  predictBumps() {
+    const me = this.pred && this.pred.kart;
+    if (!me || me.finished || this.me == null) return;
+    const now = performance.now();
+    const lead = (INTERP_MS + Math.min(150, (this.app.net.rtt || 60) / 2)) / 1000;
+    const R2 = KART_RADIUS * 2;
+    for (const k of this.karts.values()) {
+      if (k.isMe || !k.st || k.v.finished) continue;
+      const vx = k.v.vx || 0, vz = k.v.vz || 0;
+      // waar is de ander nu ongeveer (we tekenen hem iets in het verleden)
+      const ox = k.st.x + vx * lead, oz = k.st.z + vz * lead;
+      if (Math.abs((me.y || 0) - (k.st.y || 0)) > JUMP.clear) continue;
+      const dx = ox - me.x, dz = oz - me.z;
+      const d = Math.hypot(dx, dz);
+      if (d >= R2 || d < 0.01) continue;
+      const nx = dx / d, nz = dz / d;
+      const rv = (vx - me.vx) * nx + (vz - me.vz) * nz;
+      if (rv >= -0.5) continue; // niet naar elkaar toe
+      const kid = k.e.kid;
+      if (now - (this.localBump.get(kid) || 0) < 600) continue;
+      this.localBump.set(kid, now);
+      const impact = -rv;
+      const meTo = me.vx * nx + me.vz * nz, otherTo = -(vx * nx + vz * nz);
+      let iAmVictim = otherTo > meTo;
+      const otherShield = !!k.v.shield;
+      if (me.shieldT > 0 && !otherShield) iAmVictim = false;
+      else if (otherShield && me.shieldT <= 0) iAmVictim = true;
+      const shieldBoth = iAmVictim ? me.shieldT > 0 : otherShield;
+      // uit elkaar en dezelfde duw als op de server
+      const overlap = R2 - d;
+      me.x -= nx * overlap * 0.5; me.z -= nz * overlap * 0.5;
+      const j2 = impact * 0.7 + 2.5;
+      if (shieldBoth) { me.vx -= nx * j2 * 0.6; me.vz -= nz * j2 * 0.6; }
+      else if (iAmVictim) {
+        me.vx -= nx * j2 * 1.25; me.vz -= nz * j2 * 1.25;
+        if (impact > 2) {
+          me.bumpT = Math.max(me.bumpT, Math.min(1.0, 0.45 + impact * 0.035));
+          if (me.drift) { me.drift = 0; me.driftT = 0; }
+        }
+      } else {
+        me.vx -= nx * j2 * 0.35; me.vz -= nz * j2 * 0.35;
+        me.vx *= 0.93; me.vz *= 0.93;
+      }
+      if (impact > 2) {
+        this.handleEvent({ type: 'bump', a: iAmVictim ? kid : this.me, b: iAmVictim ? this.me : kid, x: (me.x + ox) / 2, z: (me.z + oz) / 2, p: Math.round(impact * 10) / 10, shield: shieldBoth ? 1 : 0 }, false);
+      }
+    }
   }
 
   interpolate(k, renderT, dt) {
@@ -670,6 +732,8 @@ export class RaceClient {
 
   destroy() {
     this.app.engine.renderer.toneMappingExposure = 0.95;
+    this.app.engine.onSlow = null;
+    KartView.realShadows = true;
     this.app.controls.onHorn = null;
     this.app.controls.unmount();
     this.app.sound.stopEngine();

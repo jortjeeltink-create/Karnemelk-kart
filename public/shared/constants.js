@@ -3,7 +3,7 @@ export const GAME_NAME = 'Karnemelk Kart';
 
 export const TICK_RATE = 60;            // fysica-stappen per seconde
 export const DT = 1 / TICK_RATE;
-export const SNAPSHOT_RATE = 20;        // statusupdates per seconde naar de spelers
+export const SNAPSHOT_RATE = 30;        // statusupdates per seconde naar de spelers
 export const MAX_PLAYERS = 10;          // spelers + bots per room
 export const LAPS = 3;
 export const COUNTDOWN_MS = 3000;       // 3-2-1

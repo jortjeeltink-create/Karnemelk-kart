@@ -7,9 +7,15 @@ let renderer = null;
 export function setRenderer(r) { renderer = r; }
 export function getRenderer() { return renderer; }
 
-// Lage kwaliteit (oude of trage telefoons): eenvoudige, snelle materialen zonder reflecties.
-export const Q = { low: false };
-export function setLowQuality(v) { Q.low = !!v; }
+// Kwaliteit: 'hoog' = alles echt (reflecties overal), 'normaal' = snelle wereld met
+// glimmende karts, 'laag' = alles zo licht mogelijk (oude of trage telefoons).
+export const Q = { mode: 'normaal', low: false, high: false };
+export function setQuality(mode) {
+  Q.mode = mode === 'hoog' || mode === 'laag' ? mode : 'normaal';
+  Q.low = Q.mode === 'laag';
+  Q.high = Q.mode === 'hoog';
+}
+export function setLowQuality(v) { setQuality(v ? 'laag' : 'normaal'); }
 function lite(p, shiny = 0) {
   const { roughness, metalness, normalMap, normalScale, envMapIntensity, ...rest } = p;
   if (shiny > 0) return new THREE.MeshPhongMaterial({ shininess: shiny, specular: '#555555', ...rest });
@@ -20,12 +26,12 @@ function lite(p, shiny = 0) {
 // std: mat oppervlak (gras, hout, stof). gloss: glimmend (lak, water, plastic). metal: metaal.
 export function std(p = {}) {
   const { flatShading, shininess, specular, ...rest } = p;
-  if (Q.low) return lite(rest, (rest.roughness ?? 1) < 0.4 ? 40 : 0);
+  if (!Q.high) return lite(rest, (rest.roughness ?? 1) < 0.4 ? 40 : 0);
   return new THREE.MeshStandardMaterial({ roughness: 0.86, metalness: 0, ...rest });
 }
 export function gloss(p = {}) {
   const { flatShading, shininess = 60, specular, ...rest } = p;
-  if (Q.low) return lite(rest, shininess);
+  if (!Q.high) return lite(rest, shininess);
   return new THREE.MeshStandardMaterial({ roughness: Math.max(0.08, 0.62 - shininess / 260), metalness: 0, ...rest });
 }
 export function metal(p = {}) {
@@ -344,10 +350,10 @@ export function treeProto(kind) {
         { geo: new THREE.CylinderGeometry(0.1, 0.18, 1.6, 6), matrix: at(-0.45, 3.3, 0.3, 0.4, 0, 0.7), color: '#c8c8c8' },
       ]);
       const crown = mergeParts([
-        { geo: blob(2.2, { seed: 1 }), matrix: at(0, 4.9, 0), color: shade(0.55, 1.08, 2.8, 7.2) },
-        { geo: blob(1.6, { seed: 2 }), matrix: at(1.5, 4.3, 0.4), color: shade(0.55, 1.05, 2.8, 7.2) },
-        { geo: blob(1.5, { seed: 3 }), matrix: at(-1.3, 4.5, -0.6), color: shade(0.55, 1.05, 2.8, 7.2) },
-        { geo: blob(1.4, { seed: 4 }), matrix: at(0.2, 5.6, -1.2), color: shade(0.6, 1.1, 2.8, 7.2) },
+        { geo: blob(2.2, { seed: 1, detail: 1 }), matrix: at(0, 4.9, 0), color: shade(0.55, 1.08, 2.8, 7.2) },
+        { geo: blob(1.6, { seed: 2, detail: 1 }), matrix: at(1.5, 4.3, 0.4), color: shade(0.55, 1.05, 2.8, 7.2) },
+        { geo: blob(1.5, { seed: 3, detail: 1 }), matrix: at(-1.3, 4.5, -0.6), color: shade(0.55, 1.05, 2.8, 7.2) },
+        { geo: blob(1.4, { seed: 4, detail: 1 }), matrix: at(0.2, 5.6, -1.2), color: shade(0.6, 1.1, 2.8, 7.2) },
       ]);
       return [
         { geo: trunk, mat: tm('bark', () => std({ color: '#6e4a2c', vertexColors: true, roughness: 0.95 })) },
@@ -414,7 +420,7 @@ export function treeProto(kind) {
     }
     case 'bush': {
       const g = mergeParts([
-        { geo: blob(1.1, { seed: 5, detail: 2 }), matrix: at(0, 0.7, 0), color: shade(0.55, 1.05, 0, 1.8) },
+        { geo: blob(1.1, { seed: 5, detail: 1 }), matrix: at(0, 0.7, 0), color: shade(0.55, 1.05, 0, 1.8) },
         { geo: blob(0.85, { seed: 6, detail: 1 }), matrix: at(0.8, 0.55, 0.3), color: shade(0.55, 1.05, 0, 1.8) },
         { geo: blob(0.8, { seed: 7, detail: 1 }), matrix: at(-0.7, 0.5, -0.3), color: shade(0.55, 1.05, 0, 1.8) },
       ]);
@@ -423,8 +429,8 @@ export function treeProto(kind) {
     case 'willow': { // knotwilg
       const trunk = mergeParts([{ geo: new THREE.CylinderGeometry(0.45, 0.55, 2.4, 10), matrix: at(0, 1.2, 0), color: shade(0.5, 0.85, 0, 2.4, 0.15) }]);
       const crown = mergeParts([
-        { geo: blob(1.6, { seed: 8, squash: 0.85, bump: 0.45 }), matrix: at(0, 3.5, 0), color: shade(0.6, 1.1, 2.2, 5) },
-        { geo: blob(1.1, { seed: 9, bump: 0.4 }), matrix: at(0.6, 4.4, 0.2), color: shade(0.6, 1.1, 2.2, 5) },
+        { geo: blob(1.6, { seed: 8, squash: 0.85, bump: 0.45, detail: 1 }), matrix: at(0, 3.5, 0), color: shade(0.6, 1.1, 2.2, 5) },
+        { geo: blob(1.1, { seed: 9, bump: 0.4, detail: 1 }), matrix: at(0.6, 4.4, 0.2), color: shade(0.6, 1.1, 2.2, 5) },
       ]);
       return [
         { geo: trunk, mat: tm('willowbark', () => std({ color: '#7a6a55', vertexColors: true, roughness: 0.95 })) },
@@ -477,16 +483,10 @@ const SKY_FRAG = `
 varying vec3 vDir;
 uniform vec3 top; uniform vec3 hor; uniform vec3 ground; uniform vec3 sunDir; uniform vec3 sunCol;
 uniform float time; uniform float clouds; uniform float cloudCover; uniform vec3 cloudCol; uniform float sunSize;
-float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-float noise(vec2 p) {
-  vec2 i = floor(p), f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
-}
+uniform sampler2D noiseTex;
+// wolkenruis uit een kant-en-klare textuur: veel sneller dan uitrekenen
 float fbm(vec2 p) {
-  float v = 0.0, a = 0.5;
-  for (int i = 0; i < 4; i++) { v += a * noise(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; }
-  return v;
+  return texture2D(noiseTex, p * 0.09).r * 0.72 + texture2D(noiseTex, p * 0.31 + 0.37).g * 0.28;
 }
 void main() {
   vec3 d = normalize(vDir);
@@ -498,8 +498,8 @@ void main() {
   if (clouds > 0.5 && d.y > 0.0) {
     vec2 uv = d.xz / (d.y + 0.08) * 0.9 + vec2(time * 0.006, time * 0.002);
     float n = fbm(uv);
-    float c = smoothstep(cloudCover, cloudCover + 0.22, n) * smoothstep(0.0, 0.12, d.y);
-    float light = 0.78 + 0.32 * smoothstep(0.3, 0.8, fbm(uv * 1.3 + 4.0)) + pow(sd, 4.0) * 0.4;
+    float c = smoothstep(cloudCover, cloudCover + 0.2, n) * smoothstep(0.0, 0.12, d.y);
+    float light = 0.78 + 0.3 * smoothstep(cloudCover + 0.05, cloudCover + 0.35, n) + pow(sd, 4.0) * 0.4;
     col = mix(col, cloudCol * light, c * 0.92);
   }
   col = mix(col, ground, smoothstep(0.0, -0.08, d.y));
@@ -524,6 +524,7 @@ export function skyMaterial(th) {
       cloudCover: { value: th.cloudCover ?? 0.52 },
       cloudCol: { value: new THREE.Color(th.cloudCol || '#ffffff') },
       sunSize: { value: th.stars ? 0.0 : 0.0016 },
+      noiseTex: { value: noiseTexture() },
     },
     side: THREE.BackSide,
     depthWrite: false,
