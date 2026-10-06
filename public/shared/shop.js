@@ -54,6 +54,7 @@ export const SHOP_ITEMS = [
   // --- specials: extra coureurs om mee te racen (alleen uiterlijk) ---
   { id: 'special_meke', slot: 'special', name: 'Meke', rarity: 'episch', price: 250, look: { character: 'meke' } },
   { id: 'special_meike', slot: 'special', name: 'Meike', rarity: 'episch', price: 250, look: { character: 'meike' } },
+  { id: 'special_sim', slot: 'special', name: 'Sim', rarity: 'episch', price: 250, look: { character: 'sim' } },
   { id: 'special_ridderkees', slot: 'special', name: 'Ridder Kees', rarity: 'episch', price: 250, look: { character: 'ridderkees' } },
   { id: 'special_ridderjort', slot: 'special', name: 'Ridder Jort', rarity: 'episch', price: 250, look: { character: 'ridderjort' } },
   { id: 'special_stan', slot: 'special', name: 'Stan', rarity: 'episch', price: 250, look: { character: 'stan' } },

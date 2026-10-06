@@ -20,7 +20,7 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
 - **Winnaar en verliezer**: de laatste mens krijgt de uitdaging "Een atje karnemelk!". De verliezer of host kan hem overslaan, een andere kiezen of afvinken. De host kan de tekst vooraf aanpassen of uitzetten.
 - **Geen wachtwoord of PIN**: je kiest alleen een naam. Je telefoon onthoudt je, en je MP-punten en spullen blijven op die telefoon. Nieuwe telefoon? Met een overzetcode (Instellingen) neem je alles mee.
 - **MP-punten** na elke race, plus een **dagbonus** van 25 MP voor je eerste uitgereden race van de dag.
-- **Specials**: Meke (lang, dun en blond), Meike (donker haar, dun), Stan, Jullian, Melle, Duuk, Morris, Ridder Kees en Ridder Jort (allebei in een volledig ridderpak) koop je met MP-punten. In de race heet je dan bijvoorbeeld **Meke (Jort)**, zodat je meerdere Mekes uit elkaar houdt.
+- **Specials**: Meke (lang, dun en blond), Meike (donker haar, dun), Sim (lichtdonker haar), Stan, Jullian, Melle, Duuk, Morris, Ridder Kees en Ridder Jort (allebei in een volledig ridderpak) koop je met MP-punten. In de race heet je dan bijvoorbeeld **Meke (Jort)**, zodat je meerdere Mekes uit elkaar houdt.
 - **Mijn coureur**: maak je eigen coureur met huidskleur, haar, haarkleur, shirt, lengte, bouw, bril en snor of baard.
 - **Winkel** met specials, andere karts (o.a. een Roze droomkart, Tractorkart, Badkuip-kart en Monstertruck), hoeden, capes, kartkleuren, bandeneffecten, lichtsporen en overwinningsposes in 5 zeldzaamheden. Alles is betaalbaar: een special heb je na een paar races. Alleen uiterlijk, iedereen ziet elkaars spullen in de race.
 - **Langs de weg**: tribunes met juichend publiek, reclameborden met grappige teksten, bochtpijlen, bandenstapels, vlaggen, pionnen en per baan eigen spullen (fietsen in de stad, melkbussen en schapen op de boerderij, surfplanken aan de kust, ...).
@@ -160,7 +160,7 @@ De prijzen zijn bewust betaalbaar. Een race met vier vrienden levert al snel 40 
 
 | Soort | Items en prijzen (MP) |
 |---|---|
-| Specials | Allemaal 250: Meke, Meike, Stan, Jullian, Melle, Duuk, Morris, Ridder Kees, Ridder Jort (na 5 online races heb je er altijd genoeg voor, ook als je steeds laatste wordt). Nicole en Cherso Duif zijn uit de winkel: wie ze had, kreeg de MP terug. |
+| Specials | Allemaal 250: Meke, Meike, Sim, Stan, Jullian, Melle, Duuk, Morris, Ridder Kees, Ridder Jort (na 5 online races heb je er altijd genoeg voor, ook als je steeds laatste wordt). Nicole en Cherso Duif zijn uit de winkel: wie ze had, kreeg de MP terug. |
 | Capes | Rode cape 50, Hemelsblauwe cape 50, Oranje feestcape 110, Boerenzakdoek-cape 130, Sterrennacht-cape 220, Regenboogcape 380, **Gouden cape 900 (Legendarisch)** |
 | Karts | Bakfietskart 70, Roze droomkart 140, Tractorkart 160, Melkwagen 220, Badkuip-kart 240, Klompkart 320, Monstertruck 380, Raketkart 450 |
 | Kartkleuren | Melkwit 30, Weidegroen 30, Kauwgomroze 40, Koningsoranje 80, Nachtblauw 80, Koeienvlekken 180, Spiegelchroom 300, Lavagloed 320 |
@@ -173,7 +173,7 @@ De prijzen zijn bewust betaalbaar. Een race met vier vrienden levert al snel 40 
 
 Gratis coureurs (allemaal even snel): Kees Karnemelk, Bella Boerin, Dirk Drop, Fien Friet, Otto Ooievaar, Saar Stroopwafel, Bram Bitterbal, Molenaar Mo, Tess Tulp, Gijs Gouda en **Mijn coureur** (zelf gemaakt).
 
-Specials (te koop met MP): **Meke** (lang, dun, blond), **Meike** (donker haar, dun), **Stan** (kort, donkerbruin en warrig), **Jullian** (kaal en blond), **Melle** (kort lichtblond), **Duuk** (kaal), **Morris** (blond met middenscheiding), **Ridder Kees** en **Ridder Jort** (volledig ridderpak met helm en pluim). Wie met een special racet, heet in de race "Meke (spelersnaam)". Computerkarts gebruiken nooit een special.
+Specials (te koop met MP): **Meke** (lang, dun, blond), **Meike** (donker haar, dun), **Sim** (kort, lichtdonker haar), **Stan** (kort, donkerbruin en warrig), **Jullian** (kaal en blond), **Melle** (kort lichtblond), **Duuk** (kaal), **Morris** (blond met middenscheiding), **Ridder Kees** en **Ridder Jort** (volledig ridderpak met helm en pluim). Wie met een special racet, heet in de race "Meke (spelersnaam)". Computerkarts gebruiken nooit een special.
 
 | Baan | Plek | Bijzonder |
 |---|---|---|

@@ -461,6 +461,7 @@ test('coureurs: Meke lang en dun, Meike dun, de vrienden en de ridders als speci
   assert.equal(CHARACTER_BY_ID.melle.look.hairColor, '#f6d987');
   assert.equal(CHARACTER_BY_ID.duuk.look.hair, 'kaal');
   assert.equal(CHARACTER_BY_ID.morris.look.hair, 'scheiding');
+  assert.equal(CHARACTER_BY_ID.sim.look.hair, 'kort');
   assert.ok(CHARACTER_BY_ID.ridderkees.armor && CHARACTER_BY_ID.ridderjort.armor && CHARACTER_BY_ID.ridderjort.look.helm, 'ridders in harnas');
   // Nicole en Cherso Duif zijn eruit
   assert.equal(CHARACTER_BY_ID.nicole, undefined);
@@ -469,7 +470,7 @@ test('coureurs: Meke lang en dun, Meike dun, de vrienden en de ridders als speci
   assert.equal(cleanLook({ hair: 'scheiding' }).hair, 'scheiding');
   // bots gebruiken geen zelfgemaakte coureur en geen specials
   assert.ok(!BOT_CHARACTERS.some((c) => c.custom || c.special));
-  for (const id of ['meke', 'meike', 'stan', 'jullian', 'melle', 'duuk', 'morris', 'ridderkees', 'ridderjort']) assert.ok(CHARACTER_BY_ID[id].special, `${id} is een special`);
+  for (const id of ['meke', 'meike', 'sim', 'stan', 'jullian', 'melle', 'duuk', 'morris', 'ridderkees', 'ridderjort']) assert.ok(CHARACTER_BY_ID[id].special, `${id} is een special`);
   assert.equal(racerName('Jort', 'meke'), 'Meke (Jort)');
   assert.equal(racerName('Jort', 'ridderjort'), 'Ridder Jort (Jort)');
   assert.equal(racerName('Meke', 'meke'), 'Meke');

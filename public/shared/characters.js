@@ -11,6 +11,10 @@ export const CHARACTERS = [
     look: { skin: '#f6c9a5', hair: 'lang', hairColor: '#3a2418', shirt: '#9b5de5', height: 'normaal', build: 'dun', glasses: 'geen', facial: 'geen' },
   },
   {
+    id: 'sim', friend: true, special: 'special_sim', name: 'Sim', desc: 'Donker haar, net niet helemaal: lichtdonker. Rijdt altijd de ideale lijn.', head: 'mens', body: '#4aa3ff', skin: '#f6c9a5', kart: '#3b8fe6', accent: '#ffffff',
+    look: { skin: '#f6c9a5', hair: 'kort', hairColor: '#5c3b24', shirt: '#4aa3ff', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
+  },
+  {
     id: 'ridderkees', friend: true, special: 'special_ridderkees', name: 'Ridder Kees', desc: 'Kees in een glimmend ridderpak. Voor de eer van de karnemelk!', head: 'pak', armor: true, body: '#cfd5dd', skin: '#ffffff', kart: '#9aa3ad', accent: '#e63946',
   },
   {
