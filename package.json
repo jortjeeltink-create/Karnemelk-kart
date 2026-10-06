@@ -1,0 +1,25 @@
+{
+  "name": "karnemelk-kart",
+  "version": "1.0.0",
+  "description": "Karnemelk Kart - een originele multiplayer arcade-kartgame voor de browser (ook op telefoons).",
+  "private": true,
+  "type": "module",
+  "main": "server/index.js",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch-path=server --watch-path=public server/index.js",
+    "test": "node --test",
+    "build:demo": "node tools/build-demo.mjs",
+    "test:snel": "node --test test/unit.test.js test/store.test.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

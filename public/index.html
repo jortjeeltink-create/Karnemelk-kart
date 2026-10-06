@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Karnemelk Kart</title>
+  <meta name="description" content="Karnemelk Kart: race live tegen maximaal 10 vrienden, gewoon in je browser.">
+  <meta name="theme-color" content="#2f7de1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Karnemelk Kart">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/img/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/img/icon-180.png">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div id="hud"></div>
+  <main id="ui"></main>
+  <div id="toasts" aria-live="polite"></div>
+  <div id="modal"></div>
+  <div id="conn" role="status"><span class="spinner small"></span> Verbinding kwijt… we verbinden opnieuw</div>
+  <noscript>Karnemelk Kart heeft JavaScript nodig.</noscript>
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>

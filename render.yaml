@@ -1,0 +1,16 @@
+# Render.com blueprint (Dashboard -> New -> Blueprint -> kies je repository)
+services:
+  - type: web
+    name: karnemelk-kart
+    runtime: node
+    plan: free
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      # Gratis Render-servers hebben geen vaste schijf. Vul deze twee in (gratis Upstash Redis)
+      # zodat MP-punten en gekochte spullen bewaard blijven. Zie README.md.
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
