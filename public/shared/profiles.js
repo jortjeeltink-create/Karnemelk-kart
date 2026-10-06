@@ -2,7 +2,7 @@
 // apparaatsleutel en daaraan hangen je naam, MP-punten en spullen.
 // Werkt met elke sleutel/waarde-opslag met async get/set/del (bestand, Redis of de browser).
 import { cleanName } from './util.js';
-import { DEFAULT_EQUIP, START_MP } from './shop.js';
+import { DEFAULT_EQUIP, START_MP, SHOP_BY_ID, ownsItem } from './shop.js';
 import { cleanLook, DEFAULT_LOOK } from './look.js';
 
 const DEVICE_RE = /^[A-Za-z0-9_-]{20,64}$/;
@@ -126,5 +126,56 @@ export class Profiles {
     return { ok: true, profile };
   }
 
+  // ---- reservekopie op de telefoon ----
+  // Na een herstart van de server (gratis hosting zonder database) brengt de telefoon
+  // je profiel terug. De kopie is ondertekend door de server, dus niet aan te passen.
+  async restore(token, raw) {
+    if (!isDeviceToken(token)) return null;
+    const data = cleanBackup(raw);
+    if (!data) return null;
+    const existing = await this.get(data.key);
+    if (existing) {
+      // bestaat al (bijvoorbeeld een tweede telefoon met hetzelfde profiel): alleen koppelen
+      await this.linkDevice(token, existing.key);
+      return existing;
+    }
+    const profile = { ...data, created: data.created || this.now(), restored: this.now() };
+    await this.save(profile);
+    await this.linkDevice(token, profile.key);
+    return profile;
+  }
+
   flush() { if (this.kv.flush) this.kv.flush(); }
+}
+
+const KEY_RE = /^[A-Za-z0-9_-]{6,20}$/;
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+const int = (v, max) => (Number.isFinite(v) ? Math.max(0, Math.min(max, Math.floor(v))) : 0);
+
+// wat er in de reservekopie op de telefoon staat
+export function backupData(p) {
+  return {
+    v: 1, key: p.key, name: p.name, mp: p.mp, owned: p.owned || [], equipped: p.equipped || {}, look: p.look,
+    stats: p.stats || {}, lastCharacter: p.lastCharacter || null, lastDaily: p.lastDaily || null, created: p.created || null,
+  };
+}
+
+// reservekopie controleren en opschonen (alleen bekende spullen, geldige getallen)
+export function cleanBackup(raw) {
+  if (!raw || typeof raw !== 'object' || raw.v !== 1 || !KEY_RE.test(raw.key || '')) return null;
+  const name = cleanName(raw.name);
+  if (!name) return null;
+  const owned = [...new Set(Array.isArray(raw.owned) ? raw.owned : [])].filter((id) => typeof id === 'string' && SHOP_BY_ID[id]);
+  const profile = { key: raw.key, name, mp: int(raw.mp, 1e7), owned, equipped: { ...DEFAULT_EQUIP }, look: cleanLook(raw.look) };
+  const eq = raw.equipped && typeof raw.equipped === 'object' ? raw.equipped : {};
+  for (const slot of Object.keys(DEFAULT_EQUIP)) {
+    const it = SHOP_BY_ID[eq[slot]];
+    if (it && it.slot === slot && ownsItem(profile, it.id)) profile.equipped[slot] = it.id;
+  }
+  const st = raw.stats && typeof raw.stats === 'object' ? raw.stats : {};
+  profile.stats = { races: int(st.races, 1e6), wins: int(st.wins, 1e6), podiums: int(st.podiums, 1e6), totalMp: int(st.totalMp, 1e8) };
+  if (typeof raw.lastCharacter === 'string' && raw.lastCharacter.length <= 20) profile.lastCharacter = raw.lastCharacter;
+  if (typeof raw.lastDaily === 'string' && DAY_RE.test(raw.lastDaily)) profile.lastDaily = raw.lastDaily;
+  if (Number.isFinite(raw.created)) profile.created = raw.created;
+  return profile;
 }

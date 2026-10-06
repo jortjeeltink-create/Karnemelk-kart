@@ -3,7 +3,7 @@
 import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, ROOM_IDLE_MS } from './constants.js';
 import { Room } from './room.js';
 import { tryBuy, tryEquip, publicCosmetics } from './shop.js';
-import { isDeviceToken, dayKey, DAILY_BONUS, TRANSFER_MINUTES } from './profiles.js';
+import { isDeviceToken, dayKey, DAILY_BONUS, TRANSFER_MINUTES, backupData } from './profiles.js';
 import { cleanLook } from './look.js';
 
 export function publicProfile(p) {
@@ -15,8 +15,10 @@ export function publicProfile(p) {
 }
 
 export class Hub {
-  constructor({ store, now = () => Date.now(), random = Math.random, log = () => {}, laps = null, offline = false }) {
+  // signer: { sign(tekst), verify(tekst, handtekening) } voor de reservekopie op de telefoon
+  constructor({ store, now = () => Date.now(), random = Math.random, log = () => {}, laps = null, offline = false, signer = null }) {
     this.store = store;
+    this.signer = signer;
     this.laps = laps; // alleen voor tests: kortere races
     this.offline = offline;
     this.now = now;
@@ -80,8 +82,25 @@ export class Hub {
     }
   }
 
+  // Profiel voor de telefoon, met een ondertekende reservekopie (als de server die kan maken).
+  pp(p) {
+    const out = publicProfile(p);
+    if (out && this.signer) {
+      const d = JSON.stringify(backupData(p));
+      out.backup = { d, s: this.signer.sign(d) };
+    }
+    return out;
+  }
+
+  readBackup(b) {
+    if (!this.signer || !b || typeof b.d !== 'string' || typeof b.s !== 'string' || b.d.length > 20000) return null;
+    if (!this.signer.verify(b.d, b.s)) return null;
+    try { return JSON.parse(b.d); } catch { return null; }
+  }
+
   // Wie ben je? Eerst het cookie van de server, dan de sleutel die de browser zelf bewaarde.
-  async identify(session, browserDevice) {
+  // Kent de server je niet (meer), bijvoorbeeld na een herstart, dan helpt de reservekopie.
+  async identify(session, browserDevice, backup = null) {
     const cands = [session.cookieDevice, isDeviceToken(browserDevice) ? browserDevice : null].filter(Boolean);
     let profile = null;
     let device = null;
@@ -90,6 +109,13 @@ export class Hub {
       if (p) { profile = p; device = t; break; }
     }
     if (!device) device = cands[0] || this.store.newDeviceToken();
+    if (!profile) {
+      const data = this.readBackup(backup);
+      if (data) {
+        profile = await this.store.restore(device, data);
+        if (profile) this.log(`profiel ${profile.name} teruggezet vanaf de telefoon`);
+      }
+    }
     // beide sleutels naar hetzelfde profiel laten wijzen (als de ene ooit kwijtraakt)
     if (profile) for (const t of cands) if (t !== device) await this.store.linkDevice(t, profile.key);
     session.device = device;
@@ -104,8 +130,8 @@ export class Hub {
         return this.sendTo(session, { t: 'pong', c: msg.c, s: this.now() });
 
       case 'hello': {
-        const profile = await this.identify(session, msg.device);
-        return this.sendTo(session, { t: 'welcome', profile: publicProfile(profile), device: session.device });
+        const profile = await this.identify(session, msg.device, msg.backup);
+        return this.sendTo(session, { t: 'welcome', profile: this.pp(profile), device: session.device });
       }
 
       case 'register': {
@@ -114,7 +140,7 @@ export class Hub {
         if (!res.ok) return this.sendTo(session, { t: 'registerFailed', msg: res.error });
         if (session.cookieDevice && session.cookieDevice !== session.device) await this.store.linkDevice(session.cookieDevice, res.profile.key);
         session.profile = res.profile;
-        return this.sendTo(session, { t: 'loggedIn', profile: publicProfile(res.profile), device: session.device, created: !!res.created });
+        return this.sendTo(session, { t: 'loggedIn', profile: this.pp(res.profile), device: session.device, created: !!res.created });
       }
 
       case 'useTransfer': {
@@ -125,7 +151,7 @@ export class Hub {
         if (session.cookieDevice && session.cookieDevice !== session.device) await this.store.linkDevice(session.cookieDevice, res.profile.key);
         if (session.room) session.room.leave(session);
         session.profile = res.profile;
-        return this.sendTo(session, { t: 'loggedIn', profile: publicProfile(res.profile), device: session.device, transferred: true });
+        return this.sendTo(session, { t: 'loggedIn', profile: this.pp(res.profile), device: session.device, transferred: true });
       }
     }
 
@@ -133,12 +159,12 @@ export class Hub {
 
     switch (msg.t) {
       case 'profile':
-        return this.sendTo(session, { t: 'profile', profile: publicProfile(session.profile) });
+        return this.sendTo(session, { t: 'profile', profile: this.pp(session.profile) });
 
       case 'rename': {
         const res = await this.store.rename(session.profile, msg.name);
         if (!res.ok) return this.sendTo(session, { t: 'renameFailed', msg: res.error });
-        this.sendTo(session, { t: 'profile', profile: publicProfile(session.profile), renamed: true });
+        this.sendTo(session, { t: 'profile', profile: this.pp(session.profile), renamed: true });
         if (room) room.refreshMember(session);
         return;
       }
@@ -147,7 +173,7 @@ export class Hub {
         await this.store.setLook(session.profile, msg.look);
         if (msg.use) session.profile.lastCharacter = 'eigen';
         await this.store.save(session.profile);
-        this.sendTo(session, { t: 'profile', profile: publicProfile(session.profile), lookSaved: true });
+        this.sendTo(session, { t: 'profile', profile: this.pp(session.profile), lookSaved: true });
         if (room) {
           if (msg.use) room.setCharacter(session, 'eigen');
           room.refreshMember(session);
@@ -189,7 +215,7 @@ export class Hub {
         const res = tryBuy(session.profile, msg.id);
         if (!res.ok) return this.sendTo(session, { t: 'shopFailed', msg: res.error });
         await this.store.save(session.profile);
-        this.sendTo(session, { t: 'profile', profile: publicProfile(session.profile), bought: msg.id });
+        this.sendTo(session, { t: 'profile', profile: this.pp(session.profile), bought: msg.id });
         return;
       }
 
@@ -197,7 +223,7 @@ export class Hub {
         const res = tryEquip(session.profile, msg.id);
         if (!res.ok) return this.sendTo(session, { t: 'shopFailed', msg: res.error });
         await this.store.save(session.profile);
-        this.sendTo(session, { t: 'profile', profile: publicProfile(session.profile) });
+        this.sendTo(session, { t: 'profile', profile: this.pp(session.profile) });
         if (room && res.character) room.setCharacter(session, res.character);
         else if (room) room.refreshMember(session);
         return;
@@ -243,7 +269,7 @@ export class Hub {
     if (place <= 3 && total > 1) p.stats.podiums = (p.stats.podiums || 0) + 1;
     await this.store.save(p);
     for (const s of this.sessions) {
-      if (s.profile && s.profile.key === profileKey) this.sendTo(s, { t: 'profile', profile: publicProfile(p) });
+      if (s.profile && s.profile.key === profileKey) this.sendTo(s, { t: 'profile', profile: this.pp(p) });
     }
     return bonus;
   }

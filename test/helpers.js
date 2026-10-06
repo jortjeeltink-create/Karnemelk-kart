@@ -77,14 +77,16 @@ export class Client {
 }
 
 // nieuwe speler (of bestaande, als device wordt meegegeven)
-export async function loginClient(wsUrl, name, device = null) {
+// backup: de reservekopie die een telefoon bewaart (voor een server die je vergeten is)
+export async function loginClient(wsUrl, name, device = null, backup = null) {
   const c = await new Client(wsUrl).open();
-  const w = await c.request({ t: 'hello', device }, 'welcome');
+  const w = await c.request({ t: 'hello', device, backup }, 'welcome');
   c.device = w.device;
   if (w.profile) {
     c.profile = w.profile;
     return c;
   }
+  if (name === 'x') return c; // alleen kijken of de server je kent
   const r = await c.request({ t: 'register', name }, (m) => m.t === 'loggedIn' || m.t === 'registerFailed');
   c.profile = r.profile;
   return c;

@@ -60,23 +60,21 @@ Karnemelk Kart is één klein Node.js-programma dat zowel de game-bestanden leve
 
 1. **Een host die een Node.js-server draait en WebSockets toelaat.** Statische hosting zoals GitHub Pages, Netlify of Vercel is *niet* genoeg, want daar kan de live raceserver niet draaien.
 2. **HTTPS** (bijna elke host regelt dit automatisch). De game schakelt dan vanzelf over op beveiligde WebSockets (`wss://`). Kantelbesturing op iPhone werkt alleen via HTTPS.
-3. **Bewaarde opslag voor de MP-punten.** Standaard schrijft de server naar `data/karnemelk-data.json` (of de map in `DATA_DIR`). Op hosting zonder vaste schijf gebruik je gratis Upstash Redis (zie hieronder).
+3. **Niks extra's voor de MP-punten.** De server schrijft naar `data/karnemelk-data.json` (of de map in `DATA_DIR`), en elke telefoon bewaart daarnaast een ondertekende reservekopie van zijn eigen profiel. Start een gratis server opnieuw met een lege schijf, dan zet elke telefoon zijn naam, MP en spullen vanzelf terug. Een database is dus niet nodig.
 
 Eén serverinstantie is genoeg voor flink wat groepjes vrienden; een race met 10 spelers kost de server minder dan 5 ms rekentijd per seconde. Gebruik **één** instantie (niet opschalen naar meerdere), want rooms leven in het geheugen van de server.
 
 ### Optie A: Render.com (gratis, makkelijkst)
 
 1. Zet deze map in een GitHub-repository.
-2. Maak een gratis account op [render.com](https://render.com) en kies **New → Blueprint**. Selecteer je repository; Render leest `render.yaml` en maakt een webservice.
-3. Maak een gratis database op [upstash.com](https://upstash.com) (**Redis → Create database**). Kopieer bij **REST API** de waarden `UPSTASH_REDIS_REST_URL` en `UPSTASH_REDIS_REST_TOKEN`.
-4. Vul die twee in bij Render (**Environment**). Zonder Upstash werkt alles ook, maar dan zijn punten weg na elke herstart van de gratis server.
-5. Je link wordt iets als `https://karnemelk-kart.onrender.com`. Deel die, of deel vanuit de lobby de link met groepscode.
+2. Maak een gratis account op [render.com](https://render.com) en kies **New → Blueprint**. Selecteer je repository; Render leest `render.yaml` en maakt een webservice in Frankfurt. Je hoeft niks in te vullen: Render maakt zelf het geheim `KK_SECRET` aan waarmee de reservekopieën worden ondertekend.
+3. Klik op **Deploy Blueprint**. Je link wordt iets als `https://karnemelk-kart.onrender.com`. Deel die, of deel vanuit de lobby de link met groepscode.
 
-Let op: een gratis Render-server slaapt na 15 minuten zonder bezoekers. De eerste speler wacht dan ongeveer een minuut; de game probeert vanzelf opnieuw te verbinden. Met een betaald plan (vanaf ongeveer $7 per maand) gebeurt dat niet en kun je ook een vaste schijf gebruiken (`DATA_DIR=/var/data`).
+Let op: een gratis Render-server slaapt na 15 minuten zonder bezoekers. De eerste speler wacht dan ongeveer een minuut; de game probeert vanzelf opnieuw te verbinden en de telefoons zetten hun profiel terug. Wie op dat moment niet online is, krijgt zijn profiel terug zodra hij de game weer opent.
 
 ### Optie B: Railway of Fly.io
 
-Beide draaien de meegeleverde `Dockerfile`. Koppel een volume aan `/data` (de Dockerfile zet `DATA_DIR=/data`), dan blijven de punten bewaard. Je kunt ook hier Upstash gebruiken in plaats van een volume.
+Beide draaien de meegeleverde `Dockerfile`. Zet `KK_SECRET` op een lange willekeurige tekst, dan werken de reservekopieën op de telefoons. Koppel je een volume aan `/data` (de Dockerfile zet `DATA_DIR=/data`), dan bewaart ook de server alles.
 
 ### Optie C: eigen server of VPS
 
@@ -105,7 +103,8 @@ Je krijgt een adres als `https://iets-willekeurigs.trycloudflare.com` dat werkt 
 | `PORT` | `3000` | Poort van de server |
 | `HOST` | `0.0.0.0` | Netwerkadres |
 | `DATA_DIR` | `./data` | Map voor het opslagbestand |
-| `UPSTASH_REDIS_REST_URL` | – | Als ingevuld: opslag in Upstash Redis |
+| `KK_SECRET` | – | Geheim om reservekopieën te ondertekenen. Niet ingevuld: de server maakt er zelf één en bewaart die in de opslag. Op hosting zonder vaste schijf moet je dit invullen (Render doet het automatisch) |
+| `UPSTASH_REDIS_REST_URL` | – | Optioneel: opslag in Upstash Redis in plaats van een bestand |
 | `UPSTASH_REDIS_REST_TOKEN` | – | Hoort bij de URL hierboven |
 
 `/health` geeft de status terug (aantal rooms en spelers), handig voor hostingcontroles.
@@ -193,6 +192,7 @@ Specials (te koop met MP): **Meke** (lang en dun), **Nicole** (wat steviger) en 
 - **Soepel rijden ondanks vertraging**: je eigen kart wordt in de browser voorspeld (met precies dezelfde code als op de server) en stilletjes gecorrigeerd. Andere karts worden vloeiend tussen updates in getekend.
 - **Geluid en muziek** worden live gemaakt met de Web Audio API; er zijn geen geluidsbestanden.
 - **Wie ben je?** Bij je eerste bezoek krijgt je telefoon een lange, geheime apparaatsleutel. Die staat in de browser én in een cookie van de server (HttpOnly, 400 dagen, bij elk bezoek verlengd). Aan die sleutel hangen je naam, MP-punten en spullen. Andere spelers zien de sleutel nooit.
+- **Reservekopie op de telefoon**: bij elke wijziging (punten, aankoop, uiterlijk) stuurt de server een kopie van je profiel mee, ondertekend met HMAC-SHA256 en `KK_SECRET`. De telefoon bewaart die (`kk-reserve`) en stuurt hem mee bij het verbinden. Kent de server je niet (meer), bijvoorbeeld na een herstart met een lege schijf, dan zet hij je profiel terug. Aangepaste kopieën (meer MP) worden geweigerd.
 - **Overzetcode**: in Instellingen maak je een code van 6 tekens (15 minuten geldig, één keer te gebruiken) om je profiel op een nieuwe telefoon te gebruiken.
 
 ```
@@ -210,8 +210,8 @@ tools/             baanvoorbeelden tekenen, offline-demo bouwen
 
 Getest in deze omgeving:
 
-- 23 snelle tests: banen (geen te krappe bochten of overlappende stukken), fysica, rondes en checkpoints, punten en dagbonus, winkel en betaalbaarheid, specials ("Meke (Jort)"), eigen coureur, inloggen per telefoon (ook via het cookie), overzetcode, botsingen, titels, toeteren, voorspelling, lobby, herverbinden, opslag in bestand en in (nagebootste) Upstash.
-- Een echte race met **10 gelijktijdige spelers** via WebSockets: allemaal gefinisht, zo'n 80 botsingen die iedereen live zag, een speler die wegviel en in dezelfde kart terugkwam, punten 155 → 45 (inclusief dagbonus), winkel, en alles bewaard na een herstart van de server.
+- 22 snelle tests: banen (geen te krappe bochten of overlappende stukken), fysica, rondes en checkpoints, punten en dagbonus, winkel en betaalbaarheid, specials ("Meke (Jort)"), eigen coureur, inloggen per telefoon (ook via het cookie), overzetcode, reservekopie op de telefoon (terugzetten, vervalste kopie geweigerd), botsingen, titels, toeteren, voorspelling, lobby, herverbinden, opslag in bestand en in (nagebootste) Upstash.
+- Een echte race met **10 gelijktijdige spelers** via WebSockets: allemaal gefinisht, zo'n 80 botsingen die iedereen live zag, een speler die wegviel en in dezelfde kart terugkwam, punten 155 → 45 (inclusief dagbonus), winkel, alles bewaard na een herstart van de server, én teruggezet vanaf de telefoon na een herstart met een lege schijf.
 - De game in een Chromium-browser met iPhone-, iPhone SE- en Pixel-formaat en aanraakbediening, staand en liggend: naam kiezen, herladen (telefoon onthoudt je), uitnodigingslink, lobby, specials kopen, mijn coureur, alle kartmodellen en hoeden, races op alle 9 banen met het nieuwe decor, toeteren, uitslag met titels, toeschouwen, offline-demo. Zonder fouten in de console.
 
 Niet getest, en waarom:
@@ -223,7 +223,8 @@ Niet getest, en waarom:
 
 Bewuste keuzes en beperkingen:
 
-- Je punten staan op je telefoon. Wis je de websitegegevens in je browser, dan kom je er alleen nog bij als de server je via het cookie herkent; maak bij twijfel eerst een overzetcode.
+- Je punten staan op je telefoon. Wis je de websitegegevens in je browser, dan ben je ook de reservekopie kwijt; maak bij twijfel eerst een overzetcode.
+- Wie handig is, kan een oude reservekopie bewaren en die na een herstart van de server terugzetten (bijvoorbeeld van vóór een aankoop). Voor een spel onder vrienden is dat geen probleem; wil je het helemaal dichtzetten, gebruik dan een vaste schijf of Upstash.
 - Safari en een icoon op je beginscherm (iPhone) bewaren gegevens apart. Kies één van de twee, of gebruik de overzetcode om je punten mee te nemen.
-- Rooms bestaan alleen in het geheugen van de server: bij een herstart stoppen lopende races (punten en spullen blijven bewaard).
+- Rooms bestaan alleen in het geheugen van de server: bij een herstart stoppen lopende races (punten en spullen blijven bewaard). Kreeg je punten terwijl je offline was en start de server daarna opnieuw voordat je terugkomt, dan kunnen die punten verloren gaan.
 - Bescherming tegen valsspelen is basaal (de server rekent alle fysica zelf en beperkt hoeveel invoer je mag sturen). Prima voor vrienden onder elkaar.

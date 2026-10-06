@@ -10,7 +10,8 @@ import { encodeFull, decodeFull, encodeVisual, decodeVisual, encodeInput, decode
 import { rollItem, ITEM } from '../public/shared/items.js';
 import { Race } from '../public/shared/race.js';
 import { Hub } from '../public/shared/hub.js';
-import { Profiles, isDeviceToken } from '../public/shared/profiles.js';
+import { Profiles, isDeviceToken, cleanBackup } from '../public/shared/profiles.js';
+import { makeSigner } from '../server/store.js';
 import { CHARACTER_BY_ID, BOT_CHARACTERS, racerName } from '../public/shared/characters.js';
 import { cleanLook, lookScales, BUILDS, HEIGHTS } from '../public/shared/look.js';
 import { botInput } from '../public/shared/bots.js';
@@ -310,6 +311,59 @@ test('overzetcode zet punten naar een nieuwe telefoon (eenmalig, verloopt)', asy
   clock.t += 16 * 60000;
   await hub.message(derde, { t: 'useTransfer', code: code2 });
   assert.match(derde.last('transferFailed').msg, /verlopen/);
+});
+
+test('server vergeten (gratis hosting herstart): de telefoon zet naam, MP en spullen terug', async () => {
+  const clock = { t: Date.UTC(2026, 9, 6, 12) };
+  const signer = makeSigner('test-geheim-voor-de-reservekopie');
+  const hub = makeHub(clock, { signer });
+  const a = await newPlayer(hub, 'Cherso');
+  const p = await hub.store.get(a.profile.id);
+  p.mp = 600;
+  await hub.message(a, { t: 'buy', id: 'special_cherso' });
+  await hub.message(a, { t: 'buy', id: 'kart_roze' });
+  await hub.message(a, { t: 'equip', id: 'kart_roze' });
+  const backup = a.last('profile').profile.backup;
+  assert.ok(backup && backup.d && backup.s, 'telefoon krijgt een ondertekende reservekopie');
+  const mp = a.last('profile').profile.mp;
+
+  // nieuwe server zonder opslag, zelfde geheim
+  const hub2 = makeHub(clock, { signer });
+  const b = fakeConn();
+  hub2.connect(b);
+  await hub2.message(b, { t: 'hello', device: a.device, backup });
+  const w = b.last('welcome').profile;
+  assert.equal(w.name, 'Cherso');
+  assert.equal(w.id, a.profile.id, 'zelfde profiel (en dus zelfde plek in de room)');
+  assert.equal(w.mp, mp);
+  assert.ok(w.owned.includes('special_cherso') && w.owned.includes('kart_roze'));
+  assert.equal(w.equipped.kart, 'kart_roze');
+  // daarna gewoon verder: kopen werkt en de server kent je weer
+  await hub2.message(b, { t: 'buy', id: 'hoed_pet' });
+  assert.ok(b.last('profile').profile.owned.includes('hoed_pet'));
+
+  // aangepaste kopie (meer MP) wordt geweigerd
+  const nep = JSON.parse(backup.d);
+  nep.mp = 99999;
+  const hub3 = makeHub(clock, { signer });
+  const c = fakeConn();
+  hub3.connect(c);
+  await hub3.message(c, { t: 'hello', device: a.device, backup: { d: JSON.stringify(nep), s: backup.s } });
+  assert.equal(c.last('welcome').profile, null, 'vervalste reservekopie telt niet');
+  // ander geheim: ook geweigerd
+  const hub4 = makeHub(clock, { signer: makeSigner('ander-geheim-123') });
+  const d = fakeConn();
+  hub4.connect(d);
+  await hub4.message(d, { t: 'hello', device: a.device, backup });
+  assert.equal(d.last('welcome').profile, null);
+  // opschonen: onbekende spullen en vreemde getallen eruit
+  const schoon = cleanBackup({ v: 1, key: 'abcdefghij', name: 'Test', mp: -5, owned: ['bestaat_niet', 'cape_rood'], equipped: { cape: 'cape_goud' } });
+  assert.equal(schoon.mp, 0);
+  assert.deepEqual(schoon.owned, ['cape_rood']);
+  assert.equal(schoon.equipped.cape, 'cape_geen', 'niet gekochte cape kun je niet dragen');
+  // zonder ondertekening (offline-demo) geen reservekopie
+  const off = await newPlayer(makeHub(clock), 'Demo');
+  assert.equal(off.profile.backup, undefined);
 });
 
 test('coureurs: Meke lang en dun, Nicole dikker, Cherso Duif de allerdikste', () => {

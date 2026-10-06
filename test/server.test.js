@@ -60,7 +60,8 @@ class Driver {
 }
 
 test('10 spelers racen live samen, met herverbinden, punten en winkel', { timeout: 240000 }, async () => {
-  let srv = await startServer({ env: { KK_LAPS: '1' } });
+  const env = { KK_LAPS: '1', KK_SECRET: 'test-geheim-voor-reservekopieen' };
+  let srv = await startServer({ env });
   const clients = [];
   try {
     for (let i = 0; i < 10; i++) clients.push(await loginClient(srv.ws, `Vriend${i}`));
@@ -165,16 +166,31 @@ test('10 spelers racen live samen, met herverbinden, punten en winkel', { timeou
     // server herstarten: profiel, punten en spullen zijn bewaard
     await sleep(600);
     await srv.stop();
-    srv = await startServer({ dataDir: srv.dataDir, port: srv.port });
+    srv = await startServer({ dataDir: srv.dataDir, port: srv.port, env });
     const relog = await loginClient(srv.ws, 'x', winnerClient.device);
     assert.equal(relog.profile.name, res.winner.name, 'telefoon wordt na herstart herkend');
     assert.equal(relog.profile.mp, mpAfter);
     assert.ok(relog.profile.owned.includes('cape_rood'));
     assert.equal(relog.profile.equipped.cape, 'cape_rood');
+    relog.close();
+
+    // gratis hosting: server start opnieuw met een LEGE schijf; de telefoon zet alles terug
+    const backup = [...winnerClient.msgs].reverse().find((m) => m.profile && m.profile.backup).profile.backup;
+    await sleep(300);
+    await srv.stop();
+    srv = await startServer({ port: srv.port, env });
+    const zonder = await loginClient(srv.ws, 'x', winnerClient.device);
+    assert.equal(zonder.profile, undefined, 'lege server kent de telefoon niet zonder reservekopie');
+    zonder.close();
+    const terug = await loginClient(srv.ws, 'x', winnerClient.device, backup);
+    assert.equal(terug.profile.name, res.winner.name, 'naam terug via de telefoon');
+    assert.equal(terug.profile.mp, mpAfter, 'MP terug via de telefoon');
+    assert.equal(terug.profile.equipped.cape, 'cape_rood', 'gekochte cape terug');
+    terug.close();
     const other = await loginClient(srv.ws, 'Nieuwkomer');
     assert.equal(other.profile.name, 'Nieuwkomer', 'een andere telefoon krijgt een eigen profiel');
     assert.equal(other.profile.mp, 150);
-    relog.close(); other.close();
+    other.close();
   } finally {
     clients.forEach((c) => { try { c.close(); } catch { /* al dicht */ } });
     await srv.stop();

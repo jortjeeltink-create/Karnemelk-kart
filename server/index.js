@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 import os from 'node:os';
 import { WebSocketServer } from 'ws';
 import { Hub } from '../public/shared/hub.js';
-import { createStore, randomString } from './store.js';
+import { createStore, randomString, loadSecret, makeSigner } from './store.js';
 import { isDeviceToken } from '../public/shared/profiles.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -74,7 +74,8 @@ const store = await createStore({
   upstashToken: process.env.UPSTASH_REDIS_REST_TOKEN,
   log,
 });
-const hub = new Hub({ store, log, laps: process.env.KK_LAPS ? +process.env.KK_LAPS : null });
+const signer = makeSigner(await loadSecret(store.kv, process.env.KK_SECRET));
+const hub = new Hub({ store, log, signer, laps: process.env.KK_LAPS ? +process.env.KK_LAPS : null });
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://x');

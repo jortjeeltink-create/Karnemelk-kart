@@ -1,4 +1,6 @@
 # Render.com blueprint (Dashboard -> New -> Blueprint -> kies je repository)
+# Je hoeft niks in te vullen: MP-punten staan als ondertekende reservekopie op ieders telefoon
+# en komen vanzelf terug als de gratis server opnieuw opstart.
 services:
   - type: web
     name: karnemelk-kart
@@ -9,9 +11,6 @@ services:
     startCommand: npm start
     healthCheckPath: /health
     envVars:
-      # Gratis Render-servers hebben geen vaste schijf. Vul deze twee in (gratis Upstash Redis)
-      # zodat MP-punten en gekochte spullen bewaard blijven. Zie README.md.
-      - key: UPSTASH_REDIS_REST_URL
-        sync: false
-      - key: UPSTASH_REDIS_REST_TOKEN
-        sync: false
+      # geheim waarmee de server de reservekopieën ondertekent (Render maakt dit zelf aan)
+      - key: KK_SECRET
+        generateValue: true

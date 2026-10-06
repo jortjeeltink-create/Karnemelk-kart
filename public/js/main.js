@@ -14,6 +14,16 @@ import { SHOP_BY_ID } from '../shared/shop.js';
 const DEVICE_KEY = 'kk-apparaat';
 const ROOM_KEY = 'kk-room';
 const NAME_KEY = 'kk-naam';
+const BACKUP_KEY = 'kk-reserve'; // ondertekende kopie van je profiel (naam, MP, spullen)
+
+// Je profiel staat ook op je telefoon. Start de server opnieuw (gratis hosting),
+// dan zet de telefoon het vanzelf terug.
+function saveBackup(p) {
+  if (p && p.backup) store.set(BACKUP_KEY, JSON.stringify(p.backup));
+}
+function loadBackup() {
+  try { return JSON.parse(store.get(BACKUP_KEY) || 'null'); } catch { return null; }
+}
 
 class App {
   constructor() {
@@ -86,7 +96,7 @@ class App {
       this.everConnected = true;
       clearTimeout(this.connTimer);
       this.setConn(true);
-      n.send({ t: 'hello', device: store.get(DEVICE_KEY) });
+      n.send({ t: 'hello', device: store.get(DEVICE_KEY), backup: loadBackup() });
     });
     n.on('status', (s) => {
       if (s === 'closed' && this.everConnected) this.setConn(false);
@@ -94,6 +104,7 @@ class App {
     n.on('welcome', (m) => {
       if (m.device) store.set(DEVICE_KEY, m.device);
       this.profile = m.profile;
+      saveBackup(m.profile);
       if (!m.profile) {
         if (this.room) { this.room = null; this.endRace(); }
         this.show('login');
@@ -105,6 +116,7 @@ class App {
       if (m.device) store.set(DEVICE_KEY, m.device);
       store.set(NAME_KEY, m.profile.name);
       this.profile = m.profile;
+      saveBackup(m.profile);
       if (m.transferred) toast(`Gelukt! Je speelt nu als ${m.profile.name} met ${m.profile.mp} MP.`, 'good', 4500);
       else toast(m.created ? `Welkom, ${m.profile.name}! Je krijgt ${m.profile.mp} MP als welkomstcadeau.` : `Welkom terug, ${m.profile.name}!`, 'good');
       this.afterLogin(false);
@@ -142,6 +154,7 @@ class App {
     });
     n.on('profile', (m) => {
       this.profile = m.profile;
+      saveBackup(m.profile);
       if (m.renamed) { store.set(NAME_KEY, m.profile.name); toast(`Je heet nu ${m.profile.name}.`, 'good'); }
       if (m.lookSaved) { toast('Je coureur is opgeslagen!', 'good'); this.sound.play('buy'); }
       if (m.bought) {

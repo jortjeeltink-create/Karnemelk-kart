@@ -1,9 +1,10 @@
 // Opslag van spelersprofielen (MP-punten, gekochte spullen, uiterlijk) per telefoon.
-// Standaard in een JSON-bestand; met UPSTASH_REDIS_REST_URL + _TOKEN in een
-// (gratis) Upstash Redis-database, handig bij hosting zonder vaste schijf.
+// Standaard in een JSON-bestand. Elke telefoon krijgt daarnaast een ondertekende
+// reservekopie, zodat niemand iets kwijtraakt als de server opnieuw opstart zonder
+// vaste schijf (gratis hosting). Upstash Redis (UPSTASH_REDIS_REST_URL + _TOKEN) mag ook, hoeft niet.
 import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHmac, timingSafeEqual } from 'node:crypto';
 import { Profiles } from '../public/shared/profiles.js';
 
 // ---------- sleutel/waarde-opslag ----------
@@ -89,4 +90,29 @@ export async function createStore({ dataDir, upstashUrl, upstashToken, log = con
   const store = createProfiles(kv);
   await store.init();
   return store;
+}
+
+// Geheim om reservekopieën mee te ondertekenen. Bij voorkeur uit KK_SECRET (Render maakt die
+// automatisch aan), anders één keer gemaakt en in de opslag bewaard.
+export async function loadSecret(kv, fromEnv) {
+  if (typeof fromEnv === 'string' && fromEnv.length >= 8) return fromEnv;
+  let s = await kv.get('secret');
+  if (typeof s !== 'string' || s.length < 32) {
+    s = randomString(48);
+    await kv.set('secret', s);
+    if (kv.flush) kv.flush();
+  }
+  return s;
+}
+
+export function makeSigner(secret) {
+  const mac = (text) => createHmac('sha256', secret).update(text).digest('base64url');
+  return {
+    sign: mac,
+    verify(text, sig) {
+      const a = Buffer.from(mac(text));
+      const b = Buffer.from(String(sig));
+      return a.length === b.length && timingSafeEqual(a, b);
+    },
+  };
 }
