@@ -418,3 +418,59 @@ body.racing #hud { display: block; }
 
 /* toeschouwer: geen eigen plek of item */
 #hud.spectating .hud-pos, #hud.spectating .hud-item { display: none; }
+
+/* ---------- toeter ---------- */
+.tc-horn { left: calc(var(--sl) + 60px); bottom: calc(var(--sb) + 122px); width: 58px; height: 58px; font-size: 13px; background: rgba(255, 210, 63, 0.4); }
+.tc.mode-schuif .tc-horn, .tc.mode-kantelen .tc-horn { left: calc(var(--sl) + 24px); }
+.tc.lefty .tc-horn { left: auto; right: calc(var(--sr) + 60px); }
+@media (orientation: landscape) and (max-height: 500px) {
+  .tc-horn { bottom: calc(var(--sb) + 112px); width: 50px; height: 50px; }
+}
+
+/* ---------- nieuwe onderdelen ---------- */
+.btn-pink { background: linear-gradient(180deg, #ff8cc4, var(--roze)); color: #fff; box-shadow: 0 4px 0 #c43a7a, 0 8px 18px rgba(255, 95, 162, 0.3); }
+.daily { text-align: center; font-weight: 800; font-size: 13px; color: #1f8f4c; background: #e3f8eb; border-radius: 12px; padding: 7px 10px; }
+.code6 span { width: 42px !important; height: 52px !important; font-size: 28px !important; }
+.code-input.code6 { letter-spacing: 10px; font-size: 34px !important; }
+.profile-box { display: flex; flex-direction: column; gap: 8px; background: #f6f8fd; border-radius: 16px; padding: 10px 12px; }
+.profile-box form { flex-wrap: nowrap; }
+.profile-box .grow { min-width: 0; }
+.profile-box input[type=text] { padding: 9px 12px; font-size: 16px; }
+.transfer { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+.charcard.custom { background: linear-gradient(160deg, #fff, #ffe3f1); }
+.awards { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
+.award { display: flex; flex-direction: column; background: #f3efff; border-radius: 14px; padding: 7px 10px; }
+.award b { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #6a4cd1; }
+.award span { font-weight: 900; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.award small { color: var(--zacht); font-weight: 700; font-size: 12px; }
+.award-botskampioen { background: #fff0e3; } .award-botskampioen b { color: #c45c00; }
+.award-pechvogel { background: #e9f2ff; } .award-pechvogel b { color: #1d5bb0; }
+.award-driftkoning { background: #ffe9f4; } .award-driftkoning b { color: #c43a7a; }
+.screen.creator { justify-content: flex-end; padding-bottom: calc(var(--sb) + 96px); }
+.creator-card { max-height: 60vh; overflow-y: auto; gap: 8px; }
+.creator-av svg { width: 52px; height: 58px; display: block; }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.sw { width: 38px; height: 38px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 2px #d6dcea; cursor: pointer; padding: 0; }
+.sw.on { box-shadow: 0 0 0 3px var(--oranje); transform: scale(1.08); }
+@media (orientation: landscape) and (min-aspect-ratio: 4/3) {
+  .screen.creator { justify-content: center; }
+  .creator-card { max-height: calc(100vh - 120px); }
+}
+
+.linkbtn.inline { padding: 0; font-size: 13px; }
+.creator-card { max-height: 54vh; }
+.screen.shop .shop-card { max-height: 62vh; }
+@media (orientation: landscape) and (min-aspect-ratio: 4/3) {
+  .creator-card, .screen.shop .shop-card { max-height: calc(100vh - 120px); }
+}
+.charcard { position: relative; }
+.charcard.special { background: linear-gradient(160deg, #fff, #f3e8ff); }
+.charcard.locked > span { filter: grayscale(0.7) opacity(0.6); }
+.charcard .lock { font-size: 10.5px; font-weight: 900; color: #7b6cff; white-space: nowrap; }
+.charcard .lock.owned { color: #a855f7; text-transform: uppercase; letter-spacing: 0.4px; }
+.shopcard .swatch svg.avatar { width: 50px; height: 56px; }
+@media (orientation: landscape) and (max-height: 500px) {
+  .screen.menu .logo-menu { display: none; }
+  .screen.menu .menu-card .btn-big { padding: 7px 14px; font-size: 17px; }
+  .screen.menu .menu-card { gap: 7px; }
+}

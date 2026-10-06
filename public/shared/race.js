@@ -27,6 +27,8 @@ export class Race {
       k.acc = 0;
       k.bumpCd = new Map();
       k.rocket = 0;
+      k.st = { rams: 0, bumped: 0, spins: 0, items: 0, boosts: 0 };
+      k.hornAt = -10;
       if (k.isBot) initBot(k, botLevel, rng(seed * 31 + slot * 7 + 3));
       this.karts.push(k);
       this.byKid.set(e.kid, k);
@@ -63,6 +65,14 @@ export class Race {
     return true;
   }
 
+  horn(kid) {
+    const k = this.byKid.get(kid);
+    if (!k || this.time - k.hornAt < 1.2) return false;
+    k.hornAt = this.time;
+    this.events.push({ type: 'horn', kid });
+    return true;
+  }
+
   setConnected(kid, on) {
     const k = this.byKid.get(kid);
     if (k) {
@@ -87,6 +97,8 @@ export class Race {
   }
 
   onKartEvent(k, type, data) {
+    if (type === 'spawn' || type === 'shield' || (type === 'boost' && data.src === 'item')) k.st.items++;
+    if (type === 'miniturbo') k.st.boosts++;
     if (type === 'spawn') {
       this.spawn(data);
       return;
@@ -196,6 +208,7 @@ export class Race {
         if (k.kid === e.owner && e.age < (e.kind === 'plas' ? 1.0 : 0.5)) continue;
         if (Math.hypot(k.x - e.x, k.z - e.z) < e.r + KART_RADIUS * 0.85) {
           const res = hitKart(k);
+          if (res === 'tol') k.st.spins++;
           this.events.push({ type: 'hit', kid: k.kid, kind: e.kind, res, by: e.owner, x: e.x, z: e.z });
           hit = true;
           break;
@@ -250,6 +263,7 @@ export class Race {
             victim.bumpT = Math.max(victim.bumpT, Math.min(1.0, 0.45 + impact * 0.035));
             if (victim.drift) { victim.drift = 0; victim.driftT = 0; }
           }
+          if (!shieldBoth) { attacker.st.rams++; victim.st.bumped++; }
           this.events.push({ type: 'bump', a: attacker.kid, b: victim.kid, x: (a.x + b.x) / 2, z: (a.z + b.z) / 2, p: Math.round(impact * 10) / 10, shield: shieldBoth ? 1 : 0 });
         }
       }
@@ -328,11 +342,34 @@ export class Race {
     return this.order.map((k, idx) => {
       const e = this.entrants.find((x) => x.kid === k.kid);
       return {
-        kid: k.kid, id: e.id, name: e.name, isBot: !!e.isBot, character: e.character, cosmetics: e.cosmetics,
+        kid: k.kid, id: e.id, name: e.name, isBot: !!e.isBot, character: e.character, cosmetics: e.cosmetics, look: e.look,
         place: idx + 1, finished: !!k.finished, time: k.finished ? k.finishTime : null,
         bestLap: k.bestLap || null, lap: Math.min(k.lap, this.laps),
       };
     });
+  }
+
+  // grappige titels voor de uitslag
+  awards() {
+    const best = (score, min) => {
+      let top = null, val = min - 1;
+      for (const k of this.karts) {
+        const v = score(k);
+        if (v > val) { val = v; top = k; }
+      }
+      return top ? { kid: top.kid, value: val } : null;
+    };
+    const name = (kid) => this.entrants.find((e) => e.kid === kid).name;
+    const list = [];
+    const ram = best((k) => k.st.rams, 2);
+    if (ram) list.push({ key: 'botskampioen', title: 'Botskampioen', name: name(ram.kid), text: `${ram.value} keer iemand geramd` });
+    const pech = best((k) => k.st.bumped + k.st.spins * 2, 3);
+    if (pech) list.push({ key: 'pechvogel', title: 'Pechvogel', name: name(pech.kid), text: 'werd het vaakst geraakt' });
+    const item = best((k) => k.st.items, 3);
+    if (item) list.push({ key: 'itemkoning', title: 'Itemkoning', name: name(item.kid), text: `${item.value} items gebruikt` });
+    const drift = best((k) => k.st.boosts, 3);
+    if (drift) list.push({ key: 'driftkoning', title: 'Driftkoning', name: name(drift.kid), text: `${drift.value} drift-turbo's` });
+    return list;
   }
 
   takeEvents() {

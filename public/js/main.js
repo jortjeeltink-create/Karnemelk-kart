@@ -9,8 +9,9 @@ import { RaceClient } from './game/race-client.js';
 import { h, toast, modal, isModalOpen } from './ui/dom.js';
 import * as S from './ui/screens.js';
 import { DEFAULT_CHARACTER } from '../shared/characters.js';
+import { SHOP_BY_ID } from '../shared/shop.js';
 
-const TOKEN_KEY = 'kk-token';
+const DEVICE_KEY = 'kk-apparaat';
 const ROOM_KEY = 'kk-room';
 const NAME_KEY = 'kk-naam';
 
@@ -85,12 +86,13 @@ class App {
       this.everConnected = true;
       clearTimeout(this.connTimer);
       this.setConn(true);
-      n.send({ t: 'hello', token: store.get(TOKEN_KEY) });
+      n.send({ t: 'hello', device: store.get(DEVICE_KEY) });
     });
     n.on('status', (s) => {
       if (s === 'closed' && this.everConnected) this.setConn(false);
     });
     n.on('welcome', (m) => {
+      if (m.device) store.set(DEVICE_KEY, m.device);
       this.profile = m.profile;
       if (!m.profile) {
         if (this.room) { this.room = null; this.endRace(); }
@@ -100,13 +102,24 @@ class App {
       this.afterLogin(true);
     });
     n.on('loggedIn', (m) => {
-      store.set(TOKEN_KEY, m.token);
+      if (m.device) store.set(DEVICE_KEY, m.device);
       store.set(NAME_KEY, m.profile.name);
       this.profile = m.profile;
-      toast(m.created ? `Welkom, ${m.profile.name}! Je krijgt ${m.profile.mp} MP als welkomstcadeau.` : `Welkom terug, ${m.profile.name}!`, 'good');
+      if (m.transferred) toast(`Gelukt! Je speelt nu als ${m.profile.name} met ${m.profile.mp} MP.`, 'good', 4500);
+      else toast(m.created ? `Welkom, ${m.profile.name}! Je krijgt ${m.profile.mp} MP als welkomstcadeau.` : `Welkom terug, ${m.profile.name}!`, 'good');
       this.afterLogin(false);
     });
-    n.on('loginFailed', (m) => { if (this.loginErr) this.loginErr(m.msg); });
+    n.on('registerFailed', (m) => { if (this.loginErr) this.loginErr(m.msg); this.sound.play('error'); });
+    n.on('transferFailed', (m) => {
+      if (this.screenName === 'login' && this.loginErr) this.loginErr(m.msg);
+      else toast(m.msg, 'error', 4500);
+      this.sound.play('error');
+    });
+    n.on('renameFailed', (m) => { toast(m.msg, 'error'); this.sound.play('error'); });
+    n.on('transferCode', (m) => {
+      this.transfer = { code: m.code, until: Date.now() + m.minutes * 60000 };
+      if (this.screenName === 'settings') this.show('settings');
+    });
     n.on('room', (m) => this.onRoom(m));
     n.on('joinFailed', (m) => {
       store.del(ROOM_KEY);
@@ -129,13 +142,16 @@ class App {
     });
     n.on('profile', (m) => {
       this.profile = m.profile;
+      if (m.renamed) { store.set(NAME_KEY, m.profile.name); toast(`Je heet nu ${m.profile.name}.`, 'good'); }
+      if (m.lookSaved) { toast('Je coureur is opgeslagen!', 'good'); this.sound.play('buy'); }
       if (m.bought) {
         this.sound.play('buy');
-        toast('Gekocht! Je draagt het nu.', 'good');
+        const it = SHOP_BY_ID[m.bought];
+        toast(it && it.slot === 'special' ? `Gekocht! Je racet nu als ${it.name}.` : 'Gekocht! Je draagt het nu.', 'good');
         this.send({ t: 'equip', id: m.bought });
         this.shopPreview = null;
       }
-      if (['shop', 'menu'].includes(this.screenName)) this.show(this.screenName);
+      if (['shop', 'menu', 'settings', 'lobby'].includes(this.screenName)) this.show(this.screenName);
       else this.updateShowroomKart();
     });
     n.on('shopFailed', (m) => { this.sound.play('error'); toast(m.msg, 'error'); });
@@ -173,16 +189,14 @@ class App {
     if (!this.room) this.show('menu');
   }
 
-  login(name, pin, onErr) {
+  register(name, onErr) {
     this.loginErr = onErr;
-    this.send({ t: 'login', name, pin });
+    this.send({ t: 'register', name, device: store.get(DEVICE_KEY) });
   }
 
-  logout() {
-    store.del(TOKEN_KEY);
-    store.del(ROOM_KEY);
-    this.room = null;
-    this.send({ t: 'logout' });
+  useTransfer(code, onErr) {
+    this.loginErr = onErr;
+    this.send({ t: 'useTransfer', code, device: store.get(DEVICE_KEY) });
   }
 
   lastName() { return store.get(NAME_KEY) || ''; }
@@ -302,9 +316,12 @@ class App {
         el = S.shopScreen(this, opts || {}); break;
       case 'settings': el = S.settingsScreen(this); break;
       case 'help': el = S.helpScreen(this); break;
+      case 'creator':
+        if (!this.profile) return this.show('login');
+        el = S.creatorScreen(this, opts || {}); break;
       default: el = h('div');
     }
-    if (name !== 'results' && this.showroom) this.showroom.setMode(['shop', 'lobby'].includes(name) ? name : 'menu');
+    if (name !== 'results' && this.showroom) this.showroom.setMode(['shop', 'lobby', 'creator'].includes(name) ? name : 'menu');
     if (name === 'results') this.showroom.setMode('podium');
     const same = name === this.screenName;
     this.screenName = name;
@@ -325,7 +342,7 @@ class App {
   updateShowroomKart() {
     if (!this.profile || !this.showroom) return;
     const me = this.room && this.room.players.find((p) => p.pid === this.room.you);
-    this.showroom.setKart(me ? me.character : this.profile.lastCharacter || DEFAULT_CHARACTER, this.profile.equipped);
+    this.showroom.setKart(me ? me.character : this.profile.lastCharacter || DEFAULT_CHARACTER, this.profile.equipped, this.profile.look);
   }
 
   click() { this.sound.unlock(); this.sound.play('click'); }

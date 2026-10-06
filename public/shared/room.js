@@ -6,11 +6,12 @@ import { TRACKS, TRACK_BY_ID } from './tracks.js';
 import { buildTrack } from './trackgeo.js';
 import { Race } from './race.js';
 import { encodeFull, encodeVisual, encodeEntity } from './protocol.js';
-import { CHARACTERS, CHARACTER_BY_ID, DEFAULT_CHARACTER } from './characters.js';
+import { CHARACTER_BY_ID, DEFAULT_CHARACTER, BOT_CHARACTERS, racerName } from './characters.js';
+import { cleanLook } from './look.js';
 import { BOT_LEVELS } from './bots.js';
 import { computePoints } from './points.js';
 import { DEFAULT_CHALLENGE, nextChallenge, cleanChallenge } from './challenges.js';
-import { publicCosmetics, SHOP_ITEMS } from './shop.js';
+import { publicCosmetics, SHOP_ITEMS, DEFAULT_EQUIP, ownsItem } from './shop.js';
 
 const builtTracks = new Map();
 export function getTrack(id) {
@@ -64,19 +65,21 @@ export class Room {
       }
       m.session = session;
       m.connected = true;
-      m.name = session.profile.name;
+      m.name = this.displayName(session.profile.name, pid);
       m.cosmetics = publicCosmetics(session.profile);
+      m.look = cleanLook(session.profile.look);
     } else {
       const humans = this.members.size;
       if (humans >= MAX_PLAYERS) return { ok: false, error: `Deze room is vol (maximaal ${MAX_PLAYERS} spelers).` };
       if (humans + this.settings.bots >= MAX_PLAYERS) this.settings.bots = Math.max(0, MAX_PLAYERS - humans - 1);
       const used = new Set(this.humans().map((x) => x.character));
-      const free = CHARACTERS.find((c) => !used.has(c.id));
+      const free = BOT_CHARACTERS.find((c) => !used.has(c.id));
+      const last = session.profile.lastCharacter;
+      const lastOk = last && CHARACTER_BY_ID[last] && this.mayUse(session.profile, last);
       m = {
-        pid, name: session.profile.name, session, connected: true, ready: false,
-        character: session.profile.lastCharacter && CHARACTER_BY_ID[session.profile.lastCharacter] && !used.has(session.profile.lastCharacter)
-          ? session.profile.lastCharacter : (free ? free.id : DEFAULT_CHARACTER),
-        cosmetics: publicCosmetics(session.profile), lastSeen: this.now(), joinedAt: this.now(),
+        pid, name: this.displayName(session.profile.name, pid), session, connected: true, ready: false,
+        character: lastOk && (last === 'eigen' || CHARACTER_BY_ID[last].special || !used.has(last)) ? last : (free ? free.id : DEFAULT_CHARACTER),
+        cosmetics: publicCosmetics(session.profile), look: cleanLook(session.profile.look), lastSeen: this.now(), joinedAt: this.now(),
       };
       this.members.set(pid, m);
       this.order.push(pid);
@@ -129,6 +132,14 @@ export class Room {
     this.broadcastRoom();
   }
 
+  // twee spelers met dezelfde naam? Dan krijgt de tweede er een nummer achter.
+  displayName(name, pid) {
+    const taken = new Set([...this.members.values()].filter((x) => x.pid !== pid).map((x) => x.name.toLowerCase()));
+    if (!taken.has(name.toLowerCase())) return name;
+    for (let n = 2; n < 20; n++) if (!taken.has(`${name} ${n}`.toLowerCase())) return `${name} ${n}`;
+    return name;
+  }
+
   pickNewHost() {
     const next = this.order.map((p) => this.members.get(p)).find((m) => m && m.connected) || this.members.get(this.order[0]);
     this.hostPid = next ? next.pid : null;
@@ -160,18 +171,28 @@ export class Room {
     this.broadcastRoom();
   }
 
+  // specials moet je eerst kopen
+  mayUse(profile, id) {
+    const ch = CHARACTER_BY_ID[id];
+    return !!ch && (!ch.special || ownsItem(profile, ch.special));
+  }
+
   setCharacter(session, id) {
     const m = this.members.get(session.profile.key);
     if (!m || !CHARACTER_BY_ID[id]) return;
+    if (!this.mayUse(session.profile, id)) return this.err(session, `${CHARACTER_BY_ID[id].name} is een special. Koop hem eerst in de winkel.`);
     m.character = id;
     session.profile.lastCharacter = id;
     this.broadcastRoom();
   }
 
-  setCosmetics(session) {
+  // naam, spullen of uiterlijk veranderd
+  refreshMember(session) {
     const m = this.members.get(session.profile.key);
     if (!m) return;
+    m.name = this.displayName(session.profile.name, m.pid);
     m.cosmetics = publicCosmetics(session.profile);
+    m.look = cleanLook(session.profile.look);
     this.broadcastRoom();
   }
 
@@ -192,7 +213,7 @@ export class Room {
       t: 'room', code: this.code, practice: this.practice, you: forPid, host: this.hostPid, state: this.state,
       max: MAX_PLAYERS, settings: this.settings,
       players: this.order.map((pid) => this.members.get(pid)).filter(Boolean).map((m) => ({
-        pid: m.pid, name: m.name, character: m.character, cosmetics: m.cosmetics, ready: m.ready,
+        pid: m.pid, name: m.name, character: m.character, cosmetics: m.cosmetics, look: m.look, ready: m.ready,
         connected: m.connected, host: m.pid === this.hostPid,
         racing: this.state === 'race' && this.kidOf.has(m.pid),
       })),
@@ -227,16 +248,18 @@ export class Room {
     const humans = this.humans().filter((m) => m.connected);
     const botCount = Math.max(0, Math.min(this.settings.bots, MAX_PLAYERS - humans.length));
     const usedChars = new Set(humans.map((m) => m.character));
-    const freeChars = CHARACTERS.filter((c) => !usedChars.has(c.id));
+    const freeChars = BOT_CHARACTERS.filter((c) => !usedChars.has(c.id));
     const pool = [];
-    humans.forEach((m) => pool.push({ id: m.pid, name: m.name, isBot: false, character: m.character, cosmetics: m.cosmetics }));
+    humans.forEach((m) => pool.push({ id: m.pid, name: racerName(m.name, m.character), isBot: false, character: m.character, cosmetics: m.cosmetics, look: m.look }));
     const botCosmeticsPool = SHOP_ITEMS.filter((i) => !i.free && i.rarity !== 'legendarisch');
     for (let b = 0; b < botCount; b++) {
-      const ch = freeChars[b % Math.max(1, freeChars.length)] || CHARACTERS[b % CHARACTERS.length];
-      const cos = { cape: 'cape_geen', kleur: 'kleur_standaard', banden: 'banden_gewoon', spoor: 'spoor_geen', pose: 'pose_duim' };
+      const ch = freeChars[b % Math.max(1, freeChars.length)] || BOT_CHARACTERS[b % BOT_CHARACTERS.length];
+      const cos = { ...DEFAULT_EQUIP };
       // bots dragen af en toe iets leuks, zodat je ziet wat er in de winkel ligt
-      const pick = botCosmeticsPool[Math.floor(rand() * botCosmeticsPool.length)];
-      if (pick && rand() < 0.6) cos[pick.slot] = pick.id;
+      for (let k = 0; k < 2; k++) {
+        const pick = botCosmeticsPool[Math.floor(rand() * botCosmeticsPool.length)];
+        if (pick && rand() < 0.55) cos[pick.slot] = pick.id;
+      }
       pool.push({ id: `bot${b}`, name: ch.name.split(' ')[0] + ' (bot)', isBot: true, character: ch.id, cosmetics: cos });
     }
     // startvolgorde husselen
@@ -286,6 +309,12 @@ export class Room {
     if (kid != null) this.race.rocketStart(kid);
   }
 
+  horn(session) {
+    if (!this.race) return;
+    const kid = this.kidOf.get(session.profile.key);
+    if (kid != null) this.race.horn(kid);
+  }
+
   tick(dt) {
     const now = this.now();
     if (this.state === 'race' && this.race) {
@@ -296,7 +325,9 @@ export class Room {
         this.lastSnap = now;
         this.sendSnapshot();
       }
-      if (this.race.phase === 'done') this.finishRace();
+      if (this.race.phase === 'done') {
+        this.finishRace().catch((e) => this.hub.log('fout bij uitslag', e));
+      }
     }
     // opruimen: spelers die te lang weg zijn
     for (const m of [...this.members.values()]) {
@@ -340,8 +371,13 @@ export class Room {
     }
   }
 
-  finishRace() {
-    const rows = this.race.results();
+  async finishRace() {
+    const race = this.race;
+    const rows = race.results();
+    const awards = race.awards();
+    this.state = 'results';
+    this.sendSnapshot();
+    this.race = null;
     const pts = computePoints(rows, { practice: this.practice });
     const humanRows = rows.filter((r) => !r.isBot);
     for (const row of rows) {
@@ -349,9 +385,13 @@ export class Room {
       row.mp = p ? p.mp : 0;
       row.parts = p ? p.parts : [];
     }
-    // punten opslaan
+    // punten opslaan (met dagbonus voor de eerste uitgereden race van vandaag)
     for (const row of humanRows) {
-      this.hub.awardRace(row.id, row.mp, row.place, rows.length);
+      const bonus = await this.hub.awardRace(row.id, row.mp, row.place, rows.length, row.finished);
+      if (bonus) {
+        row.mp += bonus;
+        row.parts.push({ label: 'Dagbonus (eerste race van vandaag)', mp: bonus });
+      }
     }
     const winner = rows[0];
     let loser = null;
@@ -361,23 +401,21 @@ export class Room {
       ? { text: this.settings.challengeText || DEFAULT_CHALLENGE, skipped: false, loser: loser.id, loserName: loser.name }
       : null;
     this.results = {
-      t: 'results', trackId: this.raceInfo.trackId, practice: this.practice, rows,
-      winner: { id: winner.id, name: winner.name, isBot: winner.isBot, character: winner.character, cosmetics: winner.cosmetics },
-      loser: loser ? { id: loser.id, name: loser.name, character: loser.character, cosmetics: loser.cosmetics } : null,
+      t: 'results', trackId: this.raceInfo.trackId, practice: this.practice, rows, awards,
+      winner: { id: winner.id, name: winner.name, isBot: winner.isBot, character: winner.character, cosmetics: winner.cosmetics, look: winner.look },
+      loser: loser ? { id: loser.id, name: loser.name, character: loser.character, cosmetics: loser.cosmetics, look: loser.look } : null,
       challenge: this.challenge,
     };
-    this.state = 'results';
-    this.sendSnapshot();
+    if (this.state !== 'results') return; // intussen al een nieuwe race gestart
     for (const m of this.members.values()) {
       if (m.session && m.connected) this.hub.sendTo(m.session, this.results);
     }
-    this.race = null;
     this.broadcastRoom();
   }
 
   again(session) {
     if (!this.isHost(session)) return this.err(session, 'Alleen de host kan een nieuwe race starten.');
-    if (this.state !== 'results') return;
+    if (this.state !== 'results' || !this.results) return;
     this.beginRace();
   }
 

@@ -63,7 +63,7 @@ test('10 spelers racen live samen, met herverbinden, punten en winkel', { timeou
   let srv = await startServer({ env: { KK_LAPS: '1' } });
   const clients = [];
   try {
-    for (let i = 0; i < 10; i++) clients.push(await loginClient(srv.ws, `Vriend${i}`, '12' + String(i).padStart(2, '0')));
+    for (let i = 0; i < 10; i++) clients.push(await loginClient(srv.ws, `Vriend${i}`));
     assert.ok(clients.every((c) => c.profile && c.profile.mp === 150), 'nieuwe profielen met 150 MP');
 
     const host = clients[0];
@@ -74,7 +74,7 @@ test('10 spelers racen live samen, met herverbinden, punten en winkel', { timeou
       assert.equal(r.code, code);
     }
     // de 11e mag er niet meer bij
-    const extra = await loginClient(srv.ws, 'Elfde', '1111');
+    const extra = await loginClient(srv.ws, 'Elfde');
     const fail = await extra.request({ t: 'join', code }, 'joinFailed');
     assert.match(fail.msg, /vol/);
     extra.close();
@@ -97,17 +97,18 @@ test('10 spelers racen live samen, met herverbinden, punten en winkel', { timeou
     // speler 4 valt na 12 seconden weg en komt 3 seconden later terug
     await sleep(raceMsgs[0].startAt - Date.now() + 12000);
     const lost = clients[4];
-    const token = lost.token;
+    const device = lost.device;
     drivers[4].stop();
     lost.close();
     await host.wait((m) => m.t === 'room' && m.players.some((p) => p.name === 'Vriend4' && !p.connected), 5000);
     await sleep(3000);
     const back = await new Client(srv.ws).open();
-    const w = await back.request({ t: 'hello', token }, 'welcome');
-    assert.equal(w.profile.name, 'Vriend4', 'inloggen met bewaard token');
+    const w = await back.request({ t: 'hello', device }, 'welcome');
+    assert.equal(w.profile.name, 'Vriend4', 'zelfde telefoon wordt herkend');
     const again = await back.request({ t: 'join', code }, 'race');
     assert.equal(again.you, raceMsgs[4].you, 'zelfde kart na herverbinden');
-    back.token = token;
+    back.device = device;
+    back.profile = w.profile;
     clients[4] = back;
     drivers[4] = new Driver(back, again);
 
@@ -133,14 +134,15 @@ test('10 spelers racen live samen, met herverbinden, punten en winkel', { timeou
     console.log(`  gefinisht: ${finished}/10, botsingen gezien: ${bumps}, gem. correcties per speler: ${corr.toFixed(1)}, punten: ${res.rows.map((r) => r.mp).join(',')}`);
 
     // de verliezer wisselt de uitdaging
-    const loserClient = clients[Number(res.loser.id.replace('vriend', ''))];
+    const byId = (id) => clients.find((c) => c.profile.id === id);
+    const loserClient = byId(res.loser.id);
     loserClient.send({ t: 'challenge', action: 'next' });
     const ch = await host.wait('challenge');
     assert.notEqual(ch.challenge.text, 'Een atje karnemelk! 🥛');
 
     // punten zijn bijgeschreven
     await sleep(300);
-    const winnerClient = clients[Number(res.winner.id.replace('vriend', ''))];
+    const winnerClient = byId(res.winner.id);
     const prof = await winnerClient.request({ t: 'profile' }, 'profile');
     assert.equal(prof.profile.mp, 150 + res.rows[0].mp);
 
@@ -164,14 +166,15 @@ test('10 spelers racen live samen, met herverbinden, punten en winkel', { timeou
     await sleep(600);
     await srv.stop();
     srv = await startServer({ dataDir: srv.dataDir, port: srv.port });
-    const winnerName = res.winner.name;
-    const relog = await loginClient(srv.ws, winnerName, '12' + winnerName.replace('Vriend', '').padStart(2, '0'));
+    const relog = await loginClient(srv.ws, 'x', winnerClient.device);
+    assert.equal(relog.profile.name, res.winner.name, 'telefoon wordt na herstart herkend');
     assert.equal(relog.profile.mp, mpAfter);
     assert.ok(relog.profile.owned.includes('cape_rood'));
     assert.equal(relog.profile.equipped.cape, 'cape_rood');
-    const wrong = await loginClient(srv.ws, winnerName, '9999');
-    assert.equal(wrong.profile, undefined, 'verkeerde PIN wordt geweigerd');
-    relog.close(); wrong.close();
+    const other = await loginClient(srv.ws, 'Nieuwkomer');
+    assert.equal(other.profile.name, 'Nieuwkomer', 'een andere telefoon krijgt een eigen profiel');
+    assert.equal(other.profile.mp, 150);
+    relog.close(); other.close();
   } finally {
     clients.forEach((c) => { try { c.close(); } catch { /* al dicht */ } });
     await srv.stop();
@@ -181,8 +184,29 @@ test('10 spelers racen live samen, met herverbinden, punten en winkel', { timeou
 test('de server levert de game en een gezondheidscheck', async () => {
   const srv = await startServer();
   try {
-    const html = await (await fetch(srv.url + '/')).text();
+    const first = await fetch(srv.url + '/');
+    const html = await first.text();
     assert.match(html, /Karnemelk Kart/);
+    // apparaatcookie: zo herkent de server deze telefoon
+    const cookie = first.headers.get('set-cookie');
+    assert.match(cookie, /^kk_dev=[A-Za-z0-9_-]{32}; Path=\/; Max-Age=\d+; HttpOnly; SameSite=Lax/);
+    const token = cookie.split(';')[0].split('=')[1];
+    const again = await fetch(srv.url + '/', { headers: { cookie: `kk_dev=${token}` } });
+    assert.ok(again.headers.get('set-cookie').startsWith(`kk_dev=${token};`), 'zelfde cookie wordt verlengd');
+    // WebSocket met dat cookie: registreren en daarna zonder browseropslag herkend worden
+    const { WebSocket: WsClient } = await import('ws');
+    const talk = (msgs, until) => new Promise((resolve, reject) => {
+      const ws = new WsClient(srv.ws, { headers: { cookie: `kk_dev=${token}` } });
+      const got = [];
+      ws.on('open', () => msgs.forEach((m) => ws.send(JSON.stringify(m))));
+      ws.on('message', (d) => { const m = JSON.parse(d.toString()); got.push(m); if (until(m)) { ws.close(); resolve(got); } });
+      ws.on('error', reject);
+      setTimeout(() => reject(new Error('timeout')), 4000);
+    });
+    const r1 = await talk([{ t: 'hello' }, { t: 'register', name: 'Cookiemonster' }], (m) => m.t === 'loggedIn');
+    assert.equal(r1.find((m) => m.t === 'welcome').device, token);
+    const r2 = await talk([{ t: 'hello' }], (m) => m.t === 'welcome');
+    assert.equal(r2[0].profile.name, 'Cookiemonster');
     const js = await fetch(srv.url + '/js/main.js', { headers: { 'Accept-Encoding': 'br' } });
     assert.equal(js.status, 200);
     const three = await fetch(srv.url + '/vendor/three.module.min.js', { method: 'HEAD', headers: { 'Accept-Encoding': 'gzip' } });

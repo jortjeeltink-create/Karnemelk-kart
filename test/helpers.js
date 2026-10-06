@@ -76,11 +76,16 @@ export class Client {
   close() { this.ws.close(); }
 }
 
-export async function loginClient(wsUrl, name, pin = '1234') {
+// nieuwe speler (of bestaande, als device wordt meegegeven)
+export async function loginClient(wsUrl, name, device = null) {
   const c = await new Client(wsUrl).open();
-  await c.request({ t: 'hello' }, 'welcome');
-  const r = await c.request({ t: 'login', name, pin }, (m) => m.t === 'loggedIn' || m.t === 'loginFailed');
-  c.token = r.token;
+  const w = await c.request({ t: 'hello', device }, 'welcome');
+  c.device = w.device;
+  if (w.profile) {
+    c.profile = w.profile;
+    return c;
+  }
+  const r = await c.request({ t: 'register', name }, (m) => m.t === 'loggedIn' || m.t === 'registerFailed');
   c.profile = r.profile;
   return c;
 }

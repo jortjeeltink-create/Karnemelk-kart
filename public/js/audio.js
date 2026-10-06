@@ -98,6 +98,7 @@ export class Sound {
       case 'buy': [784, 1046, 1318, 1568].forEach((f, i) => this.tone(f, 0.14, { vol: 0.15 * v, type: 'triangle', delay: i * 0.07 })); break;
       case 'error': this.tone(220, 0.25, { vol: 0.18 * v, type: 'square' }); this.tone(180, 0.3, { vol: 0.15 * v, type: 'square', delay: 0.12 }); break;
       case 'rocket': this.noise(1.0, { vol: 0.4 * v, freq: 400, slide: 3000, q: 0.6 }); break;
+      case 'horn': this.tone(392, 0.16, { vol: 0.2 * v, type: 'square' }); this.tone(494, 0.16, { vol: 0.16 * v, type: 'square' }); this.tone(392, 0.2, { vol: 0.2 * v, type: 'square', delay: 0.2 }); this.tone(494, 0.2, { vol: 0.16 * v, type: 'square', delay: 0.2 }); break;
       case 'wrong': this.tone(330, 0.2, { vol: 0.12 * v, type: 'square' }); break;
       default: break;
     }

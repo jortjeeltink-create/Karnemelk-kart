@@ -9,7 +9,8 @@ import { createHash } from 'node:crypto';
 import os from 'node:os';
 import { WebSocketServer } from 'ws';
 import { Hub } from '../public/shared/hub.js';
-import { createStore } from './store.js';
+import { createStore, randomString } from './store.js';
+import { isDeviceToken } from '../public/shared/profiles.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = +(process.env.PORT || 3000);
@@ -46,6 +47,26 @@ function addDir(dir, urlPrefix) {
 addDir(join(ROOT, 'public'), '/');
 
 
+// ---------- apparaatcookie: zo onthoudt de server welke telefoon je bent ----------
+const COOKIE = 'kk_dev';
+function readCookie(req) {
+  const raw = req.headers.cookie || '';
+  for (const part of raw.split(';')) {
+    const [k, ...v] = part.trim().split('=');
+    if (k === COOKIE) {
+      const val = decodeURIComponent(v.join('='));
+      return isDeviceToken(val) ? val : null;
+    }
+  }
+  return null;
+}
+function deviceCookie(req) {
+  const token = readCookie(req) || randomString(32);
+  const https = req.headers['x-forwarded-proto'] === 'https' || req.socket.encrypted;
+  // 400 dagen is het maximum dat browsers toestaan; bij elk bezoek opnieuw verlengd
+  return `${COOKIE}=${token}; Path=/; Max-Age=34560000; HttpOnly; SameSite=Lax${https ? '; Secure' : ''}`;
+}
+
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 const store = await createStore({
   dataDir: DATA_DIR,
@@ -70,6 +91,7 @@ const server = http.createServer((req, res) => {
     return res.end('Niet gevonden');
   }
   const headers = { 'Content-Type': f.type, ETag: f.etag, 'Cache-Control': 'no-cache', Vary: 'Accept-Encoding', 'X-Content-Type-Options': 'nosniff' };
+  if (path === '/index.html') headers['Set-Cookie'] = deviceCookie(req);
   if (req.headers['if-none-match'] === f.etag) { res.writeHead(304, headers); return res.end(); }
   const ae = req.headers['accept-encoding'] || '';
   let body = f.body;
@@ -81,10 +103,11 @@ const server = http.createServer((req, res) => {
 });
 
 const wss = new WebSocketServer({ server, path: '/ws', maxPayload: 32 * 1024 });
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
   ws.isAlive = true;
   ws.on('pong', () => { ws.isAlive = true; });
   const conn = {
+    cookieDevice: readCookie(req),
     send: (text) => { if (ws.readyState === 1) ws.send(text); },
     // statusupdates overslaan als de verbinding van iemand achterloopt
     sendVolatile: (text) => { if (ws.readyState === 1 && ws.bufferedAmount < 128 * 1024) ws.send(text); },

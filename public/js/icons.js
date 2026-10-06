@@ -1,5 +1,7 @@
 // Eigen getekende pictogrammen (SVG).
 import { ITEM } from '../shared/items.js';
+import { CHARACTER_BY_ID, CHARACTERS } from '../shared/characters.js';
+import { cleanLook, lookScales } from '../shared/look.js';
 
 const wafel = (x = 0, y = 0, s = 1) => `
   <g transform="translate(${x} ${y}) scale(${s})">
@@ -32,7 +34,8 @@ export const LOGO = `
 
 export const MP_ICON = `<svg class="mp-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9 h14 l-1.5 11 a2 2 0 0 1 -2 1.7 h-7 a2 2 0 0 1 -2 -1.7 Z" fill="#ffffff" stroke="#2f7de1" stroke-width="1.8"/><path d="M8 4 h8 l1 5 H7 Z" fill="#2f7de1"/><text x="12" y="18" text-anchor="middle" font-size="7" font-weight="900" fill="#2f7de1" font-family="system-ui">MP</text></svg>`;
 
-export function avatarSvg(ch) {
+export function avatarSvg(ch, look) {
+  if (ch.head === 'mens') return humanAvatar(ch.custom ? cleanLook(look) : { ...cleanLook(ch.look), ...ch.look });
   const hats = {
     pak: `<rect x="10" y="9" width="28" height="30" rx="3" fill="#fff" stroke="#2f7de1" stroke-width="2"/><path d="M10 9 L24 2 L38 9 Z" fill="#f1f1f1" stroke="#2f7de1" stroke-width="2"/><rect x="10" y="30" width="28" height="5" fill="#2f7de1"/>`,
     strohoed: `<ellipse cx="24" cy="15" rx="20" ry="5" fill="#e9c46a"/><rect x="15" y="5" width="18" height="10" rx="4" fill="#e9c46a"/><rect x="15" y="11" width="18" height="3" fill="#d93a3a"/>`,
@@ -46,6 +49,38 @@ export function avatarSvg(ch) {
     ? `<path d="M24 6 L40 24 L24 44 L8 24 Z" fill="#1d1d22"/>`
     : `<circle cx="24" cy="25" r="15" fill="${ch.head === 'bal' ? '#9b5523' : ch.skin}" stroke="rgba(0,0,0,.15)"/>`;
   return `<svg viewBox="0 -6 48 54" class="avatar">${headShape}${hats[ch.head] || ''}<circle cx="19" cy="24" r="3.2" fill="#fff"/><circle cx="29" cy="24" r="3.2" fill="#fff"/><circle cx="19.5" cy="24.5" r="1.6" fill="#111"/><circle cx="29.5" cy="24.5" r="1.6" fill="#111"/><rect x="12" y="44" width="24" height="4" rx="2" fill="${ch.body}"/></svg>`;
+}
+
+// avatar voor een coureur-id (met eventueel een eigen uiterlijk)
+export function avatarFor(characterId, look) {
+  return avatarSvg(CHARACTER_BY_ID[characterId] || CHARACTERS[0], look);
+}
+
+export function humanAvatar(l) {
+  const { ws } = lookScales(l);
+  const hc = l.hairColor;
+  const face = Math.min(17, 14 + (ws - 1) * 5);
+  const capPath = `M${24 - face} 24 Q${24 - face} ${10 - face * 0.1} 24 ${9} Q${24 + face} ${10 - face * 0.1} ${24 + face} 24 Q${24 + face - 3} 15 24 15 Q${24 - face + 3} 15 ${24 - face} 24Z`;
+  let back = '';
+  let hair = '';
+  switch (l.hair) {
+    case 'kort': hair = `<path d="${capPath}" fill="${hc}"/>`; break;
+    case 'stekels': hair = `<path d="M${24 - face} 22 L12 8 L17 13 L20 4 L24 12 L28 4 L31 13 L36 8 L${24 + face} 22 Q24 13 ${24 - face} 22Z" fill="${hc}"/>`; break;
+    case 'lang': back = `<path d="M${24 - face - 2} 20 Q24 4 ${24 + face + 2} 20 L${24 + face + 3} 46 L${24 - face - 3} 46Z" fill="${hc}"/>`; hair = `<path d="${capPath}" fill="${hc}"/>`; break;
+    case 'staart': hair = `<path d="${capPath}" fill="${hc}"/><ellipse cx="${24 + face + 3}" cy="30" rx="4" ry="9" fill="${hc}" transform="rotate(-18 ${24 + face + 3} 30)"/>`; break;
+    case 'knot': hair = `<path d="${capPath}" fill="${hc}"/><circle cx="24" cy="6" r="6" fill="${hc}"/>`; break;
+    case 'krullen': hair = [[12, 17], [17, 11], [24, 9], [31, 11], [36, 17], [10, 24], [38, 24]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5" fill="${hc}"/>`).join(''); break;
+    default: break;
+  }
+  let extra = '';
+  if (l.glasses === 'bril') extra += '<circle cx="19" cy="24" r="4.6" fill="none" stroke="#222" stroke-width="1.6"/><circle cx="29" cy="24" r="4.6" fill="none" stroke="#222" stroke-width="1.6"/><path d="M23.6 24 h0.8" stroke="#222" stroke-width="1.6"/>';
+  if (l.glasses === 'zonnebril') extra += '<rect x="13.5" y="21" width="9.5" height="6" rx="2.5" fill="#111"/><rect x="25" y="21" width="9.5" height="6" rx="2.5" fill="#111"/><path d="M23 23 h2" stroke="#111" stroke-width="1.6"/>';
+  if (l.facial === 'snor') extra += `<path d="M18 32 Q24 28 30 32 Q24 30.5 18 32Z" fill="${hc}" stroke="${hc}" stroke-width="1.5"/>`;
+  if (l.facial === 'baard') extra += `<path d="M${24 - face + 1} 27 Q24 48 ${24 + face - 1} 27 Q24 36 ${24 - face + 1} 27Z" fill="${hc}"/>`;
+  if (l.duif) extra += '<ellipse cx="25" cy="5" rx="7" ry="4.5" fill="#9aa5b1"/><circle cx="31" cy="1" r="3.2" fill="#8b95a3"/><path d="M33.8 1 l3 1 l-3 1z" fill="#ff8c1a"/><circle cx="31.8" cy="0.4" r="0.8" fill="#111"/><path d="M19 5 l-4 -2 l1 4z" fill="#7d8796"/>';
+  const eyes = l.glasses === 'zonnebril' ? '' : '<circle cx="19" cy="24" r="3" fill="#fff"/><circle cx="29" cy="24" r="3" fill="#fff"/><circle cx="19.5" cy="24.5" r="1.5" fill="#111"/><circle cx="29.5" cy="24.5" r="1.5" fill="#111"/>';
+  const bw = Math.min(46, 24 * ws);
+  return `<svg viewBox="0 -6 48 54" class="avatar">${back}<rect x="${24 - bw / 2}" y="41" width="${bw}" height="9" rx="4" fill="${l.shirt}"/><ellipse cx="24" cy="25" rx="${face}" ry="15" fill="${l.skin}" stroke="rgba(0,0,0,.15)"/>${hair}${eyes}<path d="M20 33 Q24 35.5 28 33" stroke="#7a2b2b" stroke-width="1.6" fill="none" stroke-linecap="round"/>${extra}</svg>`;
 }
 
 export function trackMapSvg(track, { stroke = '#ffffff', width = 6 } = {}) {

@@ -16,8 +16,14 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
 - **Driften** met mini-turbo (witte, gele en roze vonken) en **power-ups**: Stroopwafel-turbo, Drie stroopwafels, Kaasschild, Karnemelkplas (glad obstakel) en Klompkanon.
 - **Oefenmodus** voor één speler, met 0 tot 9 computerkarts (makkelijk, normaal, moeilijk).
 - **Winnaar en verliezer**: de laatste mens krijgt de uitdaging "Een atje karnemelk!". De verliezer of host kan hem overslaan, een andere kiezen of afvinken. De host kan de tekst vooraf aanpassen of uitzetten.
-- **MP-punten** na elke race, bewaard per speler (naam + 4-cijferige PIN), ook op een ander apparaat.
-- **Winkel** met capes, kartkleuren, bandeneffecten, lichtsporen en overwinningsposes in 5 zeldzaamheden. Alleen uiterlijk, iedereen ziet elkaars spullen in de race.
+- **Geen wachtwoord of PIN**: je kiest alleen een naam. Je telefoon onthoudt je, en je MP-punten en spullen blijven op die telefoon. Nieuwe telefoon? Met een overzetcode (Instellingen) neem je alles mee.
+- **MP-punten** na elke race, plus een **dagbonus** van 25 MP voor je eerste uitgereden race van de dag.
+- **Specials**: Meke (lang en dun), Nicole (wat steviger) en Cherso Duif (de allergrootste, met een duif op zijn hoofd) koop je met MP-punten. In de race heet je dan bijvoorbeeld **Meke (Jort)**, zodat je meerdere Mekes uit elkaar houdt.
+- **Mijn coureur**: maak je eigen coureur met huidskleur, haar, haarkleur, shirt, lengte, bouw, bril en snor of baard.
+- **Winkel** met specials, andere karts (o.a. een Roze droomkart, Tractorkart, Badkuip-kart en Monstertruck), hoeden, capes, kartkleuren, bandeneffecten, lichtsporen en overwinningsposes in 5 zeldzaamheden. Alles is betaalbaar: een special heb je na een paar races. Alleen uiterlijk, iedereen ziet elkaars spullen in de race.
+- **Langs de weg**: tribunes met juichend publiek, reclameborden met grappige teksten, bochtpijlen, bandenstapels, vlaggen, pionnen en per baan eigen spullen (fietsen in de stad, melkbussen en schapen op de boerderij, surfplanken aan de kust, ...).
+- **Toeteren**: met de TOET-knop toeter je naar anderen in de buurt.
+- **Titels na de race**: Botskampioen, Pechvogel, Itemkoning en Driftkoning.
 - **Instellingen**: muziek, effecten, alles stil, besturing (knoppen, schuifbalk of kantelen), automatisch gas, linkshandig, trillen, grafische kwaliteit, namen en minikaart.
 - Alles in het Nederlands.
 
@@ -106,13 +112,14 @@ Je krijgt een adres als `https://iets-willekeurigs.trycloudflare.com` dat werkt 
 
 ## Zo speel je
 
-1. Open de link, kies een naam en een PIN van 4 cijfers. Nieuw? Dan krijg je 150 MP welkomstcadeau.
+1. Open de link en kies een naam. Nieuw? Dan krijg je 150 MP welkomstcadeau. Je telefoon onthoudt je daarna.
 2. **Room maken** geeft een groepscode. Deel de link of laat vrienden de code invullen bij **Meedoen met code**.
 3. Kies je coureur. Vrienden tikken op **Ik ben klaar!**; de host kiest de baan en tikt op **Start de race!**
 4. Na de race zie je de uitslag, je MP-punten en de uitdaging. De host kan meteen **Opnieuw racen**.
 
 **Besturing op de telefoon** (standaard): je geeft vanzelf gas. Pijltjes linksonder om te sturen (je duim mag tussen links en rechts glijden). Rechtsonder: **DRIFT**, **REM** en het **item**. Tik ook op het itemvakje bovenin om je item te gebruiken.
-**Toetsenbord**: pijltjes of WASD, spatie = drift, E of Enter = item.
+**Toetsenbord**: pijltjes of WASD, spatie = drift, E of Enter = item, H = toeteren.
+**Toeteren**: de TOET-knop linksboven de stuurknoppen. Spelers in de buurt horen het en zien "TOET!" boven je kart.
 **Raketstart**: druk op DRIFT vlak voordat START verschijnt.
 **Driften**: houd DRIFT vast terwijl je een bocht in stuurt; laat los voor een turbo. Hoe langer, hoe beter (wit, geel, roze).
 
@@ -140,24 +147,32 @@ Wie achteraan rijdt, krijgt vaker turbo's. Wie voorop rijdt, krijgt vaker plasse
 | Snelste ronde (mens) | +10 MP |
 | Niet uitgereden | 5 MP |
 | Oefenmodus | alles × 0,5 |
+| Dagbonus | +25 MP voor je eerste uitgereden race van de dag |
 
-Met 10 vrienden: 1e 120, 2e 109, 3e 98, 4e 87, 5e 76, 6e 64, 7e 53, 8e 42, 9e 31, 10e 20 MP (plus 10 voor de snelste ronde). Met 2 spelers: 72 en 20 MP. Zo levert racen tegen meer echte vrienden meer op, maar verdient iedereen iets.
+Met 10 vrienden: 1e 120, 2e 109, 3e 98, 4e 87, 5e 76, 6e 64, 7e 53, 8e 42, 9e 31, 10e 20 MP (plus 10 voor de snelste ronde). Met 4 vrienden: 84, 63, 41 en 20 MP. Zo levert racen tegen meer echte vrienden meer op, maar verdient iedereen iets.
 
 ## Winkel
 
-Alles is alleen uiterlijk. Zeldzaamheden van laag naar hoog: Gewoon, Ongewoon, Zeldzaam, Episch, **Legendarisch**. De Gouden cape is het enige legendarische item en het duurste van de winkel. Kopen met te weinig MP lukt niet (de server controleert dit ook).
+Alles is alleen uiterlijk; ook een andere kart of coureur rijdt precies even snel. Zeldzaamheden van laag naar hoog: Gewoon, Ongewoon, Zeldzaam, Episch, **Legendarisch**. De Gouden cape is het enige legendarische item en het duurste van de winkel. Kopen met te weinig MP lukt niet (de server controleert dit ook).
 
-| Soort | Items en prijzen |
+De prijzen zijn bewust betaalbaar. Een race met vier vrienden levert al snel 40 tot 80 MP op, en je begint met 150 MP. Een special heb je dus na een paar races, ook als je steeds derde wordt.
+
+| Soort | Items en prijzen (MP) |
 |---|---|
-| Capes | Rode cape 120, Hemelsblauwe cape 120, Oranje feestcape 260, Boerenzakdoek-cape 300, Sterrennacht-cape 560, Regenboogcape 1150, **Gouden cape 2500 (Legendarisch)** |
-| Kartkleuren | Melkwit 80, Weidegroen 80, Kauwgomroze 100, Koningsoranje 210, Nachtblauw 210, Koeienvlekken 460, Spiegelchroom 920, Lavagloed 980 |
-| Bandeneffecten | Witte velgen 60, Vonkenbanden 230, Sneeuwvlokbanden 240, Neonvelgen 490, Vlammenwielen 1000 |
-| Lichtsporen | Melkspoor 100, Neonroze spoor 270, Bliksemspoor 530, Regenboogspoor 1200 |
-| Overwinningsposes | Koninklijk zwaaien 90, Klompendans 280, Karnemelk-proost 600, Kartsalto 1300 |
+| Specials | Meke 250, Nicole 250, Cherso Duif 300 |
+| Capes | Rode cape 50, Hemelsblauwe cape 50, Oranje feestcape 110, Boerenzakdoek-cape 130, Sterrennacht-cape 220, Regenboogcape 380, **Gouden cape 900 (Legendarisch)** |
+| Karts | Bakfietskart 70, Roze droomkart 140, Tractorkart 160, Melkwagen 220, Badkuip-kart 240, Klompkart 320, Monstertruck 380, Raketkart 450 |
+| Kartkleuren | Melkwit 30, Weidegroen 30, Kauwgomroze 40, Koningsoranje 80, Nachtblauw 80, Koeienvlekken 180, Spiegelchroom 300, Lavagloed 320 |
+| Hoeden | Feestmuts 40, Pet achterstevoren 50, Bloemenkrans 100, Koptelefoon 110, Kaaspunthoed 200, Vikinghelm 230, Melkpakhoed 300, Kroon 400 |
+| Bandeneffecten | Witte velgen 25, Vonkenbanden 90, Sneeuwvlokbanden 95, Neonvelgen 190, Vlammenwielen 340 |
+| Lichtsporen | Melkspoor 40, Neonroze spoor 110, Bliksemspoor 210, Regenboogspoor 400 |
+| Overwinningsposes | Koninklijk zwaaien 35, Klompendans 110, Karnemelk-proost 220, Kartsalto 420 |
 
 ## Coureurs en banen
 
-Coureurs (allemaal even snel): Kees Karnemelk, Bella Boerin, Dirk Drop, Fien Friet, Otto Ooievaar, Saar Stroopwafel, Bram Bitterbal, Molenaar Mo, Tess Tulp en Gijs Gouda.
+Gratis coureurs (allemaal even snel): Kees Karnemelk, Bella Boerin, Dirk Drop, Fien Friet, Otto Ooievaar, Saar Stroopwafel, Bram Bitterbal, Molenaar Mo, Tess Tulp, Gijs Gouda en **Mijn coureur** (zelf gemaakt).
+
+Specials (te koop met MP): **Meke** (lang en dun), **Nicole** (wat steviger) en **Cherso Duif** (de allergrootste, met zijn duif). Wie met een special racet, heet in de race "Meke (spelersnaam)". Computerkarts gebruiken nooit een special.
 
 | Baan | Plek | Bijzonder |
 |---|---|---|
@@ -177,7 +192,8 @@ Coureurs (allemaal even snel): Kees Karnemelk, Bella Boerin, Dirk Drop, Fien Fri
 - **Browser**: Three.js (meegeleverd in `public/vendor`, geen CDN nodig) met simpele, platte vormen: 25.000 tot 45.000 driehoeken en 60 tot 300 tekenopdrachten per beeld. Automatische kwaliteit verlaagt de resolutie als een telefoon het niet bijhoudt.
 - **Soepel rijden ondanks vertraging**: je eigen kart wordt in de browser voorspeld (met precies dezelfde code als op de server) en stilletjes gecorrigeerd. Andere karts worden vloeiend tussen updates in getekend.
 - **Geluid en muziek** worden live gemaakt met de Web Audio API; er zijn geen geluidsbestanden.
-- **Opslag**: PIN's worden gehasht (scrypt) bewaard. Na 5 foute PIN's gaat een naam 5 minuten op slot.
+- **Wie ben je?** Bij je eerste bezoek krijgt je telefoon een lange, geheime apparaatsleutel. Die staat in de browser én in een cookie van de server (HttpOnly, 400 dagen, bij elk bezoek verlengd). Aan die sleutel hangen je naam, MP-punten en spullen. Andere spelers zien de sleutel nooit.
+- **Overzetcode**: in Instellingen maak je een code van 6 tekens (15 minuten geldig, één keer te gebruiken) om je profiel op een nieuwe telefoon te gebruiken.
 
 ```
 server/            server (http + WebSocket) en opslag
@@ -194,9 +210,9 @@ tools/             baanvoorbeelden tekenen, offline-demo bouwen
 
 Getest in deze omgeving:
 
-- 14 snelle tests: banen (geen te krappe bochten of overlappende stukken), fysica, rondes en checkpoints, punten, winkel, botsingen, voorspelling, lobby, herverbinden, opslag in bestand en in (nagebootste) Upstash.
-- Een echte race met **10 gelijktijdige spelers** via WebSockets: allemaal gefinisht, zo'n 80 botsingen die iedereen live zag, een speler die wegviel en in dezelfde kart terugkwam, punten 130 → 20, winkel, en alles bewaard na een herstart van de server.
-- De game in een Chromium-browser met iPhone-formaat en aanraakbediening, staand en liggend: inloggen, uitnodigingslink, lobby, races op alle 9 banen, items, uitslag, winkel, toeschouwen, offline-demo. Zonder fouten in de console.
+- 23 snelle tests: banen (geen te krappe bochten of overlappende stukken), fysica, rondes en checkpoints, punten en dagbonus, winkel en betaalbaarheid, specials ("Meke (Jort)"), eigen coureur, inloggen per telefoon (ook via het cookie), overzetcode, botsingen, titels, toeteren, voorspelling, lobby, herverbinden, opslag in bestand en in (nagebootste) Upstash.
+- Een echte race met **10 gelijktijdige spelers** via WebSockets: allemaal gefinisht, zo'n 80 botsingen die iedereen live zag, een speler die wegviel en in dezelfde kart terugkwam, punten 155 → 45 (inclusief dagbonus), winkel, en alles bewaard na een herstart van de server.
+- De game in een Chromium-browser met iPhone-, iPhone SE- en Pixel-formaat en aanraakbediening, staand en liggend: naam kiezen, herladen (telefoon onthoudt je), uitnodigingslink, lobby, specials kopen, mijn coureur, alle kartmodellen en hoeden, races op alle 9 banen met het nieuwe decor, toeteren, uitslag met titels, toeschouwen, offline-demo. Zonder fouten in de console.
 
 Niet getest, en waarom:
 
@@ -207,6 +223,7 @@ Niet getest, en waarom:
 
 Bewuste keuzes en beperkingen:
 
-- Inloggen gaat met naam + 4-cijferige PIN, geen e-mail. Een vergeten PIN kun je niet zelf herstellen; de beheerder kan het profiel uit het opslagbestand halen.
+- Je punten staan op je telefoon. Wis je de websitegegevens in je browser, dan kom je er alleen nog bij als de server je via het cookie herkent; maak bij twijfel eerst een overzetcode.
+- Safari en een icoon op je beginscherm (iPhone) bewaren gegevens apart. Kies één van de twee, of gebruik de overzetcode om je punten mee te nemen.
 - Rooms bestaan alleen in het geheugen van de server: bij een herstart stoppen lopende races (punten en spullen blijven bewaard).
 - Bescherming tegen valsspelen is basaal (de server rekent alle fysica zelf en beperkt hoeveel invoer je mag sturen). Prima voor vrienden onder elkaar.

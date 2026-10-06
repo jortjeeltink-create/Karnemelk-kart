@@ -21,7 +21,8 @@ export function getTrack(id) {
 }
 
 const INTERP_MS = 110;
-const LOCAL_TYPES = new Set(['boost', 'miniturbo', 'wall', 'obstacle', 'hazard', 'lap', 'finish', 'shield', 'spawn', 'hop']);
+const LOCAL_TYPES = new Set(['boost', 'miniturbo', 'wall', 'obstacle', 'hazard', 'lap', 'finish', 'shield', 'spawn', 'hop', 'horn']);
+const HORN_WORDS = ['TOET!', 'TOET TOET!', 'PIEP PIEP!', 'AAN DE KANT!', 'BOEM BOEM!'];
 const DRIFT_COLORS = ['#d8d8d8', '#ffffff', '#ffd23f', '#ff5fd2'];
 const BUMP_WORDS = ['BOTS!', 'BOEM!', 'BONK!', 'KLABAM!', 'PATS!'];
 const HAZARD_WORDS = { koe: 'BOE!', tram: 'TING TING!', heftruck: 'PIEP!', botsauto: 'BOTS!', krab: 'KNIP!', egel: 'AU!', sneeuwbal: 'PLOF!', rolbos: 'RITSEL!', meteoriet: 'KABOEM!', ufo: 'BLIEP!' };
@@ -45,7 +46,7 @@ export class RaceClient {
     this.karts = new Map();
     for (const e of msg.entrants) {
       const isMe = e.kid === this.me;
-      const view = new KartView({ character: e.character, cosmetics: e.cosmetics, name: e.name, showName: app.settings.names && !isMe });
+      const view = new KartView({ character: e.character, cosmetics: e.cosmetics, look: e.look, name: e.name, showName: app.settings.names && !isMe });
       this.scene.add(view.group);
       const g = this.track.gridSlot(e.kid);
       const ch = CHARACTER_BY_ID[e.character];
@@ -83,7 +84,16 @@ export class RaceClient {
     this.localEmit = (type, data) => this.handleEvent({ type, kid: data.kid ?? data.owner, ...data }, false);
 
     this.hud = new Hud(app, this);
-    if (this.me != null) app.controls.mount(this.hud.touchLayer);
+    if (this.me != null) {
+      app.controls.mount(this.hud.touchLayer);
+      app.controls.onHorn = () => {
+        const now = performance.now();
+        if (now - (this.lastHorn || 0) < 1200) return;
+        this.lastHorn = now;
+        app.net.send({ t: 'horn' });
+        this.handleEvent({ type: 'horn', kid: this.me }, false);
+      };
+    }
     else this.hud.spectate('Je kijkt mee. Bij de volgende race doe je mee!');
     app.sound.startEngine();
     app.sound.startMusic(this.world.th.music);
@@ -263,6 +273,14 @@ export class RaceClient {
       case 'shield':
         if (mine) S.play('shield');
         break;
+      case 'horn': {
+        if (!kart) break;
+        S.play('horn', mine ? 0.8 : this.distVol(kx, kz));
+        const word = HORN_WORDS[(ev.kid + Math.floor(this.time)) % HORN_WORDS.length];
+        this.effects.popup(word, kx, 3.1, kz, mine ? '#ffd23f' : '#ffffff');
+        if (!mine && this.distVol(kx, kz) > 0.3) this.hud.feed(`${kart.e.name} toetert naar je!`);
+        break;
+      }
       case 'lap':
         if (mine) {
           const last = ev.lap === this.laps;
@@ -307,10 +325,10 @@ export class RaceClient {
     // zodat ook een trage telefoon op volle snelheid rijdt
     if (this.pred && this.synced && rt >= 0) {
       const target = Math.floor(rt / DT);
-      if (this.simSteps == null || target - this.simSteps > 30) this.simSteps = Math.max(0, target - 1); // na een hapering niet alles inhalen
+      if (this.simSteps == null || target - this.simSteps > 60) this.simSteps = Math.max(0, target - 1); // na een lange hapering niet alles inhalen
       let steps = 0;
       const k = this.pred.kart;
-      while (this.simSteps < target && steps < 15) {
+      while (this.simSteps < target && steps < 30) {
         this.prev = { x: k.x, z: k.z, h: k.h };
         this.simSteps++;
         const r = this.pred.step(inp, this.simSteps * DT, this.localEmit);
@@ -533,8 +551,11 @@ export class RaceClient {
     c.tx = target.x; c.tz = target.z;
     const finished = myState && myState.finished && this.karts.get(this.me).finishedAt && this.time - this.karts.get(this.me).finishedAt > 1.2;
 
-    let dist = portrait ? 8.6 : 6.9;
-    let height = portrait ? 3.7 : 2.75;
+    // hoge karts (monstertruck, tractor) krijgen een hogere camera
+    const view = (myState ? this.karts.get(this.me) : this.pickWatch() || {}).view;
+    const lift = view ? view.driverBase.y : 0;
+    let dist = (portrait ? 8.6 : 6.9) + lift * 1.2;
+    let height = (portrait ? 3.7 : 2.75) + lift * 1.1;
     let fov = (portrait ? 80 : 68) + (target.boost ? 9 : 0);
     let yawTarget = target.h;
     let look = portrait ? 6 : 4.5;
@@ -564,7 +585,7 @@ export class RaceClient {
         sy = (Math.random() - 0.5) * this.shake * 0.6;
       }
       cam.position.set(c.x + sx, c.y + sy, c.z);
-      cam.lookAt(target.x + fx * look, 1.0, target.z + fz * look);
+      cam.lookAt(target.x + fx * look, 1.0 + lift * 0.7, target.z + fz * look);
       c.fov += (fov - c.fov) * Math.min(1, dt * 4);
     }
     if (Math.abs(cam.fov - c.fov) > 0.05) { cam.fov = c.fov; cam.updateProjectionMatrix(); }
@@ -603,6 +624,7 @@ export class RaceClient {
   }
 
   destroy() {
+    this.app.controls.onHorn = null;
     this.app.controls.unmount();
     this.app.sound.stopEngine();
     this.hud.destroy();

@@ -3,6 +3,7 @@ import * as THREE from '../../vendor/three.module.min.js';
 import { rng, hashString } from '../../shared/util.js';
 import { roadTexture, groundTexture, stripeTexture, checkerTexture, arrowTexture, questionTexture, patternTexture, facadeTexture, containerTexture, textCanvas, glowTexture } from './textures.js';
 import { lambert } from './kart.js';
+import { addRoadside } from './roadside.js';
 
 export const THEMES = {
   kust: {
@@ -782,6 +783,8 @@ export function buildWorld(track, quality = 'normaal') {
   const scale = (a, b) => a + rand() * (b - a);
 
   const theme = def.theme;
+  // eerst de spullen vlak langs de weg (tribunes, borden, pijlen), daarna het verdere decor
+  addRoadside({ track, theme, deco, rand, dens, animated, placed });
   if (theme === 'kust') {
     const lh = landmarkSpot(8, false);
     if (lh) { const m = lighthouse(animated); m.position.set(lh.x, 0, lh.z); deco.add(m); }

@@ -25,6 +25,7 @@ export class Controls {
   key(e, down) {
     if (!this.enabled) return;
     const k = e.key.toLowerCase();
+    if (k === 'h') { if (down && !e.repeat && this.onHorn) this.onHorn(); e.preventDefault(); return; }
     const map = {
       arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right', arrowup: 'gas', w: 'gas',
       arrowdown: 'brake', s: 'brake', ' ': 'drift', shift: 'drift', e: 'item', enter: 'item', x: 'item', k: 'item',
@@ -48,6 +49,7 @@ export class Controls {
       </div>
       <div class="tc-slider" aria-label="Stuurschuif"><div class="tc-track"></div><div class="tc-knob"></div></div>
       <div class="tc-tilthint">Kantel je telefoon om te sturen</div>
+      <div class="tc-btn tc-horn" aria-label="Toeteren">TOET</div>
       <div class="tc-actions">
         <div class="tc-btn tc-item" aria-label="Item gebruiken"><span class="tc-item-icon"></span></div>
         <div class="tc-btn tc-brake">REM</div>
@@ -61,6 +63,11 @@ export class Controls {
     this.bindHold(el.querySelector('.tc-gas'), 'gas');
     this.bindHold(el.querySelector('.tc-item'), 'item');
     this.bindSteerButtons(el.querySelector('.tc-steer'));
+    el.querySelector('.tc-horn').addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (this.sound) this.sound.unlock();
+      if (this.onHorn) this.onHorn();
+    });
     this.bindSlider(el.querySelector('.tc-slider'));
     el.addEventListener('contextmenu', (e) => e.preventDefault());
     if (s.controls === 'kantelen') this.startTilt();

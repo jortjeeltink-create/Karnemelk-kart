@@ -87,8 +87,8 @@ export class Showroom {
     this.camera.updateProjectionMatrix();
   }
 
-  setKart(character, cosmetics) {
-    this.kart.setCharacter(character);
+  setKart(character, cosmetics, look) {
+    this.kart.setCharacter(character, look);
     this.kart.setCosmetics(cosmetics);
   }
 
@@ -102,7 +102,7 @@ export class Showroom {
     for (const k of this.podiumKarts) { this.podium.remove(k.group); k.dispose(); }
     this.podiumKarts = [];
     rows.slice(0, 3).forEach((r, i) => {
-      const kv = new KartView({ character: r.character, cosmetics: r.cosmetics, name: r.name, showName: true });
+      const kv = new KartView({ character: r.character, cosmetics: r.cosmetics, look: r.look, name: r.name, showName: true });
       const spot = this.podiumSpots[i];
       kv.group.position.set(spot.x, spot.y, 0);
       kv.group.rotation.y = 0;
@@ -132,23 +132,32 @@ export class Showroom {
         this.effects.burst((Math.random() - 0.5) * 12, 9, (Math.random() - 0.5) * 4, { n: 1, colors: ['#ff595e', '#ffca3a', '#8ac926', '#1982c4', '#ff7eb6'], speed: 1, up: 0, life: 3, size: [0.35, 0.3], g: 2, drag: 0.5, additive: false });
       }
     } else {
-      this.turn.rotation.y += dt * 0.45;
+      this.turn.rotation.y += dt * (this.mode === 'creator' ? 0.3 : 0.45);
       // kart staat bovenin beeld in portret (menu's vullen de onderkant)
       this.setFov(45);
-      const dist = portrait ? (this.mode === 'menu' ? 16 : 13) : 9.5;
+      const creator = this.mode === 'creator';
+      const dist = portrait ? (this.mode === 'menu' ? 19 : 14) : creator ? 7.5 : 9.5;
       // in het menu staat de kart tussen logo en knoppen, in winkel/lobby bovenin
-      const lookY = portrait ? (this.mode === 'menu' ? -0.9 : -1.8) : 0.6;
-      const side = portrait ? 0 : 3.4; // liggend: kart links in beeld, menu rechts
-      this.camera.position.set(side, portrait ? 3.4 : 3.2, dist);
-      this.camera.lookAt(side, lookY + 1, 0);
+      // portret: de kart bovenin het scherm, het menu eronder
+      const lookY = portrait ? (this.mode === 'menu' ? -2.8 : -3.6) : creator ? 1.0 : 0.6;
+      const side = portrait ? 0 : 5.2; // liggend: kart links in beeld, menu rechts
+      const hy = 0.35 + this.kart.driverBase.y + (this.kart.figureTop || 1.9); // hoogte van het hoofd
+      if (creator && portrait) {
+        // ingezoomd op de coureur: hoofd bovenin beeld
+        this.camera.position.set(0, hy + 0.8, 7.5 + this.kart.driverBase.y);
+        this.camera.lookAt(0, hy - 2.3, 0);
+      } else {
+        const extra = Math.max(0, hy - 2.3);
+        this.camera.position.set(side, (portrait ? 3.4 : 3.2) + extra * 0.6, dist + extra * 2.2);
+        this.camera.lookAt(side, lookY + 1 + extra * 0.4, 0);
+      }
       this.kart.update(dt, { x: 0, z: 0, h: 0, speed: 6, pose: this.previewPose });
       this.kart.group.position.y = 0.35;
       if (this.kart.sparkle && Math.random() < dt * 20) this.effects.spark((Math.random() - 0.5) * 1.5, 1 + Math.random(), -0.6, '#ffe14d', 0, 0, 0.3);
       if (this.kart.wheelParticles && Math.random() < dt * 25) {
         const col = { vonk: '#ffd23f', sneeuw: '#ffffff', vuur: '#ff6a00' }[this.kart.wheelParticles];
-        const w = this.kart.wheels[2 + Math.floor(Math.random() * 2)];
         const p = new THREE.Vector3();
-        w.steerG.getWorldPosition(p);
+        this.kart.wheelWorld(p, 2 + Math.floor(Math.random() * 2));
         this.effects.spark(p.x, p.y, p.z, col, 0, 0, 0.35);
       }
     }

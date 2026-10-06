@@ -5,11 +5,14 @@ import { TRACKS, TRACK_BY_ID } from '../public/shared/tracks.js';
 import { buildTrack, validateTrack } from '../public/shared/trackgeo.js';
 import { createKart, stepKart, raceDistance } from '../public/shared/physics.js';
 import { computePoints } from '../public/shared/points.js';
-import { tryBuy, tryEquip, SHOP_ITEMS, RARITIES, publicCosmetics, DEFAULT_EQUIP } from '../public/shared/shop.js';
+import { tryBuy, tryEquip, SHOP_ITEMS, RARITIES, publicCosmetics, DEFAULT_EQUIP, START_MP } from '../public/shared/shop.js';
 import { encodeFull, decodeFull, encodeVisual, decodeVisual, encodeInput, decodeInput } from '../public/shared/protocol.js';
 import { rollItem, ITEM } from '../public/shared/items.js';
 import { Race } from '../public/shared/race.js';
 import { Hub } from '../public/shared/hub.js';
+import { Profiles, isDeviceToken } from '../public/shared/profiles.js';
+import { CHARACTER_BY_ID, BOT_CHARACTERS, racerName } from '../public/shared/characters.js';
+import { cleanLook, lookScales, BUILDS, HEIGHTS } from '../public/shared/look.js';
 import { botInput } from '../public/shared/bots.js';
 import { Predictor } from '../public/js/game/predict.js';
 import { rng } from '../public/shared/util.js';
@@ -111,7 +114,10 @@ test('winkel: zeldzaamheden, gouden cape is het duurste en legendarisch, kopen e
   assert.equal(RARITIES.legendarisch.order, Math.max(...Object.values(RARITIES).map((r) => r.order)));
   for (const i of SHOP_ITEMS) if (i.id !== 'cape_goud') assert.ok(i.price < goud.price, `${i.id} duurder dan gouden cape`);
   assert.equal(SHOP_ITEMS.filter((i) => i.rarity === 'legendarisch').length, 1);
-  for (const slot of ['cape', 'kleur', 'banden', 'spoor', 'pose']) assert.ok(SHOP_ITEMS.filter((i) => i.slot === slot && !i.free).length >= 3);
+  for (const slot of ['cape', 'kart', 'kleur', 'hoed', 'banden', 'spoor', 'pose']) assert.ok(SHOP_ITEMS.filter((i) => i.slot === slot && !i.free).length >= 3);
+  const roze = SHOP_ITEMS.find((i) => i.id === 'kart_roze');
+  assert.ok(roze && roze.slot === 'kart' && roze.price > 0, 'roze kart te koop');
+  assert.ok(SHOP_ITEMS.filter((i) => i.slot === 'kart' && !i.free).length >= 6, 'genoeg karts');
 
   const p = { mp: 150, owned: [], equipped: { ...DEFAULT_EQUIP } };
   let r = tryBuy(p, 'cape_goud');
@@ -122,7 +128,7 @@ test('winkel: zeldzaamheden, gouden cape is het duurste en legendarisch, kopen e
   assert.equal(r.ok, false);
   r = tryBuy(p, 'cape_rood');
   assert.equal(r.ok, true);
-  assert.equal(p.mp, 30);
+  assert.equal(p.mp, 100);
   assert.equal(tryBuy(p, 'cape_rood').ok, false); // al in bezit
   assert.equal(tryEquip(p, 'cape_rood').ok, true);
   assert.equal(publicCosmetics(p).cape, 'cape_rood');
@@ -207,86 +213,266 @@ test('voorspelling komt overeen met de server (zelfde invoer = zelfde plek)', ()
 });
 
 // ---------- roomlogica met een nepklok (geen netwerk) ----------
-class MemStore {
-  constructor() { this.p = new Map(); this.t = new Map(); }
-  async login(name, pin) {
-    const key = name.toLowerCase();
-    let p = this.p.get(key);
-    if (p && p.pin !== pin) return { ok: false, error: 'PIN klopt niet' };
-    if (!p) { p = { key, name, pin, mp: 150, owned: [], equipped: {}, stats: {} }; this.p.set(key, p); }
-    const token = 'tok-' + key;
-    this.t.set(token, key);
-    return { ok: true, profile: p, token };
-  }
-  async fromToken(tok) { return this.p.get(this.t.get(tok)) || null; }
-  async get(key) { return this.p.get(key) || null; }
-  async save() {}
-  async logout() {}
+class MemKV {
+  constructor() { this.data = new Map(); }
+  async get(k) { return this.data.has(k) ? JSON.parse(this.data.get(k)) : null; }
+  async set(k, v) { this.data.set(k, JSON.stringify(v)); }
+  async del(k) { this.data.delete(k); }
+}
+let rs = 0;
+const randomString = (n) => { rs++; return (`t${rs}`.padEnd(n, 'x') + 'abcdefghijklmnopqrstuvwxyz0123456789').slice(0, n).replace(/[^A-Za-z0-9_-]/g, 'y'); };
+function makeHub(clockRef, extra = {}) {
+  const store = new Profiles(new MemKV(), { randomString, now: () => clockRef.t });
+  return new Hub({ store, now: () => clockRef.t, random: rng(9), ...extra });
 }
 
-function fakeConn() {
-  const c = { out: [], send(t) { c.out.push(JSON.parse(t)); }, sendVolatile(t) { c.out.push(JSON.parse(t)); } };
+function fakeConn(cookieDevice) {
+  const c = { out: [], cookieDevice, send(t) { c.out.push(JSON.parse(t)); }, sendVolatile(t) { c.out.push(JSON.parse(t)); } };
   c.last = (type) => [...c.out].reverse().find((m) => m.t === type);
   return c;
 }
 
-test('oefenmodus met bots: race loopt helemaal door tot uitslag en punten', async () => {
-  let clock = 1_000_000;
-  const store = new MemStore();
-  const hub = new Hub({ store, now: () => clock, random: rng(9), laps: 1 });
-  const conn = fakeConn();
-  hub.connect(conn);
-  await hub.message(conn, { t: 'login', name: 'Jort', pin: '1234' });
+async function newPlayer(hub, name, cookieDevice) {
+  const c = fakeConn(cookieDevice);
+  hub.connect(c);
+  await hub.message(c, { t: 'hello' });
+  await hub.message(c, { t: 'register', name });
+  c.device = c.last('welcome').device;
+  c.profile = c.last('loggedIn').profile;
+  return c;
+}
+
+const flush = () => new Promise((r) => setTimeout(r, 5));
+
+test('inloggen zonder PIN: telefoon onthoudt je, ook via het cookie', async () => {
+  const clock = { t: Date.UTC(2026, 9, 6, 12) };
+  const hub = makeHub(clock);
+  const c = fakeConn();
+  hub.connect(c);
+  await hub.message(c, { t: 'hello' });
+  const w = c.last('welcome');
+  assert.equal(w.profile, null);
+  assert.ok(isDeviceToken(w.device), 'server geeft een apparaatsleutel');
+  await hub.message(c, { t: 'register', name: 'x' });
+  assert.match(c.last('registerFailed').msg, /2 tot 16/);
+  await hub.message(c, { t: 'register', name: 'Meke' });
+  const li = c.last('loggedIn');
+  assert.equal(li.profile.name, 'Meke');
+  assert.equal(li.profile.mp, 150);
+  // dezelfde telefoon later opnieuw (sleutel uit de browser)
+  const c2 = fakeConn();
+  hub.connect(c2);
+  await hub.message(c2, { t: 'hello', device: w.device });
+  assert.equal(c2.last('welcome').profile.name, 'Meke');
+  // alleen het cookie (browseropslag gewist)
+  const c3 = fakeConn(w.device);
+  hub.connect(c3);
+  await hub.message(c3, { t: 'hello' });
+  assert.equal(c3.last('welcome').profile.name, 'Meke');
+  // een ander apparaat zonder sleutel krijgt geen profiel
+  const c4 = fakeConn();
+  hub.connect(c4);
+  await hub.message(c4, { t: 'hello', device: 'onzin' });
+  assert.equal(c4.last('welcome').profile, null);
+  // naam wijzigen
+  await hub.message(c2, { t: 'rename', name: 'Meke de Snelle' });
+  assert.equal(c2.last('profile').profile.name, 'Meke de Snelle');
+});
+
+test('overzetcode zet punten naar een nieuwe telefoon (eenmalig, verloopt)', async () => {
+  const clock = { t: Date.UTC(2026, 9, 6, 12) };
+  const hub = makeHub(clock);
+  const oud = await newPlayer(hub, 'Nicole');
+  const p = await hub.store.get(oud.profile.id);
+  p.mp = 999;
+  await hub.message(oud, { t: 'transferCode' });
+  const code = oud.last('transferCode').code;
+  assert.match(code, /^[A-Z2-9]{6}$/);
+  const nieuw = fakeConn();
+  hub.connect(nieuw);
+  await hub.message(nieuw, { t: 'hello' });
+  await hub.message(nieuw, { t: 'useTransfer', code: 'AAAAAA' });
+  assert.match(nieuw.last('transferFailed').msg, /klopt niet/);
+  await hub.message(nieuw, { t: 'useTransfer', code: code.toLowerCase() });
+  const li = nieuw.last('loggedIn');
+  assert.equal(li.profile.name, 'Nicole');
+  assert.equal(li.profile.mp, 999);
+  assert.equal(li.transferred, true);
+  // nog een keer gebruiken kan niet
+  const derde = fakeConn();
+  hub.connect(derde);
+  await hub.message(derde, { t: 'hello' });
+  await hub.message(derde, { t: 'useTransfer', code });
+  assert.ok(derde.last('transferFailed'));
+  // verlopen code
+  await hub.message(oud, { t: 'transferCode' });
+  const code2 = oud.last('transferCode').code;
+  clock.t += 16 * 60000;
+  await hub.message(derde, { t: 'useTransfer', code: code2 });
+  assert.match(derde.last('transferFailed').msg, /verlopen/);
+});
+
+test('coureurs: Meke lang en dun, Nicole dikker, Cherso Duif de allerdikste', () => {
+  const meke = lookScales({ ...cleanLook(CHARACTER_BY_ID.meke.look), ...CHARACTER_BY_ID.meke.look });
+  const nicole = lookScales({ ...cleanLook(CHARACTER_BY_ID.nicole.look), ...CHARACTER_BY_ID.nicole.look });
+  const cherso = lookScales({ ...cleanLook(CHARACTER_BY_ID.cherso.look), ...CHARACTER_BY_ID.cherso.look });
+  assert.equal(CHARACTER_BY_ID.cherso.name, 'Cherso Duif');
+  assert.ok(meke.hs > 1.3 && meke.ws < 0.8, 'Meke is lang en dun');
+  assert.ok(nicole.ws > 1.2, 'Nicole is wat dikker');
+  assert.ok(cherso.ws > nicole.ws, 'Cherso is dikker dan Nicole');
+  // niemand (ook geen zelfgemaakte coureur) is dikker dan Cherso
+  const maxCustom = Math.max(...Object.values(BUILDS).map((b) => b.s));
+  assert.ok(cherso.ws > maxCustom, 'Cherso is de allerdikste');
+  const maxH = Math.max(...Object.values(HEIGHTS).map((b) => b.s));
+  assert.ok(meke.hs > maxH, 'Meke is de langste');
+  // bots gebruiken geen zelfgemaakte coureur en geen specials
+  assert.ok(!BOT_CHARACTERS.some((c) => c.custom || c.special));
+  for (const id of ['meke', 'nicole', 'cherso']) assert.ok(CHARACTER_BY_ID[id].special, `${id} is een special`);
+  assert.equal(racerName('Jort', 'meke'), 'Meke (Jort)');
+  assert.equal(racerName('Meke', 'meke'), 'Meke');
+  assert.equal(racerName('Jort', 'kees'), 'Jort');
+});
+
+test('alles is betaalbaar: een special heb je binnen 5 races', () => {
+  // vier vrienden racen; wie steeds 3e wordt, verdient per race:
+  const rows = ['a', 'b', 'c', 'd'].map((id, i) => ({ id, place: i + 1, finished: true, bestLap: 50 + i }));
+  const third = computePoints(rows).c.mp;
+  const after5 = START_MP + 5 * third;
+  const specials = SHOP_ITEMS.filter((i) => i.slot === 'special');
+  assert.equal(specials.length, 3);
+  for (const sp of specials) assert.ok(sp.price <= after5, `${sp.name} (${sp.price} MP) haalbaar na 5 races (${after5} MP)`);
+  // geen enkel item kost meer dan zo'n 25 races, de gouden cape blijft het duurste
+  const goud = SHOP_ITEMS.find((i) => i.id === 'cape_goud');
+  assert.ok(goud.price <= 25 * third, 'gouden cape blijft bereikbaar');
+  for (const it of SHOP_ITEMS) if (it.id !== 'cape_goud') assert.ok(it.price <= 450);
+});
+
+test('specials: eerst kopen, dan racen als "Meke (jouw naam)"', async () => {
+  const clock = { t: Date.UTC(2026, 9, 6, 12) };
+  const hub = makeHub(clock);
+  const a = await newPlayer(hub, 'Jort');
+  await hub.message(a, { t: 'create' });
+  await hub.message(a, { t: 'char', id: 'meke' });
+  assert.match(a.last('err').msg, /special/);
+  assert.notEqual(a.last('room').players[0].character, 'meke');
+  // genoeg MP sparen en kopen
+  (await hub.store.get(a.profile.id)).mp = 400;
+  await hub.message(a, { t: 'buy', id: 'special_meke' });
+  assert.equal(a.last('profile').bought, 'special_meke');
+  await hub.message(a, { t: 'equip', id: 'special_meke' });
+  assert.equal(a.last('room').players[0].character, 'meke');
+  await hub.message(a, { t: 'settings', settings: { bots: 1 } });
+  await hub.message(a, { t: 'start' });
+  const race = a.last('race');
+  const mine = race.entrants.find((e) => e.kid === race.you);
+  assert.equal(mine.name, 'Meke (Jort)');
+  assert.ok(race.entrants.filter((e) => e.isBot).every((e) => !['meke', 'nicole', 'cherso'].includes(e.character)));
+});
+
+test('eigen coureur: ongeldige waarden worden vervangen, anderen zien je uiterlijk', async () => {
+  const clock = { t: Date.UTC(2026, 9, 6, 12) };
+  const hub = makeHub(clock);
+  const a = await newPlayer(hub, 'Anna');
+  const b = await newPlayer(hub, 'Bas');
+  await hub.message(a, { t: 'create' });
+  const code = a.last('room').code;
+  await hub.message(b, { t: 'join', code });
+  await hub.message(a, { t: 'look', use: true, look: { skin: '#ffe3cc', hair: 'krullen', hairColor: '#ff6fb0', shirt: '#000001', height: 'lang', build: 'reus', glasses: 'zonnebril', facial: 'snor' } });
+  const saved = a.last('profile').profile.look;
+  assert.equal(saved.hair, 'krullen');
+  assert.equal(saved.shirt, cleanLook({}).shirt, 'onbekende kleur wordt standaard');
+  assert.equal(saved.build, 'normaal', 'onbekende bouw wordt standaard');
+  const seen = b.last('room').players.find((p) => p.name === 'Anna');
+  assert.equal(seen.character, 'eigen');
+  assert.equal(seen.look.hairColor, '#ff6fb0');
+  // dezelfde naam in één room krijgt een nummer
+  const anna2 = await newPlayer(hub, 'Anna');
+  await hub.message(anna2, { t: 'join', code });
+  assert.ok(a.last('room').players.some((p) => p.name === 'Anna 2'));
+});
+
+test('oefenmodus met bots: race tot uitslag, punten, dagbonus en titels', async () => {
+  const clock = { t: Date.UTC(2026, 9, 6, 12) };
+  const hub = makeHub(clock, { laps: 1 });
+  const conn = await newPlayer(hub, 'Jort');
+  const myId = conn.profile.id;
   await hub.message(conn, { t: 'create', practice: true });
-  const room = conn.last('room');
-  assert.equal(room.practice, true);
+  assert.equal(conn.last('room').practice, true);
   await hub.message(conn, { t: 'settings', settings: { trackId: 'karnemelkhoeve', bots: 4, botLevel: 'makkelijk' } });
-  await hub.message(conn, { t: 'start' });
-  const race = conn.last('race');
-  assert.equal(race.entrants.length, 5);
-  assert.equal(race.trackId, 'karnemelkhoeve');
-  const tr = buildTrack(TRACK_BY_ID.karnemelkhoeve);
-  const pred = new Predictor(tr, race.you, race.you, race.laps);
-  let seqStart = 1;
-  let buf = [];
-  for (let n = 0; n < 60 * 200 && !conn.last('results'); n++) {
-    clock += 1000 / 60;
-    const rt = (clock - race.startAt) / 1000;
-    if (rt >= 0) {
-      const r = pred.step(botInput(pred.kart, tr, { time: rt }), rt);
-      buf.push(r.packed);
-      if (buf.length === 3) { await hub.message(conn, { t: 'in', s: seqStart, i: buf }); seqStart += 3; buf = []; }
+  const runRace = async () => {
+    const before = conn.out.filter((m) => m.t === 'results').length;
+    await hub.message(conn, { t: before ? 'again' : 'start' });
+    const race = conn.last('race');
+    assert.equal(race.entrants.length, 5);
+    assert.ok(race.entrants.filter((e) => e.isBot).every((e) => !['eigen'].includes(e.character)));
+    const tr = buildTrack(TRACK_BY_ID[race.trackId]);
+    const pred = new Predictor(tr, race.you, race.you, race.laps);
+    let seqStart = 1;
+    let buf = [];
+    let horned = false;
+    for (let n = 0; n < 60 * 200 && conn.out.filter((m) => m.t === 'results').length === before; n++) {
+      clock.t += 1000 / 60;
+      const rt = (clock.t - race.startAt) / 1000;
+      if (rt >= 0) {
+        const r = pred.step(botInput(pred.kart, tr, { time: rt }), rt);
+        buf.push(r.packed);
+        if (buf.length === 3) { await hub.message(conn, { t: 'in', s: seqStart, i: buf }); seqStart += 3; buf = []; }
+        if (!horned && rt > 2) { horned = true; await hub.message(conn, { t: 'horn' }); await hub.message(conn, { t: 'horn' }); }
+      }
+      hub.tick();
+      const s = conn.out.length && conn.out[conn.out.length - 1];
+      if (s && s.t === 's' && s.me) pred.reconcile(s.me);
+      if (n % 30 === 0) await flush();
     }
-    hub.tick();
-    const s = conn.out.length && conn.out[conn.out.length - 1];
-    if (s && s.t === 's' && s.me) pred.reconcile(s.me);
-  }
-  const res = conn.last('results');
+    await flush();
+    return conn.last('results');
+  };
+  const res = await runRace();
   assert.ok(res, 'uitslag ontvangen');
   assert.equal(res.rows.length, 5);
-  const me = res.rows.find((r) => r.id === 'jort');
+  const me = res.rows.find((r) => r.id === myId);
   assert.ok(me.finished, 'speler is gefinisht');
-  assert.ok(me.mp > 0);
-  await new Promise((r) => setTimeout(r, 20));
+  assert.ok(me.parts.some((p) => p.label.startsWith('Dagbonus')), 'eerste race van de dag: dagbonus');
+  assert.ok(Array.isArray(res.awards));
+  const horns = conn.out.filter((m) => m.t === 's').flatMap((m) => m.ev).filter((e) => e.type === 'horn');
+  assert.equal(horns.length, 1, 'toeteren heeft een korte pauze');
   const prof = conn.last('profile');
   assert.equal(prof.profile.mp, 150 + me.mp);
   assert.equal(prof.profile.stats.races, 1);
-  // opnieuw racen
-  await hub.message(conn, { t: 'again' });
-  assert.ok(conn.out.filter((m) => m.t === 'race').length === 2);
+  // tweede race dezelfde dag: geen dagbonus
+  const res2 = await runRace();
+  const me2 = res2.rows.find((r) => r.id === myId);
+  assert.ok(!me2.parts.some((p) => p.label.startsWith('Dagbonus')));
+  // volgende dag weer wel
+  clock.t += 24 * 3600 * 1000;
+  const res3 = await runRace();
+  assert.ok(res3.rows.find((r) => r.id === myId).parts.some((p) => p.label.startsWith('Dagbonus')));
+});
+
+test('race-titels: wie het vaakst ramt wordt Botskampioen', () => {
+  const tr = buildTrack(TRACK_BY_ID.zandstorm);
+  const entrants = [0, 1].map((kid) => ({ kid, id: 'p' + kid, name: 'P' + kid, isBot: false }));
+  const race = new Race({ track: tr, entrants, startDelay: 0 });
+  race.update(0.001);
+  const [a, b] = race.karts;
+  const p = tr.pointAt(200, 0);
+  for (let n = 0; n < 3; n++) {
+    race.time += 1;
+    b.x = p.x; b.z = p.z; b.vx = 0; b.vz = 0; b.shieldT = 0;
+    a.x = p.x - Math.sin(p.h) * 2.2; a.z = p.z - Math.cos(p.h) * 2.2; a.vx = Math.sin(p.h) * 25; a.vz = Math.cos(p.h) * 25;
+    race.kartCollisions();
+  }
+  const aw = race.awards();
+  const champ = aw.find((x) => x.key === 'botskampioen');
+  assert.ok(champ && champ.name === 'P0');
+  assert.ok(aw.find((x) => x.key === 'pechvogel').name === 'P1');
 });
 
 test('lobby: klaar-status, host-rechten, vol, verkeerde code en herverbinden', async () => {
-  let clock = 5_000_000;
-  const store = new MemStore();
-  const hub = new Hub({ store, now: () => clock, random: rng(3) });
+  const clock = { t: 5_000_000 };
+  const hub = makeHub(clock);
   const conns = [];
-  for (let i = 0; i < 11; i++) {
-    const c = fakeConn();
-    hub.connect(c);
-    await hub.message(c, { t: 'login', name: 'Speler' + i, pin: '0000' });
-    conns.push(c);
-  }
+  for (let i = 0; i < 11; i++) conns.push(await newPlayer(hub, 'Speler' + i));
   await hub.message(conns[0], { t: 'create' });
   const code = conns[0].last('room').code;
   assert.match(code, /^[A-Z]{4}$/);
@@ -296,10 +482,8 @@ test('lobby: klaar-status, host-rechten, vol, verkeerde code en herverbinden', a
   await hub.message(conns[10], { t: 'join', code });
   assert.match(conns[10].last('joinFailed').msg, /vol/);
   assert.equal(conns[0].last('room').players.length, 10);
-  // niet-host mag niet starten of instellingen wijzigen
   await hub.message(conns[3], { t: 'start' });
   assert.match(conns[3].last('err').msg, /host/);
-  // host start terwijl niet iedereen klaar is -> lijst met namen
   await hub.message(conns[0], { t: 'start' });
   assert.equal(conns[0].last('notReady').names.length, 9);
   for (let i = 1; i < 10; i++) await hub.message(conns[i], { t: 'ready', on: true });
@@ -307,19 +491,17 @@ test('lobby: klaar-status, host-rechten, vol, verkeerde code en herverbinden', a
   await hub.message(conns[0], { t: 'start' });
   const raceMsg = conns[5].last('race');
   assert.ok(raceMsg && raceMsg.entrants.length === 10);
-  // speler 5 valt weg en komt terug op een nieuwe verbinding
+  // speler 5 valt weg en komt terug op een nieuwe verbinding (zelfde telefoon)
   hub.disconnect(conns[5]);
-  clock += 3000; hub.tick();
+  clock.t += 3000; hub.tick();
   assert.equal(conns[0].last('room').players.find((p) => p.name === 'Speler5').connected, false);
   const back = fakeConn();
   hub.connect(back);
-  await hub.message(back, { t: 'hello', token: 'tok-speler5' });
+  await hub.message(back, { t: 'hello', device: conns[5].device });
   assert.equal(back.last('welcome').profile.name, 'Speler5');
   await hub.message(back, { t: 'join', code });
-  const again = back.last('race');
-  assert.equal(again.you, raceMsg.you, 'zelfde kart terug');
+  assert.equal(back.last('race').you, raceMsg.you, 'zelfde kart terug');
   assert.equal(conns[0].last('room').players.find((p) => p.name === 'Speler5').connected, true);
-  // host verlaat -> nieuwe host
   await hub.message(conns[0], { t: 'leave' });
-  assert.equal(conns[1].last('room').host, 'speler1');
+  assert.equal(conns[1].last('room').host, conns[1].profile.id);
 });
