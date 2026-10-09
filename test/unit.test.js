@@ -611,6 +611,57 @@ test('oefenmodus met bots: race tot uitslag, punten, dagbonus en titels', async 
   assert.ok(res3.rows.find((r) => r.id === myId).parts.some((p) => p.label.startsWith('Dagbonus')));
 });
 
+test('winnaar kiest wie er ook een atje moet doen, en het rad draait bij iedereen', async () => {
+  const clock = { t: Date.UTC(2026, 9, 9, 15) };
+  const hub = makeHub(clock);
+  const a = await newPlayer(hub, 'Jort');
+  const b = await newPlayer(hub, 'Stan');
+  const c = await newPlayer(hub, 'Melle');
+  await hub.message(a, { t: 'create' });
+  const code = a.last('room').code;
+  await hub.message(b, { t: 'join', code });
+  await hub.message(c, { t: 'join', code });
+  const room = hub.rooms.get(code);
+  room.state = 'results';
+  room.results = { t: 'results', rows: [] };
+  const rows = [a, b, c].map((x) => ({ id: x.profile.id, name: x.profile.name }));
+  room.setupPick(rows);
+  const st = room.pickState();
+  assert.equal(st.state, 'kiezen');
+  assert.equal(st.winner, a.profile.id, 'de beste mens is de winnaar');
+  assert.deepEqual(st.options.map((o) => o.name).sort(), ['Melle', 'Stan'], 'je kiest iemand anders');
+  assert.equal(st.names.length, 3, 'alle namen op het rad');
+  // alleen de winnaar mag kiezen
+  await hub.message(b, { t: 'pick', id: c.profile.id });
+  assert.match(b.last('err').msg, /winnaar/);
+  await hub.message(a, { t: 'pick', id: a.profile.id });
+  assert.equal(room.pick.state, 'kiezen', 'jezelf kiezen kan niet');
+  await hub.message(a, { t: 'pick', id: c.profile.id });
+  for (const x of [a, b, c]) {
+    const pk = x.last('pick').pick;
+    assert.equal(pk.state, 'draaien', 'iedereen ziet het rad');
+    assert.equal(pk.target, c.profile.id, 'het rad stopt op de gekozen speler');
+    assert.ok(pk.spinAt > clock.t && pk.spinMs > 3000, 'iedereen begint tegelijk');
+  }
+  clock.t += 8000;
+  hub.tick();
+  assert.equal(c.last('pick').pick.state, 'klaar');
+  // kiest de winnaar niet op tijd, dan beslist het rad zelf
+  room.setupPick(rows);
+  clock.t += 31000;
+  hub.tick();
+  const auto = b.last('pick').pick;
+  assert.equal(auto.state, 'draaien');
+  assert.equal(auto.byChance, true);
+  assert.ok([b.profile.id, c.profile.id].includes(auto.target));
+  // nieuwe race of lobby: alles weg; zonder uitdaging of met één mens geen keuze
+  room.setupPick(rows.slice(0, 1));
+  assert.equal(room.pick, null);
+  room.settings.challengeOn = false;
+  room.setupPick(rows);
+  assert.equal(room.pick, null);
+});
+
 test('race-titels: wie het vaakst ramt wordt Botskampioen', () => {
   const tr = buildTrack(TRACK_BY_ID.zandstorm);
   const entrants = [0, 1].map((kid) => ({ kid, id: 'p' + kid, name: 'P' + kid, isBot: false }));

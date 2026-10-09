@@ -10,6 +10,7 @@ import { h, toast, modal, isModalOpen } from './ui/dom.js';
 import * as S from './ui/screens.js';
 import { DEFAULT_CHARACTER } from '../shared/characters.js';
 import { SHOP_BY_ID } from '../shared/shop.js';
+import { Wheel } from './ui/wheel.js';
 
 const DEVICE_KEY = 'kk-apparaat';
 const ROOM_KEY = 'kk-room';
@@ -145,6 +146,7 @@ class App {
       this.challenge = m.challenge;
       if (this.screenName === 'results') this.show('results');
     });
+    n.on('pick', (m) => this.onPick(m.pick));
     n.on('left', (m) => {
       this.room = null;
       store.del(ROOM_KEY);
@@ -253,6 +255,8 @@ class App {
   }
 
   startRace(m) {
+    if (this.wheel) this.wheel.destroy();
+    this.pick = null;
     this.endRace();
     this.results = null;
     this.challenge = null;
@@ -278,8 +282,25 @@ class App {
     if (this.engine && this.showroom) this.engine.setView(this.showroom);
   }
 
+  // De winnaar kiest wie er ook een atje moet doen; daarna draait bij iedereen het rad.
+  onPick(pick) {
+    this.pick = pick;
+    if (this.results) this.results.pick = pick;
+    if (pick && (pick.state === 'draaien' || pick.state === 'klaar') && this.screenName === 'results') {
+      const key = `${pick.spinAt}:${pick.target}`;
+      const recent = this.net.serverNow() < pick.spinAt + pick.spinMs + 15000;
+      if ((!this.wheel || this.wheel.key !== key) && recent && !(this.seenWheel === key)) {
+        if (this.wheel) this.wheel.destroy();
+        this.seenWheel = key;
+        this.wheel = new Wheel(this, pick, this.challenge && this.challenge.text);
+      }
+    }
+    if (this.screenName === 'results') this.show('results');
+  }
+
   onResults(m) {
     this.results = m;
+    this.pick = m.pick || null;
     this.challenge = m.challenge;
     // even de finish laten zien, dan het podium
     const delay = this.race ? 1800 : 0;
@@ -288,6 +309,7 @@ class App {
       this.endRace();
       this.show('results');
       this.sound.play('cheer', 0.6);
+      if (this.pick && this.pick.state !== 'kiezen') this.onPick(this.pick);
     }, delay);
   }
 

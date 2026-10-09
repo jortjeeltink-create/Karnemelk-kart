@@ -280,6 +280,40 @@ export function resultsScreen(app) {
       h('button', { class: 'btn btn-small btn-green', onclick: () => app.send({ t: 'challenge', action: 'done' }) }, 'Gedaan!')) : null)
     : r.loser ? h('div', { class: 'challenge' }, h('div', { class: 'ch-title' }, `Laatste mens: ${r.loser.name}`), h('div', { class: 'ch-text small' }, 'Geen uitdaging deze keer.')) : null;
 
+  // de winnaar kiest wie er ook een atje moet doen
+  const pk = app.pick;
+  let pickCard = null;
+  if (pk) {
+    const isWinner = pk.winner === youPid;
+    const left = h('span', { class: 'pick-count' });
+    const tickLeft = () => {
+      const s = Math.max(0, Math.ceil((pk.deadline - app.net.serverNow()) / 1000));
+      left.textContent = `nog ${s} s`;
+      if (document.body.contains(left) && pk.state === 'kiezen' && app.pick === pk) setTimeout(tickLeft, 500);
+    };
+    if (pk.state === 'kiezen') setTimeout(tickLeft, 0);
+    const targetName = pk.target ? (pk.names.find((x) => x.id === pk.target) || {}).name : '';
+    if (pk.state === 'kiezen' && isWinner) {
+      pickCard = h('div', { class: 'pick-card mine' },
+        h('div', { class: 'ch-title' }, '🏆 Je bent de winnaar!'),
+        h('div', { class: 'ch-text' }, 'Kies wie er óók een atje karnemelk moet doen:'),
+        h('div', { class: 'pick-names' }, pk.options.map((o) => h('button', {
+          class: 'btn btn-pick', onclick: () => { app.click(); app.send({ t: 'pick', id: o.id }); },
+        }, o.name, r.loser && r.loser.id === o.id ? h('small', {}, ' (verliezer)') : null))),
+        h('small', { class: 'muted' }, 'Kies je niet op tijd, dan beslist het rad zelf (', left, ').'));
+    } else if (pk.state === 'kiezen') {
+      pickCard = h('div', { class: 'pick-card' },
+        h('div', { class: 'ch-title' }, `🏆 ${pk.winnerName} mag kiezen…`),
+        h('div', { class: 'ch-text small' }, 'Wie moet er óók een atje karnemelk? Zo meteen draait het rad! ', left));
+    } else if (pk.state === 'draaien') {
+      pickCard = h('div', { class: 'pick-card' }, h('div', { class: 'ch-title' }, '🎡 Het rad draait…'));
+    } else {
+      pickCard = h('div', { class: `pick-card${pk.target === youPid ? ' mine' : ''}` },
+        h('div', { class: 'ch-title' }, `🥛 ${pk.target === youPid ? 'Jij moet' : targetName + ' moet'} óók een atje!`),
+        h('div', { class: 'ch-text small' }, pk.byChance ? 'Het rad besliste zelf.' : `Gekozen door winnaar ${pk.winnerName}.`));
+    }
+  }
+
   let actions;
   if (!room) actions = [h('button', { class: 'btn btn-primary grow', onclick: () => app.show('menu') }, 'Naar het menu')];
   else if (youHost) {
@@ -297,7 +331,10 @@ export function resultsScreen(app) {
         h('div', { class: 'trophy', 'aria-hidden': 'true' }, '🏆'),
         h('div', {}, h('small', {}, r.practice ? 'Oefenrace — winnaar' : 'Winnaar'), h('b', {}, r.winner.name))),
       myRow ? h('div', { class: 'earned' }, 'Jij verdient ', h('b', {}, `+${myRow.mp} MP`), ` • totaal ${app.profile ? app.profile.mp : '?'} MP`) : null,
+      // de winnaar moet meteen zien dat hij mag kiezen, dus dan bovenaan
+      pickCard && pk.state === 'kiezen' && pk.winner === youPid ? pickCard : null,
       challengeCard,
+      pickCard && !(pk.state === 'kiezen' && pk.winner === youPid) ? pickCard : null,
       r.awards && r.awards.length ? h('div', { class: 'awards' }, r.awards.map((a) => h('div', { class: `award award-${a.key}` },
         h('b', {}, a.title), h('span', {}, a.name), h('small', {}, a.text)))) : null,
       rows,
@@ -564,5 +601,7 @@ export function helpScreen(app) {
       h('h3', {}, 'Mijn coureur'),
       h('p', {}, 'Maak je eigen coureur: huidskleur, haar, shirt, lengte, bouw, bril en snor of baard. Kies hem in de lobby bij "Mijn coureur".'),
       h('h3', {}, 'De verliezer'),
-      h('p', {}, 'Wie als laatste mens binnenkomt, krijgt een grappige uitdaging, zoals een atje karnemelk. De verliezer of de host kan hem overslaan of een andere kiezen.')));
+      h('p', {}, 'Wie als laatste mens binnenkomt, krijgt een grappige uitdaging, zoals een atje karnemelk. De verliezer of de host kan hem overslaan of een andere kiezen.'),
+      h('h3', {}, 'De winnaar kiest'),
+      h('p', {}, 'Race je met minstens 2 mensen? Dan tikt de winnaar op de naam van wie er óók een atje karnemelk moet doen. Daarna draait bij iedereen het rad met alle namen en stopt het op die persoon. Kiest de winnaar niet binnen 30 seconden, dan beslist het rad zelf.')));
 }

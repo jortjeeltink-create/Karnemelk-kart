@@ -245,6 +245,7 @@ export class Hub {
       case 'again': return room.again(session);
       case 'lobby': return room.backToLobby(session);
       case 'challenge': return room.challengeAction(session, msg.action);
+      case 'pick': return room.choosePick(session, msg.id);
       case 'kick': return room.kick(session, msg.pid);
       default: return undefined;
     }

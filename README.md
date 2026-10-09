@@ -18,6 +18,7 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
 - **Driften** met mini-turbo (witte, gele en roze vonken) en **power-ups**: Stroopwafel-turbo, Drie stroopwafels, Kaasschild, Karnemelkplas (glad obstakel) en Klompkanon.
 - **Oefenmodus** voor één speler, met 0 tot 9 computerkarts (makkelijk, normaal, moeilijk).
 - **Winnaar en verliezer**: de laatste mens krijgt de uitdaging "Een atje karnemelk!". De verliezer of host kan hem overslaan, een andere kiezen of afvinken. De host kan de tekst vooraf aanpassen of uitzetten.
+- **Het rad**: met minstens 2 mensen ziet de winnaar "Je bent de winnaar!" en tikt hij op wie er óók een atje karnemelk moet doen. Daarna draait bij iedereen tegelijk een rad met alle namen, dat stopt op die persoon. Kiest de winnaar niet binnen 30 seconden, dan beslist het rad zelf. De verliezer moet sowieso.
 - **Geen wachtwoord of PIN**: je kiest alleen een naam. Je telefoon onthoudt je, en je MP-punten en spullen blijven op die telefoon. Nieuwe telefoon? Met een overzetcode (Instellingen) neem je alles mee.
 - **MP-punten** na elke race, plus een **dagbonus** van 25 MP voor je eerste uitgereden race van de dag.
 - **Specials**: Meke (lang, dun en blond), Meike (donker haar, dun), Sim (lichtdonker haar), Stan, Jullian, Melle, Duuk, Morris, Ridder Kees en Ridder Jort (allebei in een volledig ridderpak) koop je met MP-punten. In de race heet je dan bijvoorbeeld **Meke (Jort)**, zodat je meerdere Mekes uit elkaar houdt.

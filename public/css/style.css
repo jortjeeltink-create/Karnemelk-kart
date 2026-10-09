@@ -478,3 +478,21 @@ body.racing #hud { display: block; }
   .screen.menu .menu-card .btn-big { padding: 7px 14px; font-size: 17px; }
   .screen.menu .menu-card { gap: 7px; }
 }
+
+/* ---- de winnaar kiest + het rad ---- */
+.pick-card { background: #fff6dc; border: 3px solid #ffd23f; border-radius: 18px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.pick-card.mine { background: #fff0f6; border-color: #ff5fa2; }
+.pick-names { display: flex; flex-wrap: wrap; gap: 6px; }
+.btn-pick { background: #ffffff; border: 2px solid #ffb703; color: #2b1a4a; font-weight: 900; padding: 8px 12px; border-radius: 14px; }
+.btn-pick small { font-weight: 700; opacity: 0.7; }
+.pick-count { font-weight: 800; }
+.wheel-overlay { position: fixed; inset: 0; z-index: 75; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(20, 16, 50, 0.55); animation: pop 0.25s ease-out; }
+.wheel-card { width: min(420px, 100%); text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; max-height: 100%; overflow: auto; }
+.wheel-card h2 { margin: 0; }
+.wheel-sub { margin: 0; color: var(--zacht); font-weight: 700; }
+.wheel-wrap { position: relative; width: min(300px, 72vw, 52vh); aspect-ratio: 1; }
+.wheel-holder, .wheel-holder svg { width: 100%; height: 100%; display: block; }
+.wheel-pointer { position: absolute; left: 50%; top: -6px; transform: translateX(-50%); width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent; border-top: 30px solid #2b1a4a; z-index: 2; filter: drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+.wheel-result { font-size: 20px; font-weight: 900; color: #2b1a4a; min-height: 26px; opacity: 0; transform: scale(0.6); transition: all 0.35s cubic-bezier(.2,1.6,.4,1); }
+.wheel-result.show { opacity: 1; transform: scale(1); }
+.wheel-result.me { color: #e63946; }

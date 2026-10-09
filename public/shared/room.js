@@ -11,6 +11,9 @@ import { cleanLook } from './look.js';
 import { BOT_LEVELS } from './bots.js';
 import { computePoints } from './points.js';
 import { DEFAULT_CHALLENGE, nextChallenge, cleanChallenge } from './challenges.js';
+
+const PICK_MS = 30000; // zo lang mag de winnaar nadenken
+const SPIN_MS = 6500;  // zo lang draait het rad
 import { publicCosmetics, SHOP_ITEMS, DEFAULT_EQUIP, ownsItem } from './shop.js';
 
 const builtTracks = new Map();
@@ -42,6 +45,7 @@ export class Room {
     this.kidOf = new Map();
     this.results = null;
     this.challenge = null;
+    this.pick = null; // de winnaar kiest wie er ook een atje moet doen (met het rad)
     this.kicked = new Set();
     this.lastSnap = 0;
     this.emptySince = null;
@@ -99,6 +103,7 @@ export class Room {
     } else if (this.state === 'results' && this.results) {
       this.hub.sendTo(session, this.results);
       if (this.challenge) this.hub.sendTo(session, { t: 'challenge', challenge: this.challenge });
+      if (this.pick) this.hub.sendTo(session, { t: 'pick', pick: this.pickState() });
     }
     return { ok: true };
   }
@@ -277,6 +282,7 @@ export class Room {
     this.state = 'race';
     this.results = null;
     this.challenge = null;
+    this.pick = null;
     this.raceCount++;
     for (const m of this.members.values()) m.ready = false;
     for (const m of this.members.values()) {
@@ -327,6 +333,16 @@ export class Room {
       }
       if (this.race.phase === 'done') {
         this.finishRace().catch((e) => this.hub.log('fout bij uitslag', e));
+      }
+    }
+    if (this.pick && this.state === 'results') {
+      if (this.pick.state === 'kiezen' && now >= this.pick.deadline) {
+        // de winnaar kiest niet op tijd: dan beslist het rad zelf
+        const opts = this.pick.options;
+        this.spinPick(opts[Math.floor(this.hub.random() * opts.length)].id, true);
+      } else if (this.pick.state === 'draaien' && now >= this.pick.spinAt + this.pick.spinMs + 400) {
+        this.pick.state = 'klaar';
+        this.broadcastPick();
       }
     }
     // opruimen: spelers die te lang weg zijn
@@ -400,8 +416,9 @@ export class Room {
     this.challenge = this.settings.challengeOn && loser
       ? { text: this.settings.challengeText || DEFAULT_CHALLENGE, skipped: false, loser: loser.id, loserName: loser.name }
       : null;
+    this.setupPick(humanRows);
     this.results = {
-      t: 'results', trackId: this.raceInfo.trackId, practice: this.practice, rows, awards,
+      t: 'results', trackId: this.raceInfo.trackId, practice: this.practice, rows, awards, pick: this.pickState(),
       winner: { id: winner.id, name: winner.name, isBot: winner.isBot, character: winner.character, cosmetics: winner.cosmetics, look: winner.look },
       loser: loser ? { id: loser.id, name: loser.name, character: loser.character, cosmetics: loser.cosmetics, look: loser.look } : null,
       challenge: this.challenge,
@@ -425,8 +442,65 @@ export class Room {
     this.state = 'lobby';
     this.results = null;
     this.challenge = null;
+    this.pick = null;
     for (const m of this.members.values()) m.ready = false;
     this.broadcastRoom();
+  }
+
+  // ---- winnaar kiest wie er ook een atje moet doen ----
+  // humanRows: mensen in volgorde van de uitslag (de eerste is de winnaar)
+  setupPick(humanRows) {
+    this.pick = null;
+    if (!this.settings.challengeOn || humanRows.length < 2) return;
+    const winner = humanRows[0];
+    this.pick = {
+      state: 'kiezen',
+      winner: winner.id,
+      winnerName: winner.name,
+      options: humanRows.slice(1).map((r) => ({ id: r.id, name: r.name })),
+      names: humanRows.map((r) => ({ id: r.id, name: r.name })),
+      deadline: this.now() + PICK_MS,
+      target: null,
+      byChance: false,
+      spinAt: 0,
+      spinMs: SPIN_MS,
+      jitter: 0,
+    };
+    // het rad in een vaste maar door elkaar gehusselde volgorde
+    const n = this.pick.names;
+    for (let i = n.length - 1; i > 0; i--) { const j = Math.floor(this.hub.random() * (i + 1)); [n[i], n[j]] = [n[j], n[i]]; }
+  }
+
+  pickState() {
+    if (!this.pick) return null;
+    const { state, winner, winnerName, options, names, deadline, target, byChance, spinAt, spinMs, jitter } = this.pick;
+    return { state, winner, winnerName, options, names, deadline, target, byChance, spinAt, spinMs, jitter };
+  }
+
+  broadcastPick() {
+    if (this.results) this.results.pick = this.pickState();
+    for (const m of this.members.values()) {
+      if (m.session && m.connected) this.hub.sendTo(m.session, { t: 'pick', pick: this.pickState() });
+    }
+  }
+
+  spinPick(targetId, byChance = false) {
+    const pk = this.pick;
+    pk.state = 'draaien';
+    pk.target = targetId;
+    pk.byChance = byChance;
+    pk.spinAt = this.now() + 700; // even tijd zodat iedereen tegelijk begint
+    pk.jitter = Math.round((this.hub.random() - 0.5) * 60) / 100; // waar in het vakje hij stopt
+    this.broadcastPick();
+  }
+
+  choosePick(session, targetId) {
+    const pk = this.pick;
+    if (!pk || this.state !== 'results') return;
+    if (session.profile.key !== pk.winner) return this.err(session, 'Alleen de winnaar mag kiezen.');
+    if (pk.state !== 'kiezen') return;
+    if (!pk.options.some((o) => o.id === targetId)) return this.err(session, 'Die speler doet niet mee.');
+    this.spinPick(targetId, false);
   }
 
   challengeAction(session, action) {
