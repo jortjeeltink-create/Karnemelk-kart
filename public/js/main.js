@@ -20,7 +20,14 @@ const BACKUP_KEY = 'kk-reserve'; // ondertekende kopie van je profiel (naam, MP,
 // Je profiel staat ook op je telefoon. Start de server opnieuw (gratis hosting),
 // dan zet de telefoon het vanzelf terug.
 function saveBackup(p) {
-  if (p && p.backup) store.set(BACKUP_KEY, JSON.stringify(p.backup));
+  if (!p || !p.backup) return;
+  // nooit een nieuwere kopie van hetzelfde profiel overschrijven met een oudere
+  try {
+    const old = JSON.parse(store.get(BACKUP_KEY) || 'null');
+    const a = old && JSON.parse(old.d), b = JSON.parse(p.backup.d);
+    if (a && b && a.key === b.key && (a.rev || 0) > (b.rev || 0)) return;
+  } catch { /* oude of kapotte kopie: gewoon vervangen */ }
+  store.set(BACKUP_KEY, JSON.stringify(p.backup));
 }
 function loadBackup() {
   try { return JSON.parse(store.get(BACKUP_KEY) || 'null'); } catch { return null; }
@@ -129,6 +136,7 @@ class App {
       this.sound.play('error');
     });
     n.on('renameFailed', (m) => { toast(m.msg, 'error'); this.sound.play('error'); });
+    n.on('secretFailed', (m) => { toast(m.msg, 'error'); this.sound.play('error'); });
     n.on('transferCode', (m) => {
       this.transfer = { code: m.code, until: Date.now() + m.minutes * 60000 };
       if (this.screenName === 'settings') this.show('settings');
@@ -159,6 +167,7 @@ class App {
       saveBackup(m.profile);
       if (m.renamed) { store.set(NAME_KEY, m.profile.name); toast(`Je heet nu ${m.profile.name}.`, 'good'); }
       if (m.lookSaved) { toast('Je coureur is opgeslagen!', 'good'); this.sound.play('buy'); }
+      if (m.secret) { toast('⚡ Geheime boostknop staat aan! Je ziet hem in je volgende race.', 'good', 4500); this.sound.play('buy'); }
       if (m.bought) {
         this.sound.play('buy');
         const it = SHOP_BY_ID[m.bought];

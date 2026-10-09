@@ -6,7 +6,7 @@ import { round } from './util.js';
 export const FULL_FIELDS = [
   'x', 'z', 'h', 'vx', 'vz', 'drift', 'driftT', 'hopT', 'boostT', 'bumpT', 'spinT', 'shieldT',
   'item', 'itemN', 'itemRoll', 'pd', 'pi', 'lap', 'cp', 'lapStart', 'bestLap', 'finished', 'finishTime',
-  'wrongT', 'ack', 'place', 'maxMul', 'y', 'vy', 'air', 'airT', 'ramp',
+  'wrongT', 'ack', 'place', 'maxMul', 'y', 'vy', 'air', 'airT', 'ramp', 'sec', 'secT',
 ];
 
 export function encodeFull(k) {
@@ -63,9 +63,9 @@ export function decodeEntity(a) {
 
 // Invoer: [stuur -100..100, knoppen-bits]
 export function encodeInput(inp) {
-  return [Math.round(inp.steer * 100), (inp.gas ? 1 : 0) | (inp.brake ? 2 : 0) | (inp.drift ? 4 : 0) | (inp.item ? 8 : 0)];
+  return [Math.round(inp.steer * 100), (inp.gas ? 1 : 0) | (inp.brake ? 2 : 0) | (inp.drift ? 4 : 0) | (inp.item ? 8 : 0) | (inp.boost ? 16 : 0)];
 }
 
 export function decodeInput(a) {
-  return { steer: Math.max(-1, Math.min(1, (a[0] | 0) / 100)), gas: !!(a[1] & 1), brake: !!(a[1] & 2), drift: !!(a[1] & 4), item: !!(a[1] & 8) };
+  return { steer: Math.max(-1, Math.min(1, (a[0] | 0) / 100)), gas: !!(a[1] & 1), brake: !!(a[1] & 2), drift: !!(a[1] & 4), item: !!(a[1] & 8), boost: !!(a[1] & 16) };
 }

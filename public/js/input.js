@@ -8,7 +8,9 @@ export class Controls {
     this.settings = settings;
     this.sound = sound;
     this.keys = new Set();
-    this.touch = { steer: 0, gas: false, brake: false, drift: false, item: false };
+    this.touch = { steer: 0, gas: false, brake: false, drift: false, item: false, boost: false };
+    this.boostTap = false; // een heel korte tik telt ook
+    this.secretOn = false; // geheime boostknop tonen
     this.steer = 0;
     this.tilt = 0;
     this.tiltZero = null;
@@ -29,11 +31,13 @@ export class Controls {
     const map = {
       arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right', arrowup: 'gas', w: 'gas',
       arrowdown: 'brake', s: 'brake', ' ': 'drift', shift: 'drift', e: 'item', enter: 'item', x: 'item', k: 'item',
+      ...(this.secretOn ? { b: 'boost' } : {}),
     };
     const act = map[k];
     if (!act) return;
     e.preventDefault();
     if (down) this.keys.add(act); else this.keys.delete(act);
+    if (down && act === 'boost') this.boostTap = true;
   }
 
   // bouw de knoppen in het gegeven element
@@ -55,6 +59,7 @@ export class Controls {
         <div class="tc-btn tc-brake">REM</div>
         <div class="tc-btn tc-drift">DRIFT</div>
         <div class="tc-btn tc-gas">GAS</div>
+        ${this.secretOn ? '<div class="tc-btn tc-secret ready" aria-label="Geheime boost"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 5 13.5h5.5L9.5 22 19 9.5h-5.6z" fill="currentColor"/></svg></div>' : ''}
       </div>`;
     container.appendChild(el);
     this.el = el;
@@ -62,6 +67,7 @@ export class Controls {
     this.bindHold(el.querySelector('.tc-brake'), 'brake');
     this.bindHold(el.querySelector('.tc-gas'), 'gas');
     this.bindHold(el.querySelector('.tc-item'), 'item');
+    if (this.secretOn) this.bindHold(el.querySelector('.tc-secret'), 'boost');
     this.bindSteerButtons(el.querySelector('.tc-steer'));
     el.querySelector('.tc-horn').addEventListener('pointerdown', (e) => {
       e.preventDefault();
@@ -83,7 +89,8 @@ export class Controls {
   }
 
   releaseAll() {
-    Object.assign(this.touch, { steer: 0, gas: false, brake: false, drift: false, item: false });
+    Object.assign(this.touch, { steer: 0, gas: false, brake: false, drift: false, item: false, boost: false });
+    this.boostTap = false;
     if (this.el) this.el.querySelectorAll('.down').forEach((b) => b.classList.remove('down'));
   }
 
@@ -97,8 +104,9 @@ export class Controls {
       if (this.sound) this.sound.unlock();
       btn.setPointerCapture?.(e.pointerId);
       this.touch[act] = true;
+      if (act === 'boost') this.boostTap = true;
       btn.classList.add('down');
-      if (act === 'drift' || act === 'item') this.vibrate(10);
+      if (act === 'drift' || act === 'item' || act === 'boost') this.vibrate(10);
     };
     const up = (e) => {
       e.preventDefault();
@@ -197,11 +205,28 @@ export class Controls {
     this.tilt = clamp((t - this.tiltZero) / 4, -1, 1);
   }
 
+  // geheime boostknop: f = 0 (klaar) .. 1 (net gebruikt, nog wachten)
+  setSecret(f) {
+    const b = this.el && this.el.querySelector('.tc-secret');
+    if (!b) return;
+    const v = Math.round(Math.max(0, Math.min(1, f)) * 100);
+    if (b.dataset.v === String(v)) return;
+    b.dataset.v = String(v);
+    b.style.setProperty('--cd', `${v}%`);
+    b.classList.toggle('ready', v === 0);
+  }
+
   setItemIcon(html) {
     if (!this.el) return;
     const i = this.el.querySelector('.tc-item-icon');
     if (i.dataset.v !== html) { i.innerHTML = html; i.dataset.v = html; }
     this.el.querySelector('.tc-item').classList.toggle('has', !!html);
+  }
+
+  takeBoostTap() {
+    const t = this.boostTap;
+    this.boostTap = false;
+    return t;
   }
 
   // invoer van dit moment
@@ -220,12 +245,14 @@ export class Controls {
       if (target === 0 && Math.abs(this.steer) < 0.2) this.steer = 0;
     } else this.steer = target;
     const gas = this.settings.autoGas ? !(this.touch.brake || k.has('brake')) : (this.touch.gas || k.has('gas'));
+    const tap = this.takeBoostTap();
     return {
       steer: this.steer,
       gas: gas || k.has('gas'),
       brake: this.touch.brake || k.has('brake'),
       drift: this.touch.drift || k.has('drift'),
       item: this.touch.item || k.has('item'),
+      boost: this.secretOn && (tap || this.touch.boost || k.has('boost')),
     };
   }
 }

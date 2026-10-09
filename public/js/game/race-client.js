@@ -1,6 +1,6 @@
 // Eén race in de browser: 3D-wereld, eigen kart (voorspeld), andere karts (live), camera en effecten.
 import * as THREE from '../../vendor/three.module.min.js';
-import { DT, JUMP, KART_RADIUS } from '../../shared/constants.js';
+import { DT, JUMP, KART_RADIUS, SECRET_BOOST } from '../../shared/constants.js';
 import { TRACK_BY_ID } from '../../shared/tracks.js';
 import { buildTrack } from '../../shared/trackgeo.js';
 import { decodeVisual, decodeEntity, decodeFull } from '../../shared/protocol.js';
@@ -94,6 +94,8 @@ export class RaceClient {
 
     this.hud = new Hud(app, this);
     if (this.me != null) {
+      // geheime boostknop alleen voor wie de code heeft (en hem niet heeft uitgezet)
+      app.controls.secretOn = !!(app.profile && app.profile.secretBoost && app.settings.secretBtn !== false);
       app.controls.mount(this.hud.touchLayer);
       app.controls.onHorn = () => {
         const now = performance.now();
@@ -718,6 +720,7 @@ export class RaceClient {
       standings, dots,
     });
     if (p) hud.setItem(p.item, p.itemRoll, p.itemN, dt);
+    if (p && this.app.controls.secretOn) this.app.controls.setSecret(p.sec ? (p.secT || 0) / SECRET_BOOST.cooldown : 1);
     if (p && p.wrongT > 1.2 && !p.finished) hud.warn('Verkeerde kant op! Draai om!');
     else if (performance.now() - this.lastSnapAt > 1500 && !this.app.offline) hud.warn('Verbinding hapert…');
     else if (this.endAt != null && !(p && p.finished)) {

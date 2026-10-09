@@ -11,14 +11,17 @@ export function publicProfile(p) {
   return {
     id: p.key, name: p.name, mp: p.mp, owned: p.owned || [], equipped: publicCosmetics(p), look: cleanLook(p.look),
     stats: p.stats || {}, lastCharacter: p.lastCharacter || null, dailyReady: p.lastDaily !== dayKey(Date.now()),
+    secretBoost: !!p.secretBoost, rev: p.rev || 0,
   };
 }
 
 export class Hub {
   // signer: { sign(tekst), verify(tekst, handtekening) } voor de reservekopie op de telefoon
-  constructor({ store, now = () => Date.now(), random = Math.random, log = () => {}, laps = null, offline = false, signer = null }) {
+  // checkSecret(code) -> true/false: geheime code voor de boostknop (alleen op de server)
+  constructor({ store, now = () => Date.now(), random = Math.random, log = () => {}, laps = null, offline = false, signer = null, checkSecret = null }) {
     this.store = store;
     this.signer = signer;
+    this.checkSecret = checkSecret;
     this.laps = laps; // alleen voor tests: kortere races
     this.offline = offline;
     this.now = now;
@@ -32,7 +35,7 @@ export class Hub {
   connect(conn) {
     const session = {
       conn, profile: null, device: null, cookieDevice: isDeviceToken(conn.cookieDevice) ? conn.cookieDevice : null,
-      room: null, msgCount: 0, msgWindow: this.now(), transferTries: 0,
+      room: null, msgCount: 0, msgWindow: this.now(), transferTries: 0, secretTries: 0,
     };
     conn.session = session;
     this.sessions.add(session);
@@ -92,6 +95,17 @@ export class Hub {
     return out;
   }
 
+  // Je profiel naar dit scherm sturen (met extra's) en naar je andere schermen,
+  // zodat elke telefoon steeds de nieuwste reservekopie heeft.
+  profileTo(session, extra = {}) {
+    const p = session.profile;
+    if (!p) return;
+    const profile = this.pp(p);
+    for (const s of this.sessions) {
+      if (s.profile && s.profile.key === p.key) this.sendTo(s, s === session ? { t: 'profile', profile, ...extra } : { t: 'profile', profile });
+    }
+  }
+
   readBackup(b) {
     if (!this.signer || !b || typeof b.d !== 'string' || typeof b.s !== 'string' || b.d.length > 20000) return null;
     if (!this.signer.verify(b.d, b.s)) return null;
@@ -109,11 +123,23 @@ export class Hub {
       if (p) { profile = p; device = t; break; }
     }
     if (!device) device = cands[0] || this.store.newDeviceToken();
+    const data = this.readBackup(backup);
     if (!profile) {
-      const data = this.readBackup(backup);
       if (data) {
         profile = await this.store.restore(device, data);
         if (profile) this.log(`profiel ${profile.name} teruggezet vanaf de telefoon`);
+      }
+    } else if (data && await this.store.adoptNewer(profile, data)) {
+      // deze telefoon had een nieuwere kopie dan de server (bijv. na een herstart)
+      this.log(`nieuwere kopie van ${profile.name} overgenomen van de telefoon`);
+    }
+    // andere schermen met hetzelfde profiel (tweede tabblad, ander apparaat) ook bijwerken
+    if (profile) {
+      for (const s of this.sessions) {
+        if (s !== session && s.profile && s.profile.key === profile.key) {
+          s.profile = profile;
+          this.sendTo(s, { t: 'profile', profile: this.pp(profile) });
+        }
       }
     }
     // beide sleutels naar hetzelfde profiel laten wijzen (als de ene ooit kwijtraakt)
@@ -164,7 +190,7 @@ export class Hub {
       case 'rename': {
         const res = await this.store.rename(session.profile, msg.name);
         if (!res.ok) return this.sendTo(session, { t: 'renameFailed', msg: res.error });
-        this.sendTo(session, { t: 'profile', profile: this.pp(session.profile), renamed: true });
+        this.profileTo(session, { renamed: true });
         if (room) room.refreshMember(session);
         return;
       }
@@ -173,11 +199,23 @@ export class Hub {
         await this.store.setLook(session.profile, msg.look);
         if (msg.use) session.profile.lastCharacter = 'eigen';
         await this.store.save(session.profile);
-        this.sendTo(session, { t: 'profile', profile: this.pp(session.profile), lookSaved: true });
+        this.profileTo(session, { lookSaved: true });
         if (room) {
           if (msg.use) room.setCharacter(session, 'eigen');
           room.refreshMember(session);
         }
+        return;
+      }
+
+      case 'secret': {
+        // geheime code: zet de boostknop aan voor dit profiel
+        if (!this.checkSecret) return this.sendTo(session, { t: 'secretFailed', msg: 'Dat kan alleen met de online server.' });
+        if (++session.secretTries > 5) return this.sendTo(session, { t: 'secretFailed', msg: 'Te veel pogingen. Herlaad de pagina en probeer het opnieuw.' });
+        if (typeof msg.code !== 'string' || msg.code.length > 40 || !this.checkSecret(msg.code)) return this.sendTo(session, { t: 'secretFailed', msg: 'Die code klopt niet.' });
+        session.profile.secretBoost = true;
+        await this.store.save(session.profile);
+        this.log(`geheime boostknop aan voor ${session.profile.name}`);
+        this.profileTo(session, { secret: true });
         return;
       }
 
@@ -215,7 +253,7 @@ export class Hub {
         const res = tryBuy(session.profile, msg.id);
         if (!res.ok) return this.sendTo(session, { t: 'shopFailed', msg: res.error });
         await this.store.save(session.profile);
-        this.sendTo(session, { t: 'profile', profile: this.pp(session.profile), bought: msg.id });
+        this.profileTo(session, { bought: msg.id });
         return;
       }
 
@@ -223,7 +261,7 @@ export class Hub {
         const res = tryEquip(session.profile, msg.id);
         if (!res.ok) return this.sendTo(session, { t: 'shopFailed', msg: res.error });
         await this.store.save(session.profile);
-        this.sendTo(session, { t: 'profile', profile: this.pp(session.profile) });
+        this.profileTo(session);
         if (room && res.character) room.setCharacter(session, res.character);
         else if (room) room.refreshMember(session);
         return;

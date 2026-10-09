@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS = {
   lefty: false,
   vibrate: true,
   minimap: true,
+  secretBtn: true,       // geheime boostknop tonen (als je de code hebt)
 };
 
 export function loadSettings() {

@@ -543,7 +543,25 @@ export function settingsScreen(app) {
       seg('quality', 'Grafische kwaliteit', [['auto', 'Automatisch'], ['laag', 'Laag'], ['normaal', 'Normaal'], ['hoog', 'Hoog']]),
       toggle('names', 'Namen boven karts'),
       toggle('minimap', 'Minikaart tonen'),
-      h('p', { class: 'muted small' }, 'Tip: zet de game op je beginscherm (Safari: deelknop → "Zet op beginscherm") voor een volledig scherm.')));
+      app.profile && app.profile.secretBoost
+        ? toggle('secretBtn', '⚡ Geheime boostknop', 'Alleen jij ziet hem. Tik tijdens de race op ⚡ (of druk B) voor een turbo. Daarna even wachten.')
+        : null,
+      h('p', { class: 'muted small' }, 'Tip: zet de game op je beginscherm (Safari: deelknop → "Zet op beginscherm") voor een volledig scherm.'),
+      app.profile && !app.profile.secretBoost && !app.offline ? secretCodeForm(app) : null));
+}
+
+// geheime code invullen (staat bewust klein onderaan)
+function secretCodeForm(app) {
+  const inp = h('input', { type: 'text', maxlength: '20', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', placeholder: 'Code', 'aria-label': 'Code', class: 'secret-input' });
+  const send = (e) => {
+    e.preventDefault();
+    const code = inp.value.trim();
+    if (!code) return;
+    app.send({ t: 'secret', code });
+    inp.value = '';
+    inp.blur();
+  };
+  return h('form', { class: 'row secret-form', onsubmit: send }, inp, h('button', { class: 'btn btn-small btn-ghost', type: 'submit' }, 'OK'));
 }
 
 function profileSettings(app) {

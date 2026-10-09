@@ -35,6 +35,12 @@ export const PHYS = {
 };
 
 // Schansen: rijd eroverheen en je vliegt (over andere karts heen)
+// Geheime boostknop (alleen voor wie de geheime code heeft ingevuld)
+export const SECRET_BOOST = {
+  time: 1.5,      // seconden turbo per tik
+  cooldown: 4,    // seconden wachten tot de volgende
+};
+
 export const JUMP = {
   gravity: 30,        // m/s² omlaag
   rampH: 1.1,         // hoogte van de schansrand

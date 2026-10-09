@@ -3,11 +3,11 @@
 //
 // Conventie: kijkrichting = (sin h, cos h) in het x/z-vlak. Sturen naar rechts
 // (steer > 0) verkleint h. Rechts van de kart = (-cos h, sin h).
-import { DT, PHYS, DRIFT_LEVELS, DRIFT_BOOST, KART_RADIUS, LAPS, JUMP } from './constants.js';
+import { DT, PHYS, DRIFT_LEVELS, DRIFT_BOOST, KART_RADIUS, LAPS, JUMP, SECRET_BOOST } from './constants.js';
 import { clamp } from './util.js';
 import { ITEM } from './items.js';
 
-export const NO_INPUT = Object.freeze({ steer: 0, gas: false, brake: false, drift: false, item: false });
+export const NO_INPUT = Object.freeze({ steer: 0, gas: false, brake: false, drift: false, item: false, boost: false });
 
 export function createKart(kid, track, slot) {
   const g = track.gridSlot(slot);
@@ -21,6 +21,7 @@ export function createKart(kid, track, slot) {
     pd: 0, pi: 0, wrongT: 0,
     finished: 0, finishTime: 0, lapStart: 0, bestLap: 0,
     place: slot + 1, ack: 0, maxMul: 1,
+    sec: 0, secT: 0, // geheime boostknop: mag het (1/0) en hoe lang nog wachten
   };
 }
 
@@ -87,6 +88,7 @@ export function stepKart(k, inp, track, env) {
   if (k.shieldT > 0) k.shieldT = Math.max(0, k.shieldT - dt);
   if (k.hopT > 0) k.hopT = Math.max(0, k.hopT - dt);
   if (k.itemRoll > 0) k.itemRoll = Math.max(0, k.itemRoll - dt);
+  if (k.secT > 0) k.secT = Math.max(0, k.secT - dt);
 
   let steer = clamp(+inp.steer || 0, -1, 1);
   let gas = !!inp.gas;
@@ -97,6 +99,13 @@ export function stepKart(k, inp, track, env) {
   const itemEdge = useItemBtn && !k.pi;
   k.pd = drift ? 1 : 0;
   k.pi = useItemBtn ? 1 : 0;
+
+  // geheime boostknop: ziet er voor anderen uit als een gewoon boostvak
+  if (inp.boost && k.sec && !(k.secT > 0) && !k.finished) {
+    k.secT = SECRET_BOOST.cooldown;
+    if (k.boostT < 0.9) emit(env, 'boost', { kid: k.kid, src: 'pad' });
+    k.boostT = Math.max(k.boostT, SECRET_BOOST.time);
+  }
 
   const spinning = k.spinT > 0;
   if (spinning) { steer = 0; gas = false; brake = false; }

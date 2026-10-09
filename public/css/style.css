@@ -362,6 +362,11 @@ body.racing #hud { display: block; }
 .tc-item { right: 14px; bottom: 112px; width: 70px; height: 70px; border-radius: 22px; }
 .tc-item .tc-item-icon svg { width: 46px; height: 46px; display: block; }
 .tc-item:not(.has) { opacity: 0.45; }
+.tc-secret { right: 112px; bottom: 84px; width: 52px; height: 52px; background: rgba(20, 20, 50, 0.3); border-color: rgba(255, 255, 255, 0.5); color: rgba(255, 255, 255, 0.6); }
+.tc-secret svg { width: 26px; height: 26px; position: relative; }
+.tc-secret::before { content: ''; position: absolute; inset: -3px; border-radius: 50%; pointer-events: none; background: conic-gradient(rgba(20, 20, 50, 0.6) var(--cd, 0%), transparent 0); }
+.tc-secret.ready { color: #ffd23f; border-color: rgba(255, 210, 63, 0.85); }
+.tc:not(.autogas) .tc-secret { right: 112px; bottom: 142px; }
 .tc-gas { display: none !important; }
 .tc:not(.autogas) .tc-gas { display: grid !important; right: 0; bottom: 0; width: 100px; height: 100px; background: rgba(63, 191, 106, 0.5); font-size: 18px; }
 .tc:not(.autogas) .tc-drift { right: 110px; bottom: 54px; width: 80px; height: 80px; font-size: 15px; }
@@ -413,6 +418,7 @@ body.racing #hud { display: block; }
   .tc-actions { transform: scale(0.92); transform-origin: bottom right; height: 150px; }
   .tc-item { right: 104px; bottom: 74px; width: 64px; height: 64px; }
   .tc-brake { right: 112px; bottom: 0; width: 56px; height: 56px; }
+  .tc-secret { right: 22px; bottom: 106px; width: 48px; height: 48px; }
   .tc.lefty .tc-actions { transform-origin: center bottom; transform: scaleX(-1) scale(0.92); }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -496,3 +502,7 @@ body.racing #hud { display: block; }
 .wheel-result { font-size: 20px; font-weight: 900; color: #2b1a4a; min-height: 26px; opacity: 0; transform: scale(0.6); transition: all 0.35s cubic-bezier(.2,1.6,.4,1); }
 .wheel-result.show { opacity: 1; transform: scale(1); }
 .wheel-result.me { color: #e63946; }
+/* geheime code: klein en onopvallend onderaan de instellingen */
+.secret-form { justify-content: center; gap: 6px; opacity: 0.55; }
+.secret-form .secret-input { width: 110px; padding: 6px 10px; font-size: 14px; min-height: 34px; text-transform: uppercase; }
+.secret-form .btn { min-height: 34px; padding: 4px 10px; }

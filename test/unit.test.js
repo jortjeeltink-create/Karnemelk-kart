@@ -11,13 +11,14 @@ import { rollItem, ITEM } from '../public/shared/items.js';
 import { Race } from '../public/shared/race.js';
 import { Hub } from '../public/shared/hub.js';
 import { Profiles, isDeviceToken, cleanBackup } from '../public/shared/profiles.js';
-import { makeSigner } from '../server/store.js';
+import { makeSigner, makeSecretCheck } from '../server/store.js';
+import { createHash } from 'node:crypto';
 import { CHARACTER_BY_ID, BOT_CHARACTERS, racerName } from '../public/shared/characters.js';
 import { cleanLook, lookScales, BUILDS, HEIGHTS } from '../public/shared/look.js';
 import { botInput } from '../public/shared/bots.js';
 import { Predictor } from '../public/js/game/predict.js';
 import { rng } from '../public/shared/util.js';
-import { DT, LAPS, PHYS, JUMP } from '../public/shared/constants.js';
+import { DT, LAPS, PHYS, JUMP, SECRET_BOOST } from '../public/shared/constants.js';
 
 test('er zijn minstens 8 verschillende, geldige banen', () => {
   assert.ok(TRACKS.length >= 8);
@@ -717,4 +718,126 @@ test('lobby: klaar-status, host-rechten, vol, verkeerde code en herverbinden', a
   assert.equal(conns[0].last('room').players.find((p) => p.name === 'Speler5').connected, true);
   await hub.message(conns[0], { t: 'leave' });
   assert.equal(conns[1].last('room').host, conns[1].profile.id);
+});
+
+test('gekochte skin blijft: de nieuwste kopie wint, ook met twee telefoons en een herstart', async () => {
+  const clock = { t: Date.UTC(2026, 9, 9, 16) };
+  const signer = makeSigner('test-geheim-voor-de-reservekopie');
+  const hub = makeHub(clock, { signer });
+  const ipad = await newPlayer(hub, 'Jort');
+  (await hub.store.get(ipad.profile.id)).mp = 600;
+  // tweede scherm (bijv. het icoon op het beginscherm) via een overzetcode
+  await hub.message(ipad, { t: 'transferCode' });
+  const app2 = fakeConn();
+  hub.connect(app2);
+  await hub.message(app2, { t: 'hello' });
+  await hub.message(app2, { t: 'useTransfer', code: ipad.last('transferCode').code });
+  const oudeKopie = app2.last('loggedIn').profile.backup;
+  hub.disconnect(app2);
+  // op de iPad een skin kopen
+  await hub.message(ipad, { t: 'buy', id: 'kart_roze' });
+  await hub.message(ipad, { t: 'equip', id: 'kart_roze' });
+  const nieuw = ipad.last('profile').profile;
+  assert.ok(nieuw.owned.includes('kart_roze'));
+  assert.ok(nieuw.rev > JSON.parse(oudeKopie.d).rev, 'elke wijziging krijgt een hoger versienummer');
+
+  // server herstart; het scherm met de oude kopie komt als eerste terug
+  const hub2 = makeHub(clock, { signer });
+  const b = fakeConn();
+  hub2.connect(b);
+  await hub2.message(b, { t: 'hello', device: app2.last('loggedIn').device, backup: oudeKopie });
+  assert.ok(!b.last('welcome').profile.owned.includes('kart_roze'), 'eerst nog de oude kopie');
+  // dan de iPad met de nieuwere kopie: die wint, en het andere scherm krijgt hem ook
+  const a = fakeConn();
+  hub2.connect(a);
+  await hub2.message(a, { t: 'hello', device: ipad.device, backup: nieuw.backup });
+  const w = a.last('welcome').profile;
+  assert.ok(w.owned.includes('kart_roze'), 'skin is er nog');
+  assert.equal(w.mp, nieuw.mp, 'MP niet terug');
+  assert.equal(w.equipped.kart, 'kart_roze');
+  assert.ok(b.last('profile').profile.owned.includes('kart_roze'), 'ander scherm bijgewerkt');
+  // een oude kopie kan een nieuwere nooit meer overschrijven
+  const c = fakeConn();
+  hub2.connect(c);
+  await hub2.message(c, { t: 'hello', device: ipad.device, backup: oudeKopie });
+  assert.ok(c.last('welcome').profile.owned.includes('kart_roze'));
+  // na een race blijft de skin ook (zelfde profielobject overal)
+  const p = await hub2.store.get(w.id);
+  await hub2.awardRace(w.id, 20, 1, 4, true);
+  assert.ok(p.owned.includes('kart_roze') && a.last('profile').profile.owned.includes('kart_roze'));
+  assert.equal(a.last('profile').profile.mp, nieuw.mp + 20 + 25);
+});
+
+test('geheime boostknop: alleen met de juiste code, blijft bewaard, en geeft turbo met wachttijd', async () => {
+  const clock = { t: Date.UTC(2026, 9, 9, 17) };
+  const signer = makeSigner('test-geheim-voor-de-reservekopie');
+  // eigen testcode (de echte code staat nergens in de repo, alleen de hash)
+  const testHash = createHash('sha256').update('kk-geheim:' + 'TESTBOOST42').digest('hex');
+  const check = makeSecretCheck(testHash);
+  assert.equal(makeSecretCheck()('TESTBOOST42'), false, 'testcode werkt niet op de echte server');
+  const hub = makeHub(clock, { signer, checkSecret: check });
+  const a = await newPlayer(hub, 'Jort');
+  const b = await newPlayer(hub, 'Stan');
+  assert.equal(a.profile.secretBoost, false);
+  await hub.message(a, { t: 'secret', code: 'TESTBOOST4' });
+  assert.match(a.last('secretFailed').msg, /klopt niet/);
+  await hub.message(a, { t: 'secret', code: ' test-boost 42 ' });
+  const pr = a.last('profile');
+  assert.ok(pr.secret && pr.profile.secretBoost, 'juiste code (hoofdletters/spaties maken niet uit)');
+  assert.equal(JSON.parse(pr.profile.backup.d).secretBoost, true, 'staat in de reservekopie');
+  // blijft na een herstart
+  const hub2 = makeHub(clock, { signer, checkSecret: check });
+  const a2 = fakeConn();
+  hub2.connect(a2);
+  await hub2.message(a2, { t: 'hello', device: a.device, backup: pr.profile.backup });
+  assert.equal(a2.last('welcome').profile.secretBoost, true);
+  // zelf aanzetten in een kopie lukt niet (handtekening klopt dan niet)
+  const nep = JSON.parse(b.last('loggedIn').profile.backup.d);
+  nep.secretBoost = true;
+  const hub3 = makeHub(clock, { signer });
+  const b3 = fakeConn();
+  hub3.connect(b3);
+  await hub3.message(b3, { t: 'hello', device: b.device, backup: { d: JSON.stringify(nep), s: b.last('loggedIn').profile.backup.s } });
+  assert.equal(b3.last('welcome').profile, null);
+  // raden wordt na 5 pogingen geblokkeerd; offline kan het niet
+  for (let i = 0; i < 6; i++) await hub.message(b, { t: 'secret', code: 'GOK' + i });
+  assert.match(b.last('secretFailed').msg, /Te veel/);
+  const offHub = makeHub(clock);
+  const off = await newPlayer(offHub, 'Demo');
+  await offHub.message(off, { t: 'secret', code: 'TESTBOOST42' });
+  assert.match(off.last('secretFailed').msg, /online/);
+
+  // in de race: alleen de eigen kart weet het, de deelnemerslijst niet
+  await hub.message(a, { t: 'create' });
+  const code = a.last('room').code;
+  await hub.message(b, { t: 'join', code });
+  await hub.message(b, { t: 'ready', on: true });
+  await hub.message(a, { t: 'start' });
+  const room = hub.rooms.get(code);
+  const race = a.last('race');
+  assert.ok(!JSON.stringify(race).includes('secret'), 'anderen zien niks');
+  assert.equal(room.race.byKid.get(race.you).sec, 1);
+  assert.equal(room.race.byKid.get(b.last('race').you).sec, 0);
+
+  // natuurkunde: turbo, dan wachten
+  const track = buildTrack(TRACKS[0]);
+  const k = createKart(0, track, 0);
+  k.sec = 1;
+  const go = { steer: 0, gas: true, brake: false, drift: false, item: false, boost: true };
+  const events = [];
+  const env = { time: 0, laps: 3, emit: (t, d) => events.push({ t, ...d }) };
+  stepKart(k, go, track, env);
+  assert.ok(k.boostT >= SECRET_BOOST.time - 0.05 && k.secT > 0, 'turbo');
+  assert.equal(events[0].src, 'pad', 'ziet eruit als een gewoon boostvak');
+  k.boostT = 0;
+  for (let i = 0; i < 60; i++) stepKart(k, go, track, env);
+  assert.equal(k.boostT, 0, 'tijdens het wachten niks');
+  for (let i = 0; i < SECRET_BOOST.cooldown * 60; i++) stepKart(k, { ...go, boost: false }, track, env);
+  stepKart(k, go, track, env);
+  assert.ok(k.boostT > 1, 'daarna weer');
+  const gewoon = createKart(1, track, 1);
+  stepKart(gewoon, go, track, env);
+  assert.equal(gewoon.boostT, 0, 'zonder code doet de knop niks');
+  assert.equal(decodeInput(encodeInput(go)).boost, true);
+  assert.equal(decodeInput(encodeInput({ ...go, boost: false })).boost, false);
 });

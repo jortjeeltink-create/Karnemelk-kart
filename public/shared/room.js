@@ -277,6 +277,11 @@ export class Room {
     const seed = Math.floor(rand() * 1e9);
     const laps = this.hub.laps || LAPS;
     this.race = new Race({ track, entrants, seed, botLevel: this.settings.botLevel, startDelay: START_DELAY_MS / 1000, laps });
+    // geheime boostknop: alleen in de eigen kart, niet in de lijst die iedereen ziet
+    for (const m of humans) {
+      const kid = this.kidOf.get(m.pid);
+      if (kid != null && m.session && m.session.profile && m.session.profile.secretBoost) this.race.byKid.get(kid).sec = 1;
+    }
     this.startAt = this.now() + START_DELAY_MS;
     this.raceInfo = { trackId, seed, laps, entrants, practice: this.practice };
     this.state = 'race';

@@ -4,7 +4,7 @@
 // vaste schijf (gratis hosting). Upstash Redis (UPSTASH_REDIS_REST_URL + _TOKEN) mag ook, hoeft niet.
 import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { randomBytes, createHmac, timingSafeEqual } from 'node:crypto';
+import { randomBytes, createHmac, createHash, timingSafeEqual } from 'node:crypto';
 import { Profiles } from '../public/shared/profiles.js';
 
 // ---------- sleutel/waarde-opslag ----------
@@ -114,5 +114,18 @@ export function makeSigner(secret) {
       const b = Buffer.from(String(sig));
       return a.length === b.length && timingSafeEqual(a, b);
     },
+  };
+}
+
+// Geheime code voor de boostknop. Alleen de hash staat in de code (de repo is openbaar),
+// dus de code zelf kun je hier niet aflezen. Een andere hash kan via KK_SECRET_HASH.
+const SECRET_HASH = '21e5fd45872e0082e063a9f0eb92add33c7527b43216e8c48f7037c2139866f1';
+export function makeSecretCheck(hash = SECRET_HASH) {
+  const want = Buffer.from(String(hash).toLowerCase());
+  return (code) => {
+    const clean = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (clean.length < 4) return false;
+    const got = Buffer.from(createHash('sha256').update('kk-geheim:' + clean).digest('hex'));
+    return got.length === want.length && timingSafeEqual(got, want);
   };
 }

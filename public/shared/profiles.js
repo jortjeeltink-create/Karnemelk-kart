@@ -28,23 +28,32 @@ export class Profiles {
     this.randomString = randomString;
     this.now = now;
     this.cache = new Map();
+    this.loading = new Map(); // profielen die nu worden ingelezen (zodat er maar één kopie in het geheugen is)
   }
 
   async init() { if (this.kv.init) await this.kv.init(); }
 
   newDeviceToken() { return this.randomString(32); }
 
+  // Altijd hetzelfde object per profiel: anders kan een oude kopie (zonder je nieuwe skin)
+  // later over een nieuwere heen worden opgeslagen.
   async get(key) {
     if (typeof key !== 'string') return null;
     if (this.cache.has(key)) return this.cache.get(key);
-    const p = await this.kv.get('p:' + key);
-    if (p) {
-      p.equipped = { ...DEFAULT_EQUIP, ...(p.equipped || {}) };
-      p.look = cleanLook(p.look);
-      if (refundRetired(p)) await this.kv.set('p:' + key, p);
-      this.cache.set(key, p);
-    }
-    return p;
+    if (this.loading.has(key)) return this.loading.get(key);
+    const job = (async () => {
+      const p = await this.kv.get('p:' + key);
+      if (this.cache.has(key)) return this.cache.get(key);
+      if (p) {
+        p.equipped = { ...DEFAULT_EQUIP, ...(p.equipped || {}) };
+        p.look = cleanLook(p.look);
+        this.cache.set(key, p);
+        if (refundRetired(p)) await this.save(p);
+      }
+      return p;
+    })();
+    this.loading.set(key, job);
+    try { return await job; } finally { this.loading.delete(key); }
   }
 
   async byDevice(token) {
@@ -68,7 +77,7 @@ export class Profiles {
     do key = this.randomString(10); while (await this.kv.get('p:' + key));
     const profile = {
       key, name, mp: START_MP, owned: [], equipped: { ...DEFAULT_EQUIP }, look: { ...DEFAULT_LOOK },
-      stats: { races: 0, wins: 0, podiums: 0, totalMp: 0 }, created: this.now(),
+      stats: { races: 0, wins: 0, podiums: 0, totalMp: 0 }, created: this.now(), rev: 1,
     };
     this.cache.set(key, profile);
     await this.kv.set('p:' + key, profile);
@@ -90,9 +99,25 @@ export class Profiles {
     return { ok: true };
   }
 
+  // Elke wijziging krijgt een hoger versienummer, zodat altijd de nieuwste kopie wint
+  // (ook als je op twee telefoons, of in Safari én via het beginscherm speelt).
   async save(profile) {
+    profile.rev = (profile.rev || 0) + 1;
     this.cache.set(profile.key, profile);
     await this.kv.set('p:' + profile.key, profile);
+  }
+
+  // Heeft de telefoon een nieuwere kopie dan de server? Dan die overnemen (in hetzelfde object).
+  async adoptNewer(profile, raw) {
+    const data = cleanBackup(raw);
+    if (!profile || !data || data.key !== profile.key || (data.rev || 0) <= (profile.rev || 0)) return false;
+    for (const f of ['name', 'mp', 'owned', 'equipped', 'look', 'stats', 'lastCharacter', 'lastDaily', 'secretBoost']) {
+      if (data[f] !== undefined) profile[f] = data[f];
+      else delete profile[f];
+    }
+    profile.rev = data.rev;
+    await this.save(profile);
+    return true;
   }
 
   // ---- overzetten naar een andere telefoon ----
@@ -134,13 +159,16 @@ export class Profiles {
     if (!isDeviceToken(token)) return null;
     const data = cleanBackup(raw);
     if (!data) return null;
-    const existing = await this.get(data.key);
+    const existing = (await this.get(data.key)) || this.cache.get(data.key);
     if (existing) {
-      // bestaat al (bijvoorbeeld een tweede telefoon met hetzelfde profiel): alleen koppelen
+      // bestaat al (bijvoorbeeld een tweede telefoon met hetzelfde profiel): koppelen,
+      // en als deze telefoon een nieuwere kopie heeft, die gebruiken
+      await this.adoptNewer(existing, raw);
       await this.linkDevice(token, existing.key);
       return existing;
     }
     const profile = { ...data, created: data.created || this.now(), restored: this.now() };
+    profile.rev = (data.rev || 0) - 1; // save telt er 1 bij op: zelfde versie als de kopie
     await this.save(profile);
     await this.linkDevice(token, profile.key);
     return profile;
@@ -158,6 +186,7 @@ export function backupData(p) {
   return {
     v: 1, key: p.key, name: p.name, mp: p.mp, owned: p.owned || [], equipped: p.equipped || {}, look: p.look,
     stats: p.stats || {}, lastCharacter: p.lastCharacter || null, lastDaily: p.lastDaily || null, created: p.created || null,
+    rev: p.rev || 0, ...(p.secretBoost ? { secretBoost: true } : {}),
   };
 }
 
@@ -182,5 +211,7 @@ export function cleanBackup(raw) {
   if (typeof raw.lastCharacter === 'string' && raw.lastCharacter.length <= 20) profile.lastCharacter = raw.lastCharacter;
   if (typeof raw.lastDaily === 'string' && DAY_RE.test(raw.lastDaily)) profile.lastDaily = raw.lastDaily;
   if (Number.isFinite(raw.created)) profile.created = raw.created;
+  profile.rev = int(raw.rev, 1e9);
+  if (raw.secretBoost === true) profile.secretBoost = true;
   return profile;
 }
