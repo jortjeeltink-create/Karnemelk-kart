@@ -13,7 +13,7 @@
 <style>
 :root{
   /* Layout: één telefoonkolom zoals de casino-app. Kopbalk, koersgrafiek met presentator, rij met uitslagen,
-     stand van de spelers, portefeuille met STIJGING/DALING, fiches, info-regels en onderaan de jackpotbalk. */
+     portefeuille met STIJGING/DALING, fiches, info-regels en onderaan de jackpotbalk. */
   --bg:#2a2a2a;
   --head:#2b2b2b;
   --panel:#303030;
@@ -133,20 +133,6 @@ button:disabled{cursor:not-allowed}
 .uwint span{font-size:clamp(17px,5.4vw,24px);font-weight:500;letter-spacing:.04em;color:#fff}
 .uwint b{font-size:clamp(30px,10.5vw,46px);font-weight:900;line-height:1;font-variant-numeric:tabular-nums;background:linear-gradient(#fff6c2,#ffd54a 45%,#e3a21e);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #5a3800) drop-shadow(0 0 10px rgba(255,200,80,.35))}
 
-/* stand van de spelers */
-.senti{flex:none;height:clamp(36px,10.4vw,48px);position:relative;display:flex;justify-content:space-between;align-items:center;padding:0 12px;border-top:1px solid #0a0f22;border-bottom:1px solid #3a2a33;overflow:hidden}
-.sbg{position:absolute;inset:0;display:flex}
-.sbg i{background:linear-gradient(90deg,#0f2f2a,#14382f);transition:flex-basis .5s ease;flex:0 0 50%}
-.sbg b{flex:1;background:linear-gradient(90deg,#2f1019,#3a1420)}
-.sbg em{width:2px;background:#d8f5e8;box-shadow:0 0 8px rgba(160,255,210,.8)}
-.sside{position:relative;display:flex;align-items:center;gap:10px}
-.sside > b{font-size:clamp(24px,8vw,36px);font-weight:400;line-height:1;font-variant-numeric:tabular-nums}
-.sside.l > b{color:var(--up-txt)}
-.sside.r > b{color:var(--dn-txt)}
-.smeta{display:flex;flex-direction:column;font-size:clamp(11px,3.4vw,14px);line-height:1.15;color:#cfcfcf;font-variant-numeric:tabular-nums}
-.sside.r .smeta{align-items:flex-end}
-.smeta span{display:flex;align-items:center;gap:4px;white-space:nowrap}
-.smeta svg{width:12px;height:12px}
 
 /* portefeuille en knoppen */
 .panel{flex:none;background:var(--panel);margin:8px 6px 0;border-radius:14px;padding:8px 8px 6px;position:relative}
@@ -309,12 +295,6 @@ button:disabled{cursor:not-allowed}
     </div>
     <div class="dots" id="dots"></div>
     <div class="uwint" id="uwint" hidden aria-live="polite"><span>U WINT</span><b id="uwintAmt"></b></div>
-  </section>
-
-  <section class="senti" aria-label="Inzet van alle spelers">
-    <div class="sbg"><i id="sBg"></i><em></em><b></b></div>
-    <div class="sside l"><b id="sUpPct">50%</b><span class="smeta"><span>€ <span id="sUpAmt">0</span></span><span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="7.5" r="4.5"/><path d="M3.5 22c0-5 3.8-8.5 8.5-8.5s8.5 3.5 8.5 8.5z"/></svg><span id="sUpN">0</span></span></span></div>
-    <div class="sside r"><span class="smeta"><span>€ <span id="sDnAmt">0</span></span><span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="7.5" r="4.5"/><path d="M3.5 22c0-5 3.8-8.5 8.5-8.5s8.5 3.5 8.5 8.5z"/></svg><span id="sDnN">0</span></span></span><b id="sDnPct">50%</b></div>
   </section>
 
   <section class="panel" id="panel">
@@ -822,7 +802,6 @@ const el = {
   clock: $('#clock'), timer: $('#timer'), betBar: $('#betBar'), betFill: $('#betFill'), betText: $('#betText'), pip: $('#pip'), pipMute: $('#pipMute'),
   muteHint: $('#muteHint'), winners: $('#winners'), wHead: $('#wHead'), wTrack: $('#wTrack'), drop: $('#drop'), dropK: $('#dropK'), dropA: $('#dropA'), dropS: $('#dropS'),
   hpages: $('#hpages'), cellsOld: $('#cellsOld'), cellsNew: $('#cellsNew'), stat1: $('#stat1'), stat2: $('#stat2'), dots: $('#dots'), uwint: $('#uwint'), uwintAmt: $('#uwintAmt'),
-  sBg: $('#sBg'), sUpPct: $('#sUpPct'), sUpAmt: $('#sUpAmt'), sUpN: $('#sUpN'), sDnPct: $('#sDnPct'), sDnAmt: $('#sDnAmt'), sDnN: $('#sDnN'),
   pfVal: $('#pfVal'), upBtn: $('#upBtn'), dnBtn: $('#dnBtn'), upSlot: $('#upSlot'), dnSlot: $('#dnSlot'), betTools: $('#betTools'), undoBtn: $('#undoBtn'), dblBtn: $('#dblBtn'),
   chipBtn: $('#chipBtn'), tray: $('#tray'), menuBtn: $('#menuBtn'), chat: $('#chat'), betLine: $('#betLine'), nowT: $('#nowT'), rid: $('#rid'), saldo: $('#saldo'),
   jpInfo: $('#jpInfo'), jpAmt: $('#jpAmt'), jpFill: $('#jpFill'), jpTog: $('#jpTog'), eyeBtn: $('#eyeBtn'), eyeIco: $('#eyeIco'),
@@ -913,19 +892,6 @@ function renderHist(v) {
       + `<div class="srow"><span>Grootste stijging</span><span class="up-t">▲ ${Math.max(0, ...rs)}%</span></div>`
       + `<div class="srow"><span>Grootste daling</span><span class="dn-t">▼ ${Math.abs(Math.min(0, ...rs))}%</span></div>`;
   }
-}
-function renderCrowd(v, pos) {
-  const { st } = v, now = Date.now();
-  const c = SM.crowd(st.n, st.phase === 'bet' ? now - st.betStart : Infinity);
-  let ua = c.up.amt, da = c.down.amt, un = c.up.n, dn = c.down.n;
-  const mine = st.phase === 'bet' ? pos : S.locked && S.locked.n === st.n ? S.locked : S.result && S.result.n === st.n ? S.result : null;
-  if (mine) { if (mine.up > 0) { ua += mine.up; un++; } if (mine.down > 0) { da += mine.down; dn++; } }
-  const tot = ua + da, upPct = tot > 0 ? Math.round(ua / tot * 100) : 50;
-  setText(el.sUpPct, upPct + '%'); setText(el.sDnPct, (100 - upPct) + '%');
-  setText(el.sUpAmt, N0.format(Math.round(ua))); setText(el.sDnAmt, N0.format(Math.round(da)));
-  setText(el.sUpN, String(un)); setText(el.sDnN, String(dn));
-  const fb = clamp(upPct, 3, 97) + '%';
-  if (el.sBg.style.flexBasis !== fb) el.sBg.style.flexBasis = fb;
 }
 function renderPanel(v, pos) {
   const bet = v.st.phase === 'bet';
@@ -1180,7 +1146,7 @@ function frameUI() {
     const kn = Math.floor(v.f * KNOTS);
     if (kn !== lastKnot) { lastKnot = kn; if (pos) Sound.blip(v.head); }
   }
-  renderHist(v); renderCrowd(v, pos); renderPanel(v, pos);
+  renderHist(v); renderPanel(v, pos);
 }
 function frame(t) {
   Chart.draw(Date.now()); Host.draw(t); frameUI();
