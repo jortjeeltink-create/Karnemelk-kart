@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mega Ball Storten</title>
+<meta name="description" content="Stort nep geld voor Mega Ball, zonder limiet.">
+<meta name="theme-color" content="#1b1e26">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23d9b25c'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23fff'/%3E%3Ctext x='32' y='40' font-family='Arial' font-weight='700' font-size='22' text-anchor='middle' fill='%230b3133'%3EMB%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  /* Layout: dezelfde telefoonkolom als het spel. Saldo bovenaan, één groot invoerveld met snelknoppen, daaronder de laatste stortingen. */
+  --night:#06100f;
+  --bar:#1b1e26;
+  --teal-deep:#0b3133;
+  --teal:#114446;
+  --teal-2:#1a5f5e;
+  --line:#25615f;
+  --mint:#62e0c8;
+  --gold:#d9b25c;
+  --gold-hi:#f6e3a6;
+  --gold-lo:#9a7330;
+  --gold-ink:#2a1c00;
+  --ink:#f3eee2;
+  --muted:#9fbdb8;
+  --bad:#ff8f9a;
+  --f:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--night);color:var(--ink)}
+body{margin:0;font-family:var(--f);font-size:16px;line-height:1.4;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold-hi);outline-offset:2px}
+.app{max-width:520px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:linear-gradient(var(--teal),var(--teal-deep) 40%,#071d1e)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bar);padding:calc(env(safe-area-inset-top,0px) + 9px) max(14px,env(safe-area-inset-right,0px)) 9px max(14px,env(safe-area-inset-left,0px))}
+.back{display:flex;align-items:center;gap:9px;color:#fff;text-decoration:none;font-weight:800;font-size:16px;white-space:nowrap}
+.back svg{width:22px;height:22px;flex:none}
+.brand{font-weight:900;font-style:italic;font-size:22px;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.brand i{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff7d0,rgba(255,247,208,0) 45%),linear-gradient(160deg,var(--gold-hi),var(--gold-lo))}
+main{flex:1;display:flex;flex-direction:column;gap:18px;padding-block:22px calc(28px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{margin:0;font-size:30px;font-weight:900;font-style:italic;color:var(--gold-hi);letter-spacing:-.01em}
+h2{margin:0;font-size:22px;font-weight:900;font-style:italic;color:var(--gold-hi);text-wrap:balance}
+h3{margin:0;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+p{margin:0}
+.muted{color:var(--muted)}
+.wallet{border-radius:16px;padding:16px 18px;background:radial-gradient(rgba(255,250,220,.45) .6px,rgba(0,0,0,0) 1.1px) 0 0/3px 3px,linear-gradient(120deg,#a98235,#e0c375 45%,#b68c3a);color:var(--gold-ink);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.wallet span{display:block;font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.wallet strong{display:block;font-size:clamp(28px,9vw,40px);font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.panel{background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+label{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.amt-row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:center;background:rgba(0,0,0,.3);border:2px solid var(--gold);border-radius:12px;padding:6px 14px}
+.amt-row span{font-size:26px;font-weight:800;color:var(--gold-hi)}
+.amt-row input{width:100%;min-width:0;background:none;border:0;outline:0;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;padding:8px 0}
+.amt-row input::placeholder{color:rgba(243,238,226,.3)}
+.hint{font-size:14px;color:var(--muted)}
+.hint.err{color:var(--bad)}
+.chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.chip{background:rgba(0,0,0,.28);border:1px solid var(--gold);color:var(--ink);border-radius:999px;padding:10px 6px;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip:active{background:rgba(217,178,92,.25)}
+.cta{display:block;width:100%;text-align:center;border:0;border-radius:999px;padding:16px;font-size:19px;font-weight:800;color:#fff;text-decoration:none;
+  background:linear-gradient(#64d692,#2a9f5d 55%,#1f8a4f);border:4px solid var(--gold);box-shadow:0 6px 14px rgba(0,0,0,.4),inset 0 2px 0 rgba(255,255,255,.35);overflow-wrap:anywhere}
+.cta:active{transform:scale(.98)}
+.ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:12px;color:var(--ink);font-weight:700;width:100%}
+.done{align-items:center;text-align:center}
+.check{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-size:34px;font-weight:900;color:var(--gold-ink);background:linear-gradient(var(--gold-hi),var(--gold));box-shadow:0 0 26px rgba(246,227,166,.45);animation:pop .45s cubic-bezier(.2,1.5,.4,1)}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+.done p{color:var(--muted)}
+.done b{color:var(--ink);font-variant-numeric:tabular-nums}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid rgba(37,97,95,.7);font-variant-numeric:tabular-nums}
+li:last-child{border-bottom:0}
+li span:first-child{color:var(--muted)}
+li span:last-child{font-weight:700;color:var(--mint);overflow-wrap:anywhere;text-align:right}
+.zero{background:none;border:0;padding:0;color:var(--bad);font-weight:600;text-decoration:underline;text-underline-offset:3px;align-self:flex-start}
+.foot{font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <a class="back" href="/megaball"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>TERUG NAAR SPEL</a>
+    <span class="brand">MEGA<i></i>BALL</span>
+  </header>
+  <main>
+    <div>
+      <h1>Geld storten</h1>
+      <p class="muted">Nep geld zonder limiet. Het staat meteen klaar in Mega Ball.</p>
+    </div>
+    <div class="wallet"><span>Saldo</span><strong id="bal">€0</strong></div>
+
+    <form class="panel" id="form" novalidate>
+      <label for="amt">Bedrag</label>
+      <div class="amt-row"><span aria-hidden="true">€</span><input id="amt" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="100.000.000" enterkeyhint="done"></div>
+      <p class="hint" id="hint">Typ een bedrag of kies er een. 2,5k, 3 mln en 1 mld werken ook.</p>
+      <div class="chips" id="chips">
+        <button class="chip" type="button" data-v="100">€100</button>
+        <button class="chip" type="button" data-v="1000">€1.000</button>
+        <button class="chip" type="button" data-v="10000">€10.000</button>
+        <button class="chip" type="button" data-v="1000000">€1 mln</button>
+        <button class="chip" type="button" data-v="100000000">€100 mln</button>
+        <button class="chip" type="button" data-v="1000000000">€1 mld</button>
+      </div>
+      <button class="cta" id="cta" type="submit">Storten</button>
+    </form>
+
+    <section class="panel done" id="done" hidden aria-live="polite">
+      <div class="check" aria-hidden="true">✓</div>
+      <h2 id="doneTitle">Gestort</h2>
+      <p id="doneText"></p>
+      <a class="cta" href="/megaball">Speel Mega Ball</a>
+      <button class="ghost" id="again" type="button">Nog een keer storten</button>
+    </section>
+
+    <section class="panel">
+      <h3>Laatste stortingen</h3>
+      <ul id="list"></ul>
+      <p class="muted" id="listEmpty">Je hebt nog niets gestort.</p>
+    </section>
+
+    <button class="zero" id="zero" type="button">Saldo op nul zetten</button>
+    <p class="foot">Alleen nep geld. Er gaat geen echt geld in of uit.</p>
+  </main>
+</div>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const KEY = 'megaball-speelgeld-v1';
+const money = v => Math.round(v * 100) / 100;
+const N0 = new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 0 });
+const N2 = new Intl.NumberFormat('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = v => { v = money(v); return '€' + (Number.isInteger(v) ? N0 : N2).format(v); };
+const WHEN = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+function parseAmount(str) {
+  let s = String(str == null ? '' : str).trim().toLowerCase().replace(/€|\s/g, '');
+  if (!s) return NaN;
+  let mul = 1;
+  const m = s.match(/(biljoen|miljard|miljoen|duizend|mld|mln|k|m|b)$/);
+  if (m) {
+    mul = { biljoen: 1e12, miljard: 1e9, mld: 1e9, b: 1e9, miljoen: 1e6, mln: 1e6, m: 1e6, duizend: 1e3, k: 1e3 }[m[1]];
+    s = s.slice(0, -m[1].length);
+  }
+  if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+  else if ((s.match(/\./g) || []).length > 1 || /^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+  if (!/^\d*\.?\d*$/.test(s) || s === '' || s === '.') return NaN;
+  const n = Number(s) * mul;
+  return isFinite(n) ? money(n) : NaN;
+}
+function read() {
+  try { const d = JSON.parse(localStorage.getItem(KEY) || 'null'); return d && typeof d === 'object' ? d : {}; } catch (e) { return {}; }
+}
+function write(d) {
+  try { localStorage.setItem(KEY, JSON.stringify(d)); return true; } catch (e) { return false; }
+}
+
+const amt = $('#amt'), hint = $('#hint'), cta = $('#cta');
+function render() {
+  const d = read();
+  $('#bal').textContent = fmt(+d.wallet > 0 ? +d.wallet : 0);
+  const list = Array.isArray(d.deposits) ? d.deposits : [];
+  $('#listEmpty').hidden = list.length > 0;
+  $('#list').replaceChildren(...list.slice(0, 10).map(x => {
+    const li = document.createElement('li');
+    const a = document.createElement('span'); a.textContent = WHEN.format(new Date(x.t));
+    const b = document.createElement('span'); b.textContent = '+' + fmt(x.v);
+    li.append(a, b); return li;
+  }));
+}
+function updateCta() {
+  const v = parseAmount(amt.value);
+  cta.textContent = v > 0 ? 'Stort ' + fmt(v) : 'Storten';
+  hint.classList.remove('err');
+  hint.textContent = 'Typ een bedrag of kies er een. 2,5k, 3 mln en 1 mld werken ook.';
+}
+$('#chips').addEventListener('click', e => {
+  const b = e.target.closest('[data-v]'); if (!b) return;
+  amt.value = N0.format(+b.dataset.v); updateCta();
+});
+amt.addEventListener('input', updateCta);
+$('#form').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = parseAmount(amt.value);
+  if (!(v > 0)) {
+    hint.textContent = 'Vul een bedrag in, bijvoorbeeld 100.000.000 of 1 mld.';
+    hint.classList.add('err'); amt.focus(); return;
+  }
+  const d = read();
+  d.wallet = money((+d.wallet > 0 ? +d.wallet : 0) + v);
+  d.deposits = [{ t: Date.now(), v }, ...(Array.isArray(d.deposits) ? d.deposits : [])].slice(0, 20);
+  if (!write(d)) {
+    hint.textContent = 'Je browser bewaart niets op deze site (privévenster?). Zet het bewaren van websitegegevens aan en probeer het opnieuw.';
+    hint.classList.add('err'); return;
+  }
+  amt.blur();
+  $('#doneTitle').textContent = fmt(v) + ' gestort';
+  $('#doneText').innerHTML = 'Je nieuwe saldo is <b>' + fmt(d.wallet) + '</b>.';
+  $('#form').hidden = true; $('#done').hidden = false;
+  render();
+});
+$('#again').addEventListener('click', () => {
+  amt.value = ''; updateCta();
+  $('#done').hidden = true; $('#form').hidden = false; amt.focus();
+});
+let armed = false;
+$('#zero').addEventListener('click', () => {
+  if (!armed) { armed = true; $('#zero').textContent = 'Zeker weten? Tik nog een keer'; return; }
+  const d = read(); d.wallet = 0; write(d);
+  armed = false; $('#zero').textContent = 'Saldo op nul zetten';
+  render();
+});
+window.addEventListener('storage', e => { if (e.key === KEY) render(); });
+window.addEventListener('pageshow', render);
+render();
+})();
+</script>
+</body>
+</html>

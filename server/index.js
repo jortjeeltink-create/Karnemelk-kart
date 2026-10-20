@@ -87,6 +87,7 @@ const server = http.createServer((req, res) => {
   }
   if (path === '/' || path.startsWith('/join/')) path = '/index.html';
   else if (path === '/megaball' || path === '/megaball/') path = '/megaball.html';
+  else if (path === '/megaball/storten') path = '/megaball-storten.html';
   if (path.includes('..') || path.includes(sep + sep)) { res.writeHead(400); return res.end(); }
   const f = files.get(path);
   if (!f) {

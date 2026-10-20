@@ -28,7 +28,7 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
 - **Toeteren**: met de TOET-knop toeter je naar anderen in de buurt.
 - **Titels na de race**: Botskampioen, Pechvogel, Itemkoning en Driftkoning.
 - **Instellingen**: muziek, effecten, alles stil, besturing (knoppen, schuifbalk of kantelen), automatisch gas, linkshandig, trillen, grafische kwaliteit, namen en minikaart.
-- **Mega Ball** (knop in het hoofdmenu, of `/megaball`): namaak van de live loterijshow, los van de kartgame. Alleen nep geld: storten zonder limiet, elke kaartwaarde en 1 tot 400 kaarten per ronde. 20 van de 51 ballen, daarna de multiplier (5× tot 100×) en de Mega Ball. Gemiddeld komt zo'n 95% van de inzet terug, net als bij het origineel. Saldo en statistieken blijven in de browser bewaard.
+- **Mega Ball** (knop in het hoofdmenu, of `/megaball`): namaak van First Person Mega Ball, los van de kartgame. Alle kaarten (tot 400) staan als mini-kaartjes op één telefoonscherm; tik op een kaartje om het groot te zien. Kaarten kies je met +1, +10, +25 en +100, de inzet per kaart heeft geen maximum, en met Speel start de trekking: 20 van de 51 ballen, daarna de multiplier (5× tot 100×) en de Mega Ball. Gemiddeld komt zo'n 95% van de inzet terug, net als bij het origineel. Nep geld stort je op een aparte pagina (`/megaball/storten`), zonder limiet. Saldo en statistieken blijven in de browser bewaard.
 - Alles in het Nederlands.
 
 ## Snel starten op je eigen computer
@@ -210,6 +210,7 @@ Alle banen hebben schansen (soms met een boostring erachter) en extra turbostrok
 server/            server (http + WebSocket) en opslag
 public/index.html  de pagina
 public/megaball.html  Mega Ball met nep geld (één los bestand)
+public/megaball-storten.html  stortpagina voor Mega Ball
 public/css/        vormgeving
 public/js/         browsercode: render/ (3D), game/ (race, HUD, voorspelling), ui/ (schermen), audio, besturing
 public/shared/     code voor server én browser: banen, fysica, items, bots, race, rooms, punten, winkel
