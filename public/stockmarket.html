@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Stock Market Speelgeld</title>
-<meta name="description" content="Stock Market met nep geld: zet in op stijging of daling en volg de koers live.">
+<title>Stock Market Trainer</title>
+<meta name="description" content="Stock Market Trainer met nep geld: zet in op stijging of daling en volg de koers live.">
 <meta name="theme-color" content="#2b2b2b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -318,9 +318,9 @@ button:disabled{cursor:not-allowed}
   </section>
 
   <footer class="info">
-    <p class="chat"><b>Martin:</b> <span id="chat">Welkom bij Stock Market!</span></p>
+    <p class="chat"><b>Martin:</b> <span id="chat">Welkom bij Stock Market Trainer!</span></p>
     <div class="irow"><span id="betLine">Totale inzet <b id="betAmt">€ 0,00</b></span><span class="dim"><span id="nowT">--:--</span>&nbsp;&nbsp;# <span id="rid">--:--:--</span></span></div>
-    <div class="irow"><span>Saldo <b id="saldo">€ 0,00</b></span><span>Stock Market <b>€ 0,10 – onbeperkt</b></span></div>
+    <div class="irow"><span>Saldo <b id="saldo">€ 0,00</b></span><span>Stock Market Trainer</span></div>
   </footer>
 
   <div class="jpinfo" id="jpInfo" hidden>
@@ -352,7 +352,8 @@ button:disabled{cursor:not-allowed}
     <section>
       <h3>Zo speel je</h3>
       <ol>
-        <li>Je hebt 10 seconden om in te zetten. Kies een fiche en tik op STIJGING of DALING. Op allebei mag ook.</li>
+        <li>Je hebt 10 seconden om in te zetten. Kies een fiche en tik op STIJGING of DALING. Je zet maar op één kant in: tik je daarna op de andere kant, dan verhuist je hele inzet mee.</li>
+        <li>Fiches gaan van € 0,10 tot en met 1 triljoen. Met Eigen bedrag kies je zelf een fiche, zonder maximum.</li>
         <li>Daarna begint de handelssessie van 10 seconden. De koers beweegt live en je portefeuille beweegt mee.</li>
         <li>Stijgt de koers 30%, dan is je inzet op STIJGING 1,3× waard en op DALING 0,7×. De koers stijgt of daalt nooit meer dan 100%, dus je wint maximaal 2× je inzet.</li>
         <li>Na de sessie gaat je portefeuille naar je saldo, min 1% fee. Gemiddeld komt 99% van je inzet terug.</li>
@@ -400,7 +401,7 @@ button:disabled{cursor:not-allowed}
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="gamesTitle">
     <div class="sheet-head"><h2 id="gamesTitle">Spellen</h2><button class="xbtn" type="button" data-close aria-label="Sluiten">✕</button></div>
     <div class="mlist">
-      <button class="mrow hl" type="button" data-close>Stock Market <span>speel je nu</span></button>
+      <button class="mrow hl" type="button" data-close>Stock Market Trainer <span>speel je nu</span></button>
       <a class="mrow" href="/megaball">Mega Ball <span>›</span></a>
       <a class="mrow" href="/">Karnemelk Kart <span>›</span></a>
     </div>
@@ -411,7 +412,7 @@ button:disabled{cursor:not-allowed}
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ownTitle">
     <div class="sheet-head"><h2 id="ownTitle">Eigen fiche</h2><button class="xbtn" type="button" data-close aria-label="Sluiten">✕</button></div>
     <div class="amt-row"><span aria-hidden="true">€</span><input id="ownInput" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Waarde van je fiche"></div>
-    <p class="muted small" id="ownHint">Minimaal € 0,10, geen maximum. 2,5k, 3 mln en 1 mld werken ook.</p>
+    <p class="muted small" id="ownHint">Minimaal € 0,10, geen maximum. 2,5k, 3 mln, 1 mld en 1 triljoen werken ook.</p>
     <button class="cta" id="ownOk" type="button">Fiche kiezen</button>
   </div>
 </div>
@@ -424,32 +425,40 @@ const $ = s => document.querySelector(s);
 const { KNOTS, TRADE_MS, BET_MS, JACKPOT, MIN_BET, money } = SM;
 
 /* ---------- hulpjes ---------- */
-const WALLET_KEY = 'megaball-speelgeld-v1';   // één saldo voor Mega Ball en Stock Market
+const WALLET_KEY = 'megaball-speelgeld-v1';   // één saldo voor Mega Ball en Stock Market Trainer
 const KEY = 'stockmarket-speelgeld-v1';
 const LOCK_KEY = 'stockmarket-inzetten-v1'; // inzetten die meedoen, per id; wie hem weghaalt betaalt uit
-const CHIPS = [0.1, 0.5, 1, 2, 5, 10, 25, 100, 500, 2500, 10000, 100000, 1000000];
-const CHIP_COL = ['#a3a3a3', '#c8682c', '#2e7fd1', '#7a4bd1', '#d23a3a', '#1f9e6c', '#108a8a', '#2b2b2b', '#8e3bb5', '#c9a227', '#e05aa0', '#18b0c9', '#b8860b'];
+// Fiches van € 0,10 tot en met 1 triljoen (10^18): [waarde, kleur, tekstkleur]
+const CHIPS = [
+  [0.1, '#a3a3a3', '#1d1d1d'], [0.5, '#c8682c'], [1, '#2e7fd1'], [2, '#7a4bd1'], [5, '#d23a3a'], [10, '#1f9e6c'], [25, '#108a8a'],
+  [100, '#2b2b2b'], [500, '#8e3bb5'], [1e3, '#ececec', '#1d1d1d'], [2500, '#c9a227', '#1d1d1d'], [1e4, '#e05aa0'], [1e5, '#18b0c9'],
+  [1e6, '#b8860b'], [1e7, '#5b8c2a'], [1e8, '#9c2f5e'], [1e9, '#3a4fb8'], [1e10, '#d97a1e'], [1e11, '#2f6f73'],
+  [1e12, '#7d1f1f'], [1e13, '#4b5d23'], [1e14, '#6b3fa0'], [1e15, '#0f766e'], [1e16, '#be185d'], [1e17, '#1e3a8a'], [1e18, '#141414', '#ffd54a']
+].map(([v, c, t]) => ({ v, c, t: t || '#fff' }));
+const CHIP_VALUES = CHIPS.map(x => x.v);
 const N0 = new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 0 });
 const N1 = new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 1 });
 const N2 = new Intl.NumberFormat('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const COMPACT = new Intl.NumberFormat('nl-NL', { notation: 'compact', maximumFractionDigits: 1 });
-const eur = v => (v >= 1e9 ? '€ ' + COMPACT.format(v) : '€ ' + N2.format(v));
+const NB = new Intl.NumberFormat('nl-NL', { maximumFractionDigits: 2 });
+const BIG = [[1e18, 'triljoen'], [1e15, 'biljard'], [1e12, 'biljoen'], [1e9, 'mld']];
+const eur = v => { for (const [u, n] of BIG) if (v >= u) return `€ ${NB.format(v / u)} ${n}`; return '€ ' + N2.format(v); };
 const eur0 = v => '€ ' + N0.format(Math.round(v));
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const lerp = (a, b, t) => a + (b - a) * t;
 const ease = t => 1 - Math.pow(1 - t, 3);
 const pad = n => String(n).padStart(2, '0');
-const chipColor = v => { let c = '#5a5a5a'; CHIPS.forEach((x, i) => { if (v >= x - 1e-9) c = CHIP_COL[i]; }); return c; };
-const chipText = v => (v >= 1e6 ? N1.format(v / 1e6) + 'M' : v >= 1000 ? N1.format(v / 1000) + 'K' : Number.isInteger(v) ? String(v) : N2.format(v));
+const chipStyle = v => { let c = { c: '#5a5a5a', t: '#fff' }; for (const x of CHIPS) if (v >= x.v * (1 - 1e-9)) c = x; return c; };
+const UNITS = [[1e18, 'Trln'], [1e15, 'Bld'], [1e12, 'Bln'], [1e9, 'Mld'], [1e6, 'M'], [1e3, 'K']];
+const chipText = v => { for (const [u, n] of UNITS) if (v >= u) return N1.format(v / u) + n; return Number.isInteger(v) ? String(v) : N2.format(v); };
 const myName = (() => { try { return (localStorage.getItem('kk-naam') || '').trim(); } catch (e) { return ''; } })();
 
 function parseAmount(str) {
   let s = String(str == null ? '' : str).trim().toLowerCase().replace(/€|\s/g, '');
   if (!s) return NaN;
   let mul = 1;
-  const m = s.match(/(biljoen|miljard|miljoen|duizend|mld|mln|k|m|b)$/);
+  const m = s.match(/(triljoen|biljard|biljoen|miljard|miljoen|duizend|trln|bld|bln|mld|mln|k|m|b)$/);
   if (m) {
-    mul = { biljoen: 1e12, miljard: 1e9, mld: 1e9, b: 1e9, miljoen: 1e6, mln: 1e6, m: 1e6, duizend: 1e3, k: 1e3 }[m[1]];
+    mul = { triljoen: 1e18, trln: 1e18, biljard: 1e15, bld: 1e15, biljoen: 1e12, bln: 1e12, miljard: 1e9, mld: 1e9, b: 1e9, miljoen: 1e6, mln: 1e6, m: 1e6, duizend: 1e3, k: 1e3 }[m[1]];
     s = s.slice(0, -m[1].length);
   }
   if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
@@ -462,10 +471,11 @@ function chipEl(v, cls) {
   const el = document.createElement('span');
   el.className = 'chip' + (cls ? ' ' + cls : '');
   if (v > 0) {
-    const c = chipColor(v);
-    el.style.setProperty('--c', c);
-    if (c === '#a3a3a3' || c === '#c9a227') el.style.setProperty('--t', '#1d1d1d');
-    const b = document.createElement('b'); b.textContent = chipText(v); el.append(b);
+    const st = chipStyle(v), txt = chipText(v);
+    el.style.setProperty('--c', st.c); el.style.setProperty('--t', st.t);
+    const b = document.createElement('b'); b.textContent = txt;
+    b.style.fontSize = `calc(var(--s) * ${[0.27, 0.27, 0.27, 0.27, 0.24, 0.2, 0.18][txt.length] || 0.16})`;
+    el.append(b);
   } else el.classList.add('ghost');
   return el;
 }
@@ -924,8 +934,8 @@ function renderPanel(v, pos) {
   el.saldo.classList.toggle('saldo-hidden', S.hide);
 }
 function renderChipBtn() {
-  const i = CHIPS.findIndex(x => Math.abs(x - S.chip) < 1e-9);
-  const prev = i > 0 ? CHIPS[i - 1] : null, next = i >= 0 && i < CHIPS.length - 1 ? CHIPS[i + 1] : null;
+  const i = CHIP_VALUES.findIndex(x => Math.abs(x - S.chip) <= x * 1e-9);
+  const prev = i > 0 ? CHIP_VALUES[i - 1] : null, next = i >= 0 && i < CHIP_VALUES.length - 1 ? CHIP_VALUES[i + 1] : null;
   const kids = [];
   if (prev) kids.push(chipEl(prev, 'pk l'));
   if (next) kids.push(chipEl(next, 'pk r'));
@@ -1031,13 +1041,23 @@ function placeBets(moves) {
   Sound.chip(); save(); frameUI();
   return true;
 }
-function placeSide(side) { placeBets([[side, S.chip]]); }
+// Je zet maar op één kant in. Tik je op de andere kant, dan verhuist je hele inzet daarheen.
+function placeSide(side) {
+  lockIfDue(Date.now());
+  const st = SM.state(Date.now()), other = side === 'up' ? 'down' : 'up';
+  const o = S.open && S.open.n === st.n ? S.open : null;
+  if (!o || !(o[other] > 0)) { placeBets([[side, S.chip]]); return; }
+  if (!canBet(st)) return;
+  const amt = o[other];
+  o[other] = 0; o[side] = money(o[side] + amt);
+  o.stack.push([[other, -amt], [side, amt]]);
+  Sound.chip(); save(); frameUI();
+  toast(`Je inzet staat nu op ${side === 'up' ? 'STIJGING' : 'DALING'}. Je zet maar op één kant in.`);
+}
 function repeatLast(mult) {
   if (!S.lastBets) return false;
-  const m = [];
-  if (S.lastBets.up > 0) m.push(['up', money(S.lastBets.up * mult)]);
-  if (S.lastBets.down > 0) m.push(['down', money(S.lastBets.down * mult)]);
-  return placeBets(m);
+  const side = S.lastBets.up >= S.lastBets.down ? 'up' : 'down';
+  return placeBets([[side, money(S.lastBets[side] * mult)]]);
 }
 function undo() {
   lockIfDue(Date.now());
@@ -1186,9 +1206,9 @@ function openSession() {
   el.sessSheet.hidden = false;
 }
 function buildTray() {
-  const kids = CHIPS.map(v => {
+  const kids = CHIP_VALUES.map(v => {
     const b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'option');
-    b.setAttribute('aria-pressed', Math.abs(v - S.chip) < 1e-9); b.setAttribute('aria-label', eur(v));
+    b.setAttribute('aria-pressed', Math.abs(v - S.chip) <= v * 1e-9); b.setAttribute('aria-label', eur(v));
     const c = chipEl(v); c.style.setProperty('--s', '52px'); b.append(c);
     b.addEventListener('click', () => { S.chip = v; el.tray.hidden = true; renderChipBtn(); Sound.chip(); save(); });
     return b;
@@ -1200,7 +1220,7 @@ function buildTray() {
 function setMuted(m) {
   S.muted = m;
   hintUntil = 0; el.muteHint.hidden = true;
-  if (!m) { Sound.ac(); Voice.say(`Hallo ${myName || 'daar'}, welkom bij Stock Market!`); }
+  if (!m) { Sound.ac(); Voice.say(`Hallo ${myName || 'daar'}, welkom bij Stock Market Trainer!`); }
   else { try { speechSynthesis.cancel(); } catch (e) { /* geen spraak */ } Host.speaking = false; }
   renderToggles(); save();
 }
@@ -1257,7 +1277,7 @@ function placeJpInfo() {
 }
 
 load();
-setText(el.chat, `Hallo, ${myName || 'speler'}! Welkom bij Stock Market!`);
+setText(el.chat, `Hallo, ${myName || 'speler'}! Welkom bij Stock Market Trainer!`);
 S.muted = true; // geluid en spraak mogen pas na een tik, dus net als in de app gedempt beginnen
 el.muteHint.hidden = false;
 el.jpInfo.hidden = S.jpInfoClosed;

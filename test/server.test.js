@@ -238,7 +238,7 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.match(await storten.text(), /<title>Mega Ball Storten<\/title>/);
     const stock = await fetch(srv.url + '/stockmarket');
     assert.equal(stock.status, 200);
-    assert.match(await stock.text(), /<title>Stock Market Speelgeld<\/title>/);
+    assert.match(await stock.text(), /<title>Stock Market Trainer<\/title>/);
     assert.equal((await fetch(srv.url + '/stockmarket/storten')).status, 200);
     assert.equal((await fetch(srv.url + '/shared/stockmarket.js')).status, 200);
     const health = await (await fetch(srv.url + '/health')).json();

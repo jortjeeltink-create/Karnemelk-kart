@@ -96,7 +96,7 @@ li span:last-child{font-weight:700;color:var(--mint);overflow-wrap:anywhere;text
     <form class="panel" id="form" novalidate>
       <label for="amt">Bedrag</label>
       <div class="amt-row"><span aria-hidden="true">€</span><input id="amt" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="100.000.000" enterkeyhint="done"></div>
-      <p class="hint" id="hint">Typ een bedrag of kies er een. 2,5k, 3 mln en 1 mld werken ook.</p>
+      <p class="hint" id="hint">Typ een bedrag of kies er een. 2,5k, 3 mln, 1 mld en 1 triljoen werken ook.</p>
       <div class="chips" id="chips">
         <button class="chip" type="button" data-v="100">€100</button>
         <button class="chip" type="button" data-v="1000">€1.000</button>
@@ -104,6 +104,9 @@ li span:last-child{font-weight:700;color:var(--mint);overflow-wrap:anywhere;text
         <button class="chip" type="button" data-v="1000000">€1 mln</button>
         <button class="chip" type="button" data-v="100000000">€100 mln</button>
         <button class="chip" type="button" data-v="1000000000">€1 mld</button>
+        <button class="chip" type="button" data-v="1000000000000">€1 biljoen</button>
+        <button class="chip" type="button" data-v="1000000000000000">€1 biljard</button>
+        <button class="chip" type="button" data-v="1000000000000000000">€1 triljoen</button>
       </div>
       <button class="cta" id="cta" type="submit">Storten</button>
     </form>
@@ -141,9 +144,9 @@ function parseAmount(str) {
   let s = String(str == null ? '' : str).trim().toLowerCase().replace(/€|\s/g, '');
   if (!s) return NaN;
   let mul = 1;
-  const m = s.match(/(biljoen|miljard|miljoen|duizend|mld|mln|k|m|b)$/);
+  const m = s.match(/(triljoen|biljard|biljoen|miljard|miljoen|duizend|trln|bld|bln|mld|mln|k|m|b)$/);
   if (m) {
-    mul = { biljoen: 1e12, miljard: 1e9, mld: 1e9, b: 1e9, miljoen: 1e6, mln: 1e6, m: 1e6, duizend: 1e3, k: 1e3 }[m[1]];
+    mul = { triljoen: 1e18, trln: 1e18, biljard: 1e15, bld: 1e15, biljoen: 1e12, bln: 1e12, miljard: 1e9, mld: 1e9, b: 1e9, miljoen: 1e6, mln: 1e6, m: 1e6, duizend: 1e3, k: 1e3 }[m[1]];
     s = s.slice(0, -m[1].length);
   }
   if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
@@ -159,13 +162,14 @@ function write(d) {
   try { localStorage.setItem(KEY, JSON.stringify(d)); return true; } catch (e) { return false; }
 }
 
-// Dezelfde stortpagina hoort bij Stock Market: één saldo voor beide spellen.
+// Dezelfde stortpagina hoort bij Stock Market Trainer: één saldo voor beide spellen.
 if (location.pathname.startsWith('/stockmarket')) {
-  document.title = 'Stock Market Storten';
+  document.title = 'Stock Market Trainer Storten';
   for (const a of document.querySelectorAll('a[href="/megaball"]')) a.href = '/stockmarket';
-  $('#brand').textContent = 'STOCK MARKET';
-  $('#intro').textContent = 'Nep geld zonder limiet. Het staat meteen klaar in Stock Market en Mega Ball.';
-  $('#play').textContent = 'Speel Stock Market';
+  $('#brand').textContent = 'STOCK MARKET TRAINER';
+  $('#brand').style.fontSize = '15px';
+  $('#intro').textContent = 'Nep geld zonder limiet. Het staat meteen klaar in Stock Market Trainer en Mega Ball.';
+  $('#play').textContent = 'Speel Stock Market Trainer';
 }
 const amt = $('#amt'), hint = $('#hint'), cta = $('#cta');
 function render() {
@@ -184,7 +188,7 @@ function updateCta() {
   const v = parseAmount(amt.value);
   cta.textContent = v > 0 ? 'Stort ' + fmt(v) : 'Storten';
   hint.classList.remove('err');
-  hint.textContent = 'Typ een bedrag of kies er een. 2,5k, 3 mln en 1 mld werken ook.';
+  hint.textContent = 'Typ een bedrag of kies er een. 2,5k, 3 mln, 1 mld en 1 triljoen werken ook.';
 }
 $('#chips').addEventListener('click', e => {
   const b = e.target.closest('[data-v]'); if (!b) return;
