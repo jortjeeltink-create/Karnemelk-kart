@@ -86,6 +86,7 @@ const server = http.createServer((req, res) => {
     return res.end(JSON.stringify({ ok: true, ...hub.stats() }));
   }
   if (path === '/' || path.startsWith('/join/')) path = '/index.html';
+  else if (path === '/megaball' || path === '/megaball/') path = '/megaball.html';
   if (path.includes('..') || path.includes(sep + sep)) { res.writeHead(400); return res.end(); }
   const f = files.get(path);
   if (!f) {

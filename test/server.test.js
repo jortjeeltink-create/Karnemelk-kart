@@ -230,6 +230,9 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.ok(+three.headers.get('content-length') < 250000, 'three.js gecomprimeerd klein genoeg voor mobiel');
     const join = await fetch(srv.url + '/join/ABCD');
     assert.match(await join.text(), /Karnemelk Kart/);
+    const megaball = await fetch(srv.url + '/megaball');
+    assert.equal(megaball.status, 200);
+    assert.match(await megaball.text(), /<title>Mega Ball Speelgeld<\/title>/);
     const health = await (await fetch(srv.url + '/health')).json();
     assert.equal(health.ok, true);
     assert.equal((await fetch(srv.url + '/../server/store.js')).status, 404);
