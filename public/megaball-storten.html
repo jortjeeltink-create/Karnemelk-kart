@@ -84,12 +84,12 @@ li span:last-child{font-weight:700;color:var(--mint);overflow-wrap:anywhere;text
 <div class="app">
   <header class="bar">
     <a class="back" href="/megaball"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>TERUG NAAR SPEL</a>
-    <span class="brand">MEGA<i></i>BALL</span>
+    <span class="brand" id="brand">MEGA<i></i>BALL</span>
   </header>
   <main>
     <div>
       <h1>Geld storten</h1>
-      <p class="muted">Nep geld zonder limiet. Het staat meteen klaar in Mega Ball.</p>
+      <p class="muted" id="intro">Nep geld zonder limiet. Het staat meteen klaar in Mega Ball.</p>
     </div>
     <div class="wallet"><span>Saldo</span><strong id="bal">€0</strong></div>
 
@@ -112,7 +112,7 @@ li span:last-child{font-weight:700;color:var(--mint);overflow-wrap:anywhere;text
       <div class="check" aria-hidden="true">✓</div>
       <h2 id="doneTitle">Gestort</h2>
       <p id="doneText"></p>
-      <a class="cta" href="/megaball">Speel Mega Ball</a>
+      <a class="cta" href="/megaball" id="play">Speel Mega Ball</a>
       <button class="ghost" id="again" type="button">Nog een keer storten</button>
     </section>
 
@@ -159,6 +159,14 @@ function write(d) {
   try { localStorage.setItem(KEY, JSON.stringify(d)); return true; } catch (e) { return false; }
 }
 
+// Dezelfde stortpagina hoort bij Stock Market: één saldo voor beide spellen.
+if (location.pathname.startsWith('/stockmarket')) {
+  document.title = 'Stock Market Storten';
+  for (const a of document.querySelectorAll('a[href="/megaball"]')) a.href = '/stockmarket';
+  $('#brand').textContent = 'STOCK MARKET';
+  $('#intro').textContent = 'Nep geld zonder limiet. Het staat meteen klaar in Stock Market en Mega Ball.';
+  $('#play').textContent = 'Speel Stock Market';
+}
 const amt = $('#amt'), hint = $('#hint'), cta = $('#cta');
 function render() {
   const d = read();

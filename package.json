@@ -13,7 +13,7 @@
     "dev": "node --watch-path=server --watch-path=public server/index.js",
     "test": "node --test",
     "build:demo": "node tools/build-demo.mjs",
-    "test:snel": "node --test test/unit.test.js test/store.test.js"
+    "test:snel": "node --test test/unit.test.js test/store.test.js test/stockmarket.test.js"
   },
   "dependencies": {
     "ws": "^8.18.0"
