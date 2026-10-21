@@ -10,6 +10,7 @@ import os from 'node:os';
 import { WebSocketServer } from 'ws';
 import { Hub } from '../public/shared/hub.js';
 import { BusHub } from '../public/shared/bushub.js';
+import { BoerHub } from '../public/shared/boerhub.js';
 import { createStore, randomString, loadSecret, makeSigner, makeSecretCheck } from './store.js';
 import { isDeviceToken } from '../public/shared/profiles.js';
 
@@ -78,16 +79,17 @@ const store = await createStore({
 const signer = makeSigner(await loadSecret(store.kv, process.env.KK_SECRET));
 const checkSecret = makeSecretCheck(process.env.KK_SECRET_HASH || undefined);
 const hub = new Hub({ store, log, signer, checkSecret, laps: process.env.KK_LAPS ? +process.env.KK_LAPS : null });
-// versie van Bussen: verandert de pagina of de spelregels, dan laden telefoons die nog openstaan zichzelf opnieuw
-const busBuild = createHash('sha1').update([...files].filter(([k]) => k === '/bussen.html' || k.startsWith('/shared/')).map(([, f]) => f.etag).join('')).digest('base64url').slice(0, 12);
-const busHub = new BusHub({ log, build: busBuild });
+// versie van een tafelspel: verandert de pagina of de spelregels, dan laden telefoons die nog openstaan zichzelf opnieuw
+const buildOf = (page) => createHash('sha1').update([...files].filter(([k]) => k === page || k.startsWith('/shared/')).map(([, f]) => f.etag).join('')).digest('base64url').slice(0, 12);
+const busHub = new BusHub({ log, build: buildOf('/bussen.html') });
+const boerHub = new BoerHub({ log, build: buildOf('/boer.html') });
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://x');
   let path = decodeURIComponent(url.pathname);
   if (path === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ ok: true, ...hub.stats(), bussen: busHub.stats() }));
+    return res.end(JSON.stringify({ ok: true, ...hub.stats(), bussen: busHub.stats(), boer: boerHub.stats() }));
   }
   // de speelhal is de hoofdpagina; uitnodigingen (/?room=, /join/) gaan nog steeds naar de kartgame
   if (path === '/kart' || path === '/kart/' || path.startsWith('/join/') || (path === '/' && url.searchParams.has('room'))) path = '/index.html';
@@ -97,6 +99,7 @@ const server = http.createServer((req, res) => {
   else if (path === '/megaball/storten' || path === '/stockmarket/storten') path = '/megaball-storten.html';
   else if (path === '/stockmarket' || path === '/stockmarket/') path = '/stockmarket.html';
   else if (path === '/bussen' || path === '/bussen/' || /^\/bussen\/[A-Za-z]{4}$/.test(path)) path = '/bussen.html';
+  else if (path === '/boer' || path === '/boer/' || /^\/boer\/[A-Za-z]{4}$/.test(path)) path = '/boer.html';
   if (path.includes('..') || path.includes(sep + sep)) { res.writeHead(400); return res.end(); }
   const f = files.get(path);
   if (!f) {
@@ -115,12 +118,13 @@ const server = http.createServer((req, res) => {
   res.end(req.method === 'HEAD' ? undefined : body);
 });
 
-// twee WebSocket-kanalen op dezelfde server: /ws voor de kartgame en /ws/bussen voor Bussen
+// WebSocket-kanalen op dezelfde server: /ws voor de kartgame, en per tafelspel een eigen kanaal
 const wss = new WebSocketServer({ noServer: true, maxPayload: 32 * 1024 });
 const busWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
+const boerWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 server.on('upgrade', (req, socket, head) => {
   const { pathname } = new URL(req.url, 'http://x');
-  const target = pathname === '/ws' ? wss : pathname === '/ws/bussen' ? busWss : null;
+  const target = { '/ws': wss, '/ws/bussen': busWss, '/ws/boer': boerWss }[pathname];
   if (!target) { socket.destroy(); return; }
   target.handleUpgrade(req, socket, head, (ws) => target.emit('connection', ws, req));
 });
@@ -145,26 +149,31 @@ wss.on('connection', (ws, req) => {
   ws.on('error', () => {});
 });
 
-busWss.on('connection', (ws) => {
-  ws.isAlive = true;
-  ws.on('pong', () => { ws.isAlive = true; });
-  const conn = {
-    send: (text) => { if (ws.readyState === 1) ws.send(text); },
-    close: () => ws.close(),
-  };
-  busHub.connect(conn);
-  ws.on('message', (data) => {
-    let msg;
-    try { msg = JSON.parse(data.toString()); } catch { return; }
-    busHub.message(conn, msg);
+// een tafelspel: elke telefoon is een verbinding met de hub van dat spel
+function tableChannel(channel, tables) {
+  channel.on('connection', (ws) => {
+    ws.isAlive = true;
+    ws.on('pong', () => { ws.isAlive = true; });
+    const conn = {
+      send: (text) => { if (ws.readyState === 1) ws.send(text); },
+      close: () => ws.close(),
+    };
+    tables.connect(conn);
+    ws.on('message', (data) => {
+      let msg;
+      try { msg = JSON.parse(data.toString()); } catch { return; }
+      tables.message(conn, msg);
+    });
+    ws.on('close', () => tables.disconnect(conn));
+    ws.on('error', () => {});
   });
-  ws.on('close', () => busHub.disconnect(conn));
-  ws.on('error', () => {});
-});
+}
+tableChannel(busWss, busHub);
+tableChannel(boerWss, boerHub);
 
 // dode verbindingen opruimen
 const heartbeat = setInterval(() => {
-  for (const ws of [...wss.clients, ...busWss.clients]) {
+  for (const ws of [...wss.clients, ...busWss.clients, ...boerWss.clients]) {
     if (!ws.isAlive) { ws.terminate(); continue; }
     ws.isAlive = false;
     ws.ping();
@@ -172,7 +181,7 @@ const heartbeat = setInterval(() => {
 }, 15000);
 
 const tickTimer = setInterval(() => hub.tick(), 1000 / 60);
-const busTimer = setInterval(() => busHub.tick(), 5000);
+const busTimer = setInterval(() => { busHub.tick(); boerHub.tick(); }, 5000);
 
 server.listen(PORT, HOST, () => {
   log(`Karnemelk Kart draait op http://localhost:${PORT}`);

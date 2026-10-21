@@ -1,0 +1,1076 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Boer zoekt vrouw</title>
+<meta name="description" content="Het drankspel Boer zoekt vrouw online: iedereen een kaart op zijn eigen telefoon, de boer telt en raadt wie de vrouw is.">
+<meta name="theme-color" content="#150b18">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Boer zoekt vrouw">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="/boer.webmanifest">
+<link rel="icon" href="/img/boer.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/boer-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@400;500;700&family=Sofia+Sans+Extra+Condensed:wght@500;700;800;900&display=swap">
+<style>
+:root{
+  /* Dezelfde tafel als Bussen: bovenin een glazen balk, in het midden de groene vilten tafel met de spelers
+     rondom (jij altijd onderaan) en de glazen op het vilt, onderin een donkere actiebalk met jouw kaart. */
+  --night:#150b18;
+  --night-3:#0b060d;
+  --cream:#f3efdb;
+  --cream-2:#e4dec2;
+  --cream-3:#d6cfae;
+  --plum:#2b1531;
+  --plum-2:#6a4570;
+  --pink:#d690c9;
+  --pink-2:#b866a8;
+  --rose:#ff6b8b;
+  --blue:#4f8dff;
+  --gold:#f7c548;
+  --paper:#fffdf4;
+  --paper-2:#efe7cc;
+  --ink:#24132a;
+  --suit-red:#d2343f;
+  --good:#3ee07f;
+  --bad:#ff5a64;
+  --ink-soft:#c9b9cf;
+  --glass:rgba(255,255,255,.08);
+  --glass-line:rgba(255,255,255,.24);
+  --glow:var(--rose);
+  --display:"Sofia Sans Extra Condensed","Arial Narrow","Helvetica Neue",sans-serif;
+  --mono:"Martian Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --s1:11px; --s2:13px; --s3:15px;
+  color-scheme:dark;
+}
+html[data-view="lobby"],html[data-view="home"]{--glow:var(--pink)}
+html[data-view="tellen"]{--glow:var(--gold)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+html{background:var(--night)}
+body{margin:0;background:radial-gradient(120% 90% at 50% 30%,#2a1534 0%,var(--night) 55%,var(--night-3) 100%) fixed;color:var(--cream);font-family:var(--mono);font-size:var(--s2);line-height:1.55;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;overscroll-behavior:none}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+button:disabled{cursor:default}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--pink);outline-offset:3px;border-radius:12px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;font-weight:800;letter-spacing:-.005em}
+p{margin:0}
+.glow{position:fixed;left:50%;top:-34vh;width:150vw;max-width:1100px;height:70vh;transform:translateX(-50%);background:radial-gradient(closest-side,var(--glow),transparent);opacity:.3;pointer-events:none;z-index:0;transition:background .6s}
+.stars{position:fixed;inset:0;background-image:radial-gradient(rgba(255,255,255,.55) 1px,transparent 1.6px),radial-gradient(rgba(255,217,138,.5) 1px,transparent 1.6px);background-size:61px 67px,97px 89px;background-position:0 0,31px 43px;opacity:.16;pointer-events:none;z-index:0}
+
+/* ---------- vaste UI ---------- */
+.app{position:relative;z-index:1;max-width:560px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px 6px}
+.bar-r{display:flex;gap:8px}
+.glass{background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -6px 14px rgba(0,0,0,.25),0 8px 24px rgba(0,0,0,.35)}
+.round{display:inline-grid;place-items:center;width:42px;height:42px;border-radius:50%;color:var(--cream)}
+.round:hover{background:rgba(255,255,255,.14)}
+.owe{display:inline-flex;align-items:center;gap:5px;height:42px;padding:0 13px;border-radius:999px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+.owe svg{width:16px;height:16px}
+.owe.zero{color:var(--ink-soft)}
+.brand{display:flex;align-items:center;gap:7px;font-family:var(--display);font-weight:900;font-size:24px;line-height:1;letter-spacing:.06em;color:var(--cream);white-space:nowrap}
+.brand svg{width:24px;height:24px;color:var(--rose);flex:none}
+
+.screen{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:2px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.screen.is-game{padding-bottom:0}
+.view{display:flex;flex-direction:column;gap:14px;min-height:100%}
+.view.game{display:grid;grid-template-rows:minmax(300px,1fr) auto;height:100%;min-height:0;gap:0}
+
+.kick{font-size:var(--s1);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+.cream{background:var(--cream);color:var(--plum);border-radius:22px;box-shadow:0 24px 70px rgba(0,0,0,.45)}
+.chip{display:inline-flex;align-items:center;padding:5px 11px;border-radius:999px;background:var(--plum);color:var(--cream);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;line-height:1.3}
+.chip.line{background:transparent;color:var(--plum);box-shadow:inset 0 0 0 1px rgba(43,21,49,.35)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.cta{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;border-radius:999px;padding:9px 10px 9px 22px;font-family:var(--display);font-weight:700;font-size:26px;line-height:1.1;color:var(--cream);text-decoration:none;text-align:left;background:linear-gradient(90deg,#2a1330 0%,#57295d 46%,#c47fba 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 10px 30px rgba(43,21,49,.35);transition:filter .2s,transform .2s}
+.cta:hover{filter:brightness(1.12)}
+.cta:active{transform:translateY(1px)}
+.cta .arr{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.14);flex:none}
+.cta:disabled{background:var(--cream-2);color:var(--plum-2);box-shadow:inset 0 0 0 1.5px rgba(43,21,49,.2);filter:none;transform:none}
+.cta:disabled .arr{background:rgba(43,21,49,.08)}
+.dock .cta{background:linear-gradient(90deg,#3a1b42 0%,#6b3472 46%,#d690c9 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 30px rgba(0,0,0,.4)}
+.dock .cta.hot{background:linear-gradient(90deg,#7a1f3a 0%,#c23a62 46%,#ff8aa5 100%)}
+.dock .cta:disabled{background:rgba(255,255,255,.08);color:var(--ink-soft);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.ghostbtn{display:block;width:100%;border-radius:999px;padding:14px 20px;font-size:var(--s2);font-weight:700;color:var(--plum);box-shadow:inset 0 0 0 1px rgba(43,21,49,.3);text-decoration:none;text-align:center}
+.ghostbtn:hover{background:var(--cream-2)}
+.linkbtn{justify-self:start;padding:4px 0;font-size:var(--s1);font-weight:700;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- kaarten ---------- */
+.card{position:relative;flex:none;width:var(--w,64px);height:calc(var(--w,64px) * 1.4);perspective:700px}
+.card .cin{position:absolute;inset:0;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,.7,.2,1)}
+.card.down .cin{transform:rotateY(180deg)}
+.card.reveal .cin{animation:reveal .6s cubic-bezier(.3,.7,.2,1) var(--d,0s) both}
+@keyframes reveal{from{transform:rotateY(180deg)}to{transform:rotateY(0)}}
+.card.dealin{animation:dealin .42s cubic-bezier(.2,.8,.2,1) var(--d,0s) both}
+@keyframes dealin{from{transform:translateY(-26px) rotate(-10deg);opacity:0}}
+.face{position:absolute;inset:0;border-radius:calc(var(--w,64px) * .12);backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.front{background:linear-gradient(160deg,var(--paper),var(--paper-2));color:var(--ink);box-shadow:inset 0 0 0 1px rgba(43,21,49,.18),0 6px 14px rgba(0,0,0,.35)}
+.card.red .front{color:var(--suit-red)}
+.back{transform:rotateY(180deg);background:radial-gradient(circle at 50% 50%,rgba(214,144,201,.35) 0 16%,transparent 17%),repeating-linear-gradient(45deg,rgba(214,144,201,.2) 0 2px,transparent 2px 8px),repeating-linear-gradient(-45deg,rgba(214,144,201,.2) 0 2px,transparent 2px 8px),linear-gradient(160deg,#41204b,#22102a);box-shadow:inset 0 0 0 calc(var(--w,64px) * .055) var(--cream),inset 0 0 0 calc(var(--w,64px) * .075) rgba(43,21,49,.5),0 6px 14px rgba(0,0,0,.35)}
+.back::after{content:"?";position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:calc(var(--w,64px) * .34);color:var(--cream);opacity:.85}
+.ix{position:absolute;left:9%;top:5%;display:grid;justify-items:center;font-family:var(--display);font-weight:900;font-size:calc(var(--w,64px) * .3);line-height:.86;letter-spacing:-.04em}
+.ix i{font-style:normal;font-size:.72em;letter-spacing:0}
+.ix.b{left:auto;top:auto;right:9%;bottom:5%;transform:rotate(180deg)}
+.pip{position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--w,64px) * .5);line-height:1}
+.pip.court{inset:17% 19%;border:1.5px solid currentColor;border-radius:calc(var(--w,64px) * .08);font-family:var(--display);font-weight:900;font-size:calc(var(--w,64px) * .44);align-content:center;gap:0;line-height:.85;background:rgba(255,255,255,.4)}
+.pip.court i{font-style:normal;font-size:.62em}
+.card.mini .face{border-radius:calc(var(--w,64px) * .16)}
+.card.mini .ix{inset:0;display:grid;place-content:center;font-size:calc(var(--w,64px) * .5);line-height:.82}
+.card.mini .ix i{font-size:.78em}
+.card.mini .ix.b,.card.mini .pip{display:none}
+.card.mini .front{box-shadow:inset 0 0 0 1px rgba(43,21,49,.2),0 2px 5px rgba(0,0,0,.35)}
+.card.mini .back::after{display:none}
+.card.queen .front{box-shadow:inset 0 0 0 1px rgba(43,21,49,.18),0 0 0 2.5px var(--rose),0 6px 20px rgba(255,107,139,.6)}
+.card.farmer .front{box-shadow:inset 0 0 0 1px rgba(43,21,49,.18),0 0 0 2.5px var(--gold),0 6px 20px rgba(247,197,72,.5)}
+
+/* ---------- de tafel ---------- */
+.table{position:relative;min-height:0;container-type:size;margin:4px -6px 8px}
+.rail{position:absolute;inset:5% 6% 10%;border-radius:50%/30%;background:linear-gradient(180deg,#45323a 0%,#1d1418 50%,#110b0e 100%);box-shadow:0 26px 60px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.6),inset 0 2px 0 rgba(255,255,255,.16),inset 0 -4px 10px rgba(0,0,0,.5)}
+.felt{position:absolute;inset:calc(5% + 11px) calc(6% + 11px) calc(10% + 11px);border-radius:50%/30%;overflow:hidden;background:radial-gradient(ellipse 75% 60% at 50% 42%,#35a862 0%,#21823f 46%,#125a2e 100%);box-shadow:inset 0 0 0 2px rgba(247,197,72,.3),inset 0 10px 40px rgba(0,0,0,.35),inset 0 -20px 50px rgba(0,0,0,.3)}
+.felt::before{content:"";position:absolute;inset:8% 10%;border-radius:50%/30%;border:1.5px solid rgba(255,255,255,.09)}
+.felt::after{content:"BOER ZOEKT VROUW";position:absolute;left:50%;bottom:13%;transform:translateX(-50%);font-family:var(--display);font-weight:900;font-size:7cqw;letter-spacing:.12em;color:rgba(255,255,255,.06);white-space:nowrap}
+.table.lobby .felt::after{display:none}
+.center{position:absolute;left:50%;top:47.5%;z-index:2;transform:translate(-50%,-50%);width:66cqw;display:grid;justify-items:center;gap:2cqh;text-align:center}
+.pot{display:inline-flex;align-items:center;gap:7px;padding:4px 12px;border-radius:999px;background:rgba(0,0,0,.34);border:1px solid rgba(255,255,255,.12);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:rgba(243,239,219,.85);white-space:nowrap}
+.felt-logo{font-family:var(--display);font-weight:900;font-size:min(20cqw,110px);line-height:.8;letter-spacing:.02em;text-transform:uppercase;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.25),0 0 30px rgba(255,255,255,.2)}
+.felt-logo.small{font-size:min(12cqw,64px);line-height:.86}
+.felt-logo.code{letter-spacing:.14em;margin-right:-.14em;color:var(--gold);text-shadow:0 4px 0 rgba(90,52,0,.5),0 0 30px rgba(247,197,72,.35)}
+.felt-sub{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,239,219,.75)}
+.bigword{font-family:var(--display);font-weight:900;font-size:min(22cqw,15cqh,110px);line-height:.85;text-transform:uppercase;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.3),0 0 30px rgba(255,255,255,.25)}
+.bigword.good{color:var(--good);text-shadow:0 4px 0 rgba(0,40,15,.5),0 0 30px rgba(62,224,127,.45)}
+.bigword.bad{color:var(--bad);text-shadow:0 4px 0 rgba(60,0,8,.5),0 0 30px rgba(255,90,100,.45)}
+.banner{position:absolute;inset:0;z-index:6;display:grid;place-content:center;justify-items:center;gap:6px;text-align:center;pointer-events:none;background:radial-gradient(closest-side,rgba(11,6,13,.82),rgba(11,6,13,0));animation:banner 2s ease both}
+.banner-t{font-family:var(--display);font-weight:900;font-size:min(15cqw,74px);line-height:.85;text-transform:uppercase;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.35),0 0 30px rgba(255,107,139,.5);max-width:80cqw}
+@keyframes banner{0%{opacity:0;transform:scale(.85)}14%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+
+/* de klok: zoveel seconden telt de boer nog */
+.clock{position:relative;width:min(36cqw,27cqh,170px);aspect-ratio:1;display:grid;place-items:center}
+.clock svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.ring-bg{fill:rgba(0,0,0,.28);stroke:rgba(255,255,255,.12);stroke-width:7}
+.ring-fg{fill:none;stroke:var(--gold);stroke-width:7;stroke-linecap:round;stroke-dasharray:283;transition:stroke-dashoffset .1s linear;filter:drop-shadow(0 0 6px rgba(247,197,72,.6))}
+.clock b{position:relative;font-family:var(--display);font-weight:900;font-size:min(22cqw,17cqh,104px);line-height:1;color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.clock.last b{color:var(--gold)}
+
+/* twee glazen op tafel */
+.glasses{display:flex;align-items:flex-end;gap:5cqw;--gh:min(15cqh,76px)}
+.glass-svg{height:var(--gh);width:auto;overflow:visible;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35))}
+.glass-svg .wall{fill:rgba(255,255,255,.14)}
+.glass-svg .rim{fill:none;stroke:rgba(255,255,255,.85);stroke-width:2.2;stroke-linejoin:round}
+.glass-svg .beer{fill:#f0a81c}
+.glass-svg .foam{fill:#fff6dc}
+.glass-svg .shine{fill:rgba(255,255,255,.35)}
+
+/* stoelen */
+.seat{--ava:clamp(34px,12.5cqmin,54px);position:absolute;left:50%;top:50%;z-index:3;width:var(--ava);height:var(--ava);margin:calc(var(--ava) / -2) 0 0 calc(var(--ava) / -2);display:block;color:var(--cream);transition:opacity .3s,filter .3s}
+.ava{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 32% 26%,rgba(255,255,255,.55),rgba(255,255,255,0) 46%),var(--pc);box-shadow:0 0 0 3px #140d17,0 0 0 4.5px rgba(255,255,255,.22),0 10px 20px rgba(0,0,0,.55);font-family:var(--display);font-weight:900;font-size:calc(var(--ava) * .52);line-height:1;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.35);transition:transform .1s}
+.seat.empty .ava{background:rgba(0,0,0,.35);box-shadow:0 0 0 2px rgba(255,255,255,.18);color:rgba(255,255,255,.55);border:1.5px dashed rgba(255,255,255,.35)}
+.seat.off .ava{filter:grayscale(1) brightness(.7)}
+.seat.now .ava{box-shadow:0 0 0 3px #140d17,0 0 0 5px var(--gold),0 0 26px rgba(247,197,72,.6),0 10px 20px rgba(0,0,0,.55)}
+.seat.now::before{content:"";position:absolute;inset:-10px;border-radius:50%;background:conic-gradient(var(--gold),rgba(247,197,72,0) 40%,rgba(247,197,72,0) 60%,var(--gold));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));animation:spin 2.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.plate{position:absolute;left:50%;top:calc(100% - 7px);z-index:1;transform:translateX(-50%);min-width:calc(var(--ava) * 1.75);max-width:calc(var(--ava) * 2.4);padding:3px 8px 4px;border-radius:9px;background:linear-gradient(180deg,#241b27,#0d090f);border:1px solid rgba(255,255,255,.16);box-shadow:0 6px 14px rgba(0,0,0,.55);display:grid;justify-items:center;line-height:1.2;white-space:nowrap}
+.plate b{max-width:100%;overflow:hidden;text-overflow:ellipsis;font-size:10.5px;font-weight:700;color:#fff}
+.plate span{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+.plate span.zero{color:rgba(243,239,219,.45)}
+.plate span.off{color:var(--ink-soft);font-weight:500}
+.plate svg{width:11px;height:11px}
+.seat.now .plate{border-color:var(--gold)}
+.seat.me .plate{background:linear-gradient(180deg,#3a2240,#160c19);border-color:rgba(214,144,201,.6)}
+.hole{position:absolute;left:50%;bottom:calc(100% - 2px);z-index:0;transform:translateX(-50%) rotate(-6deg);display:flex;--w:calc(var(--ava) * .5)}
+.seat.me .hole{--w:calc(var(--ava) * .7);bottom:calc(100% + 4px)}
+.seat.top .hole{bottom:auto;top:calc(100% + 30px)}
+.seat.dim{opacity:.38;filter:saturate(.35)}
+button.seat{cursor:pointer}
+.seat.target::after{content:"";position:absolute;inset:-7px;border-radius:50%;box-shadow:0 0 0 2px var(--rose),0 0 18px rgba(255,107,139,.65);animation:pulse 1.3s ease-in-out infinite;pointer-events:none}
+.seat.picked::after{content:"";position:absolute;inset:-8px;border-radius:50%;box-shadow:0 0 0 3px var(--rose),0 0 28px rgba(255,107,139,.9);pointer-events:none}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+button.seat:active .ava{transform:scale(.94)}
+.tagwrap{position:absolute;left:50%;top:50%;z-index:4;width:0;height:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.tag{flex:none;transform:translateX(var(--tx,0px)) rotate(-5deg);padding:4px 9px 5px;border-radius:8px;font-family:var(--display);font-weight:900;font-size:calc(var(--ava) * .34 + 3px);line-height:1;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;color:#2a1600;background:linear-gradient(180deg,#ffe892,#f7c548 50%,#d99a17);box-shadow:0 0 0 2px #2a1600,0 6px 18px rgba(0,0,0,.5),0 0 24px rgba(247,197,72,.55);animation:tagin .45s cubic-bezier(.2,.9,.3,1.4) both}
+.tag.bad{color:#fff;background:linear-gradient(180deg,#ff7b82,#d2343f 55%,#a11d27);box-shadow:0 0 0 2px #3a0a0e,0 6px 18px rgba(0,0,0,.5),0 0 24px rgba(210,52,63,.55)}
+.tag.rose{color:#fff;background:linear-gradient(180deg,#ffb0c1,#ff6b8b 55%,#d63d63);box-shadow:0 0 0 2px #3a0a18,0 6px 18px rgba(0,0,0,.5),0 0 24px rgba(255,107,139,.6)}
+.tag.calm{color:var(--cream);background:rgba(20,13,23,.92);box-shadow:0 0 0 1.5px var(--gold),0 6px 18px rgba(0,0,0,.5);animation:none}
+@keyframes tagin{from{transform:translateX(var(--tx,0px)) scale(.4) rotate(-14deg);opacity:0}}
+.dealer{position:absolute;z-index:2;width:22px;height:22px;border-radius:50%;transform:translate(-50%,-50%);display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#fff,#e4dec2);color:var(--plum);font-size:10px;font-weight:700;box-shadow:0 0 0 2px rgba(0,0,0,.35),0 3px 6px rgba(0,0,0,.5)}
+
+/* ---------- actiebalk ---------- */
+.dock{position:relative;z-index:5;margin:0 -16px;padding:16px 16px calc(14px + env(safe-area-inset-bottom,0px));border-radius:24px 24px 0 0;background:linear-gradient(180deg,#26152c,#120a15 70%);border-top:1px solid rgba(255,255,255,.14);box-shadow:0 -14px 40px rgba(0,0,0,.45);display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.dock h2{font-size:32px;line-height:.92;color:#fff}
+.sub{font-size:var(--s2);color:var(--ink-soft);line-height:1.5}
+.sub b{color:#fff}
+.fine{font-size:10.5px;color:rgba(243,239,219,.55);line-height:1.45}
+.waitline{font-size:var(--s2);color:var(--ink-soft)}
+.waitline::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.4s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+.ask-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.sharebtn{display:inline-flex;align-items:center;gap:7px;flex:none;padding:8px 14px;border-radius:999px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--glass-line);font-size:var(--s1);font-weight:700;color:var(--cream)}
+.sharebtn svg{width:14px;height:14px}
+.optrow{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:700}
+.dock .optrow{color:#fff}
+.seg{display:flex;gap:2px;padding:4px;border-radius:999px;background:rgba(255,255,255,.1);flex:none}
+.seg button{min-width:40px;border-radius:999px;padding:7px 10px;font-size:var(--s1);font-weight:700;color:var(--ink-soft)}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--plum)}
+.sheet .seg{background:rgba(43,21,49,.1)}
+.sheet .seg button{color:var(--plum-2)}
+.sheet .seg button[aria-pressed="true"]{background:var(--plum);color:var(--cream)}
+.pop{animation:pop .35s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes pop{from{transform:translateY(10px);opacity:.3}}
+.res-h{display:grid;gap:4px}
+.verdict{font-family:var(--display);font-weight:900;font-size:46px;line-height:.86;text-transform:uppercase}
+.good .verdict{color:var(--good)}
+.bad .verdict{color:var(--bad)}
+.action{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);font-family:var(--display);font-weight:800;font-size:24px;line-height:1.05;color:#fff}
+.action svg{width:20px;height:20px;flex:none;color:var(--gold)}
+
+/* jouw kaart: stiekem bekijken */
+.mycard{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center}
+.peek{--w:clamp(64px,21vw,88px);border-radius:10px;transition:transform .15s}
+.peek:active{transform:scale(.97)}
+.role{display:grid;gap:6px;align-content:center}
+.role h2{font-size:30px}
+.role.queen h2{color:var(--rose)}
+.role.farmer h2{color:var(--gold)}
+/* namen om de vrouw aan te wijzen */
+.names{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.name{display:flex;align-items:center;gap:8px;min-height:48px;padding:8px 12px;border-radius:14px;font-family:var(--display);font-weight:800;font-size:22px;line-height:1;color:#fff;background:linear-gradient(180deg,#4a2753,#2b1531);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),inset 0 -3px 0 rgba(0,0,0,.28),0 4px 12px rgba(0,0,0,.35);text-align:left;overflow:hidden}
+.name i{width:12px;height:12px;border-radius:50%;background:var(--pc);flex:none;box-shadow:0 0 0 2px rgba(0,0,0,.3)}
+.name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.name[aria-pressed="true"]{background:linear-gradient(180deg,#ff8aa5,#c23a62);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 0 0 2px #fff,0 6px 18px rgba(255,107,139,.5)}
+
+/* ---------- start ---------- */
+.table.lobby.home{flex:none;height:min(320px,42svh);min-height:240px;margin-bottom:-4px}
+.startcard{padding:20px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.startcard>p{font-size:var(--s3);line-height:1.55}
+.fld{display:grid;gap:6px;font-size:var(--s1);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--plum-2)}
+.inp{width:100%;min-width:0;height:50px;padding:0 18px;border:0;border-radius:999px;background:#fff;color:var(--plum);font-size:16px;box-shadow:inset 0 0 0 1.5px rgba(43,21,49,.2)}
+.inp::placeholder{color:#9b8aa0}
+.inp:focus{outline:none;box-shadow:inset 0 0 0 2px var(--pink-2)}
+.inp.code{flex:1;text-transform:uppercase;letter-spacing:.3em;font-weight:700}
+.addrow{display:flex;gap:8px}
+.addbtn{flex:none;height:50px;padding:0 18px;border-radius:999px;background:var(--plum);color:var(--cream);font-weight:700}
+.addbtn:disabled{opacity:.4}
+.or{display:flex;align-items:center;gap:12px;font-size:var(--s1);color:var(--plum-2)}
+.or::before,.or::after{content:"";flex:1;height:1px;background:rgba(43,21,49,.2)}
+.errline{padding:10px 14px;border-radius:14px;background:#fde3e3;color:#a11d27;font-size:var(--s2);font-weight:700}
+.note{font-size:var(--s1);color:var(--ink-soft);text-align:center}
+
+/* ---------- vellen ---------- */
+.overlay{position:fixed;inset:0;z-index:50;display:grid;align-items:end;justify-items:center;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));background:rgba(11,6,13,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.sheet{width:min(520px,100%);max-height:calc(100dvh - 40px);overflow:auto;overscroll-behavior:contain;padding:22px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.sheet.anim{animation:up .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{transform:translateY(30px);opacity:0}}
+.sheet-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.sheet-title{font-weight:900;font-size:44px;line-height:.9}
+.xbtn{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--cream-2);flex:none;font-size:18px}
+.xbtn:hover{background:var(--cream-3)}
+.sheet .kick{color:var(--plum-2)}
+.sheet>p{font-size:var(--s3);line-height:1.55}
+.mlist{display:grid}
+.mlist>*{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:11px 0;border-bottom:1px dashed rgba(43,21,49,.2);font-family:var(--display);font-weight:700;font-size:30px;line-height:1.1;text-align:left;text-decoration:none;color:var(--plum)}
+.mlist>button:hover,.mlist>a:hover{color:var(--pink-2)}
+.mlist span{font-family:var(--mono);font-size:var(--s1);font-weight:500;color:var(--plum-2)}
+.mlist .optrow{font-size:30px}
+.rules{display:grid;gap:10px;font-size:var(--s2);line-height:1.55}
+.rules h3{font-size:26px;line-height:1;margin-top:8px}
+.rules ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.rules .small{font-size:var(--s1);color:var(--plum-2)}
+.scorecard{padding:0}
+.scorecard table{width:100%;border-collapse:collapse;font-size:var(--s1)}
+.scorecard th{padding:9px 4px 7px;text-align:right;font-size:9.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--plum-2)}
+.scorecard td{padding:8px 4px;text-align:right;border-top:1px solid rgba(43,21,49,.12);font-variant-numeric:tabular-nums;font-weight:700}
+.scorecard th:first-child,.scorecard td:first-child{text-align:left}
+.scorecard td:first-child{font-family:var(--display);font-size:20px;font-weight:800}
+.scorecard td:first-child i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--pc);margin-right:7px;vertical-align:2px}
+
+.toasts{position:fixed;left:50%;top:calc(66px + env(safe-area-inset-top,0px));z-index:60;transform:translateX(-50%);display:grid;gap:6px;justify-items:center;width:max-content;max-width:calc(100vw - 24px);pointer-events:none}
+.toasts div{padding:9px 15px;border-radius:999px;background:var(--cream);color:var(--plum);font-size:var(--s1);font-weight:700;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.45);animation:toast 2.8s ease both}
+.toasts div.net{background:#2a1631;color:var(--gold);box-shadow:inset 0 0 0 1px rgba(247,197,72,.5),0 10px 30px rgba(0,0,0,.45);animation:none}
+@keyframes toast{0%{opacity:0;transform:translateY(-8px)}8%{opacity:1;transform:none}88%{opacity:1}100%{opacity:0}}
+.confetti{position:fixed;inset:0;z-index:40;overflow:hidden;pointer-events:none}
+.confetti i{position:absolute;top:-24px;width:8px;height:14px;border-radius:2px;animation:fall var(--t) cubic-bezier(.2,.6,.4,1) var(--dl) forwards}
+@keyframes fall{to{transform:translate(var(--x),112vh) rotate(var(--r))}}
+
+@media (max-width:379px){.brand{font-size:20px}}
+@media (max-width:339px){.brand span{display:none}}
+@media (max-height:720px){
+  .dock{padding-top:12px;gap:8px}
+  .dock h2,.role h2{font-size:27px}
+  .verdict{font-size:40px}
+  .fine{display:none}
+  .peek{--w:62px}
+  .view.game{grid-template-rows:minmax(280px,1fr) auto}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<div class="stars" aria-hidden="true"></div>
+
+<div class="app">
+  <header class="bar">
+    <div class="brand"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.9 4.5 6.6 4.5c2.1 0 3.6 1.2 4.4 2.6.8-1.4 2.3-2.6 4.4-2.6 3.7 0 5.7 3.9 4.2 7.3C19.5 16.4 12 21 12 21z"/></svg><span>BOER ZOEKT VROUW</span></div>
+    <div class="bar-r">
+      <button class="owe glass" id="owe" type="button" data-act="mine" hidden></button>
+      <button class="round glass" type="button" data-act="menu" aria-label="Menu" aria-haspopup="dialog">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </header>
+  <main class="screen" id="screen"></main>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet cream" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
+</div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<div class="confetti" id="confetti" aria-hidden="true"></div>
+
+<script type="module">
+import * as B from '/shared/bussen.js';
+import * as V from '/shared/boer.js';
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// vaste kleur per stoel aan tafel
+const PC = ['#4f8dff', '#d690c9', '#ff7a00', '#2fbf71', '#f7c548', '#ff4a24', '#a28fe3', '#36c5d6', '#e86aa0', '#9ccf3c'];
+const ARR = '<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>';
+const GLASS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l-1.6 16.2a2 2 0 0 1-2 1.8H9.6a2 2 0 0 1-2-1.8z"/><path d="M6.6 9h10.8"/></svg>';
+const SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+const PEEK_MS = 4000;   // zo lang blijft je kaart open als je hem bekijkt
+
+/* ================= OPSLAG (alleen gemak, per telefoon) ================= */
+const KEY = { me: 'boer-ik', table: 'boer-tafel', mute: 'boer-stil' };
+const store = {
+  get(k, d) { try { const v = JSON.parse(localStorage.getItem(k) ?? 'null'); return v ?? d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* opslag niet beschikbaar */ } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) { /* idem */ } },
+};
+
+// wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
+// Je naam neemt hij over van Bussen als je die al eens hebt ingevuld.
+const me = (() => {
+  const v = store.get(KEY.me, {}) || {};
+  let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
+  if (!token) {
+    const abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_', a = new Uint8Array(24);
+    crypto.getRandomValues(a);
+    token = [...a].map((x) => abc[x & 63]).join('');
+  }
+  const name = typeof v.name === 'string' && v.name ? v.name : (store.get('bussen-ik', {}) || {}).name;
+  const o = { token, name: typeof name === 'string' ? name.slice(0, V.NAME_MAX) : '' };
+  store.set(KEY.me, o);
+  return o;
+})();
+const urlCode = ((location.pathname.match(/^\/boer\/([A-Za-z]{4})$/) || [])[1] || new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+
+/* ================= GELUID ================= */
+const Snd = {
+  ctx: null, out: null, muted: !!store.get(KEY.mute, false),
+  ac() {
+    if (this.muted) return null;
+    if (!this.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      this.ctx = new AC();
+      this.out = this.ctx.createDynamicsCompressor();
+      this.out.connect(this.ctx.destination);
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    return this.ctx;
+  },
+  tone(f, d, { type = 'sine', vol = .15, at = 0, slide = 0, lp = 0 } = {}) {
+    const c = this.ac(); if (!c) return;
+    const t = c.currentTime + at, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f * slide), t + d);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    let node = o;
+    if (lp) { const f2 = c.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = lp; o.connect(f2); node = f2; }
+    node.connect(g); g.connect(this.out); o.start(t); o.stop(t + d + .05);
+  },
+  noise(d, { vol = .2, at = 0, freq = 2600 } = {}) {
+    const c = this.ac(); if (!c) return;
+    const t = c.currentTime + at, len = Math.ceil(c.sampleRate * d), buf = c.createBuffer(1, len, c.sampleRate), data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = buf; bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = .9; g.gain.value = vol;
+    src.connect(bp); bp.connect(g); g.connect(this.out); src.start(t);
+  },
+  flip() { this.noise(.11, { vol: .35, freq: 3200 }); this.tone(1700, .03, { type: 'triangle', vol: .04, at: .07 }); },
+  deal() { for (let i = 0; i < 3; i++) this.noise(.08, { vol: .28, freq: 3000 + i * 300, at: i * .09 }); },
+  chip() { this.tone(2400, .04, { type: 'triangle', vol: .08 }); this.tone(1800, .05, { type: 'triangle', vol: .06, at: .03 }); },
+  // de boer begint: een opgaande zwiep en een startsein
+  start() { this.noise(.35, { vol: .25, freq: 1400 }); [523, 784, 1047].forEach((f, i) => this.tone(f, .16, { type: 'triangle', vol: .12, at: .12 + i * .08 })); },
+  // tik per seconde, de laatste drie wat hoger
+  tick(last) { this.tone(last ? 1600 : 1150, .05, { type: 'square', vol: .05, lp: 3200 }); },
+  // de pling: een heldere bel als de tijd om is
+  pling() {
+    this.tone(1568, 1.9, { vol: .22 });
+    this.tone(3136, 1.1, { vol: .07 });
+    this.tone(4327, .5, { vol: .035 });
+    this.tone(2349, 1.3, { vol: .05, at: .01 });
+  },
+  good() { [660, 880, 1320].forEach((f, i) => this.tone(f, .2, { type: 'triangle', vol: .12, at: i * .07 })); },
+  bad() { this.tone(233, .34, { type: 'sawtooth', vol: .08, slide: .6, lp: 1400 }); this.tone(175, .38, { type: 'square', vol: .05, slide: .6, at: .03, lp: 1000 }); },
+  win() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, .24, { type: 'triangle', vol: .11, at: i * .1 })); },
+};
+const buzz = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* niet ondersteund */ } };
+
+// het scherm aan laten zolang je aan tafel zit
+let wake = null;
+async function keepAwake(on) {
+  try {
+    if (on && !wake && 'wakeLock' in navigator && document.visibilityState === 'visible') {
+      wake = await navigator.wakeLock.request('screen');
+      wake.addEventListener('release', () => { wake = null; });
+    } else if (!on && wake) { const w = wake; wake = null; await w.release(); }
+  } catch (e) { wake = null; }
+}
+
+/* ================= VERBINDING ================= */
+const Net = {
+  ws: null, want: null, retry: 0, timer: 0, status: 'idle',
+  url: `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/boer`,
+  // msg wordt (opnieuw) gestuurd bij elke verbinding: zo kom je na wegvallen vanzelf terug aan tafel
+  go(msg) { this.want = msg; if (!this.send(msg)) this.open(); },
+  open() {
+    if (this.ws && this.ws.readyState <= 1) return;
+    clearTimeout(this.timer);
+    this.setStatus('connecting');
+    let ws;
+    try { ws = new WebSocket(this.url); } catch (e) { this.later(); return; }
+    this.ws = ws;
+    ws.onopen = () => { this.retry = 0; this.setStatus('open'); if (this.want) this.send(this.want); };
+    ws.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (err) { return; } onMessage(m); };
+    ws.onclose = () => { if (this.ws !== ws) return; this.ws = null; this.setStatus('closed'); if (this.want) this.later(); };
+    ws.onerror = () => {};
+  },
+  later() { clearTimeout(this.timer); this.timer = setTimeout(() => this.open(), Math.min(5000, 400 * 2 ** this.retry++)); },
+  send(o) { if (this.ws && this.ws.readyState === 1) { this.ws.send(JSON.stringify(o)); return true; } return false; },
+  stop() { this.want = null; clearTimeout(this.timer); if (this.ws) { const ws = this.ws; this.ws = null; ws.close(); } this.setStatus('idle'); },
+  setStatus(s) { this.status = s; netPill(); },
+};
+const wakeNet = () => { if (Net.want && (!Net.ws || Net.ws.readyState > 1)) { Net.retry = 0; Net.open(); } };
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { wakeNet(); if (S) keepAwake(true); } });
+addEventListener('online', wakeNet);
+setInterval(() => { if (S) Net.send({ t: 'ping' }); }, 20000);
+
+/* ================= STAAT ================= */
+let S = null;   // de laatste stand van de server (alleen wat jij mag zien)
+const ui = {
+  joining: false, error: '', name: me.name, code: urlCode,
+  seen: 0, banner: null, bannerTimer: 0, lastView: null, lastStep: null, dockPop: false, sheet: null, sheetHtml: null, build: null,
+  peek: 0, peekTimer: 0, peekFresh: false, looked: 0,   // je kaart bekijken: in welke ronde, en of je hem al zag
+  endAt: 0, liveRound: 0, plingRound: 0, lastSecs: null, pick: -1,
+};
+
+function onMessage(m) {
+  if (m.t === 'state') return onState(m);
+  if (m.t === 'joinFailed') {
+    Net.stop(); store.del(KEY.table);
+    S = null; ui.joining = false; ui.error = m.msg;
+    return render();
+  }
+  if (m.t === 'left') return leaveLocal(m.reason);
+  if (m.t === 'err') toast(m.msg);
+}
+
+function onState(m) {
+  // is de server bijgewerkt terwijl deze pagina openstond? Dan opnieuw laden, anders draait hier oude code.
+  // Na het laden kom je met je sleutel vanzelf weer op je eigen plek.
+  if (m.build) {
+    if (ui.build && ui.build !== m.build) { Net.stop(); location.reload(); return; }
+    ui.build = m.build;
+  }
+  const first = !S || S.code !== m.code;
+  S = m;
+  ui.joining = false; ui.error = '';
+  store.set(KEY.table, { code: m.code });
+  Net.want = { t: 'join', code: m.code, name: me.name, token: me.token };
+  if (location.pathname !== `/boer/${m.code}`) history.replaceState(null, '', `/boer/${m.code}`);
+  const seq = m.seq || 0;
+  if (first || m.phase === 'lobby' || seq < ui.seen) ui.seen = seq;   // geen oude gebeurtenissen opnieuw afspelen
+  else for (const ev of m.log || []) if (ev.seq > ui.seen) present(ev);
+  ui.seen = seq;
+  syncClock();
+  keepAwake(true);
+  render();
+}
+
+function leaveLocal(reason) {
+  Net.stop();
+  store.del(KEY.table);
+  S = null; ui.banner = null; ui.sheet = null; ui.code = '';
+  syncClock();
+  history.replaceState(null, '', '/boer');
+  keepAwake(false);
+  render();
+  if (reason) toast(reason);
+}
+
+function banner(title, sub = '') {
+  ui.banner = { title, sub };
+  clearTimeout(ui.bannerTimer);
+  ui.bannerTimer = setTimeout(() => { ui.banner = null; render(); }, 2000);
+}
+
+// een gebeurtenis van de server laten zien en horen
+function present(ev) {
+  switch (ev.type) {
+    case 'delen':
+      Snd.deal(); buzz(40);
+      ui.peek = 0; ui.looked = 0; ui.pick = -1;
+      banner(`Ronde ${ev.round}`, 'Bekijk stiekem je kaart');
+      break;
+    case 'tellen':
+      // op elke telefoon hetzelfde, zodat niemand ziet wie de vrouw is
+      Snd.start(); buzz(120);
+      ui.lastSecs = null; ui.peek = 0;
+      break;
+    case 'raden':
+      if (ev.ok) { Snd.win(); celebrate(); } else Snd.bad();
+      buzz(ev.ok ? [60, 40, 60] : [120, 60, 120]);
+      banner(ev.ok ? 'Raak!' : 'Mis!', `${S.players[ev.vrouw].name} was de vrouw`);
+      break;
+  }
+}
+
+/* ---------- de klok van de boer ---------- */
+let clockTimer = 0;
+const msLeft = () => Math.max(0, ui.endAt - performance.now());
+const timeUp = () => S && S.phase === 'tellen' && msLeft() <= 0;
+const RING = 2 * Math.PI * 45;
+
+// de server zegt hoeveel tijd er nog is; vanaf hier telt deze telefoon zelf verder
+function syncClock() {
+  if (S && S.phase === 'tellen') {
+    ui.endAt = performance.now() + S.left;
+    if (S.left > 0) ui.liveRound = S.round;
+    if (!clockTimer) clockTimer = setInterval(tickClock, 100);
+  } else if (clockTimer) { clearInterval(clockTimer); clockTimer = 0; }
+}
+
+function tickClock() {
+  if (!S || S.phase !== 'tellen') return;
+  const left = msLeft(), secs = Math.ceil(left / 1000);
+  if (secs !== ui.lastSecs) {
+    // de boer heeft zijn ogen dicht: zijn telefoon tikt de seconden
+    if (ui.lastSecs != null && secs > 0 && S.boer === S.you) Snd.tick(secs <= 3);
+    ui.lastSecs = secs;
+    if (secs === 0) return timeIsUp();
+  }
+  // klok en glas bijwerken zonder het hele scherm opnieuw te tekenen
+  const cd = $('#cd');
+  if (cd) { cd.textContent = secs; cd.parentElement.classList.toggle('last', secs <= 3); }
+  const ring = $('#ringfg');
+  if (ring) ring.style.strokeDashoffset = (RING * (1 - left / (S.count * 1000))).toFixed(1);
+  setBeer('g1', left / (S.count * 1000));
+}
+
+function timeIsUp() {
+  if (ui.plingRound !== S.round) {
+    ui.plingRound = S.round;
+    // alleen als je de klok zag lopen: wie later binnenkomt, krijgt geen pling
+    if (ui.liveRound === S.round) {
+      Snd.pling(); buzz([80, 60, 80]);
+      banner('Tijd!', S.boer === S.you ? 'Ogen open' : 'Glas neer');
+    }
+  }
+  render();
+}
+
+/* ================= BOUWSTENEN ================= */
+const nameOf = (i) => esc(S.players[i].name);
+const who = (i) => i === S.you ? 'Jij' : nameOf(i);
+const initial = (name) => [...name.trim()][0]?.toUpperCase() || '?';
+const isHost = () => S && S.you === S.host;
+const order = () => S.players.map((_, k) => (S.you + k) % S.players.length);
+const playing = (i) => S.in && S.in.includes(i);
+const spoken = (c) => `${{ harten: 'Harten', ruiten: 'Ruiten', klaveren: 'Klaveren', schoppen: 'Schoppen' }[B.SUITS[c.s].id]} ${B.RANK_NAME[c.r] || c.r}`;
+// wie de boer is, of wie er voor hem raadt als hij weg is (de host)
+const boerActor = () => S.boer === S.you ? S.you : isHost() && S.boer >= 0 && !S.players[S.boer].connected ? S.boer : -1;
+const liveCount = () => S.players.filter((p) => p.connected).length;
+
+function cardHTML(c, { cls = '', reveal = false, d = 0 } = {}) {
+  const sa = d ? ` style="--d:${d}s"` : '';
+  if (!c) return `<div class="card down ${cls}"${sa} role="img" aria-label="dichte kaart"><div class="cin"><div class="face front"></div><div class="face back"></div></div></div>`;
+  const rk = B.rankLabel(c), sym = B.SUITS[c.s].sym;
+  const mid = c.r >= 11 && c.r <= 13 ? `<span class="pip court">${rk}<i>${sym}</i></span>` : `<span class="pip">${sym}</span>`;
+  const role = c.r === V.VROUW ? ' queen' : c.r === V.BOER ? ' farmer' : '';
+  return `<div class="card${B.isRed(c) ? ' red' : ''}${role}${reveal ? ' reveal' : ''} ${cls}"${sa} role="img" aria-label="${spoken(c)}"><div class="cin"><div class="face front"><span class="ix">${rk}<i>${sym}</i></span>${mid}<span class="ix b">${rk}<i>${sym}</i></span></div><div class="face back"></div></div></div>`;
+}
+
+// een glas op tafel; vol = 1, leeg = 0. Met een id kan de klok hem leeg laten lopen.
+const GLASS_PATH = 'M3 4h34l-3.6 52.4A4.5 4.5 0 0 1 28.9 61H11.1a4.5 4.5 0 0 1-4.5-4.6z';
+function beerTop(f) { return 13 + 46 * (1 - Math.max(0, Math.min(1, f))); }
+function glassHTML(f, id) {
+  const top = beerTop(f);
+  return `<svg class="glass-svg" viewBox="0 0 40 64" aria-hidden="true"><defs><clipPath id="clip-${id}"><path d="${GLASS_PATH}"/></clipPath></defs>
+    <path class="wall" d="${GLASS_PATH}"/>
+    <g clip-path="url(#clip-${id})"><rect class="beer" id="${id}-beer" x="0" y="${top + 4}" width="40" height="64"/><rect class="foam" id="${id}-foam" x="0" y="${top}" width="40" height="${f > .02 ? 6 : 0}"/></g>
+    <rect class="shine" x="8" y="9" width="3" height="40" rx="1.5"/>
+    <path class="rim" d="${GLASS_PATH}"/></svg>`;
+}
+function setBeer(id, f) {
+  const beer = document.getElementById(`${id}-beer`), foam = document.getElementById(`${id}-foam`);
+  if (!beer) return;
+  const top = beerTop(f);
+  beer.setAttribute('y', top + 4);
+  foam.setAttribute('y', top);
+  foam.setAttribute('height', f > .02 ? 6 : 0);
+}
+const glassesHTML = (f1, f2, id = 'g') => `<div class="glasses">${glassHTML(f1, `${id}1`)}${glassHTML(f2, `${id}2`)}</div>`;
+
+// Stoelen op gelijke afstand langs de rand van de tafel: jij onderaan, daarna met de klok mee.
+const seatCache = new Map();
+function seatPositions(n, aspect) {
+  const key = `${n}:${aspect.toFixed(2)}`;
+  if (seatCache.has(key)) return seatCache.get(key);
+  // de rand in procenten van de tafel (zie .rail): zijkanten op 6% en 94%, boven- en onderkant als halve ellips
+  const rx = 44, ry = 25.5, top = 30.5, bot = 64.5, pts = [];
+  const cap = (cy, a0, a1) => { for (let k = 0; k <= 48; k++) { const a = a0 + (a1 - a0) * k / 48; pts.push([50 + rx * Math.cos(a), cy + ry * Math.sin(a)]); } };
+  cap(bot, Math.PI / 2, Math.PI);
+  cap(top, Math.PI, Math.PI * 2);
+  cap(bot, 0, Math.PI / 2);
+  // afstanden in echte verhoudingen, zodat de stoelen ook op een smalle tafel gelijk verdeeld zijn
+  const len = [0];
+  for (let i = 1; i < pts.length; i++) len.push(len[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], (pts[i][1] - pts[i - 1][1]) / aspect));
+  const total = len[len.length - 1], out = [];
+  for (let s = 0; s < n; s++) {
+    const want = total * s / n;
+    let i = 1;
+    while (i < len.length - 1 && len[i] < want) i++;
+    const t = (want - len[i - 1]) / ((len[i] - len[i - 1]) || 1);
+    out.push([pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t]);
+  }
+  seatCache.set(key, out);
+  return out;
+}
+
+// Zet de stoelen op hun plek. Valt een naambordje of label buiten het scherm, dan schuift het naar binnen.
+function placeSeats() {
+  const scr = $('#screen').getBoundingClientRect(), minX = scr.left + 4, maxX = scr.right - 4;
+  const inward = (cx, half) => cx - half < minX ? minX - (cx - half) : cx + half > maxX ? maxX - (cx + half) : 0;
+  for (const t of document.querySelectorAll('.table')) {
+    const r = t.getBoundingClientRect();
+    if (!r.width || !r.height) continue;
+    const seats = t.querySelectorAll('.seat');
+    const pos = seatPositions(seats.length, r.width / r.height);
+    seats.forEach((el, i) => {
+      const [x, y] = pos[i];
+      const cx = r.left + x / 100 * r.width;
+      const shift = inward(cx, el.querySelector('.plate').offsetWidth / 2);
+      el.style.left = shift ? `calc(${x}% + ${shift}px)` : `${x}%`;
+      el.style.top = `${y}%`;
+      el.classList.toggle('top', y < 50);
+      const tag = el.querySelector('.tag');
+      if (tag) tag.style.setProperty('--tx', `${inward(cx + shift, tag.offsetWidth / 2 + 4)}px`);
+    });
+    const d = t.querySelector('.dealer');
+    if (d && pos.length) {
+      const [x, y] = pos[+d.dataset.seat] || pos[0];
+      d.style.left = `${x + (50 - x) * .2 + (x < 50 ? 9 : -9)}%`; d.style.top = `${y + (50 - y) * .22}%`;
+    }
+  }
+}
+
+// De tafel: rand, vilt, iets in het midden en de spelers eromheen (order: wie op welke stoel, jij eerst).
+// seat(i) -> { hole: kaarten of aantal dichte kaarten, now, target, picked, dim, kick, tag: [soort, tekst] }
+function tableHTML({ order: seatsOrder, people, center = '', seat = () => ({}), dealer = -1, cls = '' }) {
+  const seats = seatsOrder.map((i) => {
+    const p = people[i], o = seat(i) || {};
+    const btn = o.target ? ` type="button" data-act="pick" data-to="${i}" aria-label="${esc(p.name)} is de vrouw"`
+      : o.kick ? ` type="button" data-act="kickask" data-seat="${i}" aria-label="${esc(p.name)} van tafel halen"` : '';
+    const el = btn ? 'button' : 'div';
+    const hole = !o.hole ? '' : Array.isArray(o.hole)
+      ? o.hole.map((c) => cardHTML(c, { cls: 'mini' })).join('')
+      : Array.from({ length: o.hole }, () => cardHTML(null, { cls: 'mini' })).join('');
+    const line = p.empty ? '' : p.connected === false ? '<span class="off">weg</span>'
+      : p.atjes != null ? `<span class="${p.atjes ? '' : 'zero'}" title="Glazen leeggedronken">${GLASS}${p.atjes}</span>` : '';
+    const isMe = S && i === S.you && !p.empty;
+    return `<${el} class="seat${o.now ? ' now' : ''}${o.target ? ' target' : ''}${o.picked ? ' picked' : ''}${o.dim ? ' dim' : ''}${p.empty ? ' empty' : ''}${isMe ? ' me' : ''}${p.connected === false ? ' off' : ''}" style="--pc:${PC[i % PC.length]}"${btn}>
+      ${hole ? `<div class="hole">${hole}</div>` : ''}<span class="ava">${p.empty ? '+' : esc(initial(p.name))}</span>
+      <span class="plate"><b>${p.empty ? 'Vrij' : esc(p.name)}</b>${line}</span>
+      ${o.tag ? `<span class="tagwrap"><span class="tag ${o.tag[0]}">${o.tag[1]}</span></span>` : ''}
+    </${el}>`;
+  }).join('');
+  const d = seatsOrder.indexOf(dealer);
+  const ban = ui.banner ? `<div class="banner"><p class="felt-sub">${esc(ui.banner.sub)}</p><p class="banner-t">${esc(ui.banner.title)}</p></div>` : '';
+  return `<div class="table ${cls}"><div class="rail"></div><div class="felt"></div>${d >= 0 ? `<span class="dealer" data-seat="${d}" title="Host" aria-hidden="true">H</span>` : ''}<div class="center">${center}</div>${seats}${ban}</div>`;
+}
+
+const gameTable = (center, seat) => tableHTML({ order: order(), people: S.players, center, dealer: S.host, seat });
+const sheetTop = (title, kick = '', close = true) => `<div class="sheet-top"><div>${kick ? `<p class="kick">${kick}</p>` : ''}<h2 class="sheet-title" id="sheetTitle">${title}</h2></div>${close ? '<button class="xbtn" type="button" data-act="close" aria-label="Sluiten">✕</button>' : ''}</div>`;
+const countSeg = () => `<div class="seg" role="group" aria-label="Tellen tot">${V.COUNTS.map((k) => `<button type="button" data-act="count-set" data-n="${k}" aria-pressed="${S.count === k}">${k}</button>`).join('')}</div>`;
+
+/* ================= SCHERMEN ================= */
+function vHome() {
+  const empty = Array.from({ length: 4 }, () => ({ name: 'Vrije plek', empty: true }));
+  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: `<p class="felt-sub">Drankspel voor op tafel</p><div class="felt-logo small">Boer zoekt<br>vrouw</div>${glassesHTML(1, 1, 'h')}` });
+  const busy = ui.joining ? 'disabled' : '';
+  return `
+  ${table}
+  <div class="startcard cream">
+    <div class="chips"><span class="chip">${V.MIN_PLAYERS} tot ${V.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
+    <p>Iedereen krijgt een kaart. De boer telt met zijn ogen dicht, de vrouw drinkt stiekem een glas leeg. Raadt de boer wie de vrouw is?</p>
+    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${V.NAME_MAX}" placeholder="Bijvoorbeeld Jort" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
+    <form class="addrow" id="joinForm" autocomplete="off">
+      <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
+      <button class="addbtn" type="submit" ${busy}>Meedoen</button>
+    </form>
+    <div class="or">of</div>
+    <button class="cta" type="button" data-act="create" ${busy}><span>${ui.joining ? 'Verbinden…' : 'Nieuwe tafel'}</span>${ARR}</button>
+    ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
+    <button class="ghostbtn" type="button" data-act="rules">Spelregels</button>
+  </div>
+  <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
+}
+
+function vLobby() {
+  const n = S.players.length, host = isHost(), enough = liveCount() >= V.MIN_PLAYERS;
+  const table = tableHTML({
+    order: order(), people: S.players, cls: 'lobby', dealer: S.host,
+    center: `<p class="felt-sub">Code van de tafel</p><div class="felt-logo code">${S.code}</div><p class="felt-sub">${n} van ${V.MAX_PLAYERS} plekken</p>`,
+    seat: (i) => ({ kick: host && i !== S.you, now: i === S.host }),
+  });
+  const dock = `<div class="ask-h"><h2>${host ? 'Jij bent de host' : 'Je zit aan tafel'}</h2><button class="sharebtn" type="button" data-act="share">${SHARE}Uitnodigen</button></div>
+    <p class="sub">Vrienden doen mee met code <b>${S.code}</b> of met de link. Zet twee volle glazen op tafel.</p>
+    ${host
+      ? `<div class="optrow"><span>De boer telt tot</span>${countSeg()}</div>
+        <button class="cta" type="button" data-act="start" ${enough ? '' : 'disabled'}><span>${enough ? 'Start het spel' : `Wacht op ${V.MIN_PLAYERS - liveCount()} ${V.MIN_PLAYERS - liveCount() === 1 ? 'speler' : 'spelers'}`}</span>${ARR}</button>
+        ${n > 1 ? '<p class="fine">Tik op een speler om die van tafel te halen.</p>' : ''}`
+      : `<p class="waitline">Wachten tot ${nameOf(S.host)} het spel start</p>`}
+    <button class="linkbtn" type="button" data-act="leaveask">Verlaat tafel</button>`;
+  return `${table}<div class="dock">${dock}</div>`;
+}
+
+function vSpel() {
+  const ph = S.phase, up = timeUp(), boer = S.boer, actor = boerActor();
+  let center, seat, dock;
+
+  if (ph === 'kaarten') {
+    center = `<div class="pot">Ronde ${S.round}</div>${glassesHTML(1, 1)}<p class="felt-sub">De boer begint wanneer hij wil</p>`;
+    seat = (i) => ({ hole: playing(i) && i !== S.you ? 1 : null, dim: !playing(i) });
+    dock = playing(S.you) ? myCardDock() : lateDock();
+    if (isHost()) dock += '<button class="linkbtn" type="button" data-act="deal">Opnieuw delen</button>';
+  } else if (ph === 'tellen' && !up) {
+    const left = msLeft(), secs = Math.max(1, Math.ceil(left / 1000));
+    center = `<div class="clock${secs <= 3 ? ' last' : ''}"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="ring-bg" cx="50" cy="50" r="45"/><circle class="ring-fg" id="ringfg" cx="50" cy="50" r="45" style="stroke-dashoffset:${(RING * (1 - left / (S.count * 1000))).toFixed(1)}"/></svg><b id="cd">${secs}</b></div>
+      ${glassesHTML(left / (S.count * 1000), 1)}<p class="felt-sub">${boer === S.you ? 'Jij telt' : `${nameOf(boer)} telt`} met de ogen dicht</p>`;
+    seat = (i) => ({ hole: playing(i) && i !== S.you ? 1 : null, dim: !playing(i), now: i === boer, tag: i === boer ? ['calm', 'Ogen dicht'] : null });
+    // voor de vrouw precies hetzelfde scherm als voor de rest, zodat niemand het aan je telefoon ziet
+    dock = boer === S.you
+      ? `<div class="ask-h"><h2>Ogen dicht!</h2></div><p class="sub">Je telefoon tikt de seconden. Bij de <b>pling</b> mag je kijken en raden wie de vrouw is.</p>`
+      : `<div class="ask-h"><h2>${nameOf(boer)} telt</h2></div><p class="sub"><b>Vrouw:</b> drink nu zo snel mogelijk een glas leeg! De rest: doe gewoon alsof.</p><p class="fine">Bij de pling moet het glas weer op tafel staan.</p>`;
+  } else if (ph === 'tellen') {
+    center = `<div class="bigword">Tijd!</div>${glassesHTML(0, 1)}<p class="felt-sub">${actor >= 0 ? 'Wie is de vrouw?' : `${nameOf(boer)} raadt wie de vrouw is`}</p>`;
+    seat = (i) => {
+      const can = actor >= 0 && playing(i) && i !== boer;
+      return { hole: playing(i) && i !== S.you ? 1 : null, dim: !playing(i), now: i === boer && actor < 0, target: can && ui.pick !== i, picked: can && ui.pick === i };
+    };
+    dock = actor >= 0 ? guessDock(actor) : `<div class="ask-h"><h2>Tijd!</h2></div><p class="sub">Glas neer. <b>${nameOf(boer)}</b> doet de ogen open en raadt nu wie de vrouw is.</p><p class="waitline">Wachten op ${nameOf(boer)}</p>`;
+  } else {
+    const ok = S.guess === S.vrouw;
+    center = `<div class="bigword ${ok ? 'good' : 'bad'}">${ok ? 'Raak!' : 'Mis!'}</div>${glassesHTML(0, 0)}<p class="felt-sub">${nameOf(S.vrouw)} was de vrouw</p>`;
+    seat = (i) => {
+      const o = { hole: S.cards[i] ? [S.cards[i]] : null, dim: !playing(i) };
+      if (ok && i === S.vrouw) o.tag = ['bad', 'Tweede glas!'];
+      else if (ok && i === boer) o.tag = ['', 'Raak!'];
+      else if (i === S.vrouw) o.tag = ['rose', 'De vrouw'];
+      else if (i === boer) o.tag = ['bad', 'Tweede glas!'];
+      else if (i === S.guess) o.tag = ['calm', 'Gekozen'];
+      return o;
+    };
+    dock = resultDock(ok);
+  }
+  return `${gameTable(center, seat)}<div class="dock${ui.dockPop ? ' pop' : ''}">${dock}</div>`;
+}
+
+// jouw kaart: dicht, tik om hem stiekem te bekijken
+function myCardDock() {
+  const c = S.card, open = ui.peek === S.round, isBoer = c && c.r === V.BOER;
+  const card = `<button class="peek" type="button" data-act="peek" aria-label="${open ? 'Kaart verbergen' : 'Bekijk je kaart'}">${open ? cardHTML(c, { reveal: ui.peekFresh }) : cardHTML(null)}</button>`;
+  let role;
+  if (!open) role = `<div class="role"><h2>Jouw kaart</h2><p class="sub">Tik erop om hem stiekem te bekijken. Laat niemand meekijken!</p></div>`;
+  else if (isBoer) role = `<div class="role farmer"><h2>Jij bent de boer</h2><p class="sub">Begin wanneer je wilt. Doe je ogen dicht: je telefoon telt tot ${S.count} en plingt als je mag kijken.</p></div>`;
+  else if (c.r === V.VROUW) role = `<div class="role queen"><h2>Jij bent de vrouw</h2><p class="sub">Zodra de boer begint te tellen: drink zo snel mogelijk een glas leeg. Niks laten merken!</p></div>`;
+  else role = `<div class="role"><h2>Geen vrouw</h2><p class="sub">Jij hoeft niks te drinken. Doe gerust alsof jij de vrouw bent.</p></div>`;
+  // heeft de boer zijn kaart gezien, dan blijft de knop staan, ook als de kaart weer dicht is
+  const go = isBoer && (open || ui.looked === S.round) ? `<button class="cta hot" type="button" data-act="count"><span>Ogen dicht: begin met tellen</span>${ARR}</button>` : '';
+  return `<div class="mycard">${card}${role}</div>${go}`;
+}
+
+function lateDock() {
+  return `<div class="ask-h"><h2>Even kijken</h2></div><p class="sub">Deze ronde is al gedeeld. Je krijgt een kaart vanaf de volgende ronde.</p>`;
+}
+
+function guessDock(actor) {
+  const opts = S.in.filter((i) => i !== S.boer).map((i) => `<button class="name" type="button" data-act="pick" data-to="${i}" style="--pc:${PC[i % PC.length]}" aria-pressed="${ui.pick === i}"><i></i><span>${who(i)}</span></button>`).join('');
+  const forNote = actor !== S.you ? `<p class="fine">${nameOf(actor)} is weg. Jij raadt nu voor ${nameOf(actor)}.</p>` : '';
+  const sure = ui.pick >= 0 ? `<button class="cta hot" type="button" data-act="guess"><span>${ui.pick === S.you ? 'Ik ben de vrouw' : `${nameOf(ui.pick)} is de vrouw`}</span>${ARR}</button>` : '<p class="fine">Tik op een naam of op iemand aan tafel.</p>';
+  return `${forNote}<div class="ask-h"><h2>Ogen open!</h2></div><p class="sub">Wie heeft er een glas leeggedronken? Wijs de vrouw aan.</p><div class="names">${opts}</div>${sure}`;
+}
+
+function resultDock(ok) {
+  const v = S.vrouw, b = S.boer;
+  const head = ok ? 'Raak!' : 'Mis!';
+  const explain = ok
+    ? `${who(b)} wees ${v === S.you ? 'jou' : nameOf(v)} aan, en dat was de vrouw.`
+    : `${who(b)} wees ${S.guess === S.you ? 'jou' : nameOf(S.guess)} aan, maar ${v === S.you ? 'jij' : nameOf(v)} was de vrouw.`;
+  const drinks = ok ? v : b;
+  const line = `${drinks === S.you ? 'Jij drinkt' : `${nameOf(drinks)} drinkt`} ${ok ? 'ook ' : ''}het tweede glas`;
+  const enough = liveCount() >= V.MIN_PLAYERS;
+  const next = isHost()
+    ? `<button class="cta" type="button" data-act="deal" ${enough ? '' : 'disabled'}><span>${enough ? 'Glazen gevuld? Volgende ronde' : `Minstens ${V.MIN_PLAYERS} spelers nodig`}</span>${ARR}</button>`
+    : `<p class="waitline">Glazen vullen. ${nameOf(S.host)} start de volgende ronde</p>`;
+  return `<div class="res-h ${ok ? 'good' : 'bad'}"><span class="verdict">${head}</span><span class="sub">${explain}</span></div>
+    <div class="action">${GLASS}<span>${line}</span></div>${next}`;
+}
+
+/* ================= VELLEN ================= */
+function menuHTML() {
+  const host = isHost(), game = S && S.phase !== 'lobby';
+  return `${sheetTop('Menu')}
+  <nav class="mlist">
+    <button type="button" data-act="rules">Spelregels <span>›</span></button>
+    ${game ? '<button type="button" data-act="stand">Stand <span>›</span></button>' : ''}
+    <button type="button" data-act="mute">Geluid <span>${Snd.muted ? 'uit' : 'aan'}</span></button>
+    ${S && host ? `<div class="optrow">Tellen tot ${countSeg()}</div>` : ''}
+    ${S ? `<button type="button" data-act="share">Uitnodigen <span>${S.code}</span></button>` : ''}
+    ${game && host && S.phase !== 'tellen' ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
+    ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
+    <a href="/">Naar de speelhal <span>›</span></a>
+  </nav>`;
+}
+
+function standHTML() {
+  const rows = S.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.atjes - a.p.atjes || b.p.raak - a.p.raak);
+  return `${sheetTop('Stand', `Na ${S.round} ${S.round === 1 ? 'ronde' : 'rondes'}`)}
+  <div class="scorecard"><table>
+    <thead><tr><th>Speler</th><th>Glazen</th><th>Boer</th><th>Raak</th></tr></thead>
+    <tbody>${rows.map(({ p, i }) => `<tr style="--pc:${PC[i % PC.length]}"><td><i></i>${esc(p.name)}</td><td>${p.atjes}</td><td>${p.boer}</td><td>${p.raak}</td></tr>`).join('')}</tbody>
+  </table></div>
+  <p class="sub">Glazen: hoeveel glazen iemand heeft leeggedronken. Boer: hoe vaak iemand de boer was. Raak: hoe vaak die boer goed raadde.</p>`;
+}
+
+function rulesHTML() {
+  const n = S ? S.count : V.COUNT_DEFAULT;
+  return `${sheetTop('Spelregels', 'Boer zoekt vrouw')}
+  <div class="rules">
+    <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander. Zet twee volle glazen op tafel.</p>
+    <ol>
+      <li><b>Kaarten delen.</b> De kaarten worden geschud en iedereen krijgt er een. Bekijk je kaart stiekem op je telefoon.</li>
+      <li><b>De boer.</b> Wie de boer trekt, mag op elk moment beginnen met tellen tot ${n}, met de ogen dicht. Zijn telefoon telt mee en tikt de seconden.</li>
+      <li><b>De vrouw.</b> Wie de vrouw trekt, moet zo snel mogelijk een van de glazen leegdrinken zodra de boer begint te tellen. De rest doet gewoon alsof.</li>
+      <li><b>Raden.</b> Bij de pling mag de boer kijken. Hij raadt wie de vrouw is en het glas heeft leeggedronken.</li>
+      <li><b>Straf.</b> Goed geraden? Dan drinkt de vrouw ook het tweede glas. Fout geraden? Dan drinkt de boer het tweede glas.</li>
+      <li><b>Nieuwe ronde.</b> Glazen weer vullen, en de host deelt opnieuw.</li>
+    </ol>
+    <p class="small">Is ${n} seconden te lang of te kort? De host past het aan in het menu. Wie later aanschuift, doet mee vanaf de volgende ronde. Drink met mate: water of karnemelk telt ook.</p>
+  </div>`;
+}
+
+function openSheet(key, html) { ui.sheet = { key, html }; renderSheet(); }
+function closeSheet() { ui.sheet = null; renderSheet(); }
+
+function renderSheet() {
+  const ov = $('#overlay'), sh = $('#sheet');
+  if (!ui.sheet) { if (!ov.hidden) { ov.hidden = true; sh.innerHTML = ''; } ui.sheetHtml = null; return; }
+  const wasHidden = ov.hidden;
+  if (!wasHidden && ui.sheetHtml === ui.sheet.html) return;
+  sh.innerHTML = ui.sheet.html;
+  sh.classList.toggle('anim', wasHidden);
+  ov.hidden = false;
+  ui.sheetHtml = ui.sheet.html;
+  if (wasHidden) { const first = sh.querySelector('button, a'); if (first) first.focus({ preventScroll: true }); }
+}
+
+function toast(msg, cls = '') {
+  const box = $('#toasts'), el = document.createElement('div');
+  el.textContent = msg; if (cls) el.className = cls;
+  box.appendChild(el);
+  while (box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => el.remove(), 2800);
+}
+
+function netPill() {
+  const box = $('#toasts');
+  let el = box.querySelector('.net');
+  const bad = S && Net.status !== 'open';
+  if (bad && !el) { el = document.createElement('div'); el.className = 'net'; el.textContent = 'Verbinding kwijt, opnieuw verbinden…'; box.prepend(el); }
+  if (!bad && el) el.remove();
+}
+
+function celebrate() {
+  if (reduce) return;
+  const box = $('#confetti'), cols = ['#f7c548', '#d690c9', '#ff6b8b', '#2fbf71', '#ff7a00', '#f3efdb'];
+  box.innerHTML = Array.from({ length: 70 }, () => `<i style="left:${(Math.random() * 100).toFixed(1)}%;background:${cols[Math.floor(Math.random() * cols.length)]};--t:${(2.4 + Math.random() * 2).toFixed(2)}s;--dl:${(Math.random() * .6).toFixed(2)}s;--x:${Math.round((Math.random() - .5) * 160)}px;--r:${Math.round(360 + Math.random() * 720)}deg"></i>`).join('');
+  setTimeout(() => { box.innerHTML = ''; }, 5200);
+}
+
+/* ================= TEKENEN ================= */
+function view() {
+  if (!S) return 'home';
+  if (S.phase === 'lobby') return 'lobby';
+  return 'spel';
+}
+
+function render() {
+  const v = view();
+  // een nieuwe stap in de ronde: het dock springt even op
+  const step = S ? `${v}:${S.phase}:${S.round}:${timeUp()}` : v;
+  ui.dockPop = step !== ui.lastStep;
+  ui.lastStep = step;
+  document.documentElement.dataset.view = v === 'spel' ? S.phase : v;
+  const scr = $('#screen');
+  const nameIn = $('#nameIn'), codeIn = $('#codeIn');
+  if (nameIn) ui.name = nameIn.value;
+  if (codeIn) ui.code = codeIn.value;
+  const keep = v === ui.lastView ? scr.scrollTop : 0;
+  const html = { home: vHome, lobby: vLobby, spel: vSpel }[v]();
+  scr.classList.toggle('is-game', v !== 'home');
+  scr.innerHTML = `<div class="view v-${v}${v !== 'home' ? ' game' : ''}">${html}</div>`;
+  placeSeats();
+  scr.scrollTop = keep;
+  ui.lastView = v;
+  ui.peekFresh = false;
+  const own = $('#owe');
+  if (S && S.phase !== 'lobby') {
+    const n = S.players[S.you].atjes;
+    own.hidden = false;
+    own.classList.toggle('zero', !n);
+    own.innerHTML = `${GLASS}${n}`;
+    own.setAttribute('aria-label', `Jij dronk ${n} ${n === 1 ? 'glas' : 'glazen'} leeg`);
+  } else own.hidden = true;
+  if (ui.sheet && ui.sheet.key === 'menu') ui.sheet.html = menuHTML();
+  if (ui.sheet && ui.sheet.key === 'stand' && S) ui.sheet.html = standHTML();
+  renderSheet();
+  netPill();
+}
+
+/* ================= BEDIENING ================= */
+function myName() {
+  const input = $('#nameIn');
+  const name = V.cleanNames([input ? input.value : ui.name])[0] || '';
+  if (!name) { ui.error = 'Vul eerst je naam in.'; render(); const n = $('#nameIn'); if (n) n.focus(); return null; }
+  me.name = name; ui.name = name; store.set(KEY.me, me);
+  return name;
+}
+
+function joinWith(code) {
+  const name = myName();
+  if (!name) return;
+  code = String(code || '').toUpperCase().replace(/[^A-Z]/g, '');
+  if (code.length !== 4) { ui.error = 'Vul de code van 4 letters in.'; render(); return; }
+  ui.joining = true; ui.error = ''; ui.code = code;
+  Snd.ac();
+  Net.go({ t: 'join', code, name, token: me.token });
+  render();
+}
+
+const actions = {
+  create() {
+    const name = myName();
+    if (!name) return;
+    ui.joining = true; ui.error = '';
+    Snd.ac();
+    Net.go({ t: 'create', name, token: me.token });
+    render();
+  },
+  'count-set'(el) { Net.send({ t: 'settings', count: +el.dataset.n }); Snd.chip(); },
+  start() { Snd.ac(); Net.send({ t: 'start' }); },
+  share() {
+    const url = `${location.origin}/boer/${S.code}`, text = `Doe mee met Boer zoekt vrouw aan tafel ${S.code}`;
+    closeSheet();
+    if (navigator.share) navigator.share({ title: 'Boer zoekt vrouw', text, url }).catch(() => {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast('Link gekopieerd'), () => toast(url));
+    else toast(url);
+  },
+  kickask(el) {
+    const i = +el.dataset.seat;
+    openSheet('kick', `${sheetTop(`${nameOf(i)} van tafel halen?`)}
+      <p>${nameOf(i)} kan daarna opnieuw meedoen met de code.</p>
+      <button class="cta" type="button" data-act="kick" data-seat="${i}"><span>Ja, van tafel halen</span>${ARR}</button>
+      <button class="ghostbtn" type="button" data-act="close">Nee</button>`);
+  },
+  kick(el) { Net.send({ t: 'kick', seat: +el.dataset.seat }); closeSheet(); },
+  peek() {
+    Snd.ac(); Snd.flip();
+    clearTimeout(ui.peekTimer);
+    if (ui.peek === S.round) { ui.peek = 0; render(); return; }
+    ui.peek = S.round; ui.peekFresh = true; ui.looked = S.round;
+    const round = S.round;
+    ui.peekTimer = setTimeout(() => { if (ui.peek === round) { ui.peek = 0; render(); } }, PEEK_MS);
+    render();
+  },
+  count() { Snd.ac(); Net.send({ t: 'count' }); },
+  pick(el) {
+    if (!timeUp() || boerActor() < 0) return;
+    const i = +el.dataset.to;
+    if (!playing(i) || i === S.boer) return;
+    ui.pick = i; Snd.chip();
+    render();
+  },
+  guess() { if (ui.pick >= 0) Net.send({ t: 'guess', target: ui.pick }); },
+  deal() { Snd.ac(); Net.send({ t: 'deal' }); },
+  mine() {
+    const n = S.players[S.you].atjes;
+    toast(n ? `Jij dronk al ${n} ${n === 1 ? 'glas' : 'glazen'} leeg` : 'Jij hebt nog geen glas leeggedronken');
+  },
+  menu() { openSheet('menu', menuHTML()); },
+  rules() { openSheet('rules', rulesHTML()); },
+  stand() { openSheet('stand', standHTML()); },
+  mute() { Snd.muted = !Snd.muted; store.set(KEY.mute, Snd.muted); if (!Snd.muted) Snd.chip(); openSheet('menu', menuHTML()); },
+  againask() {
+    openSheet('again', `${sheetTop('Terug naar de lobby?')}
+      <p>De stand begint dan opnieuw. In de lobby kunnen nieuwe spelers aanschuiven en kun je spelers van tafel halen.</p>
+      <button class="cta" type="button" data-act="again"><span>Ja, terug naar de lobby</span>${ARR}</button>
+      <button class="ghostbtn" type="button" data-act="close">Nee, verder spelen</button>`);
+  },
+  again() { Net.send({ t: 'again' }); closeSheet(); },
+  leaveask() {
+    openSheet('leave', `${sheetTop('Tafel verlaten?')}
+      <p>${S && S.phase !== 'lobby' ? 'Met de code kom je terug op je eigen plek, met je eigen stand.' : 'Met de code kun je later weer aanschuiven.'}</p>
+      <button class="cta" type="button" data-act="leave"><span>Ja, verlaten</span>${ARR}</button>
+      <button class="ghostbtn" type="button" data-act="close">Nee, blijven</button>`);
+  },
+  leave() { Net.send({ t: 'leave' }); leaveLocal(); },
+  close: closeSheet,
+};
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-act]');
+  if (el && !el.disabled && actions[el.dataset.act]) { actions[el.dataset.act](el); return; }
+  if (e.target === $('#overlay')) closeSheet();
+});
+document.addEventListener('submit', (e) => { if (e.target.id === 'joinForm') { e.preventDefault(); joinWith($('#codeIn').value); } });
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'codeIn') { const v = e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4); if (v !== e.target.value) e.target.value = v; }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !$('#overlay').hidden) closeSheet();
+  if (e.key === 'Enter' && e.target.id === 'nameIn') { e.preventDefault(); const c = $('#codeIn'); if (c && c.value.length === 4) joinWith(c.value); else if (c) c.focus(); }
+});
+addEventListener('resize', placeSeats);
+
+/* ================= START ================= */
+// zat je net nog aan een tafel (en open je niet een andere link)? Dan meteen terug op je plek.
+const lastTable = store.get(KEY.table, null);
+if (lastTable && typeof lastTable.code === 'string' && (!urlCode || urlCode === lastTable.code)) {
+  ui.joining = true;
+  Net.go({ t: 'join', code: lastTable.code, name: me.name, token: me.token });
+}
+render();
+if (urlCode && !ui.joining) { const n = $('#nameIn'); if (n && !n.value) n.focus(); }
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeSeats);
+</script>
+</body>
+</html>

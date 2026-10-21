@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="vilt" cx="50%" cy="38%" r="72%"><stop offset="0" stop-color="#35a862"/><stop offset=".55" stop-color="#21823f"/><stop offset="1" stop-color="#125a2e"/></radialGradient>
+    <pattern id="rug" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="22" height="22" fill="#3a1d43"/><rect width="5" height="22" fill="#d690c9" fill-opacity=".45"/></pattern>
+    <clipPath id="glas"><path d="M318 268h120l-12 176a14 14 0 0 1-14 13h-68a14 14 0 0 1-14-13z"/></clipPath>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#vilt)"/>
+  <rect x="26" y="26" width="460" height="460" rx="90" fill="none" stroke="#f7c548" stroke-opacity=".4" stroke-width="6"/>
+  <!-- de boer: dichte kaart -->
+  <g transform="rotate(-14 190 220)">
+    <rect x="96" y="92" width="176" height="246" rx="22" fill="url(#rug)" stroke="#f3efdb" stroke-width="12"/>
+    <text x="184" y="246" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="96" fill="#f3efdb">?</text>
+  </g>
+  <!-- de vrouw: harten vrouw -->
+  <g transform="rotate(9 300 210)">
+    <rect x="206" y="78" width="176" height="246" rx="22" fill="#fffdf4" stroke="#e4dec2" stroke-width="4"/>
+    <text x="294" y="226" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="112" fill="#d2343f">V</text>
+    <path transform="translate(294 268) scale(1.05)" d="M0 30 C-40 2 -40 -34 -18 -40 C-6 -43 0 -33 0 -26 C0 -33 6 -43 18 -40 C40 -34 40 2 0 30 Z" fill="#d2343f"/>
+  </g>
+  <!-- het glas -->
+  <path d="M318 268h120l-12 176a14 14 0 0 1-14 13h-68a14 14 0 0 1-14-13z" fill="#ffffff" fill-opacity=".22"/>
+  <g clip-path="url(#glas)"><rect x="300" y="312" width="160" height="160" fill="#f0a81c"/><rect x="300" y="294" width="160" height="22" fill="#fff6dc"/></g>
+  <rect x="338" y="300" width="10" height="120" rx="5" fill="#ffffff" fill-opacity=".4"/>
+  <path d="M318 268h120l-12 176a14 14 0 0 1-14 13h-68a14 14 0 0 1-14-13z" fill="none" stroke="#fffdf4" stroke-width="9" stroke-linejoin="round"/>
+</svg>

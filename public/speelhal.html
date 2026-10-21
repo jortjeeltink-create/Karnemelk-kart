@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Speelhal</title>
-<meta name="description" content="Al je spellen op één plek: Karnemelk Kart, Mega Ball, Stock Market, Rode Zone en Bussen.">
+<meta name="description" content="Al je spellen op één plek: Karnemelk Kart, Mega Ball, Stock Market, Rode Zone, Bussen en Boer zoekt vrouw.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -172,7 +172,7 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
     <p class="kicker">van Jort</p>
     <h1>Speelhal</h1>
     <div class="hero-card cream">
-      <div class="chips"><span class="chip">Vijf spellen</span><span class="chip line">Eén pagina</span></div>
+      <div class="chips"><span class="chip">Zes spellen</span><span class="chip line">Eén pagina</span></div>
       <p>Al mijn spellen op één plek. Scroll naar beneden om ze te bekijken, of spring er direct in.</p>
       <div class="hero-list" id="heroList"></div>
     </div>
@@ -250,7 +250,13 @@ const GAMES = [
     chips: ['Kaartspel', 'Online met vrienden'],
     text: 'Het kaartspel bussen, online. Iedereen speelt op zijn eigen telefoon: raad rood of zwart en hoger of lager, deel slokken uit of spaar ze op, en hoop dat jij niet de bus in moet.',
     facts: [['Spelers', '2 tot 9'], ['Fases', 'vragen, piramide, bus'], ['Meedoen', 'met een code']],
-    cta: 'Speel Bussen' }
+    cta: 'Speel Bussen' },
+  { id: 'boer', name: 'Boer zoekt', name2: 'vrouw', short: 'Boer zoekt vrouw', acc: '#ff6b8b', tint: '#2a0f1c', bg: '#1a0b14',
+    url: '/boer',
+    chips: ['Drankspel', 'Online met vrienden'],
+    text: 'Iedereen krijgt een kaart op zijn eigen telefoon. De boer telt met zijn ogen dicht en de vrouw drinkt stiekem een glas leeg. Bij de pling raadt de boer wie het was: goed is het tweede glas voor de vrouw, fout is het voor de boer.',
+    facts: [['Spelers', '3 tot 10'], ['Tellen', '8 seconden'], ['Meedoen', 'met een code']],
+    cta: 'Speel Boer zoekt vrouw' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 function build(){
@@ -415,6 +421,36 @@ const PREV = {
     for (const wx of [bw * .2, bw * .76]) { c.save(); c.translate(wx, bh); c.rotate(reduce ? 0 : t * .012); c.beginPath(); c.arc(0, 0, bh * .2, 0, TAU); c.fillStyle = '#141416'; c.fill(); c.strokeStyle = '#d6cfae'; c.lineWidth = 2; c.beginPath(); c.moveTo(-bh * .08, 0); c.lineTo(bh * .08, 0); c.stroke(); c.restore(); }
     c.restore();
     T(c, 'LIJN 7', w - 14, 18, 12, 'rgba(243,239,219,.6)', { f: MF, a: 'right' });
+  },
+  boer(c, w, h, t){
+    const g = c.createRadialGradient(w / 2, h * .1, 10, w / 2, h * .45, h); g.addColorStop(0, '#5a1f3a'); g.addColorStop(1, '#1a0b14'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    // de boer telt tot 8, dan de pling: de vrouw draait om en haar glas is leeg
+    const cyc = reduce ? 9 : (t / 1000) % 11, counting = cyc < 8;
+    const R = Math.min(w * .13, h * .2), cx = w * .4, cy = h * .34;
+    c.beginPath(); c.arc(cx, cy, R, 0, TAU); c.fillStyle = 'rgba(0,0,0,.3)'; c.fill(); c.lineWidth = R * .14; c.strokeStyle = 'rgba(255,255,255,.12)'; c.stroke();
+    if (counting) { c.beginPath(); c.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + TAU * (1 - cyc / 8)); c.strokeStyle = '#f7c548'; c.lineCap = 'round'; c.stroke(); c.lineCap = 'butt'; }
+    T(c, counting ? String(Math.ceil(8 - cyc)) : 'PLING!', cx, cy + 2, counting ? R * .95 : R * .42, counting ? '#fff' : '#f7c548', { w: 900 });
+    // het glas: loopt leeg zolang de boer telt
+    const gw = R * .9, gh = R * 1.45, gx = w * .66, gy = cy - gh / 2, f = counting ? 1 - cyc / 8 : 0;
+    c.save(); c.beginPath(); c.moveTo(gx, gy); c.lineTo(gx + gw, gy); c.lineTo(gx + gw * .88, gy + gh); c.lineTo(gx + gw * .12, gy + gh); c.closePath();
+    c.fillStyle = 'rgba(255,255,255,.14)'; c.fill(); c.clip();
+    const top = gy + gh * .12 + gh * .88 * (1 - f);
+    c.fillStyle = '#f0a81c'; c.fillRect(gx - 2, top + 5, gw + 4, gh); if (f > .03) { c.fillStyle = '#fff6dc'; c.fillRect(gx - 2, top, gw + 4, 6); }
+    c.restore();
+    c.beginPath(); c.moveTo(gx, gy); c.lineTo(gx + gw, gy); c.lineTo(gx + gw * .88, gy + gh); c.lineTo(gx + gw * .12, gy + gh); c.closePath(); c.lineWidth = 2.5; c.strokeStyle = 'rgba(255,255,255,.85)'; c.stroke();
+    // vijf dichte kaarten; na de pling draait de vrouw om
+    const n = 5, cw = Math.min(w * .1, h * .16), ch = cw * 1.4, gap = cw * .32, y = h * .76, queen = 3;
+    for (let i = 0; i < n; i++) {
+      const x = w / 2 + (i - (n - 1) / 2) * (cw + gap);
+      const p = i === queen ? clamp((cyc - 8.2) / .6, 0, 1) : 0, sx = Math.abs(Math.cos(p * Math.PI)), open = p > .5;
+      c.save(); c.translate(x, y); c.scale(Math.max(.03, sx), 1);
+      c.shadowColor = open ? 'rgba(255,107,139,.7)' : 'rgba(0,0,0,.4)'; c.shadowBlur = open ? 18 : 8; c.shadowOffsetY = 3;
+      rr(c, -cw / 2, -ch / 2, cw, ch, cw * .13); c.fillStyle = open ? '#fffdf4' : '#3a1d43'; c.fill();
+      c.shadowColor = 'transparent';
+      if (open) T(c, 'V♥', 0, 1, cw * .42, '#d2343f', { w: 900 });
+      else { c.lineWidth = Math.max(1.5, cw * .06); c.strokeStyle = '#f3efdb'; rr(c, -cw / 2 + cw * .07, -ch / 2 + cw * .07, cw * .86, ch - cw * .14, cw * .09); c.stroke(); T(c, '?', 0, 1, cw * .4, 'rgba(214,144,201,.85)', { w: 900 }); }
+      c.restore();
+    }
   }
 };
 let prevs = [];

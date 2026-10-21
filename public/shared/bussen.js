@@ -72,8 +72,8 @@ export function shuffle(arr, random) {
   return a;
 }
 
-// mulberry32, met de stand in het potje zelf
-function rand(g) {
+// mulberry32, met de stand in het potje zelf (ook gebruikt door boer.js)
+export function rand(g) {
   g.seed = (g.seed + 0x6d2b79f5) >>> 0;
   let t = g.seed;
   t = Math.imul(t ^ (t >>> 15), t | 1);
