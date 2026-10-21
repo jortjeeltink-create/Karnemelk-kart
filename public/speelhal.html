@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Speelhal</title>
-<meta name="description" content="Al je spellen op één plek: Karnemelk Kart, Mega Ball, Stock Market, Rode Zone, Bussen en Boer zoekt vrouw.">
+<meta name="description" content="Al je spellen op één plek: Karnemelk Kart, Mega Ball, Stock Market, Rode Zone, Bussen, Boer zoekt vrouw en Mexen.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -172,7 +172,7 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
     <p class="kicker">van Jort</p>
     <h1>Speelhal</h1>
     <div class="hero-card cream">
-      <div class="chips"><span class="chip">Zes spellen</span><span class="chip line">Eén pagina</span></div>
+      <div class="chips"><span class="chip">Zeven spellen</span><span class="chip line">Eén pagina</span></div>
       <p>Al mijn spellen op één plek. Scroll naar beneden om ze te bekijken, of spring er direct in.</p>
       <div class="hero-list" id="heroList"></div>
     </div>
@@ -256,7 +256,13 @@ const GAMES = [
     chips: ['Drankspel', 'Online met vrienden'],
     text: 'Iedereen krijgt stiekem een rol op zijn eigen telefoon: boer, vrouw of burger. De boer telt met zijn ogen dicht en de vrouw drinkt stiekem een glas leeg. Bij de pling raadt de boer wie het was: goed is het tweede glas voor de vrouw, fout is het voor de boer.',
     facts: [['Spelers', '3 tot 10'], ['Tellen', '8 seconden'], ['Meedoen', 'met een code']],
-    cta: 'Speel Boer zoekt vrouw' }
+    cta: 'Speel Boer zoekt vrouw' },
+  { id: 'mexen', name: 'Mexen', name2: '', short: 'Mexen', acc: '#36c5d6', tint: '#0d2a30', bg: '#0b1d22',
+    url: '/mexen',
+    chips: ['Dobbelspel', 'Online met vrienden'],
+    text: 'Het dobbelspel, online. Gooi om de beurt met twee stenen op je eigen telefoon en zie iedereen live gooien. De eerste bepaalt hoe vaak je mag gooien, de laagste worp drinkt, en elke Mex verdubbelt de slokken.',
+    facts: [['Spelers', '2 tot 10'], ['Hoogst', 'Mex (2 en 1)'], ['Meedoen', 'met een code']],
+    cta: 'Speel Mexen' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 function build(){
@@ -457,6 +463,40 @@ const PREV = {
       }
       else { c.lineWidth = Math.max(1.5, cw * .06); c.strokeStyle = '#f3efdb'; rr(c, -cw / 2 + cw * .07, -ch / 2 + cw * .07, cw * .86, ch - cw * .14, cw * .09); c.stroke(); T(c, '?', 0, 1, cw * .4, 'rgba(214,144,201,.85)', { w: 900 }); }
       c.restore();
+    }
+  },
+  mexen(c, w, h, t){
+    const g = c.createRadialGradient(w / 2, h * .1, 10, w / 2, h * .45, h); g.addColorStop(0, '#13474f'); g.addColorStop(1, '#0b1d22'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    // elke 3,2 seconden een worp: beker schudt, stenen rollen uit, en af en toe is het Mex
+    const cyc = reduce ? 2.4 : (t / 1000) % 3.2, n = reduce ? 0 : Math.floor(t / 3200);
+    const throwsList = [[2, 1], [6, 4], [5, 5], [3, 1], [6, 2], [2, 1], [4, 3]];
+    const d = throwsList[n % throwsList.length], mex = (d[0] === 2 && d[1] === 1);
+    // de beker
+    const cs = Math.min(w * .16, h * .34), cx = w * .27, cy = h * .5;
+    const shake = cyc < 1 ? Math.sin(cyc * 40) * .14 : cyc < 1.3 ? -.6 * (cyc - 1) / .3 : -.6 + .6 * clamp((cyc - 1.3) / 1.2, 0, 1);
+    c.save(); c.translate(cx, cy); c.rotate(shake);
+    c.fillStyle = '#7a3b1e'; c.beginPath(); c.moveTo(-cs * .45, -cs * .5); c.lineTo(cs * .45, -cs * .5); c.lineTo(cs * .36, cs * .55); c.lineTo(-cs * .36, cs * .55); c.closePath(); c.fill();
+    c.fillStyle = '#8f4a26'; c.beginPath(); c.moveTo(-cs * .45, -cs * .5); c.lineTo(0, -cs * .5); c.lineTo(0, cs * .55); c.lineTo(-cs * .36, cs * .55); c.closePath(); c.fill();
+    rr(c, -cs * .52, -cs * .62, cs * 1.04, cs * .18, cs * .09); c.fillStyle = '#5a2a14'; c.fill();
+    c.restore();
+    // de stenen
+    const ds = Math.min(w * .12, h * .26), out = clamp((cyc - 1.05) / .45, 0, 1);
+    if (out > 0) {
+      d.forEach((v, k) => {
+        const tx = w * (.55 + k * .2), ty = h * .55 + (k ? -ds * .3 : ds * .2);
+        const x = cx + (tx - cx) * out, y = cy + (ty - cy) * out - Math.sin(out * Math.PI) * h * .12;
+        c.save(); c.translate(x, y); c.rotate((1 - out) * (k ? 5 : -6) + (k ? .2 : -.15));
+        c.shadowColor = 'rgba(0,0,0,.4)'; c.shadowBlur = 10; c.shadowOffsetY = 4;
+        rr(c, -ds / 2, -ds / 2, ds, ds, ds * .22); c.fillStyle = mex ? '#f7c548' : '#fffdf4'; c.fill();
+        c.shadowColor = 'transparent';
+        const P = { 1: [5], 2: [3, 7], 3: [3, 5, 7], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] }[v];
+        for (const p of P) { const gx = (p - 1) % 3 - 1, gy = Math.ceil(p / 3) - 2; c.beginPath(); c.arc(gx * ds * .28, gy * ds * .28, ds * .09, 0, TAU); c.fillStyle = mex ? '#a11d27' : '#2b1531'; c.fill(); }
+        c.restore();
+      });
+    }
+    if (cyc > 1.6) {
+      const s = d[0] === d[1] ? `${d[0]}00` : mex ? 'MEX!' : `${Math.max(...d)}${Math.min(...d)}`;
+      T(c, s, w * .65, h * .2, Math.min(w * .09, h * .2), mex ? '#f7c548' : '#fff', { w: 900 });
     }
   }
 };

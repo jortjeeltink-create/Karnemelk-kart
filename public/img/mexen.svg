@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="vilt" cx="50%" cy="38%" r="72%"><stop offset="0" stop-color="#35a862"/><stop offset=".55" stop-color="#21823f"/><stop offset="1" stop-color="#125a2e"/></radialGradient>
+    <linearGradient id="steen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffdf4"/><stop offset="1" stop-color="#e9e0c2"/></linearGradient>
+    <radialGradient id="stip" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#4a2753"/><stop offset="1" stop-color="#1a0b1f"/></radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#vilt)"/>
+  <rect x="26" y="26" width="460" height="460" rx="90" fill="none" stroke="#f7c548" stroke-opacity=".4" stroke-width="6"/>
+  <!-- de beker, schuin, net de stenen eruit -->
+  <g transform="rotate(-28 190 190)">
+    <path d="M96 96H284L262 300A26 26 0 0 1 236 322H144A26 26 0 0 1 118 300Z" fill="#7a3b1e"/>
+    <path d="M96 96H190V322H144A26 26 0 0 1 118 300Z" fill="#8f4a26"/>
+    <rect x="82" y="70" width="216" height="42" rx="21" fill="#5a2a14"/>
+    <rect x="92" y="76" width="196" height="12" rx="6" fill="#a65d33" opacity=".7"/>
+    <path d="M114 150H266M122 270H258" stroke="#f0c18a" stroke-width="6" stroke-dasharray="14 10" opacity=".7"/>
+  </g>
+  <!-- twee stenen: een 2 en een 1, Mex -->
+  <g transform="rotate(-10 300 360)">
+    <rect x="228" y="296" width="132" height="132" rx="28" fill="url(#steen)"/>
+    <circle cx="266" cy="334" r="14" fill="url(#stip)"/><circle cx="322" cy="390" r="14" fill="url(#stip)"/>
+  </g>
+  <g transform="rotate(14 410 330)">
+    <rect x="350" y="262" width="118" height="118" rx="25" fill="url(#steen)"/>
+    <circle cx="409" cy="321" r="15" fill="#c62a36"/>
+  </g>
+</svg>

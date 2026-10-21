@@ -6,7 +6,7 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
 
 ## Wat zit erin
 
-- **Speelhal** (de hoofdpagina, `/`): een scrollpagina met al de spellen: Karnemelk Kart (`/kart`), Mega Ball, Stock Market Trainer, Rode Zone, Bussen en Boer zoekt vrouw. Wie de site als app op het beginscherm heeft gezet, komt hier binnen. Vanuit elk spel ga je terug naar de speelhal.
+- **Speelhal** (de hoofdpagina, `/`): een scrollpagina met al de spellen: Karnemelk Kart (`/kart`), Mega Ball, Stock Market Trainer, Rode Zone, Bussen, Boer zoekt vrouw en Mexen. Wie de site als app op het beginscherm heeft gezet, komt hier binnen. Vanuit elk spel ga je terug naar de speelhal.
 - **Live multiplayer** voor maximaal 10 spelers (mensen + computerkarts) per room.
 - **Privéroom met groepscode** van 4 letters, plus een deelbare link (`https://jouw-site/kart?room=ABCD`; oude links met `/?room=ABCD` werken ook nog).
 - **Lobby** met wie er meedoet, wie klaar is, coureurkeuze, baankeuze, computerkarts en de uitdaging voor de verliezer. De host start de race (en kan spelers verwijderen).
@@ -42,6 +42,11 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
   - De boer begint wanneer hij wil: ogen dicht, zijn telefoon telt af en tikt de seconden (standaard 8; de host kiest 6, 7, 8 of 10). Op elke telefoon klinkt een startsein, dus niemand ziet aan een scherm wie de vrouw is. De vrouw drinkt intussen zo snel mogelijk een van de twee glazen leeg.
   - Na het tellen klinkt op elke telefoon een **pling**: de boer doet zijn ogen open en wijst de vrouw aan. Goed geraden: de vrouw drinkt ook het tweede glas. Fout: de boer drinkt het. Daarna ziet iedereen alle rollen.
   - De host verdeelt de rollen voor de volgende ronde. Wie later aanschuift, doet mee vanaf de volgende ronde. In het menu staat de stand: glazen leeggedronken, hoe vaak iemand boer was en hoe vaak die goed raadde.
+- **Mexen** (via de speelhal, of los op `/mexen`, ook als eigen app op het beginscherm): het dobbelspel, online met 2 tot 10 vrienden, aan dezelfde groene tafel. Iemand maakt een tafel en deelt de code of de link (`/mexen/ABCD`).
+  - Om de beurt gooi je met twee stenen door op je telefoon op Gooi te tikken; iedereen ziet de stenen live uit de beker rollen. Je laatste worp telt: na elke worp kies je **Blijf staan** of **Nog eens**.
+  - De eerste van de ronde mag tot 3 keer gooien; hoe vaak hij gooit, zo vaak mag de rest ook. Mex (een 2 en een 1) is het hoogst en maakt je beurt meteen af, dan de dubbels (600 tot 100), dan 65 tot en met 31.
+  - Wie de laagste worp heeft, drinkt de inzet (1, 2 of 3 slokken, de host kiest). Elke Mex in de ronde verdubbelt de slokken. Bij gelijk gooien de laagsten nog één keer (afgooien). Wie verloor, begint de volgende ronde.
+  - Valt iemand weg, dan gooit de host voor die speler. Wie later aanschuift, gooit mee vanaf de volgende ronde. In het menu staat de stand: slokken, verloren rondes en Mexen.
 - Alles in het Nederlands.
 
 ## Snel starten op je eigen computer
@@ -211,7 +216,7 @@ Alle banen hebben schansen (soms met een boostring erachter) en extra turbostrok
 ## Techniek
 
 - **Server**: Node.js met alleen het pakket `ws`. De server is de baas over de race (60 stappen per seconde, 20 updates per seconde naar iedere speler), zodat botsingen voor iedereen hetzelfde zijn.
-- **Bussen** en **Boer zoekt vrouw** gebruiken elk een eigen WebSocket-kanaal (`/ws/bussen`, `/ws/boer`) op dezelfde server, met dezelfde tafels (`tafels.js`): een code, meedoen, terugkomen op je eigen plek en een host. Bussen: De server houdt het potje bij en stuurt elke telefoon alleen wat die mag zien: je eigen kaarten, de open kaarten op tafel en de stand. Dichte kaarten en de stapel verlaten de server niet. Tafels leven in het geheugen; een tafel zonder verbonden spelers verdwijnt na een half uur.
+- **Bussen**, **Boer zoekt vrouw** en **Mexen** gebruiken elk een eigen WebSocket-kanaal (`/ws/bussen`, `/ws/boer`, `/ws/mexen`) op dezelfde server, met dezelfde tafels (`tafels.js`): een code, meedoen, terugkomen op je eigen plek en een host. Bussen: De server houdt het potje bij en stuurt elke telefoon alleen wat die mag zien: je eigen kaarten, de open kaarten op tafel en de stand. Dichte kaarten en de stapel verlaten de server niet. Tafels leven in het geheugen; een tafel zonder verbonden spelers verdwijnt na een half uur.
 - **Browser**: Three.js (meegeleverd in `public/vendor`, geen CDN nodig). Fysiek gebaseerde materialen met omgevingslicht uit de lucht (reflecties), filmische kleuren (ACES), zonneschaduw die met de speler meeloopt, een lucht-shader met wolken en afgeronde vormen. Ongeveer 100.000 tot 270.000 driehoeken en 110 tot 380 tekenopdrachten per beeld. Kwaliteit: *Hoog* (echte schaduwen en reflecties op alles, tot 2 pixels per punt), *Normaal* en *Automatisch* (snelle wereld met glimmende karts, zachte schaduwvlekken, hooguit 1,5 pixel per punt), *Laag* (alles zo licht mogelijk). Automatisch zet bij haperen eerst de schaduwen uit en verlaagt daarna de resolutie; de volgende race wordt dan Laag.
 - **Schansen**: de hoogte (`y`) zit in de gedeelde fysica, dus server en voorspelling zijn het eens. Karts met meer dan 1,3 m hoogteverschil botsen niet, wie vliegt raakt geen plassen of obstakels.
 - **Soepel rijden ondanks vertraging**: je eigen kart wordt in de browser voorspeld (met precies dezelfde code als op de server) en stilletjes gecorrigeerd. Andere karts worden vloeiend tussen updates in getekend (30 updates per seconde, 80 ms buffer). Botsingen met andere karts voorspelt je telefoon zelf: je voelt en ziet de klap meteen, de server bevestigt hem kort daarna.
@@ -227,11 +232,12 @@ public/index.html  de kartgame (/kart)
 public/rodezone.html  Rode Zone, de revv-simulator (één los bestand)
 public/bussen.html  Bussen, het online kaartspel (praat met de server via /ws/bussen)
 public/boer.html    Boer zoekt vrouw, het online drankspel (praat met de server via /ws/boer)
+public/mexen.html   Mexen, het online dobbelspel (praat met de server via /ws/mexen)
 public/megaball.html  Mega Ball met nep geld (één los bestand)
 public/megaball-storten.html  stortpagina voor Mega Ball
 public/css/        vormgeving
 public/js/         browsercode: render/ (3D), game/ (race, HUD, voorspelling), ui/ (schermen), audio, besturing
-public/shared/     code voor server én browser: banen, fysica, items, bots, race, rooms, punten, winkel, tafels.js (online tafels met een code), bussen.js + bushub.js (Bussen) en boer.js + boerhub.js (Boer zoekt vrouw)
+public/shared/     code voor server én browser: banen, fysica, items, bots, race, rooms, punten, winkel, tafels.js (online tafels met een code), bussen.js + bushub.js (Bussen), boer.js + boerhub.js (Boer zoekt vrouw) en mex.js + mexhub.js (Mexen)
 public/vendor/     three.js (MIT-licentie)
 test/              tests
 tools/             baanvoorbeelden tekenen, offline-demo bouwen
@@ -245,6 +251,7 @@ Getest in deze omgeving:
 - Een echte race met **10 gelijktijdige spelers** via WebSockets: allemaal gefinisht, zo'n 80 botsingen die iedereen live zag, een speler die wegviel en in dezelfde kart terugkwam, punten 155 → 45 (inclusief dagbonus), winkel, alles bewaard na een herstart van de server, én teruggezet vanaf de telefoon na een herstart met een lege schijf.
 - **Bussen**: 20 snelle tests voor de spelregels en de tafels (vragen, paal, disco en bakken, uitdelen, nu doen of sparen per ronde, piramide, kaart kiezen bij gelijkspel, de bus, 40 hele potjes met 9 spelers, meedoen met code, opnieuw verbinden, de host die invalt, wat elke telefoon wel en niet te zien krijgt), plus een test met twee echte WebSocket-verbindingen. In Chromium een heel potje gespeeld met drie telefoons tegelijk (iPhone en iPhone SE), inclusief uitdelen, sparen, een gelijkspel om de bus, wegvallen en terugkomen. Zonder fouten in de console.
 - **Boer zoekt vrouw**: 8 snelle tests (rollen met precies één boer en één vrouw, tellen, te vroeg raden, wie het tweede glas drinkt, de tijd aanpassen, aanschuiven tussendoor, wat elke telefoon wel en niet te zien krijgt, de host die raadt als de boer wegvalt), plus een test met drie echte WebSocket-verbindingen. In Chromium een hele ronde gespeeld met drie telefoons tegelijk (iPhone en iPhone SE).
+- **Mexen**: 9 snelle tests (de volgorde van de worpen, de eerste die het aantal worpen bepaalt, Mex verdubbelt, afgooien bij gelijk, de verliezer die begint, de inzet, aanschuiven, de host die gooit voor wie weg is, honderd rondes met willekeurige stenen), plus een test met twee echte WebSocket-verbindingen. In Chromium drie rondes gespeeld met drie telefoons tegelijk, en het afgooien nagelopen.
 - De game in een Chromium-browser met iPhone-, iPhone SE- en Pixel-formaat en aanraakbediening, staand en liggend: naam kiezen, herladen (telefoon onthoudt je), uitnodigingslink, lobby, specials kopen, mijn coureur, alle kartmodellen en hoeden, races en foto's op de banen met de nieuwe graphics (Hoog, Normaal en Laag), een echte sprong over een schans door een ring, toeteren, uitslag met titels, toeschouwen, offline-demo. Zonder fouten in de console.
 
 Niet getest, en waarom:
