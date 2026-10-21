@@ -16,7 +16,10 @@ export const RANK_NAME = { 11: 'boer', 12: 'vrouw', 13: 'heer', 14: 'aas' };
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 9;      // 9 × 4 kaarten + 15 in de piramide = 51, past in één spel
 export const NAME_MAX = 14;
-export const PYRAMID_ROWS = [5, 4, 3, 2, 1]; // van onder naar boven; rij n is n slokken
+// de piramide, van onder naar boven: per kaart die je weglegt deel je slokken uit, bovenin een bak
+export const PYRAMID = [{ count: 7, sips: 2 }, { count: 6, sips: 3 }, { count: 5, sips: 4 }, { count: 4, sips: 5 }, { count: 3, bak: true }];
+export const PYRAMID_SIZE = PYRAMID.reduce((n, r) => n + r.count, 0);
+export const rowInfo = (row) => PYRAMID[row - 1];
 export const BUS_LENGTHS = [5, 7, 10];
 export const BUS_DEFAULT = 7;
 export const PICK_EXTRA = 2;       // bij gelijkspel liggen er zoveel kaarten meer dan kiezers
@@ -116,7 +119,8 @@ export function newGame(names, { busLength = BUS_DEFAULT, seed = Math.floor(Math
       savedTotal: 0,
       settle: null,    // 'ronde' of 'eind': je gespaarde slokken komen terug
       bak: 0,          // bakken die je nog moet doen (disco), die kun je niet sparen
-      bakFrom: -1,     // wie er disco riep
+      bakFrom: [],     // van wie die bakken komen: { p, n, disco }
+      bakDealt: 0,
       bakken: 0,
       disco: 0,
     })),
@@ -152,10 +156,18 @@ function addSips(g, to, n, from) {
   if (f) f.n += n; else p.from.push({ p: from, n });
 }
 
-function queueDeal(g, from, sips) {
-  const open = g.deals.find((d) => d.from === from);
-  if (open) open.sips += sips;
-  else g.deals.push({ from, sips });
+function addBak(g, to, n, from, disco = false) {
+  const p = g.players[to];
+  p.bak += n;
+  const f = p.bakFrom.find((x) => x.p === from && x.disco === disco);
+  if (f) f.n += n; else p.bakFrom.push({ p: from, n, disco });
+}
+
+// iets om uit te delen: n slokken, of n bakken (bovenste rij van de piramide)
+function queueDeal(g, from, n, bak = false) {
+  const open = g.deals.find((d) => d.from === from && d.bak === bak);
+  if (open) open.n += n;
+  else g.deals.push({ from, n, bak });
 }
 
 // Aan het eind van een ronde komen je gespaarde slokken terug: nu doen of weer sparen.
@@ -177,8 +189,8 @@ export function answer(g, player, option) {
   p.hand.push(card);
   if (ok && disco) {
     p.goed++; p.disco++;
-    for (const x of g.players) { x.bak++; x.bakFrom = player; }
-  } else if (ok) { p.goed++; queueDeal(g, player, Q.sips); }
+    g.players.forEach((_, i) => addBak(g, i, 1, player, true));
+  } else if (ok) p.goed++;     // goed geraden: niks te drinken (uitdelen doe je pas in de piramide)
   else { p.fout++; addSips(g, player, Q.sips, -1); }
   const ev = emit(g, { type: 'vraag', player, round: g.round, hand: p.hand.slice(), card, option, right, ok, paal: right === null, sips: Q.sips, disco });
   if (++g.turn >= g.players.length) { g.turn = 0; g.round++; }
@@ -186,7 +198,7 @@ export function answer(g, player, option) {
   return ev;
 }
 
-// Uitdelen: de uitdeler verdeelt al zijn slokken in één keer, bijvoorbeeld { 1: 2, 3: 1 }.
+// Uitdelen: de uitdeler verdeelt al zijn slokken (of bakken) in één keer, bijvoorbeeld { 1: 2, 3: 1 }.
 export function deal(g, from, dist) {
   const d = g.deals.find((x) => x.from === from);
   if (!d || !dist || typeof dist !== 'object') return null;
@@ -197,11 +209,13 @@ export function deal(g, from, dist) {
     if (!Number.isInteger(i) || !g.players[i] || i === from || !Number.isInteger(n) || n < 0) return null;
     if (n > 0) { to[i] = n; sum += n; }
   }
-  if (sum !== d.sips) return null;
+  if (sum !== d.n) return null;
   g.deals = g.deals.filter((x) => x !== d);
-  g.players[from].dealt += d.sips;
-  for (const [i, n] of Object.entries(to)) addSips(g, Number(i), n, from);
-  return emit(g, { type: 'uitdelen', from, sips: d.sips, to });
+  if (d.bak) g.players[from].bakDealt += d.n; else g.players[from].dealt += d.n;
+  for (const [i, n] of Object.entries(to)) {
+    if (d.bak) addBak(g, Number(i), n, from); else addSips(g, Number(i), n, from);
+  }
+  return emit(g, { type: 'uitdelen', from, n: d.n, bak: d.bak, to });
 }
 
 // Al hardop uitgedeeld (of de uitdeler is weg): de slokken tellen als uitgedeeld, zonder ontvangers.
@@ -209,8 +223,8 @@ export function skipDeal(g, from) {
   const d = g.deals.find((x) => x.from === from);
   if (!d) return null;
   g.deals = g.deals.filter((x) => x !== d);
-  g.players[from].dealt += d.sips;
-  return emit(g, { type: 'uitdelen', from, sips: d.sips, to: {}, hardop: true });
+  if (d.bak) g.players[from].bakDealt += d.n; else g.players[from].dealt += d.n;
+  return emit(g, { type: 'uitdelen', from, n: d.n, bak: d.bak, to: {}, hardop: true });
 }
 
 // Slokken: nieuwe slokken nu doen of sparen; aan het eind van een ronde de gespaarde opnieuw.
@@ -238,20 +252,23 @@ export function sips(g, player, act) {
   return null;
 }
 
-// Een bak gedaan (na een disco). Een bak kun je niet sparen.
+// Een bak gedaan (na een disco of uit de piramide). Een bak kun je niet sparen.
 export function bak(g, player) {
   const p = g.players[player];
   if (!p || p.bak <= 0) return null;
   p.bak--;
   p.bakken++;
+  if (!p.bak) p.bakFrom = [];
   return emit(g, { type: 'bak', player });
 }
 
 function startPyramid(g) {
   g.phase = 'piramide';
   g.pyramid = [];
-  PYRAMID_ROWS.forEach((count, i) => {
-    for (let k = 0; k < count; k++) g.pyramid.push({ card: g.deck.pop(), row: i + 1, open: false, laid: [] });
+  // met veel spelers is één spel te weinig: dan gaat er een tweede spel kaarten onder de stapel
+  if (g.deck.length < PYRAMID_SIZE) g.deck = [...freshDeck(g), ...g.deck];
+  PYRAMID.forEach((r, i) => {
+    for (let k = 0; k < r.count; k++) g.pyramid.push({ card: g.deck.pop(), row: i + 1, open: false, laid: [] });
   });
   g.next = 0;
 }
@@ -260,7 +277,7 @@ function startPyramid(g) {
 export function pyramidRows() {
   const rows = [];
   let i = 0;
-  PYRAMID_ROWS.forEach((count) => { rows.unshift(Array.from({ length: count }, (_, k) => i + k)); i += count; });
+  PYRAMID.forEach((r) => { rows.unshift(Array.from({ length: r.count }, (_, k) => i + k)); i += r.count; });
   return rows;
 }
 
@@ -277,9 +294,10 @@ export function flip(g) {
     p.hand = p.hand.filter((c) => c.r !== slot.card.r);
     p.laid.push(...same);
     for (const card of same) slot.laid.push({ p: i, card });
-    const n = same.length * slot.row;
-    matches.push({ player: i, cards: same, sips: n });
-    queueDeal(g, i, n);
+    const info = rowInfo(slot.row);
+    const n = info.bak ? same.length : same.length * info.sips;
+    matches.push({ player: i, cards: same, n, bak: !!info.bak });
+    queueDeal(g, i, n, !!info.bak);
   });
   const ev = emit(g, { type: 'piramide', index, row: slot.row, card: slot.card, matches, last: g.next >= g.pyramid.length });
   if (ev.last) finishPyramid(g);

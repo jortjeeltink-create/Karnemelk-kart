@@ -66,11 +66,11 @@ test('elke telefoon ziet alleen wat hij mag zien', () => {
   // speel de vragenronde snel uit via de telefoons
   let guard = 0;
   while (g.phase === 'vragen' && guard++ < 100) {
-    for (const d of g.deals.slice()) phones[d.from].say({ t: 'deal', to: { [1 - d.from]: d.sips } });
+    for (const d of g.deals.slice()) phones[d.from].say({ t: 'deal', to: { [1 - d.from]: d.n } });
     const right = B.truth(g.round, g.players[g.turn].hand, g.deck[g.deck.length - 1]) ?? B.QUESTIONS[g.round].options[0];
     phones[g.turn].say({ t: 'answer', o: right });
   }
-  for (const d of g.deals.slice()) phones[d.from].say({ t: 'deal', to: { [1 - d.from]: d.sips } });
+  for (const d of g.deals.slice()) phones[d.from].say({ t: 'deal', to: { [1 - d.from]: d.n } });
   assert.equal(g.phase, 'piramide');
   const s = phones[1].state();
   assert.equal(s.hands, null, 'na de vragenronde zie je de kaarten van een ander niet meer');
@@ -91,19 +91,29 @@ test('slokken uitdelen via de telefoon van de uitdeler, en nu doen of sparen', (
   phones[1].say({ t: 'answer', o: 'rood' });
   assert.equal(g.turn, 0, 'Meke is niet aan de beurt');
   phones[0].say({ t: 'answer', o: 'rood' });
-  assert.deepEqual(phones[2].state().deals, [{ from: 0, sips: 1 }]);
+  assert.deepEqual(phones[2].state().deals, [], 'goed in de vragenronde: niks uitdelen');
+  // snel naar de piramide; Jort heeft een 7 en de eerste piramidekaart is een 7 (2 slokken)
+  while (g.phase === 'vragen') B.answer(g, g.turn, B.truth(g.round, g.players[g.turn].hand, g.deck[g.deck.length - 1]) ?? 'ja');
+  g.players.forEach((p) => { p.pending = 0; p.from = []; p.settle = null; });
+  g.players[0].hand = [{ r: 7, s: 0 }, { r: 2, s: 0 }];
+  g.players[1].hand = [{ r: 3, s: 0 }];
+  g.players[2].hand = [{ r: 4, s: 0 }];
+  g.pyramid.forEach((x, i) => { x.card = { r: 5, s: i % 4 }; });
+  g.pyramid[0].card = { r: 7, s: 3 };
+  phones[2].say({ t: 'flip', i: 0 });
+  assert.deepEqual(phones[2].state().deals, [{ from: 0, n: 2, bak: false }]);
   assert.deepEqual(phones[2].state().waiting, [0]);
-  phones[1].say({ t: 'deal', to: { 2: 1 } });
+  phones[1].say({ t: 'deal', to: { 2: 2 } });
   assert.equal(g.deals.length, 1, 'alleen Jort deelt uit');
-  phones[0].say({ t: 'deal', to: { 2: 1 } });
+  phones[0].say({ t: 'deal', to: { 2: 2 } });
   const s2 = phones[2].state();
-  assert.equal(s2.me.pending, 1);
-  assert.deepEqual(s2.me.from, [{ p: 0, n: 1 }]);
+  assert.equal(s2.me.pending, 2);
+  assert.deepEqual(s2.me.from, [{ p: 0, n: 2 }]);
   assert.equal(s2.log[s2.log.length - 1].type, 'uitdelen');
-  assert.equal(s2.players[2].owe, 1, 'iedereen ziet hoeveel Sim nog moet');
+  assert.equal(s2.players[2].owe, 2, 'iedereen ziet hoeveel Sim nog moet');
   phones[2].say({ t: 'sips', act: 'save' });
-  assert.equal(phones[0].state().players[2].owe, 1, 'gespaard telt nog mee');
-  assert.equal(phones[0].state().players[2].saved, 1);
+  assert.equal(phones[0].state().players[2].owe, 2, 'gespaard telt nog mee');
+  assert.equal(phones[0].state().players[2].saved, 2);
   assert.equal(phones[2].state().me.pending, 0);
   phones[2].say({ t: 'sips', act: 'now' });
   assert.equal(g.players[2].drank, 0, 'gespaarde slokken komen pas aan het eind van de ronde terug');
@@ -121,7 +131,7 @@ test('disco via de telefoon: iedereen ziet een bak staan en tikt op gedaan', () 
   assert.equal(g.players[0].hand.length, 3, 'Meke is niet aan de beurt');
   phones[0].say({ t: 'answer', o: 'disco' });
   assert.equal(phones[1].state().me.bak, 1);
-  assert.equal(phones[1].state().me.bakFrom, 0);
+  assert.deepEqual(phones[1].state().me.bakFrom, [{ p: 0, n: 1, disco: true }]);
   assert.equal(phones[0].state().players[1].bak, 1);
   phones[1].say({ t: 'bak' });
   assert.equal(phones[0].state().players[1].bak, 0);
