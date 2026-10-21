@@ -6,7 +6,7 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
 
 ## Wat zit erin
 
-- **Speelhal** (de hoofdpagina, `/`): een scrollpagina met al de spellen: Karnemelk Kart (`/kart`), Mega Ball, Stock Market Trainer en Rode Zone. Wie de site als app op het beginscherm heeft gezet, komt hier binnen. Vanuit elk spel ga je terug naar de speelhal.
+- **Speelhal** (de hoofdpagina, `/`): een scrollpagina met al de spellen: Karnemelk Kart (`/kart`), Mega Ball, Stock Market Trainer, Rode Zone en Bussen. Wie de site als app op het beginscherm heeft gezet, komt hier binnen. Vanuit elk spel ga je terug naar de speelhal.
 - **Live multiplayer** voor maximaal 10 spelers (mensen + computerkarts) per room.
 - **Privéroom met groepscode** van 4 letters, plus een deelbare link (`https://jouw-site/kart?room=ABCD`; oude links met `/?room=ABCD` werken ook nog).
 - **Lobby** met wie er meedoet, wie klaar is, coureurkeuze, baankeuze, computerkarts en de uitdaging voor de verliezer. De host start de race (en kan spelers verwijderen).
@@ -32,6 +32,12 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
 - **Mega Ball** (via de speelhal, of `/megaball`): namaak van First Person Mega Ball, los van de kartgame. Alle kaarten (tot 400) staan als mini-kaartjes op één telefoonscherm; tik op een kaartje om het groot te zien. Kaarten kies je met +1, +10, +25 en +100, de inzet per kaart heeft geen maximum, en met Speel start de trekking: 20 van de 51 ballen, daarna de multiplier (5× tot 100×) en de Mega Ball. Gemiddeld komt zo'n 95% van de inzet terug, net als bij het origineel. Nep geld stort je op een aparte pagina (`/megaball/storten`), zonder limiet. Saldo en statistieken blijven in de browser bewaard.
 - **Stock Market Trainer** (via de speelhal, of `/stockmarket`): namaak van Stock Market met nep geld, ook los van de kartgame. Elke ronde heb je 10 seconden om in te zetten op STIJGING of DALING (maar één kant; tik je op de andere kant, dan verhuist je inzet mee), daarna beweegt de koers 10 seconden live en beweegt je portefeuille mee. Stijgt de koers 30%, dan is een inzet op stijging 1,3× waard en op daling 0,7×; de koers gaat nooit meer dan 100% op of neer, dus je wint maximaal 2×. Na de sessie gaat je portefeuille naar je saldo, min 1% fee (gemiddeld 99% terug). Met presentator Martin (tik op het videootje voor geluid en spraak), de laatste uitslagen, de winnaars van de vorige ronde, fiches van € 0,10 tot en met 1 triljoen (of een eigen bedrag) en de Superheet jackpot (€ 0,10 extra per ronde). De markt loopt op de klok, dus vrienden die tegelijk spelen zien dezelfde koers. Je saldo is hetzelfde als bij Mega Ball; storten kan ook via `/stockmarket/storten`.
 - **Rode Zone** (via de speelhal, of `/rodezone`): revv-simulator met 7 auto's en 3 motoren. Geef gas, schakel en rem; het motorgeluid wordt live berekend uit het ontstekingsritme van elke motor, en elk voertuig heeft een eigen dashboard.
+- **Bussen** (via de speelhal, of `/bussen`): het kaartspel bussen, online met 2 tot 9 vrienden, ieder op zijn eigen telefoon. Iemand maakt een tafel en deelt de code van 4 letters of de link (`/bussen/ABCD`); de rest doet mee. Het ziet eruit als een pokertafel: groen vilt, de spelers rondom (jij altijd onderaan) en de kaarten in het midden.
+  - **Vragenronde**: om de beurt rood of zwart, hoger of lager, binnen of buiten en welk teken (1 tot 4 slokken). Fout is drinken, goed is uitdelen: de uitdeler tikt aan tafel de namen aan en tikt op Uitdelen. Daarna ziet iedereen wie er moet drinken.
+  - **Slokken**: krijg je slokken, dan kies je op je telefoon **Nu doen** of **Sparen**. Gespaarde slokken komen terug aan het eind van de vragenronde en van de piramide (weer sparen mag), en aan het eind van het spel moeten ze op. Bovenin en bij je naam zie je altijd hoeveel je er nog hebt staan.
+  - **Piramide**: 15 kaarten, iedereen kan de volgende omdraaien. Wie dezelfde waarde heeft, legt hem vanzelf weg en deelt rij × kaarten uit. Je eigen kaarten zie je alleen op je eigen telefoon.
+  - **De bus**: wie de meeste kaarten overhoudt moet erin. Bij gelijkspel kiest ieder een dichte kaart; wie de laagste trekt, moet de bus in (weer gelijk: opnieuw kiezen). In de bus raad je hoger of lager tot het eind (5, 7 of 10 kaarten, de host kiest).
+  - Valt iemand weg, dan kan de host even voor die speler spelen; wie terugkomt, zit vanzelf weer op zijn eigen plek. Na afloop: titels (Buschauffeur, Waarzegger, Uitdeler, Dorstigste, Spaarpot, Piramidekoning) en Nog een potje.
 - Alles in het Nederlands.
 
 ## Snel starten op je eigen computer
@@ -201,6 +207,7 @@ Alle banen hebben schansen (soms met een boostring erachter) en extra turbostrok
 ## Techniek
 
 - **Server**: Node.js met alleen het pakket `ws`. De server is de baas over de race (60 stappen per seconde, 20 updates per seconde naar iedere speler), zodat botsingen voor iedereen hetzelfde zijn.
+- **Bussen** gebruikt een eigen WebSocket-kanaal (`/ws/bussen`) op dezelfde server. De server houdt het potje bij en stuurt elke telefoon alleen wat die mag zien: je eigen kaarten, de open kaarten op tafel en de stand. Dichte kaarten en de stapel verlaten de server niet. Tafels leven in het geheugen; een tafel zonder verbonden spelers verdwijnt na een half uur.
 - **Browser**: Three.js (meegeleverd in `public/vendor`, geen CDN nodig). Fysiek gebaseerde materialen met omgevingslicht uit de lucht (reflecties), filmische kleuren (ACES), zonneschaduw die met de speler meeloopt, een lucht-shader met wolken en afgeronde vormen. Ongeveer 100.000 tot 270.000 driehoeken en 110 tot 380 tekenopdrachten per beeld. Kwaliteit: *Hoog* (echte schaduwen en reflecties op alles, tot 2 pixels per punt), *Normaal* en *Automatisch* (snelle wereld met glimmende karts, zachte schaduwvlekken, hooguit 1,5 pixel per punt), *Laag* (alles zo licht mogelijk). Automatisch zet bij haperen eerst de schaduwen uit en verlaagt daarna de resolutie; de volgende race wordt dan Laag.
 - **Schansen**: de hoogte (`y`) zit in de gedeelde fysica, dus server en voorspelling zijn het eens. Karts met meer dan 1,3 m hoogteverschil botsen niet, wie vliegt raakt geen plassen of obstakels.
 - **Soepel rijden ondanks vertraging**: je eigen kart wordt in de browser voorspeld (met precies dezelfde code als op de server) en stilletjes gecorrigeerd. Andere karts worden vloeiend tussen updates in getekend (30 updates per seconde, 80 ms buffer). Botsingen met andere karts voorspelt je telefoon zelf: je voelt en ziet de klap meteen, de server bevestigt hem kort daarna.
@@ -214,11 +221,12 @@ server/            server (http + WebSocket) en opslag
 public/speelhal.html  de hoofdpagina met al de spellen
 public/index.html  de kartgame (/kart)
 public/rodezone.html  Rode Zone, de revv-simulator (één los bestand)
+public/bussen.html  Bussen, het online kaartspel (praat met de server via /ws/bussen)
 public/megaball.html  Mega Ball met nep geld (één los bestand)
 public/megaball-storten.html  stortpagina voor Mega Ball
 public/css/        vormgeving
 public/js/         browsercode: render/ (3D), game/ (race, HUD, voorspelling), ui/ (schermen), audio, besturing
-public/shared/     code voor server én browser: banen, fysica, items, bots, race, rooms, punten, winkel
+public/shared/     code voor server én browser: banen, fysica, items, bots, race, rooms, punten, winkel, en bussen.js + bushub.js (spelregels en tafels van Bussen)
 public/vendor/     three.js (MIT-licentie)
 test/              tests
 tools/             baanvoorbeelden tekenen, offline-demo bouwen
@@ -230,6 +238,7 @@ Getest in deze omgeving:
 
 - 27 snelle tests: banen (geen te krappe bochten of overlappende stukken), elke schans op elke baan (lanceert, ring is te halen, geen muur na de landing), vliegen over karts, sloten, fysica, rondes en checkpoints, punten en dagbonus, winkel en betaalbaarheid, specials ("Meke (Jort)"), eigen coureur, inloggen per telefoon (ook via het cookie), overzetcode, reservekopie op de telefoon (terugzetten, vervalste kopie geweigerd, nieuwste kopie wint bij twee telefoons), botsingen, titels, toeteren, voorspelling, lobby, herverbinden, opslag in bestand en in (nagebootste) Upstash.
 - Een echte race met **10 gelijktijdige spelers** via WebSockets: allemaal gefinisht, zo'n 80 botsingen die iedereen live zag, een speler die wegviel en in dezelfde kart terugkwam, punten 155 → 45 (inclusief dagbonus), winkel, alles bewaard na een herstart van de server, én teruggezet vanaf de telefoon na een herstart met een lege schijf.
+- **Bussen**: 17 snelle tests voor de spelregels en de tafels (vragen, paal, uitdelen, nu doen of sparen per ronde, piramide, kaart kiezen bij gelijkspel, de bus, 40 hele potjes met 9 spelers, meedoen met code, opnieuw verbinden, de host die invalt, wat elke telefoon wel en niet te zien krijgt), plus een test met twee echte WebSocket-verbindingen. In Chromium een heel potje gespeeld met drie telefoons tegelijk (iPhone en iPhone SE), inclusief uitdelen, sparen, een gelijkspel om de bus, wegvallen en terugkomen. Zonder fouten in de console.
 - De game in een Chromium-browser met iPhone-, iPhone SE- en Pixel-formaat en aanraakbediening, staand en liggend: naam kiezen, herladen (telefoon onthoudt je), uitnodigingslink, lobby, specials kopen, mijn coureur, alle kartmodellen en hoeden, races en foto's op de banen met de nieuwe graphics (Hoog, Normaal en Laag), een echte sprong over een schans door een ring, toeteren, uitslag met titels, toeschouwen, offline-demo. Zonder fouten in de console.
 
 Niet getest, en waarom:

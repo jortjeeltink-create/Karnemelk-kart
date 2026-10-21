@@ -205,7 +205,7 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.equal(hall.status, 200);
     const hallHtml = await hall.text();
     assert.match(hallHtml, /<title>Speelhal<\/title>/);
-    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
+    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone', '/bussen']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
     assert.match(hallHtml, /rel="manifest"/);
     // uitnodigingen naar de oude hoofdpagina komen nog steeds in de kartgame
     assert.match(await (await fetch(srv.url + '/?room=ABCD')).text(), /<title>Karnemelk Kart<\/title>/);
@@ -253,9 +253,47 @@ test('de server levert de game en een gezondheidscheck', async () => {
     const zone = await fetch(srv.url + '/rodezone');
     assert.equal(zone.status, 200);
     assert.match(await zone.text(), /<title>Rode Zone<\/title>/);
+    const bussen = await fetch(srv.url + '/bussen');
+    assert.equal(bussen.status, 200);
+    assert.match(await bussen.text(), /<title>Bussen<\/title>/);
+    assert.equal((await fetch(srv.url + '/shared/bussen.js')).status, 200);
+    assert.match(await (await fetch(srv.url + '/bussen/ABCD')).text(), /<title>Bussen<\/title>/, 'uitnodigingslink voor een tafel');
     const health = await (await fetch(srv.url + '/health')).json();
     assert.equal(health.ok, true);
     assert.equal((await fetch(srv.url + '/../server/store.js')).status, 404);
+  } finally {
+    await srv.stop();
+  }
+});
+
+test('Bussen online: twee telefoons aan één tafel via /ws/bussen', async () => {
+  const srv = await startServer();
+  try {
+    const url = srv.ws + '/bussen';
+    const a = await new Client(url).open();
+    const b = await new Client(url).open();
+    const sa = await a.request({ t: 'create', name: 'Jort', token: 'telefoon-a-0123456789' }, 'state');
+    assert.equal(sa.phase, 'lobby');
+    assert.match(sa.code, /^[A-Z]{4}$/);
+    const sb = await b.request({ t: 'join', code: sa.code.toLowerCase(), name: 'Meke', token: 'telefoon-b-0123456789' }, (m) => m.t === 'state' && m.players.length === 2);
+    assert.equal(sb.you, 1);
+    const started = b.wait((m) => m.t === 'state' && m.phase === 'vragen');
+    a.send({ t: 'start' });
+    const sv = await started;
+    assert.equal(sv.turn, 0);
+    assert.equal(sv.hand.length, 0);
+    // Jort raadt, Meke ziet de uitslag in het logboek
+    const seen = b.wait((m) => m.t === 'state' && m.log.some((e) => e.type === 'vraag'));
+    a.send({ t: 'answer', o: 'rood' });
+    const after = await seen;
+    assert.equal(after.hands[0].length, 1);
+    assert.equal(after.turn, 1);
+    // de kartgame werkt nog gewoon op /ws
+    const k = await new Client(srv.ws).open();
+    assert.equal((await k.request({ t: 'hello' }, 'welcome')).t, 'welcome');
+    const health = await (await fetch(srv.url + '/health')).json();
+    assert.deepEqual(health.bussen, { tables: 1, players: 2 });
+    [a, b, k].forEach((c) => c.close());
   } finally {
     await srv.stop();
   }
