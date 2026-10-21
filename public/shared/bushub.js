@@ -115,6 +115,7 @@ class Table {
     this.host = 0;
     this.busLength = B.BUS_DEFAULT;
     this.g = null;          // het potje; null = lobby
+    this.lastFlip = 0;      // wanneer de laatste piramidekaart omging
     this.emptySince = null;
   }
 
@@ -245,7 +246,16 @@ class Table {
         ev = B.skipDeal(g, this.actorFor(s, from) === from ? from : -1);
         break;
       }
-      case 'flip': if (msg.i === g.next) ev = B.flip(g); break;
+      // na elke omgedraaide kaart even wachten, zodat iedereen zijn kaart kan wegleggen
+      case 'flip':
+        if (msg.i === g.next && this.hub.now() - this.lastFlip >= B.FLIP_PAUSE_MS) { ev = B.flip(g); if (ev) this.lastFlip = this.hub.now(); }
+        break;
+      case 'lay': {
+        const c = msg.card;
+        if (c && Number.isInteger(c.r) && Number.isInteger(c.s)) ev = B.lay(g, me, { r: c.r, s: c.s });
+        break;
+      }
+      case 'endpyr': if (this.hub.now() - this.lastFlip >= B.FLIP_PAUSE_MS) ev = B.endPyramid(g); break;
       case 'pick': {
         const who = Number.isInteger(msg.for) ? msg.for : me;
         ev = B.pick(g, this.actorFor(s, who), msg.i);
@@ -290,7 +300,7 @@ class Table {
     out.seq = g.seq;
     out.log = g.log;
     if (g.pyramid) {
-      out.pyramid = g.pyramid.map((x) => ({ card: x.open ? x.card : null, row: x.row, laid: x.laid.map((l) => l.p) }));
+      out.pyramid = g.pyramid.map((x) => ({ card: x.open ? x.card : null, row: x.row, laid: x.laid }));
       out.next = g.next;
     }
     if (g.phase === 'kiezen') {

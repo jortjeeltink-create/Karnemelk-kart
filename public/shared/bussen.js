@@ -19,6 +19,8 @@ export const NAME_MAX = 14;
 // de piramide, van onder naar boven: per kaart die je weglegt deel je slokken uit, bovenin een bak
 export const PYRAMID = [{ count: 7, sips: 2 }, { count: 6, sips: 3 }, { count: 5, sips: 4 }, { count: 4, sips: 5 }, { count: 3, bak: true }];
 export const PYRAMID_SIZE = PYRAMID.reduce((n, r) => n + r.count, 0);
+// na het omdraaien van een piramidekaart wacht de volgende even, zodat iedereen zijn kaart kan wegleggen
+export const FLIP_PAUSE_MS = 3000;
 export const rowInfo = (row) => PYRAMID[row - 1];
 export const BUS_LENGTHS = [5, 7, 10];
 export const BUS_DEFAULT = 7;
@@ -281,27 +283,37 @@ export function pyramidRows() {
   return rows;
 }
 
-// Piramide: de volgende kaart omdraaien. Wie dezelfde waarde heeft, legt hem weg en deelt uit.
+// Piramide: de volgende kaart omdraaien. Wie dezelfde waarde heeft, moet zelf zijn kaart wegleggen (lay).
 export function flip(g) {
   if (g.phase !== 'piramide' || g.deals.length || g.next >= g.pyramid.length) return null;
   const index = g.next++;
   const slot = g.pyramid[index];
   slot.open = true;
-  const matches = [];
-  g.players.forEach((p, i) => {
-    const same = p.hand.filter((c) => c.r === slot.card.r);
-    if (!same.length) return;
-    p.hand = p.hand.filter((c) => c.r !== slot.card.r);
-    p.laid.push(...same);
-    for (const card of same) slot.laid.push({ p: i, card });
-    const info = rowInfo(slot.row);
-    const n = info.bak ? same.length : same.length * info.sips;
-    matches.push({ player: i, cards: same, n, bak: !!info.bak });
-    queueDeal(g, i, n, !!info.bak);
-  });
-  const ev = emit(g, { type: 'piramide', index, row: slot.row, card: slot.card, matches, last: g.next >= g.pyramid.length });
-  if (ev.last) finishPyramid(g);
-  return ev;
+  return emit(g, { type: 'piramide', index, row: slot.row, card: slot.card, last: g.next >= g.pyramid.length });
+}
+
+// Een eigen kaart wegleggen op de kaart die net is omgedraaid. Alleen met dezelfde waarde, en alleen
+// zolang de volgende kaart nog niet om is: wie te laat is, heeft hem gemist.
+export function lay(g, player, card) {
+  const p = g.players[player];
+  if (g.phase !== 'piramide' || !g.next || !p || !card) return null;
+  const index = g.next - 1, slot = g.pyramid[index];
+  const k = p.hand.findIndex((c) => c.r === card.r && c.s === card.s);
+  if (k < 0 || p.hand[k].r !== slot.card.r) return null;
+  const [c] = p.hand.splice(k, 1);
+  p.laid.push(c);
+  slot.laid.push({ p: player, card: c });
+  const info = rowInfo(slot.row);
+  const n = info.bak ? 1 : info.sips;
+  queueDeal(g, player, n, !!info.bak);
+  return emit(g, { type: 'gelegd', player, card: c, index, row: slot.row, n, bak: !!info.bak });
+}
+
+// Alle kaarten liggen open en alles is uitgedeeld: wie moet de bus in?
+export function endPyramid(g) {
+  if (g.phase !== 'piramide' || g.deals.length || g.next < g.pyramid.length) return null;
+  finishPyramid(g);
+  return emit(g, { type: 'piramideklaar', phase: g.phase });
 }
 
 function finishPyramid(g) {

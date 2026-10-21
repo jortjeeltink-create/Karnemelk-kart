@@ -81,6 +81,14 @@ test('elke telefoon ziet alleen wat hij mag zien', () => {
   assert.notEqual(phones[0].state().pyramid[0].card, null);
   phones[0].say({ t: 'flip', i: 0 });
   assert.equal(g.next, 1, 'dubbel tikken draait geen tweede kaart om');
+  phones[0].say({ t: 'flip', i: 1 });
+  assert.equal(g.next, 1, 'even kijken voor de volgende kaart om kan');
+  phones[0].say({ t: 'lay', card: { r: 'x' } });
+  phones[0].say({ t: 'lay' });
+  assert.deepEqual(g.pyramid[0].laid, []);
+  clock += B.FLIP_PAUSE_MS;
+  phones[0].say({ t: 'flip', i: 1 });
+  assert.equal(g.next, 2);
 });
 
 test('slokken uitdelen via de telefoon van de uitdeler, en nu doen of sparen', () => {
@@ -101,6 +109,13 @@ test('slokken uitdelen via de telefoon van de uitdeler, en nu doen of sparen', (
   g.pyramid.forEach((x, i) => { x.card = { r: 5, s: i % 4 }; });
   g.pyramid[0].card = { r: 7, s: 3 };
   phones[2].say({ t: 'flip', i: 0 });
+  assert.deepEqual(phones[2].state().deals, [], 'wegleggen doe je zelf');
+  phones[1].say({ t: 'lay', card: { r: 7, s: 0 } });
+  phones[0].say({ t: 'lay', card: { r: 2, s: 0 } });
+  assert.deepEqual(g.pyramid[0].laid, [], 'niet van een ander en niet als hij niet past');
+  phones[0].say({ t: 'lay', card: { r: 7, s: 0 } });
+  assert.deepEqual(phones[2].state().pyramid[0].laid, [{ p: 0, card: { r: 7, s: 0 } }]);
+  assert.equal(phones[2].state().players[0].cards, 1);
   assert.deepEqual(phones[2].state().deals, [{ from: 0, n: 2, bak: false }]);
   assert.deepEqual(phones[2].state().waiting, [0]);
   phones[1].say({ t: 'deal', to: { 2: 2 } });

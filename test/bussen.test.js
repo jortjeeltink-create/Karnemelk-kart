@@ -14,6 +14,11 @@ const badAnswer = (g) => {
 // alle open uitdelingen naar de volgende speler aan tafel
 const dealAll = (g) => { while (g.deals.length) { const d = g.deals[0]; B.deal(g, d.from, { [(d.from + 1) % g.players.length]: d.n }); } };
 const answerAll = (g, pick = goodAnswer) => { while (g.phase === 'vragen') { dealAll(g); B.answer(g, g.turn, pick(g)); } dealAll(g); };
+// iedereen tikt de kaarten aan die passen bij de open kaart van de piramide
+const layAll = (g) => { const s = g.pyramid[g.next - 1]; g.players.forEach((p, i) => { for (const k of p.hand.filter((x) => x.r === s.card.r)) B.lay(g, i, k); }); };
+// een stap in de piramide: kaart om, wegleggen, uitdelen; als alles om is naar de bus
+const pyramidStep = (g) => { dealAll(g); if (g.next < g.pyramid.length) { B.flip(g); layAll(g); dealAll(g); } else B.endPyramid(g); };
+const pyramidAll = (g) => { while (g.phase === 'piramide') pyramidStep(g); dealAll(g); };
 
 test('een spel heeft 52 verschillende kaarten en schudden hangt alleen af van de seed', () => {
   const deck = B.newDeck();
@@ -108,8 +113,7 @@ test('slokken: nu doen of sparen, en gespaarde slokken komen terug aan het eind 
   assert.equal(g.players[0].settle, null);
   assert.equal(g.players[0].saved, saved, 'weer sparen houdt ze vast');
   // de piramide afmaken: weer een rondeeinde
-  while (g.phase === 'piramide') { dealAll(g); B.flip(g); }
-  dealAll(g);
+  pyramidAll(g);
   assert.equal(g.players[0].settle, 'ronde');
   while (g.players[0].pending) B.sips(g, 0, 'save');   // tijdens de piramide uitgedeelde slokken ook sparen
   const saved2 = g.players[0].saved;
@@ -124,8 +128,7 @@ test('slokken: nu doen of sparen, en gespaarde slokken komen terug aan het eind 
 test('aan het eind van het spel kan sparen niet meer', () => {
   const g = B.newGame(['Jort', 'Meke'], { seed: 9, busLength: 5 });
   answerAll(g);
-  while (g.phase === 'piramide') { dealAll(g); B.flip(g); }
-  dealAll(g);
+  pyramidAll(g);
   while (g.phase === 'kiezen') {
     for (const p of g.candidates.slice()) {
       const free = g.pick.cards.findIndex((_, i) => g.pick.taken[i] == null);
@@ -224,10 +227,20 @@ test('piramide: 7-6-5-4-3 kaarten, 2 tot 5 slokken per kaart en bovenin een bak 
   g.pyramid[0].card = c(7, 3);    // onderste rij: 2 slokken per kaart
   g.pyramid[7].card = c(13, 1);   // tweede rij: 3 slokken
   g.pyramid[22].card = c(12, 2);  // bovenste rij: een bak
+  g.pyramid[8].card = c(9, 1);    // tweede rij: een 9 die Jort te laat aantikt
+  assert.equal(B.lay(g, 0, c(7, 0)), null, 'er ligt nog niks open');
   const ev = B.flip(g);
   assert.equal(ev.row, 1);
-  assert.deepEqual(ev.matches.map((m) => [m.player, m.n, m.bak]), [[0, 4, false], [1, 2, false]]);
+  assert.deepEqual(g.deals, [], 'niemand legt vanzelf weg');
+  assert.equal(B.lay(g, 0, c(9, 0)), null, 'een 9 past niet op een 7');
+  assert.equal(B.lay(g, 1, c(7, 0)), null, 'die kaart heeft Meke niet');
+  const l1 = B.lay(g, 0, c(7, 0));
+  assert.deepEqual([l1.type, l1.player, l1.n, l1.bak], ['gelegd', 0, 2, false]);
+  B.lay(g, 0, c(7, 1));
+  B.lay(g, 1, c(7, 2));
   assert.deepEqual(g.deals, [{ from: 0, n: 4, bak: false }, { from: 1, n: 2, bak: false }]);
+  assert.deepEqual(g.pyramid[0].laid.map((x) => x.p), [0, 0, 1]);
+  assert.equal(g.players[0].hand.length, 2);
   assert.equal(B.flip(g), null, 'eerst uitdelen');
   assert.equal(B.deal(g, 1, { 1: 2 }), null, 'niet aan jezelf');
   assert.equal(B.deal(g, 1, { 0: 1 }), null, 'precies 2 slokken');
@@ -239,13 +252,17 @@ test('piramide: 7-6-5-4-3 kaarten, 2 tot 5 slokken per kaart en bovenin een bak 
   for (let i = 1; i < 7; i++) { B.flip(g); dealAll(g); }
   const ev2 = B.flip(g);
   assert.equal(ev2.row, 2);
-  assert.ok(ev2.matches.some((m) => m.player === 1 && m.n === 3));
+  assert.equal(B.lay(g, 1, c(13, 0)).n, 3);
   dealAll(g);
+  B.flip(g);   // de 9: Jort let niet op
+  B.flip(g);
+  assert.equal(B.lay(g, 0, c(9, 0)), null, 'te laat: de volgende kaart ligt al open');
   while (g.next < 22) { B.flip(g); dealAll(g); }
   // bovenste rij: Jort legt zijn vrouw weg en deelt een bak uit
   const ev3 = B.flip(g);
   assert.equal(ev3.row, 5);
-  assert.deepEqual(ev3.matches.map((m) => [m.player, m.n, m.bak]), [[0, 1, true]]);
+  const l3 = B.lay(g, 0, c(12, 0));
+  assert.deepEqual([l3.n, l3.bak], [1, true]);
   const before = g.players[1].pending;
   const d = B.deal(g, 0, { 1: 1 });
   assert.equal(d.bak, true);
@@ -255,6 +272,14 @@ test('piramide: 7-6-5-4-3 kaarten, 2 tot 5 slokken per kaart en bovenin een bak 
   assert.equal(g.players[0].bakDealt, 1);
   assert.equal(B.bak(g, 1).type, 'bak');
   assert.deepEqual(g.players[1].bakFrom, []);
+  // pas als alle kaarten om zijn, gaat het door naar de bus
+  assert.equal(B.endPyramid(g), null, 'er liggen nog kaarten dicht');
+  B.flip(g); B.flip(g);
+  assert.equal(B.flip(g), null, 'alles ligt open');
+  assert.equal(g.phase, 'piramide', 'de laatste kaart kan nog weggelegd worden');
+  assert.equal(B.endPyramid(g).type, 'piramideklaar');
+  assert.equal(g.phase, 'bus');
+  assert.equal(g.rider, 1, 'Meke heeft nog 2 kaarten, Jort 1');
 });
 
 test('met veel spelers komt er een tweede spel kaarten bij voor de piramide', () => {
@@ -270,7 +295,7 @@ test('gelijkspel om de bus: iedereen kiest een dichte kaart en de laagste moet e
     answerAll(g);
     g.players[0].hand = [c(2), c(8)]; g.players[1].hand = [c(3), c(4)]; g.players[2].hand = [c(6)];
     g.pyramid.forEach((s, i) => { s.card = c(5, i % 4); });    // vijven, die heeft niemand
-    while (g.phase === 'piramide') B.flip(g);
+    pyramidAll(g);
     return g;
   };
   const g = tied();
@@ -307,7 +332,7 @@ test('de bus: alleen de passagier gokt, fout kost de hoeveelste gok en dan opnie
   answerAll(g);
   g.players[0].hand = [c(2), c(3)]; g.players[1].hand = [];
   g.pyramid.forEach((s, i) => { s.card = c(5, i % 4); });
-  while (g.phase === 'piramide') B.flip(g);
+  pyramidAll(g);
   assert.equal(g.phase, 'bus');
   assert.equal(g.rider, 0);
   const b = g.bus;
@@ -343,7 +368,7 @@ test('een heel potje met 9 spelers loopt van begin tot eind', () => {
     while (g.phase !== 'klaar' && guard++ < 5000) {
       if (g.deals.length) { dealAll(g); continue; }
       if (g.phase === 'vragen') B.answer(g, g.turn, seed % 2 ? goodAnswer(g) : badAnswer(g));
-      else if (g.phase === 'piramide') B.flip(g);
+      else if (g.phase === 'piramide') pyramidStep(g);
       else if (g.phase === 'kiezen') {
         const p = B.waitingOn(g)[0];
         B.pick(g, p, g.pick.cards.findIndex((_, i) => g.pick.taken[i] == null));

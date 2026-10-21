@@ -185,9 +185,10 @@ p{margin:0}
 .seat.now .plate{border-color:var(--gold)}
 .seat.me .plate{background:linear-gradient(180deg,#3a2240,#160c19);border-color:rgba(214,144,201,.6)}
 .hole{position:absolute;left:50%;bottom:calc(100% - 2px);z-index:0;transform:translateX(-50%);display:flex;--w:calc(var(--ava) * .44)}
-.seat.me .hole{--w:calc(var(--ava) * .62);bottom:calc(100% + 2px)}
+.seat.me .hole{--w:calc(var(--ava) * .95);bottom:calc(100% + 4px)}
 .seat.top .hole{bottom:auto;top:calc(100% + 30px)}
 .hole .card+.card{margin-left:calc(var(--w) * -.28)}
+.seat.me .hole .card+.card{margin-left:calc(var(--w) * -.12)}
 .hole .card:nth-child(1){transform:rotate(-10deg) translateY(2px)}
 .hole .card:nth-child(2){transform:rotate(-3deg)}
 .hole .card:nth-child(3){transform:rotate(3deg)}
@@ -214,6 +215,12 @@ button.seat:active .ava{transform:scale(.94)}
 .prow{position:relative;display:flex}
 .prow+.prow{margin-top:calc(var(--w) * -.34)}
 .pcards{display:flex;gap:calc(var(--w) * .12)}
+.myhand{display:grid;gap:8px;justify-items:center;padding-top:10px;border-top:1px solid rgba(255,255,255,.1)}
+.handrow{display:flex;justify-content:center;gap:10px;--w:clamp(48px,14.5vw,64px)}
+.handcard{display:block;border-radius:8px;transition:transform .15s}
+.handcard:disabled{cursor:default}
+.handcard:not(:disabled):active{transform:translateY(-6px) scale(.97)}
+@media (hover:hover){.handcard:not(:disabled):hover{transform:translateY(-6px)}}
 .plabel{position:absolute;right:calc(100% + 7px);top:50%;transform:translateY(-50%);display:grid;place-items:center;min-width:19px;height:19px;padding:0 4px;border-radius:50%;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);font-size:9.5px;font-weight:700;color:var(--gold)}
 
 /* kaart kiezen bij gelijkspel */
@@ -374,6 +381,7 @@ button.pickcard:active .card{transform:scale(.95)}
   .verdict{font-size:40px}
   .opt{min-height:52px;font-size:25px}
   .fine{display:none}
+  .handrow{--w:44px}
   .view.game{grid-template-rows:minmax(280px,1fr) auto}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
@@ -532,7 +540,7 @@ let S = null;   // de laatste stand van de server (alleen wat jij mag zien)
 const ui = {
   joining: false, error: '', name: me.name, code: urlCode,
   seen: 0, show: null, showTimer: 0, banner: null, bannerTimer: 0,
-  draft: null, gave: -1, redeal: false, wasMine: false, lastView: null, sheet: null, sheetKey: null,
+  draft: null, gave: -1, redeal: false, wasMine: false, lastView: null, sheet: null, sheetKey: null, flipAt: 0,
 };
 
 function onMessage(m) {
@@ -596,9 +604,14 @@ function present(ev) {
       if (!mine(ev.player)) toast(`${S.players[ev.player].name} heeft een bak gedaan`);
       break;
     case 'piramide':
+      // even kijken: pas na de pauze kan de volgende kaart om
       show(ev); Snd.flip();
-      if (ev.matches.length) later(380, Snd.good);
-      if (ev.matches.some((m) => mine(m.player))) buzz(60);
+      ui.flipAt = performance.now();
+      setTimeout(render, B.FLIP_PAUSE_MS + 50);
+      break;
+    case 'gelegd':
+      if (mine(ev.player)) { Snd.good(); buzz(60); }
+      else { Snd.chip(); toast(`${S.players[ev.player].name} legt ${B.label(ev.card)} weg`); }
       break;
     case 'uitdelen': {
       const list = Object.entries(ev.to).map(([i, n]) => `${mine(+i) ? 'jij' : S.players[+i].name} ${n}`);
@@ -890,38 +903,55 @@ function vraagAction(ev) {
   return `<div class="action">${GLASS}<span>${ev.ok ? `${w} hoeft niks te drinken` : `${w} moet ${B.sipsText(ev.sips)} drinken`}</span></div>`;
 }
 
+const flipPaused = () => !!ui.flipAt && performance.now() - ui.flipAt < B.FLIP_PAUSE_MS;
+// de kaart die nu open ligt in de piramide (null voor de eerste kaart om is)
+const openSlot = () => S.next ? S.pyramid[S.next - 1] : null;
+
+// jouw eigen kaarten groot in beeld; in de piramide tik je er een aan om hem weg te leggen
+function handHTML() {
+  if (!S.hand.length) return '<p class="fine">Je hebt geen kaarten meer.</p>';
+  const can = !!openSlot();
+  return `<div class="myhand"><p class="felt-sub">Jouw kaarten${can ? ' · tik om weg te leggen' : ''}</p>
+    <div class="handrow">${S.hand.map((c) => `<button class="handcard" type="button" data-act="lay" data-r="${c.r}" data-s="${c.s}" aria-label="Leg ${spoken(c)} weg"${can ? '' : ' disabled'}>${cardHTML(c)}</button>`).join('')}</div></div>`;
+}
+
 function vPiramide() {
   const ev = shown('piramide');
-  const open = S.pyramid.filter((s) => s.card).length;
-  const canFlip = S.phase === 'piramide' && !S.deals.length;
+  const cur = openSlot(), open = S.next;
+  const going = S.phase === 'piramide';
+  const canFlip = going && !S.deals.length;
   const pyr = B.pyramidRows().map((row, ri) => `
     <div class="prow"><span class="plabel${B.rowInfo(5 - ri).bak ? ' bak' : ''}" title="${rowText(5 - ri)} per kaart">${B.rowInfo(5 - ri).bak ? 'bak' : B.rowInfo(5 - ri).sips}</span><div class="pcards">${row.map((i) => {
       const s = S.pyramid[i];
       if (!s.card) return cardHTML(null, { cls: `mini${canFlip && i === S.next ? ' nextup' : ''}` });
-      const dots = s.laid.length ? `<span class="laid">${s.laid.map((p) => `<i style="--pc:${PC[p]}"></i>`).join('')}</span>` : '';
-      return cardHTML(s.card, { reveal: !!ev && i === ev.index && fresh(), cls: `mini${ev && i === ev.index ? ' hot' : ''}`, extra: dots });
+      const dots = s.laid.length ? `<span class="laid">${s.laid.map((x) => `<i style="--pc:${PC[x.p]}"></i>`).join('')}</span>` : '';
+      return cardHTML(s.card, { reveal: !!ev && i === ev.index && fresh(), cls: `mini${going && i === S.next - 1 ? ' hot' : ''}`, extra: dots });
     }).join('')}</div></div>`).join('');
+  // jouw kaarten staan groot in het dock, dus niet ook nog boven je stoel
   const table = gameTable(`${pot(`Piramide · ${open}/${B.PYRAMID_SIZE}`)}<div class="pyr">${pyr}</div>`, (i) => {
-    const m = ev && ev.matches.find((x) => x.player === i);
-    return m ? { tag: ['', `Legt ${m.cards.map(B.label).join(' ')}`] } : {};
+    const o = i === S.you && going ? { hole: null } : {};
+    const laid = cur && going ? cur.laid.filter((x) => x.p === i) : [];
+    if (laid.length) o.tag = ['', `Legt ${laid.map((x) => B.label(x.card)).join(' ')}`];
+    return o;
   });
   let line = '';
-  if (ev) {
-    const what = ev.matches.length
-      ? ev.matches.map((m) => `<b>${who(m.player)}</b> legt ${andList(m.cards.map(lbl))} weg.`).join(' ')
-      : `Niemand heeft een ${rankWord(ev.card)}.`;
-    line = `<p class="pline">${lbl(ev.card)} ligt open in de rij van ${rowText(ev.row)}. ${what}</p>`;
+  if (cur && going) {
+    const by = [...new Set(cur.laid.map((x) => x.p))].sort((a, b) => (b === S.you) - (a === S.you));   // jij eerst
+    const what = by.length
+      ? `${andList(by.map((p) => `<b>${who(p)}</b>`))} ${by.length === 1 ? 'legt' : 'leggen'} weg.`
+      : `Heb je een ${rankWord(cur.card)}? Tik hem aan.`;
+    line = `<p class="pline">${lbl(cur.card)} ligt open: ${rowText(cur.row)} uitdelen per kaart. ${what}</p>`;
   }
   const md = myDeal();
-  const mine = S.hand.length ? `<p class="fine">Jouw kaarten: ${S.hand.map(lbl).join(' ')}</p>` : '<p class="fine">Je hebt geen kaarten meer.</p>';
+  const hand = going ? handHTML() : '';
   let dock;
-  if (md) dock = line + dealDock(md);
-  else if (S.deals.length) dock = line + waitDealDock();
-  else if (S.phase === 'piramide') {
-    const row = S.pyramid[S.next].row;
-    dock = `${line || '<div class="ask-h"><h2>De piramide</h2></div><p class="sub">Iedereen kan de volgende kaart omdraaien. Heb je dezelfde waarde, dan leg je hem vanzelf weg en deel je uit.</p>'}
-      <button class="cta" type="button" data-act="flip"><span>Draai kaart ${S.next + 1}</span>${ARR}</button>
-      <p class="fine">Deze rij: ${rowText(row)} uitdelen per kaart die je weglegt.</p>${mine}`;
+  if (md) dock = line + dealDock(md);   // eerst uitdelen; wegleggen kan daarna nog tot de volgende kaart om gaat
+  else if (S.deals.length) dock = line + waitDealDock() + hand;
+  else if (going) {
+    const paused = flipPaused(), more = S.next < S.pyramid.length;
+    const btn = `<button class="cta" type="button" data-act="${more ? 'flip' : 'endpyr'}" ${paused ? 'disabled' : ''}><span>${paused ? 'Even kijken…' : more ? `Draai kaart ${S.next + 1}` : 'Klaar: wie moet de bus in?'}</span>${ARR}</button>`;
+    const intro = '<div class="ask-h"><h2>De piramide</h2></div><p class="sub">Draai samen de kaarten om. Heb je dezelfde waarde in je hand? Tik dan zelf je kaart aan om hem weg te leggen en deel uit.</p>';
+    dock = `${line || intro}${hand}${btn}${more ? `<p class="fine">Volgende kaart: ${rowText(S.pyramid[S.next].row)} uitdelen per kaart die je weglegt.</p>` : ''}`;
   } else dock = `${line}<p class="waitline">Wie moet de bus in</p>`;
   return `${table}<div class="dock${fresh() ? ' pop' : ''}">${dock}</div>`;
 }
@@ -1115,7 +1145,7 @@ function rulesHTML() {
     <h3>Slokken: nu doen of sparen</h3>
     <p>Krijg je slokken, dan kies je op je telefoon: nu doen of sparen. Gespaarde slokken komen terug aan het eind van de vragenronde en van de piramide. Dan mag je ze weer sparen, maar aan het eind van het spel moeten ze op. Bovenin zie je altijd hoeveel je er nog hebt staan.</p>
     <h3>2. De piramide</h3>
-    <p>Er liggen ${B.PYRAMID_SIZE} kaarten in vijf rijen: ${B.PYRAMID.map((r) => r.count).join(', ')} van onder naar boven. Ze gaan één voor één om. Heb je dezelfde waarde in je hand, dan leg je hem weg en deel je uit: tik aan tafel op wie er drinkt. Per kaart deel je ${B.PYRAMID.filter((r) => !r.bak).map((r) => r.sips).join(', ')} slokken uit, van onder naar boven, en in de bovenste rij een bak.</p>
+    <p>Er liggen ${B.PYRAMID_SIZE} kaarten in vijf rijen: ${B.PYRAMID.map((r) => r.count).join(', ')} van onder naar boven. Ze gaan één voor één om. Heb je dezelfde waarde in je hand? Tik dan zelf je kaart aan om hem weg te leggen, voordat de volgende kaart om gaat. Daarna deel je uit: tik aan tafel op wie er drinkt. Per kaart deel je ${B.PYRAMID.filter((r) => !r.bak).map((r) => r.sips).join(', ')} slokken uit, van onder naar boven, en in de bovenste rij een bak.</p>
     <h3>3. De bus</h3>
     <p>Wie daarna de meeste kaarten over heeft, moet de bus in. Staan er spelers gelijk, dan kiest ieder een dichte kaart: wie de laagste trekt, moet erin. Weer gelijk? Dan kiezen die spelers opnieuw.</p>
     <p>In de bus liggen ${S ? S.busLength : B.BUS_DEFAULT} kaarten op een rij en de eerste ligt open. Raad steeds of de volgende hoger of lager is. Fout of paal? Drink zoveel slokken als de hoeveelste gok het was en begin opnieuw met nieuwe kaarten. Haal je het eind, dan ben je uit de bus.</p>
@@ -1286,6 +1316,13 @@ const actions = {
   skipdeal() { Net.send({ t: 'skipDeal' }); },
   skipfor(el) { Net.send({ t: 'skipDeal', from: +el.dataset.from }); },
   flip() { Net.send({ t: 'flip', i: S.next }); },
+  lay(el) {
+    const cur = openSlot(), card = { r: +el.dataset.r, s: +el.dataset.s };
+    if (!cur || !cur.card) return;
+    if (card.r !== cur.card.r) { Snd.bad(); buzz(40); toast(`Die past niet: er ligt een ${rankWord(cur.card)} open`); return; }
+    Net.send({ t: 'lay', card });
+  },
+  endpyr() { Net.send({ t: 'endpyr' }); },
   pick(el) { Net.send({ t: 'pick', i: +el.dataset.i, for: +el.dataset.for }); },
   guess(el) { Net.send({ t: 'guess', o: el.dataset.o }); },
   retry() { Net.send({ t: 'retry' }); },
