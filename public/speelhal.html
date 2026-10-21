@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Speelhal</title>
-<meta name="description" content="Al je spellen op één plek: Karnemelk Kart, Mega Ball, Stock Market, Rode Zone en Bussen.">
+<meta name="description" content="Al je spellen op één plek: Karnemelk Kart, Mega Ball, Stock Market en Rode Zone.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -172,7 +172,7 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
     <p class="kicker">van Jort</p>
     <h1>Speelhal</h1>
     <div class="hero-card cream">
-      <div class="chips"><span class="chip">Vijf spellen</span><span class="chip line">Eén pagina</span></div>
+      <div class="chips"><span class="chip">Vier spellen</span><span class="chip line">Eén pagina</span></div>
       <p>Al mijn spellen op één plek. Scroll naar beneden om ze te bekijken, of spring er direct in.</p>
       <div class="hero-list" id="heroList"></div>
     </div>
@@ -244,13 +244,7 @@ const GAMES = [
     chips: ['Simulator', 'Met geluid'],
     text: 'Revv-simulator met echte auto’s en motoren. Geef gas, schakel en rem, en hoor dat elke motor zijn eigen ritme heeft.',
     facts: [['Voertuigen', '7 auto’s, 3 motoren'], ['Geluid', 'live berekend'], ['Dashboard', 'per model']],
-    cta: 'Speel Rode Zone' },
-  { id: 'bussen', name: 'Bussen', name2: '', short: 'Bussen', acc: '#4f8dff', tint: '#101b3f', bg: '#0b1230',
-    url: '/bussen',
-    chips: ['Kaartspel', 'Online met vrienden'],
-    text: 'Het kaartspel bussen, online. Iedereen speelt op zijn eigen telefoon: raad rood of zwart en hoger of lager, deel slokken uit of spaar ze op, en hoop dat jij niet de bus in moet.',
-    facts: [['Spelers', '2 tot 9'], ['Fases', 'vragen, piramide, bus'], ['Meedoen', 'met een code']],
-    cta: 'Speel Bussen' }
+    cta: 'Speel Rode Zone' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 function build(){
@@ -260,7 +254,7 @@ function build(){
       <div class="prev" style="--bg:${g.bg}"><canvas data-prev="${g.id}" role="img" aria-label="Voorproefje van ${g.short}"></canvas></div>
       <div class="gbody">
         <div class="chips">${g.chips.map((c, i) => `<span class="chip${i ? ' line' : ''}">${c}</span>`).join('')}</div>
-        <h2 class="gname">${g.name}${g.name2 ? ` <em>${g.name2}</em>` : ''}</h2>
+        <h2 class="gname">${g.name} <em>${g.name2}</em></h2>
         <p>${g.text}</p>
         ${g.facts.length ? `<dl class="facts">${g.facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>` : ''}
         ${g.url
@@ -379,42 +373,6 @@ const PREV = {
     const na = A(rpm); c.save(); c.translate(cx, cy); c.rotate(na); c.shadowColor = '#ff5a1f'; c.shadowBlur = 10; c.fillStyle = '#ff5a1f'; c.beginPath(); c.moveTo(-R * .14, -R * .02); c.lineTo(R * .9, -2); c.lineTo(R * .9, 2); c.lineTo(-R * .14, R * .02); c.closePath(); c.fill(); c.restore();
     c.beginPath(); c.arc(cx, cy, R * .075, 0, TAU); c.fillStyle = '#151517'; c.fill();
     T(c, Math.round(rpm / 10) * 10 + ' tpm', cx, cy + R * .52, R * .13, rpm > 7500 ? '#ff5a3a' : '#f5f5f5', { f: MF });
-  },
-  bussen(c, w, h, t){
-    const g = c.createRadialGradient(w / 2, h * .1, 10, w / 2, h * .45, h); g.addColorStop(0, '#24397a'); g.addColorStop(1, '#0b1230'); c.fillStyle = g; c.fillRect(0, 0, w, h);
-    // piramide van 10 kaarten die van onder naar boven omgaan, daarna weer dicht
-    const cw = Math.min(w * .09, h * .11), ch = cw * 1.4, gap = cw * .16, top = h * .06;
-    const order = [6, 7, 8, 9, 3, 4, 5, 1, 2, 0], faces = ['A♠', '7♥', 'B♣', '3♦', 'V♥', '10♠', '9♦', 'H♣', '5♥', '2♠'];
-    const cyc = reduce ? 5.5 : (t / 620) % 14;
-    let k = 0;
-    for (let r = 0; r < 4; r++) for (let i = 0; i <= r; i++, k++) {
-      const x = w / 2 + (i - r / 2) * (cw + gap), y = top + r * ch * .7 + ch / 2;
-      const p = cyc > 12.5 ? clamp(13.5 - cyc, 0, 1) : clamp(cyc - order.indexOf(k), 0, 1), sx = Math.abs(Math.cos(p * Math.PI)), open = p > .5;
-      c.save(); c.translate(x, y); c.scale(Math.max(.03, sx), 1);
-      c.shadowColor = 'rgba(0,0,0,.4)'; c.shadowBlur = 8; c.shadowOffsetY = 3;
-      rr(c, -cw / 2, -ch / 2, cw, ch, cw * .13); c.fillStyle = open ? '#fffdf4' : '#3a1d43'; c.fill();
-      c.shadowColor = 'transparent';
-      if (open) T(c, faces[k], 0, 1, cw * .4, /[♥♦]/.test(faces[k]) ? '#d2343f' : '#24132a', { w: 900 });
-      else { c.lineWidth = Math.max(1.5, cw * .06); c.strokeStyle = '#f3efdb'; rr(c, -cw / 2 + cw * .07, -ch / 2 + cw * .07, cw * .86, ch - cw * .14, cw * .09); c.stroke(); T(c, 'B', 0, 1, cw * .38, 'rgba(214,144,201,.85)', { w: 900 }); }
-      c.restore();
-    }
-    // weg met een bus die langsrijdt
-    const roadY = h * .86;
-    c.fillStyle = 'rgba(255,255,255,.06)'; c.fillRect(0, roadY, w, h - roadY);
-    c.fillStyle = 'rgba(243,239,219,.35)'; const off = reduce ? 0 : (t * .05) % 40; for (let x = -40 + off; x < w; x += 40) c.fillRect(x, roadY + (h - roadY) / 2 - 1, 20, 2);
-    const bw = Math.min(w * .4, 220), bh = bw * .36, bx = reduce ? w * .52 : ((t * .055) % (w + bw * 1.6)) - bw * 1.2, by = roadY - bh - bw * .05;
-    c.save(); c.translate(bx, by);
-    const bg = c.createLinearGradient(0, 0, 0, bh); bg.addColorStop(0, '#78aaff'); bg.addColorStop(1, '#2f63d6');
-    c.beginPath(); c.moveTo(bh * .3, 0); c.lineTo(bw - bh * .45, 0); c.quadraticCurveTo(bw, 0, bw, bh * .5); c.lineTo(bw, bh - 6); c.quadraticCurveTo(bw, bh, bw - 6, bh); c.lineTo(6, bh); c.quadraticCurveTo(0, bh, 0, bh - 6); c.lineTo(0, bh * .3); c.quadraticCurveTo(0, 0, bh * .3, 0); c.closePath(); c.fillStyle = bg; c.fill();
-    c.fillStyle = '#f3efdb'; c.fillRect(0, bh * .7, bw, bh * .07);
-    const win = bw * .62, n = 5, ww = (win - 4 * 3) / n;
-    rr(c, bh * .14, bh * .14, win + bh * .12, bh * .46, 4); c.fillStyle = '#0d1a3a'; c.fill();
-    for (let i = 0; i < n; i++) { const wx = bh * .2 + i * (ww + 3), open = i < 2; rr(c, wx, bh * .19, ww, bh * .36, 2); c.fillStyle = open ? '#fffdf4' : '#3a1d43'; c.fill(); if (open) T(c, i ? '9' : '4', wx + ww / 2, bh * .37, bh * .24, i ? '#d2343f' : '#24132a', { w: 900 }); }
-    rr(c, bw - bh * .56, bh * .14, bh * .4, bh * .46, 5); c.fillStyle = '#cfe0ff'; c.fill();
-    c.fillStyle = '#ffe9a6'; c.fillRect(bw - 5, bh * .72, 4, 5);
-    for (const wx of [bw * .2, bw * .76]) { c.save(); c.translate(wx, bh); c.rotate(reduce ? 0 : t * .012); c.beginPath(); c.arc(0, 0, bh * .2, 0, TAU); c.fillStyle = '#141416'; c.fill(); c.strokeStyle = '#d6cfae'; c.lineWidth = 2; c.beginPath(); c.moveTo(-bh * .08, 0); c.lineTo(bh * .08, 0); c.stroke(); c.restore(); }
-    c.restore();
-    T(c, 'LIJN 7', w - 14, 18, 12, 'rgba(243,239,219,.6)', { f: MF, a: 'right' });
   }
 };
 let prevs = [];

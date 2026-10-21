@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="vilt" cx="50%" cy="38%" r="72%"><stop offset="0" stop-color="#35a862"/><stop offset=".55" stop-color="#21823f"/><stop offset="1" stop-color="#125a2e"/></radialGradient>
+    <linearGradient id="bus" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78aaff"/><stop offset="1" stop-color="#2f63d6"/></linearGradient>
+    <pattern id="rug" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="22" height="22" fill="#3a1d43"/><rect width="5" height="22" fill="#d690c9" fill-opacity=".45"/></pattern>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#vilt)"/>
+  <rect x="26" y="26" width="460" height="460" rx="90" fill="none" stroke="#f7c548" stroke-opacity=".4" stroke-width="6"/>
+  <!-- dichte kaart -->
+  <g transform="rotate(-13 205 205)">
+    <rect x="118" y="66" width="172" height="240" rx="22" fill="url(#rug)" stroke="#f3efdb" stroke-width="12"/>
+  </g>
+  <!-- open kaart: harten aas -->
+  <g transform="rotate(11 305 205)">
+    <rect x="220" y="58" width="172" height="240" rx="22" fill="#fffdf4" stroke="#e4dec2" stroke-width="4"/>
+    <path transform="translate(306 182) scale(1.7)" d="M0 30 C-40 2 -40 -34 -18 -40 C-6 -43 0 -33 0 -26 C0 -33 6 -43 18 -40 C40 -34 40 2 0 30 Z" fill="#d2343f"/>
+  </g>
+  <!-- de bus -->
+  <g transform="translate(78 296)">
+    <rect x="0" y="0" width="356" height="132" rx="30" fill="url(#bus)"/>
+    <rect x="0" y="96" width="356" height="12" fill="#f3efdb" opacity=".9"/>
+    <rect x="22" y="22" width="232" height="58" rx="12" fill="#0d1a3a"/>
+    <rect x="34" y="31" width="40" height="40" rx="7" fill="#fffdf4"/>
+    <rect x="86" y="31" width="40" height="40" rx="7" fill="#fffdf4"/>
+    <rect x="138" y="31" width="40" height="40" rx="7" fill="#3a1d43"/>
+    <rect x="190" y="31" width="40" height="40" rx="7" fill="#3a1d43"/>
+    <path d="M276 22 H312 Q336 22 338 48 V82 H276 Z" fill="#dbe7ff"/>
+    <circle cx="80" cy="134" r="34" fill="#141416"/>
+    <circle cx="80" cy="134" r="12" fill="#d6cfae"/>
+    <circle cx="280" cy="134" r="34" fill="#141416"/>
+    <circle cx="280" cy="134" r="12" fill="#d6cfae"/>
+  </g>
+</svg>

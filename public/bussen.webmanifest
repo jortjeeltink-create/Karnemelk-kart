@@ -1,0 +1,18 @@
+{
+  "name": "Bussen",
+  "short_name": "Bussen",
+  "description": "Het kaartspel bussen online: iedereen speelt op zijn eigen telefoon.",
+  "lang": "nl",
+  "id": "/bussen",
+  "start_url": "/bussen",
+  "scope": "/bussen",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#150b18",
+  "theme_color": "#150b18",
+  "icons": [
+    { "src": "/img/bussen-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/img/bussen-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/img/bussen.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
