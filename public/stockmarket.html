@@ -270,7 +270,7 @@ button:disabled{cursor:not-allowed}
     </div>
     <div class="r2">
       <a class="hbtn" href="/stockmarket/storten"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="9" cy="6.5" rx="6" ry="2.5"/><path d="M3 6.5v4c0 1.4 2.7 2.5 6 2.5"/><path d="M3 10.5v4c0 1.4 2.7 2.5 6 2.5"/><path d="M15 6.5V9"/><circle cx="17" cy="15.5" r="4.5"/><path d="M17 13.5v4M15 15.5h4"/></svg>Geld storten</a>
-      <button class="hbtn" id="gamesBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="17" r="3.6"/><circle cx="16.5" cy="17.5" r="3.6"/><path d="M7.5 13.5C9 9 11 6 15 3.5M16 14c-.5-4-.6-7-1-10.5"/><path d="M15 3.5c2.5-.8 5-.2 6.5 1.8-2.6 1-4.8.6-6.5-1.8z"/></svg>Spellen</button>
+      <a class="hbtn" href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="17" r="3.6"/><circle cx="16.5" cy="17.5" r="3.6"/><path d="M7.5 13.5C9 9 11 6 15 3.5M16 14c-.5-4-.6-7-1-10.5"/><path d="M15 3.5c2.5-.8 5-.2 6.5 1.8-2.6 1-4.8.6-6.5-1.8z"/></svg>Speelhal</a>
       <span class="grow"></span>
       <button class="eye" id="eyeBtn" type="button" aria-pressed="false" aria-label="Saldo verbergen"><i><b></b></i><svg id="eyeIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
       <a class="xb" href="/" aria-label="Sluit spel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg></a>
@@ -385,7 +385,7 @@ button:disabled{cursor:not-allowed}
       <dl class="kv" id="totals"></dl>
     </section>
     <button class="linkbtn" id="resetStats" type="button">Statistieken wissen</button>
-    <a class="mrow" href="/">Terug naar Karnemelk Kart <span>›</span></a>
+    <a class="mrow" href="/">Terug naar de speelhal <span>›</span></a>
   </div>
 </div>
 
@@ -394,17 +394,6 @@ button:disabled{cursor:not-allowed}
     <div class="sheet-head"><h2 id="sessTitle">Sessie informatie</h2><button class="xbtn" type="button" data-close aria-label="Sluiten">✕</button></div>
     <dl class="kv" id="sessKv"></dl>
     <p class="muted small">Alleen nep geld. Er gaat geen echt geld in of uit.</p>
-  </div>
-</div>
-
-<div class="overlay" id="gamesSheet" hidden>
-  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="gamesTitle">
-    <div class="sheet-head"><h2 id="gamesTitle">Spellen</h2><button class="xbtn" type="button" data-close aria-label="Sluiten">✕</button></div>
-    <div class="mlist">
-      <button class="mrow hl" type="button" data-close>Stock Market Trainer <span>speel je nu</span></button>
-      <a class="mrow" href="/megaball">Mega Ball <span>›</span></a>
-      <a class="mrow" href="/">Karnemelk Kart <span>›</span></a>
-    </div>
   </div>
 </div>
 
@@ -815,7 +804,7 @@ const el = {
   pfVal: $('#pfVal'), upBtn: $('#upBtn'), dnBtn: $('#dnBtn'), upSlot: $('#upSlot'), dnSlot: $('#dnSlot'), betTools: $('#betTools'), undoBtn: $('#undoBtn'), dblBtn: $('#dblBtn'),
   chipBtn: $('#chipBtn'), tray: $('#tray'), menuBtn: $('#menuBtn'), chat: $('#chat'), betLine: $('#betLine'), nowT: $('#nowT'), rid: $('#rid'), saldo: $('#saldo'),
   jpInfo: $('#jpInfo'), jpAmt: $('#jpAmt'), jpFill: $('#jpFill'), jpTog: $('#jpTog'), eyeBtn: $('#eyeBtn'), eyeIco: $('#eyeIco'),
-  menu: $('#menu'), sessSheet: $('#sessSheet'), gamesSheet: $('#gamesSheet'), ownSheet: $('#ownSheet'), ownInput: $('#ownInput'), ownHint: $('#ownHint'), toast: $('#toast')
+  menu: $('#menu'), sessSheet: $('#sessSheet'), ownSheet: $('#ownSheet'), ownInput: $('#ownInput'), ownHint: $('#ownHint'), toast: $('#toast')
 };
 const ICON_MUTED = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3z"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 const ICON_SOUND = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 9h4l5-4v14l-5-4H3z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
@@ -1174,7 +1163,7 @@ function frame(t) {
 }
 
 /* ---------- menu's ---------- */
-function closeSheets() { for (const s of [el.menu, el.sessSheet, el.gamesSheet, el.ownSheet]) s.hidden = true; }
+function closeSheets() { for (const s of [el.menu, el.sessSheet, el.ownSheet]) s.hidden = true; }
 function openMenu() {
   const body = $('#histBody');
   body.replaceChildren(...S.history.slice(0, 20).map(h => {
@@ -1234,7 +1223,6 @@ function wire() {
   document.addEventListener('pointerdown', e => { if (!el.tray.hidden && !el.tray.contains(e.target) && !el.chipBtn.contains(e.target)) el.tray.hidden = true; });
   el.menuBtn.addEventListener('click', openMenu);
   $('#sessBtn').addEventListener('click', openSession);
-  $('#gamesBtn').addEventListener('click', () => { el.gamesSheet.hidden = false; });
   el.pip.addEventListener('click', () => setMuted(!S.muted));
   el.muteHint.addEventListener('click', () => setMuted(false));
   $('#togSound').addEventListener('click', () => setMuted(!S.muted));
@@ -1252,7 +1240,7 @@ function wire() {
     S.chip = v; closeSheets(); renderChipBtn(); save();
   });
   el.ownInput.addEventListener('keydown', e => { if (e.key === 'Enter') $('#ownOk').click(); });
-  for (const o of [el.menu, el.sessSheet, el.gamesSheet, el.ownSheet]) {
+  for (const o of [el.menu, el.sessSheet, el.ownSheet]) {
     o.addEventListener('click', e => { if (e.target === o || e.target.closest('[data-close]')) closeSheets(); });
   }
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeSheets(); el.tray.hidden = true; } });

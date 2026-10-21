@@ -248,7 +248,7 @@ class App {
     if (!m.practice) store.set(ROOM_KEY, JSON.stringify({ code: m.code, at: Date.now() }));
     // uitnodigingslink is gebruikt: adresbalk opschonen zodat herladen je niet opnieuw in een oude room zet
     if (location.search.includes('room=') || location.pathname.startsWith('/join/')) {
-      try { history.replaceState(null, '', '/'); } catch { /* niet erg */ }
+      try { history.replaceState(null, '', '/kart'); } catch { /* niet erg */ }
       this.inviteCode = null;
     }
     if (first && !m.practice) this.sound.play('box');

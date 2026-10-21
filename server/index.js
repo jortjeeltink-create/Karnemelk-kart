@@ -85,7 +85,10 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: true, ...hub.stats() }));
   }
-  if (path === '/' || path.startsWith('/join/')) path = '/index.html';
+  // de speelhal is de hoofdpagina; uitnodigingen (/?room=, /join/) gaan nog steeds naar de kartgame
+  if (path === '/kart' || path === '/kart/' || path.startsWith('/join/') || (path === '/' && url.searchParams.has('room'))) path = '/index.html';
+  else if (path === '/') path = '/speelhal.html';
+  else if (path === '/rodezone' || path === '/rodezone/') path = '/rodezone.html';
   else if (path === '/megaball' || path === '/megaball/') path = '/megaball.html';
   else if (path === '/megaball/storten' || path === '/stockmarket/storten') path = '/megaball-storten.html';
   else if (path === '/stockmarket' || path === '/stockmarket/') path = '/stockmarket.html';

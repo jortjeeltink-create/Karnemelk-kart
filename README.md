@@ -6,8 +6,9 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
 
 ## Wat zit erin
 
+- **Speelhal** (de hoofdpagina, `/`): een scrollpagina met al de spellen: Karnemelk Kart (`/kart`), Mega Ball, Stock Market Trainer en Rode Zone. Wie de site als app op het beginscherm heeft gezet, komt hier binnen. Vanuit elk spel ga je terug naar de speelhal.
 - **Live multiplayer** voor maximaal 10 spelers (mensen + computerkarts) per room.
-- **Privéroom met groepscode** van 4 letters, plus een deelbare link (`https://jouw-site/?room=ABCD`).
+- **Privéroom met groepscode** van 4 letters, plus een deelbare link (`https://jouw-site/kart?room=ABCD`; oude links met `/?room=ABCD` werken ook nog).
 - **Lobby** met wie er meedoet, wie klaar is, coureurkeuze, baankeuze, computerkarts en de uitdaging voor de verliezer. De host start de race (en kan spelers verwijderen).
 - **Opnieuw deelnemen** na een verbindingsonderbreking: je krijgt automatisch je eigen kart terug (tot 2 minuten). Wie tijdens een race binnenkomt, kijkt mee en doet de volgende race mee.
 - **13 banen**: kustweg, pretpark, stadscentrum (grachten), bos, haven, sneeuwbaan, woestijn, boerderij, een bonusbaan in de ruimte, en nieuw: Schansenpolder, Neonstad Nachtrace, Vulkaan Vuurrit en Duinensprong. Elk met eigen route, decor, obstakels, bewegende hindernissen, muziek en sfeer.
@@ -28,8 +29,9 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
 - **Toeteren**: met de TOET-knop toeter je naar anderen in de buurt.
 - **Titels na de race**: Botskampioen, Pechvogel, Itemkoning en Driftkoning.
 - **Instellingen**: muziek, effecten, alles stil, besturing (knoppen, schuifbalk of kantelen), automatisch gas, linkshandig, trillen, grafische kwaliteit, namen en minikaart.
-- **Mega Ball** (knop in het hoofdmenu, of `/megaball`): namaak van First Person Mega Ball, los van de kartgame. Alle kaarten (tot 400) staan als mini-kaartjes op één telefoonscherm; tik op een kaartje om het groot te zien. Kaarten kies je met +1, +10, +25 en +100, de inzet per kaart heeft geen maximum, en met Speel start de trekking: 20 van de 51 ballen, daarna de multiplier (5× tot 100×) en de Mega Ball. Gemiddeld komt zo'n 95% van de inzet terug, net als bij het origineel. Nep geld stort je op een aparte pagina (`/megaball/storten`), zonder limiet. Saldo en statistieken blijven in de browser bewaard.
-- **Stock Market Trainer** (knop in het hoofdmenu, of `/stockmarket`): namaak van Stock Market met nep geld, ook los van de kartgame. Elke ronde heb je 10 seconden om in te zetten op STIJGING of DALING (maar één kant; tik je op de andere kant, dan verhuist je inzet mee), daarna beweegt de koers 10 seconden live en beweegt je portefeuille mee. Stijgt de koers 30%, dan is een inzet op stijging 1,3× waard en op daling 0,7×; de koers gaat nooit meer dan 100% op of neer, dus je wint maximaal 2×. Na de sessie gaat je portefeuille naar je saldo, min 1% fee (gemiddeld 99% terug). Met presentator Martin (tik op het videootje voor geluid en spraak), de laatste uitslagen, de winnaars van de vorige ronde, fiches van € 0,10 tot en met 1 triljoen (of een eigen bedrag) en de Superheet jackpot (€ 0,10 extra per ronde). De markt loopt op de klok, dus vrienden die tegelijk spelen zien dezelfde koers. Je saldo is hetzelfde als bij Mega Ball; storten kan ook via `/stockmarket/storten`.
+- **Mega Ball** (via de speelhal, of `/megaball`): namaak van First Person Mega Ball, los van de kartgame. Alle kaarten (tot 400) staan als mini-kaartjes op één telefoonscherm; tik op een kaartje om het groot te zien. Kaarten kies je met +1, +10, +25 en +100, de inzet per kaart heeft geen maximum, en met Speel start de trekking: 20 van de 51 ballen, daarna de multiplier (5× tot 100×) en de Mega Ball. Gemiddeld komt zo'n 95% van de inzet terug, net als bij het origineel. Nep geld stort je op een aparte pagina (`/megaball/storten`), zonder limiet. Saldo en statistieken blijven in de browser bewaard.
+- **Stock Market Trainer** (via de speelhal, of `/stockmarket`): namaak van Stock Market met nep geld, ook los van de kartgame. Elke ronde heb je 10 seconden om in te zetten op STIJGING of DALING (maar één kant; tik je op de andere kant, dan verhuist je inzet mee), daarna beweegt de koers 10 seconden live en beweegt je portefeuille mee. Stijgt de koers 30%, dan is een inzet op stijging 1,3× waard en op daling 0,7×; de koers gaat nooit meer dan 100% op of neer, dus je wint maximaal 2×. Na de sessie gaat je portefeuille naar je saldo, min 1% fee (gemiddeld 99% terug). Met presentator Martin (tik op het videootje voor geluid en spraak), de laatste uitslagen, de winnaars van de vorige ronde, fiches van € 0,10 tot en met 1 triljoen (of een eigen bedrag) en de Superheet jackpot (€ 0,10 extra per ronde). De markt loopt op de klok, dus vrienden die tegelijk spelen zien dezelfde koers. Je saldo is hetzelfde als bij Mega Ball; storten kan ook via `/stockmarket/storten`.
+- **Rode Zone** (via de speelhal, of `/rodezone`): revv-simulator met 7 auto's en 3 motoren. Geef gas, schakel en rem; het motorgeluid wordt live berekend uit het ontstekingsritme van elke motor, en elk voertuig heeft een eigen dashboard.
 - Alles in het Nederlands.
 
 ## Snel starten op je eigen computer
@@ -41,7 +43,7 @@ npm install
 npm start
 ```
 
-Open daarna **http://localhost:3000**. In het venster van de server zie je ook een regel als:
+Open daarna **http://localhost:3000** (de speelhal; de kartgame staat op `/kart`). In het venster van de server zie je ook een regel als:
 
 ```
 Op je wifi (telefoon): http://192.168.1.23:3000
@@ -209,7 +211,9 @@ Alle banen hebben schansen (soms met een boostring erachter) en extra turbostrok
 
 ```
 server/            server (http + WebSocket) en opslag
-public/index.html  de pagina
+public/speelhal.html  de hoofdpagina met al de spellen
+public/index.html  de kartgame (/kart)
+public/rodezone.html  Rode Zone, de revv-simulator (één los bestand)
 public/megaball.html  Mega Ball met nep geld (één los bestand)
 public/megaball-storten.html  stortpagina voor Mega Ball
 public/css/        vormgeving

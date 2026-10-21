@@ -111,8 +111,7 @@ export function menuScreen(app) {
         h('button', { class: 'btn btn-pink btn-small', onclick: () => { app.click(); app.show('creator', { back: 'menu' }); } }, 'Mijn coureur'),
         h('button', { class: 'btn btn-small', onclick: () => { app.click(); app.show('settings'); } }, 'Instellingen')),
       off ? null : h('div', { class: 'row menu-row' },
-        h('button', { class: 'btn btn-small', onclick: () => { app.click(); location.href = '/megaball'; } }, 'Mega Ball (nep geld)'),
-        h('button', { class: 'btn btn-small', onclick: () => { app.click(); location.href = '/stockmarket'; } }, 'Stock Market Trainer (nep geld)')),
+        h('button', { class: 'btn btn-small', onclick: () => { app.click(); location.href = '/'; } }, 'Speelhal: al je spellen')),
       app.profile.dailyReady ? h('div', { class: 'daily' }, `Dagbonus: +${DAILY_BONUS} MP bij je eerste race van vandaag`) : null,
       h('p', { class: 'muted small center-text' },
         `Races: ${app.profile.stats.races || 0} • Gewonnen: ${app.profile.stats.wins || 0} • Podium: ${app.profile.stats.podiums || 0} • `,
@@ -147,7 +146,7 @@ export function lobbyScreen(app) {
   const me = room.players.find((p) => p.pid === room.you) || {};
   app.showroom.setMode('lobby');
   app.showroom.setKart(me.character, me.cosmetics, me.look);
-  const shareUrl = `${location.origin}/?room=${room.code}`;
+  const shareUrl = `${location.origin}/kart?room=${room.code}`;
 
   const header = room.practice
     ? h('div', { class: 'lobby-head' }, h('h2', {}, 'Oefenen'), h('p', { class: 'muted small' }, 'Race alleen of tegen computerkarts. Je verdient de helft van de normale MP-punten.'))

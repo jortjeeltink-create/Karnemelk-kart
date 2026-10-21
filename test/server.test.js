@@ -200,14 +200,23 @@ test('10 spelers racen live samen, met herverbinden, punten en winkel', { timeou
 test('de server levert de game en een gezondheidscheck', async () => {
   const srv = await startServer();
   try {
-    const first = await fetch(srv.url + '/');
+    // de hoofdpagina is de speelhal met al de spellen
+    const hall = await fetch(srv.url + '/');
+    assert.equal(hall.status, 200);
+    const hallHtml = await hall.text();
+    assert.match(hallHtml, /<title>Speelhal<\/title>/);
+    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
+    assert.match(hallHtml, /rel="manifest"/);
+    // uitnodigingen naar de oude hoofdpagina komen nog steeds in de kartgame
+    assert.match(await (await fetch(srv.url + '/?room=ABCD')).text(), /<title>Karnemelk Kart<\/title>/);
+    const first = await fetch(srv.url + '/kart');
     const html = await first.text();
     assert.match(html, /Karnemelk Kart/);
     // apparaatcookie: zo herkent de server deze telefoon
     const cookie = first.headers.get('set-cookie');
     assert.match(cookie, /^kk_dev=[A-Za-z0-9_-]{32}; Path=\/; Max-Age=\d+; HttpOnly; SameSite=Lax/);
     const token = cookie.split(';')[0].split('=')[1];
-    const again = await fetch(srv.url + '/', { headers: { cookie: `kk_dev=${token}` } });
+    const again = await fetch(srv.url + '/kart', { headers: { cookie: `kk_dev=${token}` } });
     assert.ok(again.headers.get('set-cookie').startsWith(`kk_dev=${token};`), 'zelfde cookie wordt verlengd');
     // WebSocket met dat cookie: registreren en daarna zonder browseropslag herkend worden
     const { WebSocket: WsClient } = await import('ws');
@@ -241,6 +250,9 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.match(await stock.text(), /<title>Stock Market Trainer<\/title>/);
     assert.equal((await fetch(srv.url + '/stockmarket/storten')).status, 200);
     assert.equal((await fetch(srv.url + '/shared/stockmarket.js')).status, 200);
+    const zone = await fetch(srv.url + '/rodezone');
+    assert.equal(zone.status, 200);
+    assert.match(await zone.text(), /<title>Rode Zone<\/title>/);
     const health = await (await fetch(srv.url + '/health')).json();
     assert.equal(health.ok, true);
     assert.equal((await fetch(srv.url + '/../server/store.js')).status, 404);
