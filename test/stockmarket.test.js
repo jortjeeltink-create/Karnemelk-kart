@@ -29,6 +29,20 @@ test('de koers is voor iedereen gelijk en blijft tussen -100% en 100%', () => {
   assert.equal(SM.move(N0 + 7), SM.move(N0 + 7));
 });
 
+test('de koers draait vaak om, krijgt vaak een boost en het begin verraadt de uitslag niet', () => {
+  let agree = 0, boosted = 0;
+  const N = 2000;
+  for (let n = N0; n < N0 + N; n++) {
+    const p = SM.path(n), r = SM.move(n);
+    if (Math.sign(p[10] || 1) === Math.sign(r || 1)) agree++;
+    let b = false;
+    for (let i = 0; i < SM.KNOTS; i++) if (SM.boostAt(n, (i + 0.5) / SM.KNOTS)) b = true;
+    if (b) boosted++;
+  }
+  assert.ok(agree / N > 0.4 && agree / N < 0.6, `begin wijst in ${agree / N} van de keren de goede kant op`);
+  assert.ok(boosted / N > 0.6 && boosted / N < 0.95, `boost in ${boosted / N} van de sessies`);
+});
+
 test('gemiddeld komt 99% van de inzet terug, maximaal 2x', () => {
   let up = 0, down = 0, ups = 0, best = 0;
   const N = 60000;

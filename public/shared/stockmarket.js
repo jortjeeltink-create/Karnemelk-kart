@@ -67,32 +67,53 @@ export function move(n) {
   }, 2000);
 }
 
-// De koerslijn: KNOTS+1 punten van 0 naar de slotkoers, met trends en gekarteld zoals een echte grafiek.
+// De koerslijn: KNOTS+1 punten van 0 naar de slotkoers, gekarteld zoals een echte grafiek.
+// Het eerste deel loopt vrij en weet niet waar de sessie eindigt: trends die vaak omdraaien en
+// boosts (een sprong in één knik). Pas in het laatste stuk gaat de lijn naar de slotkoers,
+// bij een groot verschil met een boost. Zo zegt het begin niets over de uitslag.
+export const BOOST = 14; // zoveel procentpunt in één knik telt als boost
 const paths = new Map();
 export function path(n) {
   return memo(paths, n, () => {
     const r = move(n);
     const R = rngFor(n, 'pad');
-    const w = [0];
-    let slope = gauss(R) * 3;
-    for (let i = 1; i <= KNOTS; i++) {
-      if (R() < 0.18) slope = gauss(R) * 4.5;
-      w.push(w[i - 1] + slope + gauss(R) * 3.2);
+    const m = 16 + Math.floor(R() * 7); // tot hier loopt de koers vrij
+    const p = [0];
+    let slope = gauss(R) * 4;
+    for (let i = 1; i <= m; i++) {
+      const prev = p[i - 1];
+      if (R() < 0.3) slope = gauss(R) * 5;
+      let step = slope + gauss(R) * 3.5 - prev * 0.06;
+      if (R() < 0.05) step += (R() < 0.5 + prev / 250 ? -1 : 1) * (18 + R() * 30);
+      let v = prev + step;
+      if (Math.abs(v) > 92) { v = Math.sign(v) * (184 - Math.abs(v)); slope = -slope; }
+      p.push(v);
     }
-    const p = w.map((x, i) => {
-      const f = i / KNOTS;
-      return clamp(x - f * w[KNOTS] + f * r, -MAX_MOVE, MAX_MOVE);
-    });
-    p[0] = 0;
-    p[KNOTS] = r;
+    const from = p[m], dist = r - from, k = KNOTS - m;
+    const jump = Math.abs(dist) > 25 && R() < 0.55 ? m + 1 + Math.floor(R() * k) : -1;
+    const share = jump > 0 ? 0.45 + R() * 0.35 : 0;
+    for (let i = m + 1; i < KNOTS; i++) {
+      const f = (i - m) / k;
+      const base = from + dist * ((1 - share) * f + (i >= jump && jump > 0 ? share : 0));
+      p.push(clamp(base + gauss(R) * 3 * Math.sin(Math.PI * f), -MAX_MOVE, MAX_MOVE));
+    }
+    p.push(r);
     return p;
   }, 60);
+}
+// Grootte van de boost in het stuk lijn waar de sessie nu is (0 als er geen boost is).
+export function boostAt(n, f) {
+  const p = path(n);
+  const i = Math.min(KNOTS - 1, Math.floor(clamp(f, 0, 1) * KNOTS));
+  const d = p[i + 1] - p[i];
+  return Math.abs(d) >= BOOST ? d : 0;
 }
 // Koers (in %) op een fractie 0..1 van de sessie.
 export function pctAt(n, f) {
   const p = path(n);
   const x = clamp(f, 0, 1) * KNOTS;
-  const i = Math.min(KNOTS - 1, Math.floor(x));
+  if (x >= KNOTS) return p[KNOTS];
+  const i = Math.floor(x);
   return p[i] + (p[i + 1] - p[i]) * (x - i);
 }
 
