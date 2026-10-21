@@ -279,6 +279,7 @@ test('Bussen online: twee telefoons aan één tafel via /ws/bussen', async () =>
     const sa = await a.request({ t: 'create', name: 'Jort', token: 'telefoon-a-0123456789' }, 'state');
     assert.equal(sa.phase, 'lobby');
     assert.match(sa.code, /^[A-Z]{4}$/);
+    assert.match(sa.build, /^[\w-]{12}$/, 'de versie van Bussen gaat mee, zodat oude pagina\'s herladen');
     const sb = await b.request({ t: 'join', code: sa.code.toLowerCase(), name: 'Meke', token: 'telefoon-b-0123456789' }, (m) => m.t === 'state' && m.players.length === 2);
     assert.equal(sb.you, 1);
     const started = b.wait((m) => m.t === 'state' && m.phase === 'vragen');

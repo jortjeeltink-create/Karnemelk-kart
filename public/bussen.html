@@ -192,6 +192,7 @@ p{margin:0}
 .hole .card:nth-child(3){transform:rotate(3deg)}
 .hole .card:nth-child(4){transform:rotate(10deg) translateY(2px)}
 .seat.dim{opacity:.38;filter:saturate(.35)}
+.ncards{position:absolute;left:calc(var(--ava) * -.24);top:calc(var(--ava) * -.04);z-index:2;width:calc(var(--ava) * .4);height:calc(var(--ava) * .56);border-radius:4px;display:grid;place-items:center;background:#3a1d43;box-shadow:0 0 0 1.5px #f3efdb,0 3px 8px rgba(0,0,0,.5);font-family:var(--display);font-weight:900;font-size:calc(var(--ava) * .3);line-height:1;color:var(--gold);transform:rotate(-8deg)}
 button.seat{cursor:pointer}
 .seat.target::after{content:"";position:absolute;inset:-7px;border-radius:50%;box-shadow:0 0 0 2px var(--good),0 0 18px rgba(62,224,127,.6);animation:pulse 1.3s ease-in-out infinite;pointer-events:none}
 .seat.target .ava::after{content:attr(data-plus);position:absolute;right:-11px;top:-9px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;display:grid;place-items:center;background:var(--good);color:#06301a;font-family:var(--display);font-size:14px;font-weight:900;text-shadow:none;box-shadow:0 0 0 2px #140d17}
@@ -543,6 +544,7 @@ const ui = {
   joining: false, error: '', name: me.name, code: urlCode,
   seen: 0, show: null, showTimer: 0, banner: null, bannerTimer: 0,
   draft: null, gave: -1, redeal: false, wasMine: false, lastView: null, sheet: null, sheetKey: null, flipAt: 0,
+  build: null,
 };
 
 function onMessage(m) {
@@ -557,6 +559,12 @@ function onMessage(m) {
 }
 
 function onState(m) {
+  // is de server bijgewerkt terwijl deze pagina openstond? Dan opnieuw laden, anders draait hier oude code.
+  // Na het laden kom je met je sleutel vanzelf weer op je eigen plek.
+  if (m.build) {
+    if (ui.build && ui.build !== m.build) { Net.stop(); location.reload(); return; }
+    ui.build = m.build;
+  }
   const first = !S || S.code !== m.code;
   S = m;
   ui.joining = false; ui.error = '';
@@ -718,7 +726,7 @@ function placeSeats() {
 }
 
 // De tafel: rand, vilt, iets in het midden en de spelers eromheen (order: wie op welke stoel, jij eerst).
-// seat(i) -> { hole: kaarten of aantal dichte kaarten, now, target, given, plus, dim, kick, tag: [soort, tekst] }
+// seat(i) -> { hole: kaarten of aantal dichte kaarten, count: aantal kaarten als klein kaartje, now, target, given, plus, dim, kick, tag: [soort, tekst] }
 function tableHTML({ order: seatsOrder, people, center = '', seat = () => ({}), dealer = -1, cls = '' }) {
   const seats = seatsOrder.map((i) => {
     const p = people[i], o = seat(i) || {};
@@ -732,7 +740,7 @@ function tableHTML({ order: seatsOrder, people, center = '', seat = () => ({}), 
       : p.owe != null ? `<span class="${p.owe ? '' : 'zero'}" title="Slokken die nog moeten">${GLASS}${p.owe}</span>` : '';
     const isMe = S && i === S.you && !p.empty;
     return `<${el} class="seat${o.now ? ' now' : ''}${o.target ? ' target' : ''}${o.dim ? ' dim' : ''}${p.empty ? ' empty' : ''}${isMe ? ' me' : ''}${p.connected === false ? ' off' : ''}" style="--pc:${PC[i % PC.length]}"${btn}>
-      ${hole ? `<div class="hole">${hole}</div>` : ''}<span class="ava"${o.target ? ` data-plus="${o.given ? `+${o.given}` : '+'}"` : ''}>${p.empty ? '+' : esc(initial(p.name))}</span>
+      ${hole ? `<div class="hole">${hole}</div>` : ''}${o.count != null ? `<span class="ncards" title="${o.count} ${o.count === 1 ? 'kaart' : 'kaarten'} over">${o.count}</span>` : ''}<span class="ava"${o.target ? ` data-plus="${o.given ? `+${o.given}` : '+'}"` : ''}>${p.empty ? '+' : esc(initial(p.name))}</span>
       <span class="plate"><b>${p.empty ? 'Vrij' : esc(p.name)}</b>${line}</span>
       ${o.tag ? `<span class="tagwrap"><span class="tag ${o.tag[0]}">${o.tag[1]}</span></span>` : ''}${o.plus ? '<span class="plus">+1</span>' : ''}
     </${el}>`;
@@ -930,9 +938,9 @@ function vPiramide() {
     const dots = s.laid.length ? `<span class="laid">${s.laid.map((x) => `<i style="--pc:${PC[x.p]}"></i>`).join('')}</span>` : '';
     return `<div class="pslot${slot.dwars ? ' dwars' : ''}" title="${slotText(i)} per kaart">${card}${dots}</div>`;
   }).join('')}</div>`).join('');
-  // jouw kaarten staan groot in het dock, dus niet ook nog boven je stoel
+  // jouw kaarten staan groot in het dock; van de anderen zie je alleen hoeveel ze er nog hebben
   const table = gameTable(`${pot(`Piramide · ${open}/${B.PYRAMID_SIZE}`)}<div class="pyr">${pyr}</div>`, (i) => {
-    const o = i === S.you && going ? { hole: null } : {};
+    const o = { hole: null, count: i === S.you ? null : S.players[i].cards };
     const laid = cur && going ? cur.laid.filter((x) => x.p === i) : [];
     if (laid.length) o.tag = ['', `Legt ${laid.map((x) => B.label(x.card)).join(' ')}`];
     return o;
@@ -951,9 +959,10 @@ function vPiramide() {
   if (md) dock = line + dealDock(md);   // eerst uitdelen; wegleggen kan daarna nog tot de volgende kaart om gaat
   else if (S.deals.length) dock = line + waitDealDock() + hand;
   else if (going) {
-    const paused = flipPaused(), more = S.next < S.pyramid.length;
-    const btn = `<button class="cta" type="button" data-act="${more ? 'flip' : 'endpyr'}" ${paused ? 'disabled' : ''}><span>${paused ? 'Even kijken…' : more ? `Draai kaart ${S.next + 1}` : 'Klaar: wie moet de bus in?'}</span>${ARR}</button>`;
-    const intro = '<div class="ask-h"><h2>De piramide</h2></div><p class="sub">Draai samen de kaarten om, van onder naar boven. Heb je dezelfde waarde in je hand? Tik dan zelf je kaart aan om hem weg te leggen en deel uit. Een dwarse kaart telt dubbel.</p>';
+    const paused = flipPaused(), more = S.next < S.pyramid.length, host = isHost();
+    const btn = !host ? `<p class="waitline">${more ? `${nameOf(S.host)} draait de volgende kaart om` : `Wachten op ${nameOf(S.host)}`}</p>`
+      : `<button class="cta" type="button" data-act="${more ? 'flip' : 'endpyr'}" ${paused ? 'disabled' : ''}><span>${paused ? 'Even kijken…' : more ? `Draai kaart ${S.next + 1}` : 'Klaar: wie moet de bus in?'}</span>${ARR}</button>`;
+    const intro = `<div class="ask-h"><h2>De piramide</h2></div><p class="sub">${host ? 'Jij draait' : `${nameOf(S.host)} draait`} de kaarten om, van onder naar boven. Heb je dezelfde waarde in je hand? Tik dan je kaart aan om hem weg te leggen en deel uit. Een dwarse kaart telt dubbel.</p>`;
     dock = `${line || intro}${hand}${btn}${more ? `<p class="fine">Volgende kaart: ${slotText(S.next)} uitdelen per kaart die je weglegt.</p>` : ''}`;
   } else dock = `${line}<p class="waitline">Wie moet de bus in</p>`;
   return `${table}<div class="dock${fresh() ? ' pop' : ''}">${dock}</div>`;
@@ -1148,7 +1157,7 @@ function rulesHTML() {
     <h3>Slokken: nu doen of sparen</h3>
     <p>Krijg je slokken, dan kies je op je telefoon: nu doen of sparen. Gespaarde slokken komen terug aan het eind van de vragenronde en van de piramide. Dan mag je ze weer sparen, maar aan het eind van het spel moeten ze op. Bovenin zie je altijd hoeveel je er nog hebt staan.</p>
     <h3>2. De piramide</h3>
-    <p>Er liggen ${B.PYRAMID_SIZE} kaarten, van onder naar boven: ${andList(B.PYRAMID.map((r) => r.lay.length === 1 ? 'één' : String(r.lay.length)))}. Ze gaan één voor één om. Heb je dezelfde waarde in je hand? Tik dan zelf je kaart aan om hem weg te leggen, voordat de volgende kaart om gaat. Daarna deel je uit: tik aan tafel op wie er drinkt. Elke rij is een aantal slokken waard, van onder naar boven ${andList(B.PYRAMID.map((r) => String(r.sips)))}. Ligt de kaart dwars, dan telt hij dubbel: de onderste is dus ${slotText(0)} en de bovenste ${slotText(B.PYRAMID_SIZE - 1)}.</p>
+    <p>Er liggen ${B.PYRAMID_SIZE} kaarten, van onder naar boven: ${andList(B.PYRAMID.map((r) => r.lay.length === 1 ? 'één' : String(r.lay.length)))}. De host draait ze één voor één om en iedereen ziet tegelijk welke kaart open ligt. Heb je dezelfde waarde in je hand? Tik dan zelf je kaart aan om hem weg te leggen, voordat de volgende kaart om gaat. Daarna deel je uit: tik aan tafel op wie er drinkt. Elke rij is een aantal slokken waard, van onder naar boven ${andList(B.PYRAMID.map((r) => String(r.sips)))}. Ligt de kaart dwars, dan telt hij dubbel: de onderste is dus ${slotText(0)} en de bovenste ${slotText(B.PYRAMID_SIZE - 1)}.</p>
     <h3>3. De bus</h3>
     <p>Wie daarna de meeste kaarten over heeft, moet de bus in. Staan er spelers gelijk, dan kiest ieder een dichte kaart: wie de laagste trekt, moet erin. Weer gelijk? Dan kiezen die spelers opnieuw.</p>
     <p>In de bus liggen ${S ? S.busLength : B.BUS_DEFAULT} kaarten op een rij en de eerste ligt open. Raad steeds of de volgende hoger of lager is. Fout of paal? Drink zoveel slokken als de hoeveelste gok het was en begin opnieuw met nieuwe kaarten. Haal je het eind, dan ben je uit de bus.</p>

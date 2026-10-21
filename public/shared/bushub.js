@@ -8,10 +8,12 @@ export const TABLE_IDLE_MS = 30 * 60 * 1000;  // een tafel zonder verbonden spel
 const TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/;
 
 export class BusHub {
-  constructor({ now = () => Date.now(), random = Math.random, log = () => {} } = {}) {
+  // build: versie van de pagina en de spelregels; telefoons met een andere versie laden zichzelf opnieuw
+  constructor({ now = () => Date.now(), random = Math.random, log = () => {}, build = null } = {}) {
     this.now = now;
     this.random = random;
     this.log = log;
+    this.build = build;
     this.tables = new Map();
     this.sessions = new Set();
   }
@@ -113,6 +115,7 @@ class Table {
     this.code = code;
     this.players = [];      // { token, name, session, connected }
     this.host = 0;
+    this.maker = null;      // wie de tafel maakte: die wordt weer host als hij terugkomt
     this.busLength = B.BUS_DEFAULT;
     this.g = null;          // het potje; null = lobby
     this.lastFlip = 0;      // wanneer de laatste piramidekaart omging
@@ -133,7 +136,7 @@ class Table {
       }
       s.table = this; s.seat = back;
       this.emptySince = null;
-      if (!this.players[this.host].connected) this.host = back;
+      if (token === this.maker || !this.players[this.host].connected) this.host = back;
       this.broadcast();
       return { ok: true };
     }
@@ -141,10 +144,11 @@ class Table {
     if (this.players.length >= B.MAX_PLAYERS) return { ok: false, error: `De tafel is vol (${B.MAX_PLAYERS} spelers).` };
     const name = this.cleanName(rawName, -1);
     if (!name) return { ok: false, error: 'Kies eerst een naam.' };
+    if (!this.maker) this.maker = token;
     this.players.push({ token, name, session: s, connected: true });
     s.table = this; s.seat = this.players.length - 1;
     this.emptySince = null;
-    if (!this.players[this.host].connected) this.host = s.seat;
+    if (token === this.maker || !this.players[this.host].connected) this.host = s.seat;
     this.hub.log(`bussen: ${name} zit aan tafel ${this.code}`);
     this.broadcast();
     return { ok: true };
@@ -246,16 +250,17 @@ class Table {
         ev = B.skipDeal(g, this.actorFor(s, from) === from ? from : -1);
         break;
       }
-      // na elke omgedraaide kaart even wachten, zodat iedereen zijn kaart kan wegleggen
+      // alleen de host draait de piramide om (valt die weg, dan neemt een ander het over),
+      // en na elke kaart even wachten, zodat iedereen zijn kaart kan wegleggen
       case 'flip':
-        if (msg.i === g.next && this.hub.now() - this.lastFlip >= B.FLIP_PAUSE_MS) { ev = B.flip(g); if (ev) this.lastFlip = this.hub.now(); }
+        if (isHost && msg.i === g.next && this.hub.now() - this.lastFlip >= B.FLIP_PAUSE_MS) { ev = B.flip(g); if (ev) this.lastFlip = this.hub.now(); }
         break;
       case 'lay': {
         const c = msg.card;
         if (c && Number.isInteger(c.r) && Number.isInteger(c.s)) ev = B.lay(g, me, { r: c.r, s: c.s });
         break;
       }
-      case 'endpyr': if (this.hub.now() - this.lastFlip >= B.FLIP_PAUSE_MS) ev = B.endPyramid(g); break;
+      case 'endpyr': if (isHost && this.hub.now() - this.lastFlip >= B.FLIP_PAUSE_MS) ev = B.endPyramid(g); break;
       case 'pick': {
         const who = Number.isInteger(msg.for) ? msg.for : me;
         ev = B.pick(g, this.actorFor(s, who), msg.i);
@@ -278,7 +283,7 @@ class Table {
   view(me) {
     const g = this.g;
     const out = {
-      t: 'state', code: this.code, you: me, host: this.host, busLength: this.busLength,
+      t: 'state', code: this.code, you: me, host: this.host, busLength: this.busLength, build: this.hub.build,
       phase: g ? g.phase : 'lobby',
       players: this.players.map((p, i) => {
         const base = { name: p.name, connected: p.connected };

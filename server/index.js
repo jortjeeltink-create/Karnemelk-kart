@@ -78,7 +78,9 @@ const store = await createStore({
 const signer = makeSigner(await loadSecret(store.kv, process.env.KK_SECRET));
 const checkSecret = makeSecretCheck(process.env.KK_SECRET_HASH || undefined);
 const hub = new Hub({ store, log, signer, checkSecret, laps: process.env.KK_LAPS ? +process.env.KK_LAPS : null });
-const busHub = new BusHub({ log });
+// versie van Bussen: verandert de pagina of de spelregels, dan laden telefoons die nog openstaan zichzelf opnieuw
+const busBuild = createHash('sha1').update([...files].filter(([k]) => k === '/bussen.html' || k.startsWith('/shared/')).map(([, f]) => f.etag).join('')).digest('base64url').slice(0, 12);
+const busHub = new BusHub({ log, build: busBuild });
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://x');

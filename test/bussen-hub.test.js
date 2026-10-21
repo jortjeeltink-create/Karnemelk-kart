@@ -78,7 +78,10 @@ test('elke telefoon ziet alleen wat hij mag zien', () => {
   assert.equal(s.players[0].cards, 4);
   assert.ok(s.pyramid.every((x) => x.card === null), 'dichte piramidekaarten gaan niet naar de telefoon');
   phones[1].say({ t: 'flip', i: 0 });
-  assert.notEqual(phones[0].state().pyramid[0].card, null);
+  assert.equal(g.next, 0, 'alleen de host draait de piramide om');
+  phones[0].say({ t: 'flip', i: 0 });
+  assert.notEqual(phones[1].state().pyramid[0].card, null, 'iedereen ziet de open kaart');
+  assert.deepEqual(phones[1].state().pyramid, phones[0].state().pyramid, 'iedereen ziet dezelfde piramide');
   phones[0].say({ t: 'flip', i: 0 });
   assert.equal(g.next, 1, 'dubbel tikken draait geen tweede kaart om');
   phones[0].say({ t: 'flip', i: 1 });
@@ -108,7 +111,7 @@ test('slokken uitdelen via de telefoon van de uitdeler, en nu doen of sparen', (
   g.players[2].hand = [{ r: 4, s: 0 }];
   g.pyramid.forEach((x, i) => { x.card = { r: 5, s: i % 4 }; });
   g.pyramid[0].card = { r: 7, s: 3 };
-  phones[2].say({ t: 'flip', i: 0 });
+  phones[0].say({ t: 'flip', i: 0 });
   assert.deepEqual(phones[2].state().deals, [], 'wegleggen doe je zelf');
   phones[1].say({ t: 'lay', card: { r: 7, s: 0 } });
   phones[0].say({ t: 'lay', card: { r: 2, s: 0 } });
@@ -171,11 +174,19 @@ test('opnieuw verbinden: zelfde plek, en de host valt in voor wie weg is', () =>
   assert.equal(back.state().you, 0);
   assert.equal(back.state().phase, 'vragen');
   assert.equal(back.state().players[0].connected, true);
+  assert.equal(back.state().host, 0, 'wie de tafel maakte wordt weer host');
   // een tweede scherm met dezelfde sleutel neemt het over
   const again = phone(hub, 1);
   again.say({ t: 'join', code, name: 'Jort', token: again.token });
   assert.match(back.last.left.reason, /ander scherm/);
   assert.equal(again.state().you, 0);
+});
+
+test('elke telefoon krijgt de versie van de server, zodat een oude pagina zichzelf opnieuw laadt', () => {
+  const hub = new BusHub({ now, log: () => {}, build: 'abc123' });
+  const p = phone(hub, 1);
+  p.say({ t: 'create', name: 'Jort', token: p.token });
+  assert.equal(p.state().build, 'abc123');
 });
 
 test('nog een potje: terug naar de lobby, nieuwe spelers kunnen aanschuiven, lege tafels verdwijnen', () => {
