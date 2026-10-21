@@ -1,4 +1,4 @@
-// Boer zoekt vrouw: delen, tellen, raden en wie het tweede glas drinkt.
+// Boer zoekt vrouw: rollen verdelen, tellen, raden en wie het tweede glas drinkt.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as V from '../public/shared/boer.js';
@@ -6,38 +6,42 @@ import * as V from '../public/shared/boer.js';
 const names = (n) => Array.from({ length: n }, (_, i) => `S${i + 1}`);
 const seats = (n) => Array.from({ length: n }, (_, i) => i);
 
-test('delen: iedereen een kaart, precies één boer en één vrouw', () => {
-  for (let seed = 0; seed < 50; seed++) {
+test('rollen: precies één boer en één vrouw, de rest burgers, en iedereen kan alles worden', () => {
+  const was = { boer: new Set(), vrouw: new Set() };
+  for (let seed = 0; seed < 60; seed++) {
     const g = V.newGame(names(6), { seed });
     const ev = V.deal(g, seats(6));
     assert.equal(ev.type, 'delen');
     assert.equal(g.round, 1);
-    assert.equal(g.cards.filter((c) => c.r === V.BOER).length, 1);
-    assert.equal(g.cards.filter((c) => c.r === V.VROUW).length, 1);
-    assert.equal(g.cards[g.boer].r, V.BOER);
-    assert.equal(g.cards[g.vrouw].r, V.VROUW);
-    assert.equal(new Set(g.cards.map((c) => `${c.r}-${c.s}`)).size, 6, 'geen kaart dubbel');
+    assert.equal(g.roles.filter((r) => r === 'boer').length, 1);
+    assert.equal(g.roles.filter((r) => r === 'vrouw').length, 1);
+    assert.equal(g.roles.filter((r) => r === 'burger').length, 4);
+    assert.equal(g.roles[g.boer], 'boer');
+    assert.equal(g.roles[g.vrouw], 'vrouw');
+    was.boer.add(g.boer); was.vrouw.add(g.vrouw);
   }
-  // met dezelfde seed dezelfde kaarten
+  assert.equal(was.boer.size, 6, 'iedereen is wel eens de boer');
+  assert.equal(was.vrouw.size, 6, 'iedereen is wel eens de vrouw');
+  // met dezelfde seed dezelfde rollen
   const a = V.newGame(names(4), { seed: 7 }), b = V.newGame(names(4), { seed: 7 });
   V.deal(a, seats(4)); V.deal(b, seats(4));
-  assert.deepEqual(a.cards, b.cards);
+  assert.deepEqual(a.roles, b.roles);
 });
 
-test('delen alleen aan wie er is, en met minder dan drie kan het niet', () => {
+test('rollen alleen voor wie er is, en met minder dan drie kan het niet', () => {
   const g = V.newGame(names(5), { seed: 3 });
   assert.equal(V.deal(g, [0, 4]), null);
   V.deal(g, [0, 2, 4]);
   assert.deepEqual(g.in, [0, 2, 4]);
-  assert.equal(g.cards[1], null);
-  assert.equal(g.cards[3], null);
+  assert.equal(g.roles[1], null);
+  assert.equal(g.roles[3], null);
   assert.ok([0, 2, 4].includes(g.boer) && [0, 2, 4].includes(g.vrouw));
   // wie later aanschuift, doet de volgende ronde mee
   V.addPlayer(g, 'Laat');
   assert.equal(g.players.length, 6);
   V.deal(g, [0, 2, 4, 5]);
   assert.equal(g.in.length, 4);
-  assert.notEqual(g.cards[5], null);
+  assert.notEqual(g.roles[5], null);
 });
 
 test('alleen de boer begint met tellen, en raden kan pas als de tijd om is', () => {
@@ -74,7 +78,7 @@ test('goed geraden: de vrouw drinkt ook het tweede glas; fout: de boer drinkt he
   // volgende ronde: de boer wijst iemand anders aan
   V.deal(g, seats(4));
   assert.equal(g.round, 2);
-  assert.equal(g.phase, 'kaarten');
+  assert.equal(g.phase, 'rollen');
   const b2 = g.boer, v2 = g.vrouw, before = g.players.map((p) => p.atjes);
   const wrong = [0, 1, 2, 3].find((p) => p !== b2 && p !== v2);
   V.startCount(g, b2, 0);

@@ -39,24 +39,24 @@ test('starten kan pas met drie, en de host kiest hoe lang de boer telt', () => {
   assert.equal(phones[1].state().count, 7, 'alleen de vaste keuzes');
 });
 
-test('niemand ziet de kaart van een ander; de boer wordt pas bekend als hij telt, de vrouw bij de uitslag', () => {
+test('niemand ziet de rol van een ander; de boer wordt pas bekend als hij telt, de vrouw bij de uitslag', () => {
   const { phones, t } = table(['Jort', 'Meke', 'Sim', 'Stan']);
   phones[0].say({ t: 'start' });
   const g = t.g;
   assert.equal(g.round, 1);
   phones.forEach((p, i) => {
     const s = p.state();
-    assert.equal(s.phase, 'kaarten');
-    assert.deepEqual(s.card, g.cards[i]);
-    assert.equal(s.cards, undefined);
+    assert.equal(s.phase, 'rollen');
+    assert.equal(s.role, g.roles[i]);
+    assert.equal(s.roles, undefined);
     assert.equal(s.vrouw, undefined);
     assert.equal(s.boer, i === g.boer ? i : -1);
-    assert.equal(JSON.stringify(s).includes('"r":12') && i !== g.vrouw, false, 'de vrouw lekt niet uit');
+    assert.equal(JSON.stringify(s).includes('vrouw'), i === g.vrouw, 'wie de vrouw is lekt niet uit');
   });
   // alleen de boer kan beginnen
   const other = [0, 1, 2, 3].find((p) => p !== g.boer);
   phones[other].say({ t: 'count' });
-  assert.equal(g.phase, 'kaarten');
+  assert.equal(g.phase, 'rollen');
   phones[g.boer].say({ t: 'count' });
   assert.equal(g.phase, 'tellen');
   const s = phones[other].state();
@@ -77,7 +77,7 @@ test('niemand ziet de kaart van een ander; de boer wordt pas bekend als hij telt
   const u = phones[other].state();
   assert.equal(u.vrouw, g.vrouw);
   assert.equal(u.guess, target);
-  assert.deepEqual(u.cards, g.cards, 'na de uitslag gaan alle kaarten open');
+  assert.deepEqual(u.roles, g.roles, 'na de uitslag ziet iedereen alle rollen');
   assert.equal(u.players[g.vrouw].atjes >= 1, true);
   assert.equal(u.log[u.log.length - 1].type, 'raden');
 });
@@ -88,15 +88,15 @@ test('de host deelt de volgende ronde; wie aanschuift doet de ronde erna mee', (
   const late = phone(hub, 9);
   late.say({ t: 'join', code, name: 'Laat', token: late.token });
   assert.equal(late.state().you, 3);
-  assert.equal(late.state().card, null, 'nog geen kaart deze ronde');
+  assert.equal(late.state().role, null, 'nog geen rol deze ronde');
   assert.deepEqual(late.state().in, [0, 1, 2]);
   phones[1].say({ t: 'deal' });
   assert.equal(t.g.round, 1, 'alleen de host deelt');
   phones[0].say({ t: 'deal' });
   assert.equal(t.g.round, 2, 'opnieuw delen zolang de boer nog niet telt');
   assert.deepEqual(late.state().in, [0, 1, 2, 3]);
-  assert.notEqual(late.state().card, null);
-  // wie weg is, krijgt geen kaart
+  assert.equal(typeof late.state().role, 'string');
+  // wie weg is, krijgt geen rol
   hub.disconnect(phones[2].conn);
   phones[0].say({ t: 'deal' });
   assert.deepEqual(t.g.in, [0, 1, 3]);

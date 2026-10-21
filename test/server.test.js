@@ -311,7 +311,7 @@ test('Bussen online: twee telefoons aan één tafel via /ws/bussen', async () =>
   }
 });
 
-test('Boer zoekt vrouw online: drie telefoons, ieder ziet alleen zijn eigen kaart', async () => {
+test('Boer zoekt vrouw online: drie telefoons, ieder ziet alleen zijn eigen rol', async () => {
   const srv = await startServer();
   try {
     const url = srv.ws + '/boer';
@@ -322,14 +322,11 @@ test('Boer zoekt vrouw online: drie telefoons, ieder ziet alleen zijn eigen kaar
     for (const [i, name] of [[1, 'Meke'], [2, 'Sim']]) {
       await phones[i].request({ t: 'join', code: s0.code, name, token: `boer-telefoon-${i}-0123456789` }, (m) => m.t === 'state' && m.players.length === i + 1);
     }
-    const dealt = phones.map((p) => p.wait((m) => m.t === 'state' && m.phase === 'kaarten'));
+    const dealt = phones.map((p) => p.wait((m) => m.t === 'state' && m.phase === 'rollen'));
     phones[0].send({ t: 'start' });
     const states = await Promise.all(dealt);
-    const cards = states.map((st) => st.card);
-    assert.ok(cards.every((c) => c && Number.isInteger(c.r)));
-    assert.equal(cards.filter((c) => c.r === 11).length, 1, 'één boer');
-    assert.equal(cards.filter((c) => c.r === 12).length, 1, 'één vrouw');
-    for (const st of states) assert.equal(st.cards, undefined, 'de kaarten van anderen blijven op de server');
+    assert.deepEqual(states.map((st) => st.role).sort(), ['boer', 'burger', 'vrouw']);
+    for (const st of states) assert.equal(st.roles, undefined, 'de rollen van anderen blijven op de server');
     const health = await (await fetch(srv.url + '/health')).json();
     assert.deepEqual(health.boer, { tables: 1, players: 3 });
     phones.forEach((c) => c.close());

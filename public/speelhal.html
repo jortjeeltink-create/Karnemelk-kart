@@ -254,7 +254,7 @@ const GAMES = [
   { id: 'boer', name: 'Boer zoekt', name2: 'vrouw', short: 'Boer zoekt vrouw', acc: '#ff6b8b', tint: '#2a0f1c', bg: '#1a0b14',
     url: '/boer',
     chips: ['Drankspel', 'Online met vrienden'],
-    text: 'Iedereen krijgt een kaart op zijn eigen telefoon. De boer telt met zijn ogen dicht en de vrouw drinkt stiekem een glas leeg. Bij de pling raadt de boer wie het was: goed is het tweede glas voor de vrouw, fout is het voor de boer.',
+    text: 'Iedereen krijgt stiekem een rol op zijn eigen telefoon: boer, vrouw of burger. De boer telt met zijn ogen dicht en de vrouw drinkt stiekem een glas leeg. Bij de pling raadt de boer wie het was: goed is het tweede glas voor de vrouw, fout is het voor de boer.',
     facts: [['Spelers', '3 tot 10'], ['Tellen', '8 seconden'], ['Meedoen', 'met een code']],
     cta: 'Speel Boer zoekt vrouw' }
 ];
@@ -438,16 +438,23 @@ const PREV = {
     c.fillStyle = '#f0a81c'; c.fillRect(gx - 2, top + 5, gw + 4, gh); if (f > .03) { c.fillStyle = '#fff6dc'; c.fillRect(gx - 2, top, gw + 4, 6); }
     c.restore();
     c.beginPath(); c.moveTo(gx, gy); c.lineTo(gx + gw, gy); c.lineTo(gx + gw * .88, gy + gh); c.lineTo(gx + gw * .12, gy + gh); c.closePath(); c.lineWidth = 2.5; c.strokeStyle = 'rgba(255,255,255,.85)'; c.stroke();
-    // vijf dichte kaarten; na de pling draait de vrouw om
-    const n = 5, cw = Math.min(w * .1, h * .16), ch = cw * 1.4, gap = cw * .32, y = h * .76, queen = 3;
+    // vijf dichte rolkaartjes; na de pling draait de vrouw om
+    const n = 5, cw = Math.min(w * .1, h * .16), ch = cw * 1.3, gap = cw * .32, y = h * .76, queen = 3;
     for (let i = 0; i < n; i++) {
       const x = w / 2 + (i - (n - 1) / 2) * (cw + gap);
       const p = i === queen ? clamp((cyc - 8.2) / .6, 0, 1) : 0, sx = Math.abs(Math.cos(p * Math.PI)), open = p > .5;
       c.save(); c.translate(x, y); c.scale(Math.max(.03, sx), 1);
       c.shadowColor = open ? 'rgba(255,107,139,.7)' : 'rgba(0,0,0,.4)'; c.shadowBlur = open ? 18 : 8; c.shadowOffsetY = 3;
-      rr(c, -cw / 2, -ch / 2, cw, ch, cw * .13); c.fillStyle = open ? '#fffdf4' : '#3a1d43'; c.fill();
+      rr(c, -cw / 2, -ch / 2, cw, ch, cw * .14); c.fillStyle = open ? '#ff6b8b' : '#3a1d43'; c.fill();
       c.shadowColor = 'transparent';
-      if (open) T(c, 'V♥', 0, 1, cw * .42, '#d2343f', { w: 900 });
+      if (open) {
+        // een kroontje en het woord VROUW
+        const k = cw * .3;
+        c.beginPath(); c.moveTo(-k, -ch * .05); c.lineTo(-k, -ch * .28); c.lineTo(-k / 2, -ch * .16); c.lineTo(0, -ch * .32); c.lineTo(k / 2, -ch * .16); c.lineTo(k, -ch * .28); c.lineTo(k, -ch * .05); c.closePath();
+        c.fillStyle = '#ffd36b'; c.fill();
+        T(c, 'VROUW', 0, ch * .22, cw * .26, '#fff', { w: 900 });
+        c.lineWidth = Math.max(1.5, cw * .05); c.strokeStyle = '#f3efdb'; rr(c, -cw / 2, -ch / 2, cw, ch, cw * .14); c.stroke();
+      }
       else { c.lineWidth = Math.max(1.5, cw * .06); c.strokeStyle = '#f3efdb'; rr(c, -cw / 2 + cw * .07, -ch / 2 + cw * .07, cw * .86, ch - cw * .14, cw * .09); c.stroke(); T(c, '?', 0, 1, cw * .4, 'rgba(214,144,201,.85)', { w: 900 }); }
       c.restore();
     }

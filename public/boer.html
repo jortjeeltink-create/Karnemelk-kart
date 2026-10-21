@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Boer zoekt vrouw</title>
-<meta name="description" content="Het drankspel Boer zoekt vrouw online: iedereen een kaart op zijn eigen telefoon, de boer telt en raadt wie de vrouw is.">
+<meta name="description" content="Het drankspel Boer zoekt vrouw online: iedereen een rol op zijn eigen telefoon, de boer telt en raadt wie de vrouw is.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -20,7 +20,7 @@
 <style>
 :root{
   /* Dezelfde tafel als Bussen: bovenin een glazen balk, in het midden de groene vilten tafel met de spelers
-     rondom (jij altijd onderaan) en de glazen op het vilt, onderin een donkere actiebalk met jouw kaart. */
+     rondom (jij altijd onderaan) en de glazen op het vilt, onderin een donkere actiebalk met jouw rol. */
   --night:#150b18;
   --night-3:#0b060d;
   --cream:#f3efdb;
@@ -101,33 +101,22 @@ p{margin:0}
 .ghostbtn:hover{background:var(--cream-2)}
 .linkbtn{justify-self:start;padding:4px 0;font-size:var(--s1);font-weight:700;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px}
 
-/* ---------- kaarten ---------- */
-.card{position:relative;flex:none;width:var(--w,64px);height:calc(var(--w,64px) * 1.4);perspective:700px}
-.card .cin{position:absolute;inset:0;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,.7,.2,1)}
-.card.down .cin{transform:rotateY(180deg)}
-.card.reveal .cin{animation:reveal .6s cubic-bezier(.3,.7,.2,1) var(--d,0s) both}
-@keyframes reveal{from{transform:rotateY(180deg)}to{transform:rotateY(0)}}
-.card.dealin{animation:dealin .42s cubic-bezier(.2,.8,.2,1) var(--d,0s) both}
-@keyframes dealin{from{transform:translateY(-26px) rotate(-10deg);opacity:0}}
-.face{position:absolute;inset:0;border-radius:calc(var(--w,64px) * .12);backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
-.front{background:linear-gradient(160deg,var(--paper),var(--paper-2));color:var(--ink);box-shadow:inset 0 0 0 1px rgba(43,21,49,.18),0 6px 14px rgba(0,0,0,.35)}
-.card.red .front{color:var(--suit-red)}
-.back{transform:rotateY(180deg);background:radial-gradient(circle at 50% 50%,rgba(214,144,201,.35) 0 16%,transparent 17%),repeating-linear-gradient(45deg,rgba(214,144,201,.2) 0 2px,transparent 2px 8px),repeating-linear-gradient(-45deg,rgba(214,144,201,.2) 0 2px,transparent 2px 8px),linear-gradient(160deg,#41204b,#22102a);box-shadow:inset 0 0 0 calc(var(--w,64px) * .055) var(--cream),inset 0 0 0 calc(var(--w,64px) * .075) rgba(43,21,49,.5),0 6px 14px rgba(0,0,0,.35)}
-.back::after{content:"?";position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:calc(var(--w,64px) * .34);color:var(--cream);opacity:.85}
-.ix{position:absolute;left:9%;top:5%;display:grid;justify-items:center;font-family:var(--display);font-weight:900;font-size:calc(var(--w,64px) * .3);line-height:.86;letter-spacing:-.04em}
-.ix i{font-style:normal;font-size:.72em;letter-spacing:0}
-.ix.b{left:auto;top:auto;right:9%;bottom:5%;transform:rotate(180deg)}
-.pip{position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--w,64px) * .5);line-height:1}
-.pip.court{inset:17% 19%;border:1.5px solid currentColor;border-radius:calc(var(--w,64px) * .08);font-family:var(--display);font-weight:900;font-size:calc(var(--w,64px) * .44);align-content:center;gap:0;line-height:.85;background:rgba(255,255,255,.4)}
-.pip.court i{font-style:normal;font-size:.62em}
-.card.mini .face{border-radius:calc(var(--w,64px) * .16)}
-.card.mini .ix{inset:0;display:grid;place-content:center;font-size:calc(var(--w,64px) * .5);line-height:.82}
-.card.mini .ix i{font-size:.78em}
-.card.mini .ix.b,.card.mini .pip{display:none}
-.card.mini .front{box-shadow:inset 0 0 0 1px rgba(43,21,49,.2),0 2px 5px rgba(0,0,0,.35)}
-.card.mini .back::after{display:none}
-.card.queen .front{box-shadow:inset 0 0 0 1px rgba(43,21,49,.18),0 0 0 2.5px var(--rose),0 6px 20px rgba(255,107,139,.6)}
-.card.farmer .front{box-shadow:inset 0 0 0 1px rgba(43,21,49,.18),0 0 0 2.5px var(--gold),0 6px 20px rgba(247,197,72,.5)}
+/* ---------- rolkaartjes: boer, vrouw of burger ---------- */
+.rtile{position:relative;flex:none;width:var(--w,90px);aspect-ratio:100/130;border-radius:calc(var(--w,90px) * .14);overflow:hidden;background:#2b1531;box-shadow:0 0 0 calc(var(--w,90px) * .035) var(--cream),0 10px 24px rgba(0,0,0,.45)}
+.rtile svg{display:block;width:100%;height:100%}
+.rtile .rname{position:absolute;left:0;right:0;bottom:0;padding:3% 0 5%;text-align:center;font-family:var(--display);font-weight:900;font-size:calc(var(--w,90px) * .19);line-height:1;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:linear-gradient(180deg,rgba(20,10,24,0),rgba(20,10,24,.72) 45%);text-shadow:0 2px 0 rgba(0,0,0,.4)}
+.rtile.boer{box-shadow:0 0 0 calc(var(--w,90px) * .035) var(--cream),0 0 0 calc(var(--w,90px) * .07) rgba(247,197,72,.75),0 10px 28px rgba(247,197,72,.35)}
+.rtile.vrouw{box-shadow:0 0 0 calc(var(--w,90px) * .035) var(--cream),0 0 0 calc(var(--w,90px) * .07) rgba(255,107,139,.8),0 10px 28px rgba(255,107,139,.4)}
+.rtile.back{display:grid;place-items:center;background:radial-gradient(circle at 50% 46%,rgba(214,144,201,.38) 0 22%,transparent 23%),repeating-linear-gradient(45deg,rgba(214,144,201,.2) 0 2px,transparent 2px 8px),repeating-linear-gradient(-45deg,rgba(214,144,201,.2) 0 2px,transparent 2px 8px),linear-gradient(160deg,#41204b,#22102a)}
+.rtile.back .q{font-family:var(--display);font-weight:900;font-size:calc(var(--w,90px) * .5);line-height:1;color:var(--cream);text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.rtile.reveal{animation:tilein .55s cubic-bezier(.2,.9,.3,1.3) both}
+@keyframes tilein{from{transform:perspective(500px) rotateY(90deg) scale(.92)}}
+.rtile.mini{box-shadow:0 0 0 2px var(--cream),0 3px 8px rgba(0,0,0,.45)}
+.rtile.mini .rname,.rtile.mini.back .q{display:none}
+.rtile.mini.back::after{content:"?";position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:calc(var(--w) * .55);color:var(--cream);opacity:.85}
+.trio{display:flex;align-items:flex-end;justify-content:center;gap:2.5cqw;--w:min(15cqw,13cqh,74px)}
+.trio .rtile:nth-child(1){transform:rotate(-8deg) translateY(4px)}
+.trio .rtile:nth-child(3){transform:rotate(8deg) translateY(4px)}
 
 /* ---------- de tafel ---------- */
 .table{position:relative;min-height:0;container-type:size;margin:4px -6px 8px}
@@ -228,9 +217,9 @@ button.seat:active .ava{transform:scale(.94)}
 .action{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);font-family:var(--display);font-weight:800;font-size:24px;line-height:1.05;color:#fff}
 .action svg{width:20px;height:20px;flex:none;color:var(--gold)}
 
-/* jouw kaart: stiekem bekijken */
+/* jouw rol: stiekem bekijken */
 .mycard{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center}
-.peek{--w:clamp(64px,21vw,88px);border-radius:10px;transition:transform .15s}
+.peek{--w:clamp(76px,24vw,104px);border-radius:14px;transition:transform .15s}
 .peek:active{transform:scale(.97)}
 .role{display:grid;gap:6px;align-content:center}
 .role h2{font-size:30px}
@@ -303,7 +292,7 @@ button.seat:active .ava{transform:scale(.94)}
   .dock h2,.role h2{font-size:27px}
   .verdict{font-size:40px}
   .fine{display:none}
-  .peek{--w:62px}
+  .peek{--w:70px}
   .view.game{grid-template-rows:minmax(280px,1fr) auto}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
@@ -326,6 +315,78 @@ button.seat:active .ava{transform:scale(.94)}
   <main class="screen" id="screen"></main>
 </div>
 
+<!-- de drie rollen, één keer getekend en overal hergebruikt -->
+<svg class="sprite" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <defs>
+    <linearGradient id="bg-boer" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd978"/><stop offset="1" stop-color="#e48f1a"/></linearGradient>
+    <linearGradient id="bg-vrouw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffa3b8"/><stop offset="1" stop-color="#cf3f68"/></linearGradient>
+    <linearGradient id="bg-burger" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fc0ff"/><stop offset="1" stop-color="#3f63c9"/></linearGradient>
+    <pattern id="ruit" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#d2343f"/><rect width="8" height="3" fill="#8f1822" opacity=".55"/><rect width="3" height="8" fill="#8f1822" opacity=".55"/></pattern>
+  </defs>
+  <symbol id="r-boer" viewBox="0 0 100 130">
+    <rect width="100" height="130" fill="url(#bg-boer)"/>
+    <circle cx="50" cy="60" r="40" fill="#fff" opacity=".2"/>
+    <path d="M0 104 Q50 92 100 104 V130 H0z" fill="#6aa83a" opacity=".6"/>
+    <path d="M14 130 C16 104 30 94 50 94 C70 94 84 104 86 130z" fill="url(#ruit)"/>
+    <path d="M33 130 V108 H67 V130z" fill="#3f6fd8"/>
+    <path d="M34 108 L29 96 M66 108 L71 96" stroke="#3f6fd8" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="37.5" cy="111.5" r="2.2" fill="#f7c548"/><circle cx="62.5" cy="111.5" r="2.2" fill="#f7c548"/>
+    <rect x="43" y="115" width="14" height="9" rx="2" fill="#2f58b8"/>
+    <rect x="43" y="80" width="14" height="16" rx="5" fill="#e3a77e"/>
+    <ellipse cx="30.5" cy="66" rx="4" ry="6" fill="#efb68a"/><ellipse cx="69.5" cy="66" rx="4" ry="6" fill="#efb68a"/>
+    <ellipse cx="50" cy="64" rx="20" ry="22" fill="#f6c9a0"/>
+    <circle cx="42" cy="63" r="2.5" fill="#2b1531"/><circle cx="58" cy="63" r="2.5" fill="#2b1531"/>
+    <circle cx="43" cy="62" r=".8" fill="#fff"/><circle cx="59" cy="62" r=".8" fill="#fff"/>
+    <circle cx="37" cy="71" r="4" fill="#ff8a80" opacity=".45"/><circle cx="63" cy="71" r="4" fill="#ff8a80" opacity=".45"/>
+    <path d="M37 75 Q44 69.5 50 73.5 Q56 69.5 63 75 Q56 79 50 76 Q44 79 37 75z" fill="#7a4a24"/>
+    <path d="M45 80.5 Q50 83.5 55 80.5" stroke="#8a3b2a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    <path d="M55 80.5 L72 87" stroke="#f0c75e" stroke-width="1.8" stroke-linecap="round"/>
+    <ellipse cx="50" cy="46" rx="39" ry="8.5" fill="#e8b84e" stroke="#c8962b" stroke-width="1.2"/>
+    <path d="M30 46 C30 29 36 20 50 20 C64 20 70 29 70 46z" fill="#f2c95f"/>
+    <path d="M30.4 40 H69.6 V46 H30.4z" fill="#8a4b22"/>
+    <path d="M38 24 L40 40 M50 21 V40 M62 24 L60 40 M20 47 L30 45 M80 47 L70 45" stroke="#c8962b" stroke-width=".9" opacity=".6"/>
+  </symbol>
+  <symbol id="r-vrouw" viewBox="0 0 100 130">
+    <rect width="100" height="130" fill="url(#bg-vrouw)"/>
+    <circle cx="50" cy="60" r="40" fill="#fff" opacity=".2"/>
+    <path d="M24 66 C22 38 34 29 50 29 C66 29 78 38 76 66 C76 84 81 96 72 106 L28 106 C19 96 24 84 24 66z" fill="#5a2a1a"/>
+    <path d="M14 130 C16 106 30 96 50 96 C70 96 84 106 86 130z" fill="#7a1f3a"/>
+    <path d="M30 101 C38 98 44 97 50 97 C56 97 62 98 70 101" stroke="#a83256" stroke-width="3" fill="none"/>
+    <rect x="43" y="80" width="14" height="18" rx="5" fill="#e3a77e"/>
+    <path d="M37 97 Q50 113 63 97z" fill="#e3a77e"/>
+    <path d="M50 109 C44 105 44 100.5 47 100 C48.5 99.8 49.5 100.8 50 102 C50.5 100.8 51.5 99.8 53 100 C56 100.5 56 105 50 109z" fill="#ffd36b"/>
+    <path d="M38 99 Q50 106 62 99" stroke="#ffd36b" stroke-width="1" fill="none"/>
+    <ellipse cx="50" cy="63" rx="19" ry="22" fill="#f6c9a0"/>
+    <path d="M31 62 C30 44 39 36 50 36 C62 36 70 44 69 60 C63 51 53 47 41 51 C37 53 33 57 31 62z" fill="#5a2a1a"/>
+    <circle cx="42.5" cy="64" r="2.5" fill="#2b1531"/><circle cx="57.5" cy="64" r="2.5" fill="#2b1531"/>
+    <circle cx="43.5" cy="63" r=".8" fill="#fff"/><circle cx="58.5" cy="63" r=".8" fill="#fff"/>
+    <path d="M39 61.5 L37 59.5 M40.5 60.6 L39.6 58.4 M61 61.5 L63 59.5 M59.5 60.6 L60.4 58.4" stroke="#2b1531" stroke-width="1" stroke-linecap="round"/>
+    <circle cx="38" cy="71" r="4" fill="#ff6b8b" opacity=".45"/><circle cx="62" cy="71" r="4" fill="#ff6b8b" opacity=".45"/>
+    <path d="M45 76 Q47.5 74 50 75.5 Q52.5 74 55 76 Q50 81.5 45 76z" fill="#d2343f"/>
+    <circle cx="31.2" cy="73" r="2.6" fill="#ffd36b"/><circle cx="68.8" cy="73" r="2.6" fill="#ffd36b"/>
+    <path d="M37 37 L39 25 L44.5 31.5 L50 22 L55.5 31.5 L61 25 L63 37z" fill="#ffd36b" stroke="#c8962b" stroke-width="1" stroke-linejoin="round"/>
+    <circle cx="50" cy="22" r="2" fill="#ff6b8b"/><circle cx="39" cy="25" r="1.4" fill="#fff"/><circle cx="61" cy="25" r="1.4" fill="#fff"/>
+  </symbol>
+  <symbol id="r-burger" viewBox="0 0 100 130">
+    <rect width="100" height="130" fill="url(#bg-burger)"/>
+    <circle cx="50" cy="60" r="40" fill="#fff" opacity=".2"/>
+    <path d="M0 110 H100 V130 H0z" fill="#2c4aa0" opacity=".45"/>
+    <path d="M14 130 C16 104 30 94 50 94 C70 94 84 104 86 130z" fill="#2fa866"/>
+    <path d="M36 98 Q50 110 64 98" stroke="#23834f" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M45 106 V120 M55 106 V120" stroke="#f3efdb" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="45" cy="121" r="1.6" fill="#f3efdb"/><circle cx="55" cy="121" r="1.6" fill="#f3efdb"/>
+    <rect x="43" y="80" width="14" height="16" rx="5" fill="#cf946d"/>
+    <ellipse cx="30.5" cy="66" rx="4" ry="6" fill="#dca37c"/><ellipse cx="69.5" cy="66" rx="4" ry="6" fill="#dca37c"/>
+    <ellipse cx="50" cy="64" rx="20" ry="22" fill="#e8b48e"/>
+    <path d="M29.5 61 C27 40 40 33 52 34 C65 35 73 43 70.5 59 C66 50 59 46 49 47 C41 47.5 34 53 29.5 61z" fill="#3a2a22"/>
+    <circle cx="42" cy="65" r="6" fill="#fff" opacity=".25" stroke="#2b1531" stroke-width="1.7"/><circle cx="58" cy="65" r="6" fill="#fff" opacity=".25" stroke="#2b1531" stroke-width="1.7"/>
+    <path d="M48 65 H52" stroke="#2b1531" stroke-width="1.7"/>
+    <circle cx="42" cy="65" r="2.2" fill="#2b1531"/><circle cx="58" cy="65" r="2.2" fill="#2b1531"/>
+    <circle cx="37" cy="74" r="3.6" fill="#ff8a80" opacity=".35"/><circle cx="63" cy="74" r="3.6" fill="#ff8a80" opacity=".35"/>
+    <path d="M44 77 Q50 82.5 56 77" stroke="#7a2e22" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
 <div class="overlay" id="overlay" hidden>
   <div class="sheet cream" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
 </div>
@@ -333,7 +394,6 @@ button.seat:active .ava{transform:scale(.94)}
 <div class="confetti" id="confetti" aria-hidden="true"></div>
 
 <script type="module">
-import * as B from '/shared/bussen.js';
 import * as V from '/shared/boer.js';
 
 const $ = (s) => document.querySelector(s);
@@ -344,7 +404,12 @@ const PC = ['#4f8dff', '#d690c9', '#ff7a00', '#2fbf71', '#f7c548', '#ff4a24', '#
 const ARR = '<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>';
 const GLASS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l-1.6 16.2a2 2 0 0 1-2 1.8H9.6a2 2 0 0 1-2-1.8z"/><path d="M6.6 9h10.8"/></svg>';
 const SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
-const PEEK_MS = 4000;   // zo lang blijft je kaart open als je hem bekijkt
+const PEEK_MS = 5000;   // zo lang blijft je rol in beeld als je kijkt
+const ROLE = {
+  boer: { name: 'Boer', title: 'Jij bent de boer' },
+  vrouw: { name: 'Vrouw', title: 'Jij bent de vrouw' },
+  burger: { name: 'Burger', title: 'Jij bent een burger' },
+};
 
 /* ================= OPSLAG (alleen gemak, per telefoon) ================= */
 const KEY = { me: 'boer-ik', table: 'boer-tafel', mute: 'boer-stil' };
@@ -468,7 +533,7 @@ let S = null;   // de laatste stand van de server (alleen wat jij mag zien)
 const ui = {
   joining: false, error: '', name: me.name, code: urlCode,
   seen: 0, banner: null, bannerTimer: 0, lastView: null, lastStep: null, dockPop: false, sheet: null, sheetHtml: null, build: null,
-  peek: 0, peekTimer: 0, peekFresh: false, looked: 0,   // je kaart bekijken: in welke ronde, en of je hem al zag
+  peek: 0, peekTimer: 0, peekFresh: false, looked: 0,   // je rol bekijken: in welke ronde, en of je hem al zag
   endAt: 0, liveRound: 0, plingRound: 0, lastSecs: null, pick: -1,
 };
 
@@ -527,8 +592,10 @@ function present(ev) {
   switch (ev.type) {
     case 'delen':
       Snd.deal(); buzz(40);
-      ui.peek = 0; ui.looked = 0; ui.pick = -1;
-      banner(`Ronde ${ev.round}`, 'Bekijk stiekem je kaart');
+      ui.pick = -1;
+      banner(`Ronde ${ev.round}`, 'Kijk stiekem wie je bent');
+      // je rol staat meteen even in beeld; daarna gaat hij dicht en tik je om nog eens te kijken
+      if (ev.round === S.round && S.role) showRole(); else { ui.peek = 0; ui.looked = 0; }
       break;
     case 'tellen':
       // op elke telefoon hetzelfde, zodat niemand ziet wie de vrouw is
@@ -594,18 +661,14 @@ const initial = (name) => [...name.trim()][0]?.toUpperCase() || '?';
 const isHost = () => S && S.you === S.host;
 const order = () => S.players.map((_, k) => (S.you + k) % S.players.length);
 const playing = (i) => S.in && S.in.includes(i);
-const spoken = (c) => `${{ harten: 'Harten', ruiten: 'Ruiten', klaveren: 'Klaveren', schoppen: 'Schoppen' }[B.SUITS[c.s].id]} ${B.RANK_NAME[c.r] || c.r}`;
 // wie de boer is, of wie er voor hem raadt als hij weg is (de host)
 const boerActor = () => S.boer === S.you ? S.you : isHost() && S.boer >= 0 && !S.players[S.boer].connected ? S.boer : -1;
 const liveCount = () => S.players.filter((p) => p.connected).length;
 
-function cardHTML(c, { cls = '', reveal = false, d = 0 } = {}) {
-  const sa = d ? ` style="--d:${d}s"` : '';
-  if (!c) return `<div class="card down ${cls}"${sa} role="img" aria-label="dichte kaart"><div class="cin"><div class="face front"></div><div class="face back"></div></div></div>`;
-  const rk = B.rankLabel(c), sym = B.SUITS[c.s].sym;
-  const mid = c.r >= 11 && c.r <= 13 ? `<span class="pip court">${rk}<i>${sym}</i></span>` : `<span class="pip">${sym}</span>`;
-  const role = c.r === V.VROUW ? ' queen' : c.r === V.BOER ? ' farmer' : '';
-  return `<div class="card${B.isRed(c) ? ' red' : ''}${role}${reveal ? ' reveal' : ''} ${cls}"${sa} role="img" aria-label="${spoken(c)}"><div class="cin"><div class="face front"><span class="ix">${rk}<i>${sym}</i></span>${mid}<span class="ix b">${rk}<i>${sym}</i></span></div><div class="face back"></div></div></div>`;
+// een rolkaartje: de tekening van de boer, de vrouw of een burger; zonder rol de dichte achterkant
+function tileHTML(role, { cls = '', reveal = false } = {}) {
+  if (!role) return `<div class="rtile back ${cls}" role="img" aria-label="verborgen rol"><span class="q">?</span></div>`;
+  return `<div class="rtile ${role}${reveal ? ' reveal' : ''} ${cls}" role="img" aria-label="${ROLE[role].name}"><svg viewBox="0 0 100 130" aria-hidden="true"><use href="#r-${role}"/></svg><span class="rname">${ROLE[role].name}</span></div>`;
 }
 
 // een glas op tafel; vol = 1, leeg = 0. Met een id kan de klok hem leeg laten lopen.
@@ -683,16 +746,14 @@ function placeSeats() {
 }
 
 // De tafel: rand, vilt, iets in het midden en de spelers eromheen (order: wie op welke stoel, jij eerst).
-// seat(i) -> { hole: kaarten of aantal dichte kaarten, now, target, picked, dim, kick, tag: [soort, tekst] }
+// seat(i) -> { tile: rol of 'dicht', now, target, picked, dim, kick, tag: [soort, tekst] }
 function tableHTML({ order: seatsOrder, people, center = '', seat = () => ({}), dealer = -1, cls = '' }) {
   const seats = seatsOrder.map((i) => {
     const p = people[i], o = seat(i) || {};
     const btn = o.target ? ` type="button" data-act="pick" data-to="${i}" aria-label="${esc(p.name)} is de vrouw"`
       : o.kick ? ` type="button" data-act="kickask" data-seat="${i}" aria-label="${esc(p.name)} van tafel halen"` : '';
     const el = btn ? 'button' : 'div';
-    const hole = !o.hole ? '' : Array.isArray(o.hole)
-      ? o.hole.map((c) => cardHTML(c, { cls: 'mini' })).join('')
-      : Array.from({ length: o.hole }, () => cardHTML(null, { cls: 'mini' })).join('');
+    const hole = o.tile ? tileHTML(o.tile === 'dicht' ? null : o.tile, { cls: 'mini' }) : '';
     const line = p.empty ? '' : p.connected === false ? '<span class="off">weg</span>'
       : p.atjes != null ? `<span class="${p.atjes ? '' : 'zero'}" title="Glazen leeggedronken">${GLASS}${p.atjes}</span>` : '';
     const isMe = S && i === S.you && !p.empty;
@@ -714,13 +775,13 @@ const countSeg = () => `<div class="seg" role="group" aria-label="Tellen tot">${
 /* ================= SCHERMEN ================= */
 function vHome() {
   const empty = Array.from({ length: 4 }, () => ({ name: 'Vrije plek', empty: true }));
-  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: `<p class="felt-sub">Drankspel voor op tafel</p><div class="felt-logo small">Boer zoekt<br>vrouw</div>${glassesHTML(1, 1, 'h')}` });
+  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: `<p class="felt-sub">Drankspel voor op tafel</p><div class="felt-logo small">Boer zoekt<br>vrouw</div><div class="trio">${['boer', 'vrouw', 'burger'].map((r) => tileHTML(r, { cls: 'mini' })).join('')}</div>` });
   const busy = ui.joining ? 'disabled' : '';
   return `
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${V.MIN_PLAYERS} tot ${V.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>Iedereen krijgt een kaart. De boer telt met zijn ogen dicht, de vrouw drinkt stiekem een glas leeg. Raadt de boer wie de vrouw is?</p>
+    <p>Iedereen krijgt een rol: boer, vrouw of burger. De boer telt met zijn ogen dicht, de vrouw drinkt stiekem een glas leeg. Raadt de boer wie de vrouw is?</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${V.NAME_MAX}" placeholder="Bijvoorbeeld Jort" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -756,16 +817,16 @@ function vSpel() {
   const ph = S.phase, up = timeUp(), boer = S.boer, actor = boerActor();
   let center, seat, dock;
 
-  if (ph === 'kaarten') {
+  if (ph === 'rollen') {
     center = `<div class="pot">Ronde ${S.round}</div>${glassesHTML(1, 1)}<p class="felt-sub">De boer begint wanneer hij wil</p>`;
-    seat = (i) => ({ hole: playing(i) && i !== S.you ? 1 : null, dim: !playing(i) });
-    dock = playing(S.you) ? myCardDock() : lateDock();
-    if (isHost()) dock += '<button class="linkbtn" type="button" data-act="deal">Opnieuw delen</button>';
+    seat = (i) => ({ tile: playing(i) && i !== S.you ? 'dicht' : null, dim: !playing(i) });
+    dock = playing(S.you) ? myRoleDock() : lateDock();
+    if (isHost()) dock += '<button class="linkbtn" type="button" data-act="deal">Rollen opnieuw verdelen</button>';
   } else if (ph === 'tellen' && !up) {
     const left = msLeft(), secs = Math.max(1, Math.ceil(left / 1000));
     center = `<div class="clock${secs <= 3 ? ' last' : ''}"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="ring-bg" cx="50" cy="50" r="45"/><circle class="ring-fg" id="ringfg" cx="50" cy="50" r="45" style="stroke-dashoffset:${(RING * (1 - left / (S.count * 1000))).toFixed(1)}"/></svg><b id="cd">${secs}</b></div>
       ${glassesHTML(left / (S.count * 1000), 1)}<p class="felt-sub">${boer === S.you ? 'Jij telt' : `${nameOf(boer)} telt`} met de ogen dicht</p>`;
-    seat = (i) => ({ hole: playing(i) && i !== S.you ? 1 : null, dim: !playing(i), now: i === boer, tag: i === boer ? ['calm', 'Ogen dicht'] : null });
+    seat = (i) => ({ tile: playing(i) && i !== S.you ? 'dicht' : null, dim: !playing(i), now: i === boer, tag: i === boer ? ['calm', 'Ogen dicht'] : null });
     // voor de vrouw precies hetzelfde scherm als voor de rest, zodat niemand het aan je telefoon ziet
     dock = boer === S.you
       ? `<div class="ask-h"><h2>Ogen dicht!</h2></div><p class="sub">Je telefoon tikt de seconden. Bij de <b>pling</b> mag je kijken en raden wie de vrouw is.</p>`
@@ -774,14 +835,14 @@ function vSpel() {
     center = `<div class="bigword">Tijd!</div>${glassesHTML(0, 1)}<p class="felt-sub">${actor >= 0 ? 'Wie is de vrouw?' : `${nameOf(boer)} raadt wie de vrouw is`}</p>`;
     seat = (i) => {
       const can = actor >= 0 && playing(i) && i !== boer;
-      return { hole: playing(i) && i !== S.you ? 1 : null, dim: !playing(i), now: i === boer && actor < 0, target: can && ui.pick !== i, picked: can && ui.pick === i };
+      return { tile: playing(i) && i !== S.you ? 'dicht' : null, dim: !playing(i), now: i === boer && actor < 0, target: can && ui.pick !== i, picked: can && ui.pick === i };
     };
     dock = actor >= 0 ? guessDock(actor) : `<div class="ask-h"><h2>Tijd!</h2></div><p class="sub">Glas neer. <b>${nameOf(boer)}</b> doet de ogen open en raadt nu wie de vrouw is.</p><p class="waitline">Wachten op ${nameOf(boer)}</p>`;
   } else {
     const ok = S.guess === S.vrouw;
     center = `<div class="bigword ${ok ? 'good' : 'bad'}">${ok ? 'Raak!' : 'Mis!'}</div>${glassesHTML(0, 0)}<p class="felt-sub">${nameOf(S.vrouw)} was de vrouw</p>`;
     seat = (i) => {
-      const o = { hole: S.cards[i] ? [S.cards[i]] : null, dim: !playing(i) };
+      const o = { tile: S.roles[i], dim: !playing(i) };
       if (ok && i === S.vrouw) o.tag = ['bad', 'Tweede glas!'];
       else if (ok && i === boer) o.tag = ['', 'Raak!'];
       else if (i === S.vrouw) o.tag = ['rose', 'De vrouw'];
@@ -794,22 +855,29 @@ function vSpel() {
   return `${gameTable(center, seat)}<div class="dock${ui.dockPop ? ' pop' : ''}">${dock}</div>`;
 }
 
-// jouw kaart: dicht, tik om hem stiekem te bekijken
-function myCardDock() {
-  const c = S.card, open = ui.peek === S.round, isBoer = c && c.r === V.BOER;
-  const card = `<button class="peek" type="button" data-act="peek" aria-label="${open ? 'Kaart verbergen' : 'Bekijk je kaart'}">${open ? cardHTML(c, { reveal: ui.peekFresh }) : cardHTML(null)}</button>`;
-  let role;
-  if (!open) role = `<div class="role"><h2>Jouw kaart</h2><p class="sub">Tik erop om hem stiekem te bekijken. Laat niemand meekijken!</p></div>`;
-  else if (isBoer) role = `<div class="role farmer"><h2>Jij bent de boer</h2><p class="sub">Begin wanneer je wilt. Doe je ogen dicht: je telefoon telt tot ${S.count} en plingt als je mag kijken.</p></div>`;
-  else if (c.r === V.VROUW) role = `<div class="role queen"><h2>Jij bent de vrouw</h2><p class="sub">Zodra de boer begint te tellen: drink zo snel mogelijk een glas leeg. Niks laten merken!</p></div>`;
-  else role = `<div class="role"><h2>Geen vrouw</h2><p class="sub">Jij hoeft niks te drinken. Doe gerust alsof jij de vrouw bent.</p></div>`;
-  // heeft de boer zijn kaart gezien, dan blijft de knop staan, ook als de kaart weer dicht is
-  const go = isBoer && (open || ui.looked === S.round) ? `<button class="cta hot" type="button" data-act="count"><span>Ogen dicht: begin met tellen</span>${ARR}</button>` : '';
-  return `<div class="mycard">${card}${role}</div>${go}`;
+// jouw rol: even in beeld na het verdelen, daarna dicht; tik om stiekem nog eens te kijken
+function myRoleDock() {
+  const r = S.role, open = ui.peek === S.round;
+  const tile = `<button class="peek" type="button" data-act="peek" aria-label="${open ? 'Rol verbergen' : 'Kijk wie je bent'}">${tileHTML(open ? r : null, { reveal: open && ui.peekFresh })}</button>`;
+  let text;
+  if (!open) text = `<div class="role"><h2>Wie ben jij?</h2><p class="sub">Tik op het kaartje om stiekem te kijken. Laat niemand meekijken!</p></div>`;
+  else if (r === 'boer') text = `<div class="role farmer"><h2>${ROLE.boer.title}</h2><p class="sub">Begin wanneer je wilt. Doe je ogen dicht: je telefoon telt tot ${S.count} en plingt als je mag kijken.</p></div>`;
+  else if (r === 'vrouw') text = `<div class="role queen"><h2>${ROLE.vrouw.title}</h2><p class="sub">Zodra de boer begint te tellen: drink zo snel mogelijk een glas leeg. Niks laten merken!</p></div>`;
+  else text = `<div class="role"><h2>${ROLE.burger.title}</h2><p class="sub">Jij hoeft niks te drinken. Doe gerust alsof jij de vrouw bent.</p></div>`;
+  // heeft de boer gezien wie hij is, dan blijft de knop staan, ook als zijn kaartje weer dicht is
+  const go = r === 'boer' && (open || ui.looked === S.round) ? `<button class="cta hot" type="button" data-act="count"><span>Ogen dicht: begin met tellen</span>${ARR}</button>` : '';
+  return `<div class="mycard">${tile}${text}</div>${go}`;
+}
+
+function showRole() {
+  clearTimeout(ui.peekTimer);
+  const round = S.round;
+  ui.peek = round; ui.peekFresh = true; ui.looked = round;
+  ui.peekTimer = setTimeout(() => { if (ui.peek === round) { ui.peek = 0; render(); } }, PEEK_MS);
 }
 
 function lateDock() {
-  return `<div class="ask-h"><h2>Even kijken</h2></div><p class="sub">Deze ronde is al gedeeld. Je krijgt een kaart vanaf de volgende ronde.</p>`;
+  return `<div class="ask-h"><h2>Even kijken</h2></div><p class="sub">De rollen voor deze ronde zijn al verdeeld. Je doet mee vanaf de volgende ronde.</p>`;
 }
 
 function guessDock(actor) {
@@ -867,12 +935,12 @@ function rulesHTML() {
   <div class="rules">
     <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander. Zet twee volle glazen op tafel.</p>
     <ol>
-      <li><b>Kaarten delen.</b> De kaarten worden geschud en iedereen krijgt er een. Bekijk je kaart stiekem op je telefoon.</li>
-      <li><b>De boer.</b> Wie de boer trekt, mag op elk moment beginnen met tellen tot ${n}, met de ogen dicht. Zijn telefoon telt mee en tikt de seconden.</li>
-      <li><b>De vrouw.</b> Wie de vrouw trekt, moet zo snel mogelijk een van de glazen leegdrinken zodra de boer begint te tellen. De rest doet gewoon alsof.</li>
+      <li><b>Rollen.</b> Iedereen krijgt stiekem een rol op zijn telefoon: één boer, één vrouw en de rest burgers.</li>
+      <li><b>De boer.</b> De boer mag op elk moment beginnen met tellen tot ${n}, met de ogen dicht. Zijn telefoon telt mee en tikt de seconden.</li>
+      <li><b>De vrouw.</b> De vrouw moet zo snel mogelijk een van de glazen leegdrinken zodra de boer begint te tellen. De burgers doen gewoon alsof.</li>
       <li><b>Raden.</b> Bij de pling mag de boer kijken. Hij raadt wie de vrouw is en het glas heeft leeggedronken.</li>
       <li><b>Straf.</b> Goed geraden? Dan drinkt de vrouw ook het tweede glas. Fout geraden? Dan drinkt de boer het tweede glas.</li>
-      <li><b>Nieuwe ronde.</b> Glazen weer vullen, en de host deelt opnieuw.</li>
+      <li><b>Nieuwe ronde.</b> Glazen weer vullen, en de host verdeelt de rollen opnieuw.</li>
     </ol>
     <p class="small">Is ${n} seconden te lang of te kort? De host past het aan in het menu. Wie later aanschuift, doet mee vanaf de volgende ronde. Drink met mate: water of karnemelk telt ook.</p>
   </div>`;
@@ -1004,11 +1072,8 @@ const actions = {
   kick(el) { Net.send({ t: 'kick', seat: +el.dataset.seat }); closeSheet(); },
   peek() {
     Snd.ac(); Snd.flip();
-    clearTimeout(ui.peekTimer);
-    if (ui.peek === S.round) { ui.peek = 0; render(); return; }
-    ui.peek = S.round; ui.peekFresh = true; ui.looked = S.round;
-    const round = S.round;
-    ui.peekTimer = setTimeout(() => { if (ui.peek === round) { ui.peek = 0; render(); } }, PEEK_MS);
+    if (ui.peek === S.round) { clearTimeout(ui.peekTimer); ui.peek = 0; render(); return; }
+    showRole();
     render();
   },
   count() { Snd.ac(); Net.send({ t: 'count' }); },

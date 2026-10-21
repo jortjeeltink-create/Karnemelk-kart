@@ -1,12 +1,12 @@
 // Boer zoekt vrouw online: tafels met een groepscode (zie tafels.js), de spelregels in boer.js.
-// Niemand ziet de kaart van een ander. Wie de boer is, horen de anderen pas als hij begint te tellen,
+// Niemand ziet de rol van een ander. Wie de boer is, horen de anderen pas als hij begint te tellen,
 // en wie de vrouw was pas als de boer heeft geraden.
 import * as V from './boer.js';
 import { TableHub } from './tafels.js';
 
 export { TABLE_IDLE_MS } from './tafels.js';
 
-// wie er nu aan tafel zit en dus een kaart krijgt
+// wie er nu aan tafel zit en dus een rol krijgt
 const live = (t) => t.players.flatMap((p, i) => (p.connected ? [i] : []));
 
 const boer = {
@@ -24,7 +24,7 @@ const boer = {
     return true;
   },
 
-  // nieuwe spelers mogen altijd aanschuiven: ze krijgen een kaart vanaf de volgende ronde
+  // nieuwe spelers mogen altijd aanschuiven: ze doen mee vanaf de volgende ronde
   joinBlocked: () => null,
   joined(t, seat) { V.addPlayer(t.g, t.players[seat].name); },
 
@@ -57,13 +57,13 @@ const boer = {
     });
     out.round = g.round;
     out.in = g.in;
-    out.card = g.cards[me] || null;
-    out.boer = g.phase !== 'kaarten' || me === g.boer ? g.boer : -1;
+    out.role = g.roles[me] || null;
+    out.boer = g.phase !== 'rollen' || me === g.boer ? g.boer : -1;
     out.left = V.timeLeft(g, t.hub.now());
     if (g.phase === 'uitslag') {
       out.vrouw = g.vrouw;
       out.guess = g.guess;
-      out.cards = g.cards;
+      out.roles = g.roles;
     }
     out.seq = g.seq;
     out.log = g.log;
