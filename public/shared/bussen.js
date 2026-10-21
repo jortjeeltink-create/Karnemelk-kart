@@ -14,14 +14,23 @@ export const RANK_LABEL = { 11: 'B', 12: 'V', 13: 'H', 14: 'A' };
 export const RANK_NAME = { 11: 'boer', 12: 'vrouw', 13: 'heer', 14: 'aas' };
 
 export const MIN_PLAYERS = 2;
-export const MAX_PLAYERS = 9;      // 9 × 4 kaarten + 15 in de piramide = 51, past in één spel
+export const MAX_PLAYERS = 9;      // 9 × 4 kaarten + 11 in de piramide = 47, past in één spel
 export const NAME_MAX = 14;
-// de piramide, van onder naar boven: per kaart die je weglegt deel je slokken uit, bovenin een bak
-export const PYRAMID = [{ count: 7, sips: 2 }, { count: 6, sips: 3 }, { count: 5, sips: 4 }, { count: 4, sips: 5 }, { count: 3, bak: true }];
-export const PYRAMID_SIZE = PYRAMID.reduce((n, r) => n + r.count, 0);
+// De piramide zoals hij op tafel ligt, van onder naar boven: één kaart, dan rijen van 4, 3 en 2, en bovenin één.
+// Elke rij is een aantal slokken waard. Een kaart die dwars ligt (d) telt dubbel, een rechte kaart (r) enkel:
+// onderin dus 1 × 2 = 2 en bovenin 5 × 2 = 10. Zoveel deel je uit per kaart die je erop weglegt.
+export const PYRAMID = [
+  { sips: 1, lay: 'd' },
+  { sips: 2, lay: 'rdrd' },
+  { sips: 3, lay: 'drd' },
+  { sips: 4, lay: 'rd' },
+  { sips: 5, lay: 'd' },
+];
+// alle plekken in de volgorde waarin ze omgaan (onder naar boven, links naar rechts)
+export const PYRAMID_SLOTS = PYRAMID.flatMap((r, i) => [...r.lay].map((x) => ({ row: i + 1, dwars: x === 'd', sips: r.sips * (x === 'd' ? 2 : 1) })));
+export const PYRAMID_SIZE = PYRAMID_SLOTS.length;
 // na het omdraaien van een piramidekaart wacht de volgende even, zodat iedereen zijn kaart kan wegleggen
 export const FLIP_PAUSE_MS = 3000;
-export const rowInfo = (row) => PYRAMID[row - 1];
 export const BUS_LENGTHS = [5, 7, 10];
 export const BUS_DEFAULT = 7;
 export const PICK_EXTRA = 2;       // bij gelijkspel liggen er zoveel kaarten meer dan kiezers
@@ -122,7 +131,6 @@ export function newGame(names, { busLength = BUS_DEFAULT, seed = Math.floor(Math
       settle: null,    // 'ronde' of 'eind': je gespaarde slokken komen terug
       bak: 0,          // bakken die je nog moet doen (disco), die kun je niet sparen
       bakFrom: [],     // van wie die bakken komen: { p, n, disco }
-      bakDealt: 0,
       bakken: 0,
       disco: 0,
     })),
@@ -165,11 +173,11 @@ function addBak(g, to, n, from, disco = false) {
   if (f) f.n += n; else p.bakFrom.push({ p: from, n, disco });
 }
 
-// iets om uit te delen: n slokken, of n bakken (bovenste rij van de piramide)
-function queueDeal(g, from, n, bak = false) {
-  const open = g.deals.find((d) => d.from === from && d.bak === bak);
+// slokken om uit te delen; legt iemand meer kaarten weg, dan komen ze bij elkaar
+function queueDeal(g, from, n) {
+  const open = g.deals.find((d) => d.from === from);
   if (open) open.n += n;
-  else g.deals.push({ from, n, bak });
+  else g.deals.push({ from, n });
 }
 
 // Aan het eind van een ronde komen je gespaarde slokken terug: nu doen of weer sparen.
@@ -200,7 +208,7 @@ export function answer(g, player, option) {
   return ev;
 }
 
-// Uitdelen: de uitdeler verdeelt al zijn slokken (of bakken) in één keer, bijvoorbeeld { 1: 2, 3: 1 }.
+// Uitdelen: de uitdeler verdeelt al zijn slokken in één keer, bijvoorbeeld { 1: 2, 3: 1 }.
 export function deal(g, from, dist) {
   const d = g.deals.find((x) => x.from === from);
   if (!d || !dist || typeof dist !== 'object') return null;
@@ -213,11 +221,9 @@ export function deal(g, from, dist) {
   }
   if (sum !== d.n) return null;
   g.deals = g.deals.filter((x) => x !== d);
-  if (d.bak) g.players[from].bakDealt += d.n; else g.players[from].dealt += d.n;
-  for (const [i, n] of Object.entries(to)) {
-    if (d.bak) addBak(g, Number(i), n, from); else addSips(g, Number(i), n, from);
-  }
-  return emit(g, { type: 'uitdelen', from, n: d.n, bak: d.bak, to });
+  g.players[from].dealt += d.n;
+  for (const [i, n] of Object.entries(to)) addSips(g, Number(i), n, from);
+  return emit(g, { type: 'uitdelen', from, n: d.n, to });
 }
 
 // Al hardop uitgedeeld (of de uitdeler is weg): de slokken tellen als uitgedeeld, zonder ontvangers.
@@ -225,8 +231,8 @@ export function skipDeal(g, from) {
   const d = g.deals.find((x) => x.from === from);
   if (!d) return null;
   g.deals = g.deals.filter((x) => x !== d);
-  if (d.bak) g.players[from].bakDealt += d.n; else g.players[from].dealt += d.n;
-  return emit(g, { type: 'uitdelen', from, n: d.n, bak: d.bak, to: {}, hardop: true });
+  g.players[from].dealt += d.n;
+  return emit(g, { type: 'uitdelen', from, n: d.n, to: {}, hardop: true });
 }
 
 // Slokken: nieuwe slokken nu doen of sparen; aan het eind van een ronde de gespaarde opnieuw.
@@ -254,7 +260,7 @@ export function sips(g, player, act) {
   return null;
 }
 
-// Een bak gedaan (na een disco of uit de piramide). Een bak kun je niet sparen.
+// Een bak gedaan (na een disco). Een bak kun je niet sparen.
 export function bak(g, player) {
   const p = g.players[player];
   if (!p || p.bak <= 0) return null;
@@ -266,12 +272,7 @@ export function bak(g, player) {
 
 function startPyramid(g) {
   g.phase = 'piramide';
-  g.pyramid = [];
-  // met veel spelers is één spel te weinig: dan gaat er een tweede spel kaarten onder de stapel
-  if (g.deck.length < PYRAMID_SIZE) g.deck = [...freshDeck(g), ...g.deck];
-  PYRAMID.forEach((r, i) => {
-    for (let k = 0; k < r.count; k++) g.pyramid.push({ card: g.deck.pop(), row: i + 1, open: false, laid: [] });
-  });
+  g.pyramid = PYRAMID_SLOTS.map((x) => ({ card: g.deck.pop(), row: x.row, open: false, laid: [] }));
   g.next = 0;
 }
 
@@ -279,7 +280,7 @@ function startPyramid(g) {
 export function pyramidRows() {
   const rows = [];
   let i = 0;
-  PYRAMID.forEach((r) => { rows.unshift(Array.from({ length: r.count }, (_, k) => i + k)); i += r.count; });
+  PYRAMID.forEach((r) => { rows.unshift(Array.from({ length: r.lay.length }, (_, k) => i + k)); i += r.lay.length; });
   return rows;
 }
 
@@ -303,10 +304,9 @@ export function lay(g, player, card) {
   const [c] = p.hand.splice(k, 1);
   p.laid.push(c);
   slot.laid.push({ p: player, card: c });
-  const info = rowInfo(slot.row);
-  const n = info.bak ? 1 : info.sips;
-  queueDeal(g, player, n, !!info.bak);
-  return emit(g, { type: 'gelegd', player, card: c, index, row: slot.row, n, bak: !!info.bak });
+  const n = PYRAMID_SLOTS[index].sips;
+  queueDeal(g, player, n);
+  return emit(g, { type: 'gelegd', player, card: c, index, row: slot.row, n });
 }
 
 // Alle kaarten liggen open en alles is uitgedeeld: wie moet de bus in?

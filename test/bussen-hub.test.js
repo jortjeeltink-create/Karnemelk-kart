@@ -116,7 +116,7 @@ test('slokken uitdelen via de telefoon van de uitdeler, en nu doen of sparen', (
   phones[0].say({ t: 'lay', card: { r: 7, s: 0 } });
   assert.deepEqual(phones[2].state().pyramid[0].laid, [{ p: 0, card: { r: 7, s: 0 } }]);
   assert.equal(phones[2].state().players[0].cards, 1);
-  assert.deepEqual(phones[2].state().deals, [{ from: 0, n: 2, bak: false }]);
+  assert.deepEqual(phones[2].state().deals, [{ from: 0, n: 2 }], 'onderin ligt dwars: 2 slokken');
   assert.deepEqual(phones[2].state().waiting, [0]);
   phones[1].say({ t: 'deal', to: { 2: 2 } });
   assert.equal(g.deals.length, 1, 'alleen Jort deelt uit');

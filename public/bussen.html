@@ -139,8 +139,6 @@ p{margin:0}
 .card.nextup::after{content:"";position:absolute;inset:-4px;border-radius:calc(var(--w,64px) * .16);box-shadow:0 0 0 2px var(--gold),0 0 22px rgba(247,197,72,.6);animation:pulse 1.4s ease-in-out infinite;pointer-events:none}
 @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
 .card.hot .front{box-shadow:inset 0 0 0 1px rgba(43,21,49,.18),0 0 0 2.5px var(--gold),0 8px 24px rgba(247,197,72,.5)}
-.card .laid{position:absolute;left:0;right:0;top:-5px;display:flex;justify-content:center;gap:2px;z-index:3}
-.card .laid i{width:9px;height:9px;border-radius:50%;background:var(--pc);box-shadow:0 0 0 1.5px #0e4424}
 
 /* ---------- de tafel ---------- */
 .table{position:relative;min-height:0;container-type:size;margin:4px -6px 8px}
@@ -210,18 +208,22 @@ button.seat:active .ava{transform:scale(.94)}
 @keyframes plus{to{transform:translate(-50%,-36px);opacity:0}}
 .dealer{position:absolute;z-index:2;width:22px;height:22px;border-radius:50%;transform:translate(-50%,-50%);display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#fff,#e4dec2);color:var(--plum);font-size:10px;font-weight:700;box-shadow:0 0 0 2px rgba(0,0,0,.35),0 3px 6px rgba(0,0,0,.5)}
 
-/* piramide op het vilt */
-.pyr{--w:min(8cqw,5.3cqh,40px);display:grid;justify-items:center}
-.prow{position:relative;display:flex}
-.prow+.prow{margin-top:calc(var(--w) * -.34)}
-.pcards{display:flex;gap:calc(var(--w) * .12)}
+/* piramide op het vilt, zoals op tafel: elke kaart in een vierkant vak, dwarse kaarten gedraaid */
+.pyr{--w:min(9.5cqw,7.4cqh,50px);--cell:calc(var(--w) * 1.48);display:grid;justify-items:center}
+.prow{display:flex}
+.pslot{position:relative;width:var(--cell);height:var(--cell);display:grid;place-items:center}
+.pslot.dwars .card{transform:rotate(90deg)}
+.pslot.dwars .card .ix{transform:rotate(-90deg)}
+.pval{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:calc(var(--w) * .52);line-height:1;color:var(--gold);text-shadow:0 2px 0 rgba(0,0,0,.65),0 0 10px rgba(0,0,0,.6);pointer-events:none}
+.pslot .laid{position:absolute;left:0;right:0;top:-4px;display:flex;justify-content:center;gap:2px;z-index:3}
+.pslot.dwars .laid{top:calc(var(--w) * .24 - 6px)}
+.pslot .laid i{width:9px;height:9px;border-radius:50%;background:var(--pc);box-shadow:0 0 0 1.5px #0e4424}
 .myhand{display:grid;gap:8px;justify-items:center;padding-top:10px;border-top:1px solid rgba(255,255,255,.1)}
 .handrow{display:flex;justify-content:center;gap:10px;--w:clamp(48px,14.5vw,64px)}
 .handcard{display:block;border-radius:8px;transition:transform .15s}
 .handcard:disabled{cursor:default}
 .handcard:not(:disabled):active{transform:translateY(-6px) scale(.97)}
 @media (hover:hover){.handcard:not(:disabled):hover{transform:translateY(-6px)}}
-.plabel{position:absolute;right:calc(100% + 7px);top:50%;transform:translateY(-50%);display:grid;place-items:center;min-width:19px;height:19px;padding:0 4px;border-radius:50%;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);font-size:9.5px;font-weight:700;color:var(--gold)}
 
 /* kaart kiezen bij gelijkspel */
 .pickrow{display:flex;flex-wrap:wrap;justify-content:center;gap:2.6cqw;max-width:64cqw;--w:min(12.5cqw,9cqh,64px)}
@@ -615,7 +617,7 @@ function present(ev) {
       break;
     case 'uitdelen': {
       const list = Object.entries(ev.to).map(([i, n]) => `${mine(+i) ? 'jij' : S.players[+i].name} ${n}`);
-      toast(ev.hardop ? `${who(ev.from)} heeft hardop uitgedeeld` : `${who(ev.from)} deelt ${ev.bak ? `${ev.n === 1 ? 'een bak' : 'bakken'} ` : ''}uit: ${list.join(', ')}`);
+      toast(ev.hardop ? `${who(ev.from)} heeft hardop uitgedeeld` : `${who(ev.from)} deelt uit: ${list.join(', ')}`);
       if (ev.to[S.you]) { Snd.chip(); buzz(60); }
       break;
     }
@@ -642,9 +644,8 @@ const who = (i) => i === S.you ? 'Jij' : nameOf(i);
 const andList = (arr) => arr.length < 2 ? arr.join('') : `${arr.slice(0, -1).join(', ')} en ${arr[arr.length - 1]}`;
 const initial = (name) => [...name.trim()][0]?.toUpperCase() || '?';
 const myDeal = () => S && S.deals ? S.deals.find((d) => d.from === S.you) : null;
-const amount = (n, bak) => bak ? `${n} ${n === 1 ? 'bak' : 'bakken'}` : B.sipsText(n);
-// wat een rij van de piramide oplevert per kaart die je weglegt
-const rowText = (row) => { const r = B.rowInfo(row); return r.bak ? 'een bak' : B.sipsText(r.sips); };
+// wat een plek in de piramide oplevert per kaart die je erop weglegt
+const slotText = (i) => B.sipsText(B.PYRAMID_SLOTS[i].sips);
 const isHost = () => S && S.you === S.host;
 // wie mag voor deze speler handelen: de speler zelf, of de host als die speler weg is
 const actorFor = (p) => p == null ? -1 : p === S.you ? p : isHost() && !S.players[p].connected ? p : -1;
@@ -754,22 +755,22 @@ const gameTable = (center, seat = () => ({}), cls = '') => tableHTML({ order: or
 const pot = (left) => `<div class="pot">${left}<i></i>${GLASS}<b>${S.players.reduce((n, p) => n + (p.got || 0), 0)}</b></div>`;
 
 function draftOf(d) {
-  if (!ui.draft || ui.draft.n !== d.n || ui.draft.bak !== d.bak) ui.draft = { n: d.n, bak: d.bak, to: {} };
+  if (!ui.draft || ui.draft.n !== d.n) ui.draft = { n: d.n, to: {} };
   return ui.draft;
 }
 
 function dealDock(d) {
   const dr = draftOf(d), sum = Object.values(dr.to).reduce((a, b) => a + b, 0), left = d.n - sum;
   const parts = Object.entries(dr.to).map(([i, n]) => `<span style="--pc:${PC[i]}"><i></i>${nameOf(+i)} ${n}</span>`).join('');
-  return `<div class="deal-h"><span>Deel ${amount(d.n, d.bak)} uit</span><span class="left${left ? '' : ' done'}">${left ? `nog ${left}` : 'klaar'}</span></div>
-    <p class="sub">Tik aan tafel op wie er ${d.bak ? 'een bak moet doen. Eén tik is één bak' : 'drinkt. Eén tik is één slok'}.</p>
+  return `<div class="deal-h"><span>Deel ${B.sipsText(d.n)} uit</span><span class="left${left ? '' : ' done'}">${left ? `nog ${left}` : 'klaar'}</span></div>
+    <p class="sub">Tik aan tafel op wie er drinkt. Eén tik is één slok.</p>
     <div class="draft">${parts || '<span>nog niemand</span>'}</div>
     <div class="row2"><button class="ghostbtn light" type="button" data-act="redraft" ${sum ? '' : 'disabled'}>Opnieuw</button><button class="cta" type="button" data-act="dealgo" ${left ? 'disabled' : ''}><span>Uitdelen</span>${ARR}</button></div>
     <button class="linkbtn" type="button" data-act="skipdeal">Al hardop uitgedeeld</button>`;
 }
 
 function waitDealDock() {
-  const list = S.deals.map((d) => `<b>${who(d.from)}</b> (${amount(d.n, d.bak)})`);
+  const list = S.deals.map((d) => `<b>${who(d.from)}</b> (${B.sipsText(d.n)})`);
   const gone = isHost() ? S.deals.filter((d) => !S.players[d.from].connected) : [];
   return `<div class="ask-h"><h2>Uitdelen</h2></div>
     <p class="sub">${andList(list)} ${S.deals.length === 1 ? 'deelt' : 'delen'} uit.</p>
@@ -920,13 +921,15 @@ function vPiramide() {
   const cur = openSlot(), open = S.next;
   const going = S.phase === 'piramide';
   const canFlip = going && !S.deals.length;
-  const pyr = B.pyramidRows().map((row, ri) => `
-    <div class="prow"><span class="plabel${B.rowInfo(5 - ri).bak ? ' bak' : ''}" title="${rowText(5 - ri)} per kaart">${B.rowInfo(5 - ri).bak ? 'bak' : B.rowInfo(5 - ri).sips}</span><div class="pcards">${row.map((i) => {
-      const s = S.pyramid[i];
-      if (!s.card) return cardHTML(null, { cls: `mini${canFlip && i === S.next ? ' nextup' : ''}` });
-      const dots = s.laid.length ? `<span class="laid">${s.laid.map((x) => `<i style="--pc:${PC[x.p]}"></i>`).join('')}</span>` : '';
-      return cardHTML(s.card, { reveal: !!ev && i === ev.index && fresh(), cls: `mini${going && i === S.next - 1 ? ' hot' : ''}`, extra: dots });
-    }).join('')}</div></div>`).join('');
+  // dichte kaarten tonen wat ze waard zijn; op open kaarten staan stipjes van wie erop weglegde
+  const pyr = B.pyramidRows().map((row) => `<div class="prow">${row.map((i) => {
+    const s = S.pyramid[i], slot = B.PYRAMID_SLOTS[i];
+    const card = s.card
+      ? cardHTML(s.card, { reveal: !!ev && i === ev.index && fresh(), cls: `mini${going && i === S.next - 1 ? ' hot' : ''}` })
+      : cardHTML(null, { cls: `mini${canFlip && i === S.next ? ' nextup' : ''}` }) + `<span class="pval">${slot.sips}</span>`;
+    const dots = s.laid.length ? `<span class="laid">${s.laid.map((x) => `<i style="--pc:${PC[x.p]}"></i>`).join('')}</span>` : '';
+    return `<div class="pslot${slot.dwars ? ' dwars' : ''}" title="${slotText(i)} per kaart">${card}${dots}</div>`;
+  }).join('')}</div>`).join('');
   // jouw kaarten staan groot in het dock, dus niet ook nog boven je stoel
   const table = gameTable(`${pot(`Piramide · ${open}/${B.PYRAMID_SIZE}`)}<div class="pyr">${pyr}</div>`, (i) => {
     const o = i === S.you && going ? { hole: null } : {};
@@ -940,7 +943,7 @@ function vPiramide() {
     const what = by.length
       ? `${andList(by.map((p) => `<b>${who(p)}</b>`))} ${by.length === 1 ? 'legt' : 'leggen'} weg.`
       : `Heb je een ${rankWord(cur.card)}? Tik hem aan.`;
-    line = `<p class="pline">${lbl(cur.card)} ligt open: ${rowText(cur.row)} uitdelen per kaart. ${what}</p>`;
+    line = `<p class="pline">${lbl(cur.card)} ligt open${B.PYRAMID_SLOTS[S.next - 1].dwars ? ', dwars dus dubbel' : ''}: ${slotText(S.next - 1)} uitdelen per kaart. ${what}</p>`;
   }
   const md = myDeal();
   const hand = going ? handHTML() : '';
@@ -950,8 +953,8 @@ function vPiramide() {
   else if (going) {
     const paused = flipPaused(), more = S.next < S.pyramid.length;
     const btn = `<button class="cta" type="button" data-act="${more ? 'flip' : 'endpyr'}" ${paused ? 'disabled' : ''}><span>${paused ? 'Even kijken…' : more ? `Draai kaart ${S.next + 1}` : 'Klaar: wie moet de bus in?'}</span>${ARR}</button>`;
-    const intro = '<div class="ask-h"><h2>De piramide</h2></div><p class="sub">Draai samen de kaarten om. Heb je dezelfde waarde in je hand? Tik dan zelf je kaart aan om hem weg te leggen en deel uit.</p>';
-    dock = `${line || intro}${hand}${btn}${more ? `<p class="fine">Volgende kaart: ${rowText(S.pyramid[S.next].row)} uitdelen per kaart die je weglegt.</p>` : ''}`;
+    const intro = '<div class="ask-h"><h2>De piramide</h2></div><p class="sub">Draai samen de kaarten om, van onder naar boven. Heb je dezelfde waarde in je hand? Tik dan zelf je kaart aan om hem weg te leggen en deel uit. Een dwarse kaart telt dubbel.</p>';
+    dock = `${line || intro}${hand}${btn}${more ? `<p class="fine">Volgende kaart: ${slotText(S.next)} uitdelen per kaart die je weglegt.</p>` : ''}`;
   } else dock = `${line}<p class="waitline">Wie moet de bus in</p>`;
   return `${table}<div class="dock${fresh() ? ' pop' : ''}">${dock}</div>`;
 }
@@ -1145,7 +1148,7 @@ function rulesHTML() {
     <h3>Slokken: nu doen of sparen</h3>
     <p>Krijg je slokken, dan kies je op je telefoon: nu doen of sparen. Gespaarde slokken komen terug aan het eind van de vragenronde en van de piramide. Dan mag je ze weer sparen, maar aan het eind van het spel moeten ze op. Bovenin zie je altijd hoeveel je er nog hebt staan.</p>
     <h3>2. De piramide</h3>
-    <p>Er liggen ${B.PYRAMID_SIZE} kaarten in vijf rijen: ${B.PYRAMID.map((r) => r.count).join(', ')} van onder naar boven. Ze gaan één voor één om. Heb je dezelfde waarde in je hand? Tik dan zelf je kaart aan om hem weg te leggen, voordat de volgende kaart om gaat. Daarna deel je uit: tik aan tafel op wie er drinkt. Per kaart deel je ${B.PYRAMID.filter((r) => !r.bak).map((r) => r.sips).join(', ')} slokken uit, van onder naar boven, en in de bovenste rij een bak.</p>
+    <p>Er liggen ${B.PYRAMID_SIZE} kaarten, van onder naar boven: ${andList(B.PYRAMID.map((r) => r.lay.length === 1 ? 'één' : String(r.lay.length)))}. Ze gaan één voor één om. Heb je dezelfde waarde in je hand? Tik dan zelf je kaart aan om hem weg te leggen, voordat de volgende kaart om gaat. Daarna deel je uit: tik aan tafel op wie er drinkt. Elke rij is een aantal slokken waard, van onder naar boven ${andList(B.PYRAMID.map((r) => String(r.sips)))}. Ligt de kaart dwars, dan telt hij dubbel: de onderste is dus ${slotText(0)} en de bovenste ${slotText(B.PYRAMID_SIZE - 1)}.</p>
     <h3>3. De bus</h3>
     <p>Wie daarna de meeste kaarten over heeft, moet de bus in. Staan er spelers gelijk, dan kiest ieder een dichte kaart: wie de laagste trekt, moet erin. Weer gelijk? Dan kiezen die spelers opnieuw.</p>
     <p>In de bus liggen ${S ? S.busLength : B.BUS_DEFAULT} kaarten op een rij en de eerste ligt open. Raad steeds of de volgende hoger of lager is. Fout of paal? Drink zoveel slokken als de hoeveelste gok het was en begin opnieuw met nieuwe kaarten. Haal je het eind, dan ben je uit de bus.</p>
@@ -1306,7 +1309,7 @@ const actions = {
     const d = myDeal();
     if (!d) return;
     const dr = draftOf(d), sum = Object.values(dr.to).reduce((a, b) => a + b, 0), to = +el.dataset.to;
-    if (sum >= d.n) { toast(`Alle ${d.bak ? 'bakken' : 'slokken'} zijn verdeeld. Tik op Uitdelen.`); return; }
+    if (sum >= d.n) { toast('Alle slokken zijn verdeeld. Tik op Uitdelen.'); return; }
     dr.to[to] = (dr.to[to] || 0) + 1;
     ui.gave = to; Snd.chip();
     render();

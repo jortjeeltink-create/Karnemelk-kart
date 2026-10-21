@@ -84,7 +84,7 @@ test('vragenronde: alleen wie aan de beurt is, fout is zelf drinken, goed is nik
   for (const p of g.players) assert.equal(p.hand.length, 4);
   assert.equal(g.phase, 'piramide');
   assert.equal(g.pyramid.length, B.PYRAMID_SIZE);
-  assert.equal(B.PYRAMID_SIZE, 25);
+  assert.equal(B.PYRAMID_SIZE, 11);
   const seen = [...g.players.flatMap((p) => p.hand), ...g.pyramid.map((s) => s.card)].map(B.label);
   assert.equal(new Set(seen).size, seen.length, 'geen kaart dubbel');
 });
@@ -215,19 +215,21 @@ test('paal telt als fout en kost de slokken van die vraag', () => {
   assert.fail('geen paal gevonden');
 });
 
-test('piramide: 7-6-5-4-3 kaarten, 2 tot 5 slokken per kaart en bovenin een bak uitdelen', () => {
-  assert.deepEqual(B.PYRAMID.map((r) => r.count), [7, 6, 5, 4, 3]);
-  assert.deepEqual(B.pyramidRows(), [[22, 23, 24], [18, 19, 20, 21], [13, 14, 15, 16, 17], [7, 8, 9, 10, 11, 12], [0, 1, 2, 3, 4, 5, 6]]);
+test('piramide zoals op tafel: 1-4-3-2-1 kaarten, dwars telt dubbel, onderin 2 en bovenin 10', () => {
+  assert.equal(B.PYRAMID_SIZE, 11);
+  assert.deepEqual(B.PYRAMID_SLOTS.map((x) => x.sips), [2, 2, 4, 2, 4, 6, 3, 6, 4, 8, 10]);
+  assert.equal(B.PYRAMID_SLOTS.filter((x) => x.dwars).length, 7);
+  assert.deepEqual(B.pyramidRows(), [[10], [8, 9], [5, 6, 7], [1, 2, 3, 4], [0]]);
   const g = B.newGame(['Jort', 'Meke'], { seed: 11 });
   answerAll(g);
   assert.equal(g.deals.length, 0, 'in de vragenronde wordt niks uitgedeeld');
   g.players[0].hand = [c(7, 0), c(7, 1), c(9, 0), c(12, 0)];
   g.players[1].hand = [c(7, 2), c(13, 0), c(3, 0), c(4, 0)];
   g.pyramid.forEach((s, i) => { s.card = c(5, i % 4); });
-  g.pyramid[0].card = c(7, 3);    // onderste rij: 2 slokken per kaart
-  g.pyramid[7].card = c(13, 1);   // tweede rij: 3 slokken
-  g.pyramid[22].card = c(12, 2);  // bovenste rij: een bak
-  g.pyramid[8].card = c(9, 1);    // tweede rij: een 9 die Jort te laat aantikt
+  g.pyramid[0].card = c(7, 3);    // onderin, dwars: 2 slokken
+  g.pyramid[1].card = c(13, 1);   // tweede rij, recht: 2 slokken
+  g.pyramid[2].card = c(9, 1);    // tweede rij, dwars: 4 slokken, maar Jort tikt te laat
+  g.pyramid[10].card = c(12, 2);  // bovenin: 10 slokken
   assert.equal(B.lay(g, 0, c(7, 0)), null, 'er ligt nog niks open');
   const ev = B.flip(g);
   assert.equal(ev.row, 1);
@@ -235,10 +237,10 @@ test('piramide: 7-6-5-4-3 kaarten, 2 tot 5 slokken per kaart en bovenin een bak 
   assert.equal(B.lay(g, 0, c(9, 0)), null, 'een 9 past niet op een 7');
   assert.equal(B.lay(g, 1, c(7, 0)), null, 'die kaart heeft Meke niet');
   const l1 = B.lay(g, 0, c(7, 0));
-  assert.deepEqual([l1.type, l1.player, l1.n, l1.bak], ['gelegd', 0, 2, false]);
+  assert.deepEqual([l1.type, l1.player, l1.n], ['gelegd', 0, 2]);
   B.lay(g, 0, c(7, 1));
   B.lay(g, 1, c(7, 2));
-  assert.deepEqual(g.deals, [{ from: 0, n: 4, bak: false }, { from: 1, n: 2, bak: false }]);
+  assert.deepEqual(g.deals, [{ from: 0, n: 4 }, { from: 1, n: 2 }], 'twee kaarten weggelegd is twee keer uitdelen');
   assert.deepEqual(g.pyramid[0].laid.map((x) => x.p), [0, 0, 1]);
   assert.equal(g.players[0].hand.length, 2);
   assert.equal(B.flip(g), null, 'eerst uitdelen');
@@ -249,44 +251,35 @@ test('piramide: 7-6-5-4-3 kaarten, 2 tot 5 slokken per kaart en bovenin een bak 
   const dealtBefore = g.players[0].dealt;
   assert.equal(B.skipDeal(g, 0).hardop, true);
   assert.equal(g.players[0].dealt, dealtBefore + 4);
-  for (let i = 1; i < 7; i++) { B.flip(g); dealAll(g); }
-  const ev2 = B.flip(g);
-  assert.equal(ev2.row, 2);
-  assert.equal(B.lay(g, 1, c(13, 0)).n, 3);
+  assert.equal(B.flip(g).row, 2);
+  assert.equal(B.lay(g, 1, c(13, 0)).n, 2, 'recht in de tweede rij');
   dealAll(g);
-  B.flip(g);   // de 9: Jort let niet op
+  B.flip(g);   // de 9, dwars: Jort let niet op
   B.flip(g);
   assert.equal(B.lay(g, 0, c(9, 0)), null, 'te laat: de volgende kaart ligt al open');
-  while (g.next < 22) { B.flip(g); dealAll(g); }
-  // bovenste rij: Jort legt zijn vrouw weg en deelt een bak uit
+  while (g.next < 10) { B.flip(g); dealAll(g); }
+  // bovenin: Jort legt zijn vrouw weg en deelt 10 slokken uit
+  assert.equal(B.endPyramid(g), null, 'er ligt nog een kaart dicht');
   const ev3 = B.flip(g);
   assert.equal(ev3.row, 5);
-  const l3 = B.lay(g, 0, c(12, 0));
-  assert.deepEqual([l3.n, l3.bak], [1, true]);
+  assert.equal(ev3.last, true);
+  assert.equal(B.lay(g, 0, c(12, 0)).n, 10);
   const before = g.players[1].pending;
-  const d = B.deal(g, 0, { 1: 1 });
-  assert.equal(d.bak, true);
-  assert.equal(g.players[1].bak, 1);
-  assert.equal(g.players[1].pending, before, 'een bak is geen slok');
-  assert.deepEqual(g.players[1].bakFrom, [{ p: 0, n: 1, disco: false }]);
-  assert.equal(g.players[0].bakDealt, 1);
-  assert.equal(B.bak(g, 1).type, 'bak');
-  assert.deepEqual(g.players[1].bakFrom, []);
-  // pas als alle kaarten om zijn, gaat het door naar de bus
-  assert.equal(B.endPyramid(g), null, 'er liggen nog kaarten dicht');
-  B.flip(g); B.flip(g);
+  assert.equal(B.endPyramid(g), null, 'eerst uitdelen');
+  B.deal(g, 0, { 1: 10 });
+  assert.equal(g.players[1].pending, before + 10);
   assert.equal(B.flip(g), null, 'alles ligt open');
-  assert.equal(g.phase, 'piramide', 'de laatste kaart kan nog weggelegd worden');
   assert.equal(B.endPyramid(g).type, 'piramideklaar');
   assert.equal(g.phase, 'bus');
   assert.equal(g.rider, 1, 'Meke heeft nog 2 kaarten, Jort 1');
 });
 
-test('met veel spelers komt er een tweede spel kaarten bij voor de piramide', () => {
+test('met 9 spelers past alles in één spel kaarten', () => {
   const g = B.newGame(Array.from({ length: 9 }, (_, i) => `S${i}`), { seed: 2 });
   answerAll(g);
-  assert.equal(g.pyramid.length, 25, '36 kaarten in handen, dus 25 haalt het niet uit één spel');
-  assert.ok(g.pyramid.every((s) => s.card && s.card.r >= 2 && s.card.r <= 14));
+  const all = [...g.players.flatMap((p) => p.hand), ...g.pyramid.map((s) => s.card)];
+  assert.equal(all.length, 9 * 4 + B.PYRAMID_SIZE);
+  assert.equal(new Set(all.map(B.label)).size, all.length, 'geen kaart dubbel');
 });
 
 test('gelijkspel om de bus: iedereen kiest een dichte kaart en de laagste moet erin', () => {

@@ -295,7 +295,7 @@ class Table {
     out.me = { pending: p.pending, from: p.from, saved: p.saved, settle: p.settle, bak: p.bak, bakFrom: p.bakFrom };
     out.round = g.round;
     out.turn = g.turn;
-    out.deals = g.deals.map((d) => ({ from: d.from, n: d.n, bak: d.bak }));
+    out.deals = g.deals.map((d) => ({ from: d.from, n: d.n }));
     out.waiting = B.waitingOn(g);
     out.seq = g.seq;
     out.log = g.log;
