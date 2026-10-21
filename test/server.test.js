@@ -205,7 +205,7 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.equal(hall.status, 200);
     const hallHtml = await hall.text();
     assert.match(hallHtml, /<title>Speelhal<\/title>/);
-    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
+    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone', '/bussen']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
     assert.match(hallHtml, /rel="manifest"/);
     // uitnodigingen naar de oude hoofdpagina komen nog steeds in de kartgame
     assert.match(await (await fetch(srv.url + '/?room=ABCD')).text(), /<title>Karnemelk Kart<\/title>/);
