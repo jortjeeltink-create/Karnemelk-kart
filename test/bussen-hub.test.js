@@ -93,7 +93,7 @@ test('slokken uitdelen via de telefoon van de uitdeler, en nu doen of sparen', (
   phones[0].say({ t: 'answer', o: 'rood' });
   assert.deepEqual(phones[2].state().deals, [], 'goed in de vragenronde: niks uitdelen');
   // snel naar de piramide; Jort heeft een 7 en de eerste piramidekaart is een 7 (2 slokken)
-  while (g.phase === 'vragen') B.answer(g, g.turn, B.truth(g.round, g.players[g.turn].hand, g.deck[g.deck.length - 1]) ?? 'ja');
+  while (g.phase === 'vragen') B.answer(g, g.turn, B.truth(g.round, g.players[g.turn].hand, g.deck[g.deck.length - 1]) ?? B.QUESTIONS[g.round].options[0]);
   g.players.forEach((p) => { p.pending = 0; p.from = []; p.settle = null; });
   g.players[0].hand = [{ r: 7, s: 0 }, { r: 2, s: 0 }];
   g.players[1].hand = [{ r: 3, s: 0 }];
