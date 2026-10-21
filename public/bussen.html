@@ -164,6 +164,8 @@ p{margin:0}
 .felt-sub{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,239,219,.75)}
 .banner{position:absolute;inset:0;z-index:6;display:grid;place-content:center;justify-items:center;gap:6px;text-align:center;pointer-events:none;background:radial-gradient(closest-side,rgba(11,6,13,.82),rgba(11,6,13,0));animation:banner 2s ease both}
 .banner-t{font-family:var(--display);font-weight:900;font-size:min(15cqw,74px);line-height:.85;text-transform:uppercase;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.35),0 0 30px rgba(247,197,72,.45);max-width:80cqw}
+.banner.disco{background:radial-gradient(closest-side,rgba(26,11,42,.85),rgba(26,11,42,0))}
+.banner.disco .banner-t{background:linear-gradient(90deg,#ff4fa3,#a25bff,#4f8dff,#2fd3a0,#f7c548,#ff4fa3);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:discobg 1.2s linear infinite;filter:drop-shadow(0 4px 0 rgba(0,0,0,.4))}
 @keyframes banner{0%{opacity:0;transform:scale(.85)}14%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
 
 /* stoelen */
@@ -200,6 +202,7 @@ button.seat:active .ava{transform:scale(.94)}
 .tag{flex:none;transform:translateX(var(--tx,0px)) rotate(-5deg);padding:4px 9px 5px;border-radius:8px;font-family:var(--display);font-weight:900;font-size:calc(var(--ava) * .34 + 3px);line-height:1;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;color:#2a1600;background:linear-gradient(180deg,#ffe892,#f7c548 50%,#d99a17);box-shadow:0 0 0 2px #2a1600,0 6px 18px rgba(0,0,0,.5),0 0 24px rgba(247,197,72,.55);animation:tagin .45s cubic-bezier(.2,.9,.3,1.4) both}
 .tag.bad{color:#fff;background:linear-gradient(180deg,#ff7b82,#d2343f 55%,#a11d27);box-shadow:0 0 0 2px #3a0a0e,0 6px 18px rgba(0,0,0,.5),0 0 24px rgba(210,52,63,.55)}
 .tag.blue{color:#fff;background:linear-gradient(180deg,#9cbfff,#4f8dff 55%,#2f63d6);box-shadow:0 0 0 2px #0d1a3a,0 6px 18px rgba(0,0,0,.5),0 0 24px rgba(79,141,255,.55)}
+.tag.disco{color:#fff;background:linear-gradient(90deg,#ff4fa3,#a25bff,#4f8dff,#2fd3a0);box-shadow:0 0 0 2px #1a0b2a,0 6px 18px rgba(0,0,0,.5),0 0 28px rgba(162,91,255,.7)}
 .tag.calm{color:var(--cream);background:rgba(20,13,23,.92);box-shadow:0 0 0 1.5px var(--gold),0 6px 18px rgba(0,0,0,.5);animation:none}
 @keyframes tagin{from{transform:translateX(var(--tx,0px)) scale(.4) rotate(-14deg);opacity:0}}
 .plus{position:absolute;left:50%;top:0;z-index:5;transform:translateX(-50%);font-family:var(--display);font-weight:900;font-size:24px;color:var(--good);text-shadow:0 2px 6px rgba(0,0,0,.6);animation:plus .8s ease-out forwards;pointer-events:none}
@@ -258,7 +261,6 @@ button.pickcard:active .card{transform:scale(.95)}
 .waitline::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.4s steps(4) infinite}
 @keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
 .opts{display:grid;gap:8px;grid-template-columns:repeat(2,minmax(0,1fr))}
-.opts.four{grid-template-columns:repeat(4,minmax(0,1fr))}
 .opt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:62px;padding:8px 6px;border-radius:16px;font-family:var(--display);font-weight:800;font-size:28px;line-height:1;color:#fff;background:linear-gradient(180deg,#4a2753,#2b1531);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 -4px 0 rgba(0,0,0,.28),0 6px 16px rgba(0,0,0,.4);transition:transform .12s,filter .12s}
 .opt:hover{filter:brightness(1.1)}
 .opt:active{transform:translateY(2px) scale(.98)}
@@ -268,10 +270,10 @@ button.pickcard:active .card{transform:scale(.95)}
 .opt.zwart{background:linear-gradient(180deg,#45434c,#17151b);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -4px 0 rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.1),0 6px 16px rgba(0,0,0,.4)}
 .opt.up{background:linear-gradient(180deg,#43c776,#1f8f4a)}
 .opt.down{background:linear-gradient(180deg,#f0a13b,#c4700f)}
-.opt.suit{background:linear-gradient(180deg,#fff,var(--paper-2));color:var(--ink)}
-.opt.suit.red{color:var(--suit-red)}
-.opt.suit .sym{font-size:32px;line-height:1}
-.opt.suit small{color:var(--plum-2)}
+.opt.disco{grid-column:1/-1;min-height:56px;flex-direction:row;gap:12px;color:#fff;background:linear-gradient(90deg,#ff4fa3,#a25bff 30%,#4f8dff 55%,#2fd3a0 80%,#f7c548);background-size:200% 100%;animation:discobg 2.4s linear infinite;text-shadow:0 2px 4px rgba(0,0,0,.35)}
+.opt.disco small{opacity:1}
+@keyframes discobg{to{background-position:200% 0}}
+.res-h.disco .verdict{background:linear-gradient(90deg,#ff4fa3,#a25bff,#4f8dff,#2fd3a0,#f7c548);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .res-h{display:grid;gap:4px}
 .verdict{font-family:var(--display);font-weight:900;font-size:46px;line-height:.86;text-transform:uppercase}
 .good .verdict{color:var(--good)}
@@ -371,7 +373,6 @@ button.pickcard:active .card{transform:scale(.95)}
   .dock h2{font-size:28px}
   .verdict{font-size:40px}
   .opt{min-height:52px;font-size:25px}
-  .opt.suit .sym{font-size:28px}
   .fine{display:none}
   .view.game{grid-template-rows:minmax(280px,1fr) auto}
 }
@@ -482,6 +483,8 @@ const Snd = {
   // toeter van de bus: twee tonen, twee keer
   horn() { for (const at of [0, .34]) { this.tone(311, .26, { type: 'sawtooth', vol: .07, at, lp: 1800 }); this.tone(392, .26, { type: 'sawtooth', vol: .06, at, lp: 1800 }); } },
   win() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, .24, { type: 'triangle', vol: .11, at: i * .1 })); },
+  // disco: een basloopje met een paar vrolijke noten erop
+  disco() { [0, .18, .36, .54].forEach((at, i) => { this.tone(i % 2 ? 110 : 82, .16, { type: 'square', vol: .09, at, lp: 600 }); this.noise(.05, { vol: .18, at: at + .09, freq: 7000 }); }); [784, 988, 1175, 1568].forEach((f, i) => this.tone(f, .14, { type: 'triangle', vol: .09, at: .1 + i * .18 })); },
 };
 const buzz = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* niet ondersteund */ } };
 const later = (ms, fn) => setTimeout(() => fn.call(Snd), ms);
@@ -586,8 +589,12 @@ function present(ev) {
   switch (ev.type) {
     case 'vraag':
       show(ev); Snd.flip();
+      if (ev.disco && ev.ok) { later(380, Snd.disco); setTimeout(celebrate, 400); buzz([90, 60, 90, 60, 160]); setTimeout(() => { ui.banner = { title: 'Disco!', sub: 'Iedereen een bak', disco: true }; clearTimeout(ui.bannerTimer); ui.bannerTimer = setTimeout(() => { ui.banner = null; render(); }, 2000); render(); }, 450); break; }
       later(380, ev.ok ? Snd.good : Snd.bad);
       if (!ev.ok && mine(ev.player)) buzz([70, 50, 70]);
+      break;
+    case 'bak':
+      if (!mine(ev.player)) toast(`${S.players[ev.player].name} heeft een bak gedaan`);
       break;
     case 'piramide':
       show(ev); Snd.flip();
@@ -715,7 +722,7 @@ function tableHTML({ order: seatsOrder, people, center = '', seat = () => ({}), 
     </${el}>`;
   }).join('');
   const d = seatsOrder.indexOf(dealer);
-  const banner = ui.banner ? `<div class="banner"><p class="felt-sub">${ui.banner.sub}</p><p class="banner-t">${ui.banner.title}</p></div>` : '';
+  const banner = ui.banner ? `<div class="banner${ui.banner.disco ? ' disco' : ''}"><p class="felt-sub">${ui.banner.sub}</p><p class="banner-t">${ui.banner.title}</p></div>` : '';
   return `<div class="table ${cls}"><div class="rail"></div><div class="felt"></div>${d >= 0 ? `<span class="dealer" data-seat="${d}" title="Host" aria-hidden="true">H</span>` : ''}<div class="center">${center}</div>${seats}${banner}</div>`;
 }
 
@@ -813,7 +820,7 @@ function vVragen() {
   }).join('');
   const center = `${pot(`Vraag ${round + 1} van 4`)}<span class="whochip" style="--pc:${PC[bp]}"><i></i>${who(bp)}</span><div class="board">${slots}</div><p class="qtag">${B.QUESTIONS[round].q}</p>`;
   const table = gameTable(center, (i) => ev && i === ev.player
-    ? { tag: ev.ok ? ['', `Goed · +${ev.sips}`] : ['bad', `${ev.paal ? 'Paal' : 'Drink'} · ${ev.sips}`] }
+    ? { tag: ev.disco && ev.ok ? ['disco', 'Disco!'] : ev.ok ? ['', `Goed · +${ev.sips}`] : ['bad', `${ev.paal ? 'Paal' : 'Drink'} · ${ev.sips}`] }
     : { now: !ev && !S.deals.length && S.phase === 'vragen' && i === S.turn });
   const md = myDeal();
   let dock;
@@ -842,13 +849,15 @@ function askPanel(round, p) {
     sub = `Ligt je volgende kaart tussen ${lbl(h[0])} en ${lbl(h[1])} in, of erbuiten?`;
     buttons = optBtn('answer', 'binnen', 'up', `Binnen<small>${hi - lo > 1 ? 'ertussenin' : 'kan niet'}</small>`) + optBtn('answer', 'buiten', 'down', 'Buiten<small>lager of hoger</small>');
   } else {
-    sub = 'Raad het teken van je laatste kaart.';
-    buttons = B.SUITS.map((s) => optBtn('answer', s.id, `suit ${s.red ? 'red' : 'black'}`, `<span class="sym">${s.sym}</span><small>${SUITNAME[s.id]}</small>`)).join('');
+    const have = [...new Set(h.map((c) => c.s))].map((k) => `<span class="cl${B.SUITS[k].red ? ' r' : ''}">${B.SUITS[k].sym}</span>`).join(' ');
+    sub = `Komt de vorm van je volgende kaart al voor in je hand? Je hebt ${have}.`;
+    buttons = optBtn('answer', 'ja', 'up', 'Ja<small>heb ik al</small>') + optBtn('answer', 'nee', 'down', 'Nee<small>heb ik nog niet</small>');
+    if (B.canDisco(h)) buttons += optBtn('answer', 'disco', 'disco', 'Disco!<small>de vierde vorm: iedereen een bak</small>');
   }
   return `${forNote(p)}<div class="ask-h"><h2>${p === S.you ? 'Jij bent aan de beurt' : Q.q}</h2><span class="stake" title="Slokken bij deze vraag">${GLASS}${Q.sips}</span></div>
     <p class="sub"><b>${Q.q}</b> ${sub}</p>
-    <div class="opts${round === 3 ? ' four' : ''}">${buttons}</div>
-    <p class="fine">Fout of paal: ${B.sipsText(Q.sips)} drinken. Goed: ${B.sipsText(Q.sips)} uitdelen.</p>`;
+    <div class="opts">${buttons}</div>
+    <p class="fine">Fout${round === 1 || round === 2 ? ' of paal' : ''}: ${B.sipsText(Q.sips)} drinken. Goed: ${B.sipsText(Q.sips)} uitdelen.${round === 3 && B.canDisco(h) ? ' Disco mis telt als fout.' : ''}</p>`;
 }
 
 function waitPanel(round) {
@@ -864,13 +873,18 @@ function vraagResult(ev) {
   if (ev.round === 0) explain = `Het is ${L}, dus ${ev.right}.`;
   else if (ev.round === 1) explain = ev.paal ? `${L} is net zo hoog als ${lbl(h[0])}.` : `${L} is ${ev.right} dan ${lbl(h[0])}.`;
   else if (ev.round === 2) explain = ev.paal ? `${L} is net zo hoog als een van de kaarten.` : `${L} ligt ${ev.right} ${lbl(h[0])} en ${lbl(h[1])}.`;
-  else explain = `Het is ${L}: ${ev.right}.`;
-  const head = ev.ok ? 'Goed!' : ev.paal ? 'Paal!' : 'Fout!';
-  return `<div class="res-h ${ev.ok ? 'good' : 'bad'}"><span class="verdict">${ev.player === S.you ? head : `${nameOf(ev.player)}: ${head}`}</span><span class="sub">${explain}${ev.paal ? ' Paal telt als fout.' : ''}</span></div>`;
+  else {
+    const suit = SUITNAME[B.SUITS[ev.card.s].id].toLowerCase();
+    explain = ev.right === 'ja' ? `Het is ${L}: ${suit} had ${ev.player === S.you ? 'je' : nameOf(ev.player)} al.` : `Het is ${L}: ${suit} had ${ev.player === S.you ? 'je' : nameOf(ev.player)} nog niet.`;
+    if (ev.disco) explain = ev.ok ? `Het is ${L}: vier verschillende vormen. Iedereen een bak!` : `Geen disco: ${explain.charAt(0).toLowerCase()}${explain.slice(1)}`;
+  }
+  const head = ev.ok ? (ev.disco ? 'Disco!' : 'Goed!') : ev.paal ? 'Paal!' : 'Fout!';
+  return `<div class="res-h${ev.disco && ev.ok ? ' disco' : ''} ${ev.ok ? 'good' : 'bad'}"><span class="verdict">${ev.player === S.you ? head : `${nameOf(ev.player)}: ${head}`}</span><span class="sub">${explain}${ev.paal ? ' Paal telt als fout.' : ''}</span></div>`;
 }
 
 function vraagAction(ev) {
   const w = who(ev.player);
+  if (ev.disco && ev.ok) return `<div class="action">${GLASS}<span>Iedereen moet een bak</span></div>`;
   return `<div class="action">${GLASS}<span>${w} ${ev.ok ? `mag ${B.sipsText(ev.sips)} uitdelen` : `moet ${B.sipsText(ev.sips)} drinken`}</span></div>`;
 }
 
@@ -1062,6 +1076,14 @@ function sipsHTML() {
     ${eind ? '' : '<button class="ghostbtn" type="button" data-act="sipssave">Weer sparen</button>'}`;
 }
 
+function bakHTML() {
+  const m = S.me, by = m.bakFrom === S.you ? 'jouw disco' : `de disco van ${nameOf(m.bakFrom)}`;
+  return `${sheetTop('Disco!', 'Iedereen een bak', false)}
+    <div class="sipbig">${GLASS}<b>${m.bak}</b><span>${m.bak === 1 ? 'bak' : 'bakken'} door ${by}</span></div>
+    <p class="sub">Vier verschillende vormen: iedereen drinkt zijn glas leeg. Een bak kun je niet sparen.</p>
+    <button class="cta" type="button" data-act="bakdone"><span>Gedaan</span>${ARR}</button>`;
+}
+
 function menuHTML() {
   return `${sheetTop('Menu')}
   <nav class="mlist">
@@ -1083,9 +1105,10 @@ function rulesHTML() {
       <li>Rood of zwart? <b>1 slok</b></li>
       <li>Hoger of lager dan je eerste kaart? <b>2 slokken</b></li>
       <li>Binnen of buiten je eerste twee kaarten? <b>3 slokken</b></li>
-      <li>Welk teken: harten, ruiten, klaveren of schoppen? <b>4 slokken</b></li>
+      <li>Heb je het vormpje al? Komt de vorm (harten, ruiten, klaveren of schoppen) van je vierde kaart al voor in je hand? <b>4 slokken</b></li>
     </ol>
     <p class="small">Gelijk is paal, en paal telt als fout. De aas is het hoogst, de 2 het laagst.</p>
+    <p><b>Disco:</b> heb je bij de vierde vraag drie verschillende vormen, dan mag je ook Disco kiezen. Wordt je vierde kaart de ontbrekende vorm, dan heb je alle vier de vormen en moet iedereen een bak. Disco mis telt als fout.</p>
     <h3>Slokken: nu doen of sparen</h3>
     <p>Krijg je slokken, dan kies je op je telefoon: nu doen of sparen. Gespaarde slokken komen terug aan het eind van de vragenronde en van de piramide. Dan mag je ze weer sparen, maar aan het eind van het spel moeten ze op. Bovenin zie je altijd hoeveel je er nog hebt staan.</p>
     <h3>2. De piramide</h3>
@@ -1104,7 +1127,10 @@ function closeSheet() { ui.sheet = null; renderSheet(); }
 function renderSheet() {
   let key = null, html = null, sips = false;
   if (ui.sheet) { key = ui.sheet.key; html = ui.sheet.html; }
-  else if (S && S.me && !ui.show && (S.me.pending > 0 || S.me.settle)) {
+  else if (S && S.me && !ui.show && !ui.banner && S.me.bak > 0) {
+    key = `bak:${S.me.bak}`;
+    html = bakHTML(); sips = true;
+  } else if (S && S.me && !ui.show && (S.me.pending > 0 || S.me.settle)) {
     key = `sips:${S.me.pending}:${S.me.settle}:${S.me.saved}:${S.phase === 'klaar'}`;
     html = sipsHTML(); sips = true;
   }
@@ -1261,6 +1287,7 @@ const actions = {
   guess(el) { Net.send({ t: 'guess', o: el.dataset.o }); },
   retry() { Net.send({ t: 'retry' }); },
   sipsnow() { Net.send({ t: 'sips', act: 'now' }); Snd.good(); },
+  bakdone() { Net.send({ t: 'bak' }); Snd.good(); },
   sipssave() { Net.send({ t: 'sips', act: 'save' }); Snd.chip(); },
   owe() {
     const p = S.players[S.you];

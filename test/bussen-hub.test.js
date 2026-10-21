@@ -109,6 +109,26 @@ test('slokken uitdelen via de telefoon van de uitdeler, en nu doen of sparen', (
   assert.equal(g.players[2].drank, 0, 'gespaarde slokken komen pas aan het eind van de ronde terug');
 });
 
+test('disco via de telefoon: iedereen ziet een bak staan en tikt op gedaan', () => {
+  const { hub, phones, code } = table(['Jort', 'Meke']);
+  phones[0].say({ t: 'start' });
+  const g = hub.tables.get(code).g;
+  g.round = 3; g.turn = 0;
+  g.players[0].hand = [{ r: 2, s: 0 }, { r: 5, s: 1 }, { r: 9, s: 2 }];
+  g.players[1].hand = [{ r: 3, s: 0 }, { r: 4, s: 0 }, { r: 6, s: 0 }];
+  g.deck.push({ r: 12, s: 3 });
+  phones[1].say({ t: 'answer', o: 'disco' });
+  assert.equal(g.players[0].hand.length, 3, 'Meke is niet aan de beurt');
+  phones[0].say({ t: 'answer', o: 'disco' });
+  assert.equal(phones[1].state().me.bak, 1);
+  assert.equal(phones[1].state().me.bakFrom, 0);
+  assert.equal(phones[0].state().players[1].bak, 1);
+  phones[1].say({ t: 'bak' });
+  assert.equal(phones[0].state().players[1].bak, 0);
+  assert.equal(phones[0].state().players[1].bakken, 1);
+  assert.equal(phones[0].state().log[phones[0].state().log.length - 1].type, 'bak');
+});
+
 test('opnieuw verbinden: zelfde plek, en de host valt in voor wie weg is', () => {
   const { hub, phones, code } = table(['Jort', 'Meke']);
   phones[0].say({ t: 'start' });

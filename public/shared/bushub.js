@@ -254,6 +254,7 @@ class Table {
       case 'guess': ev = B.guess(g, this.actorFor(s, g.rider), msg.o); break;
       case 'retry': ev = B.retry(g, this.actorFor(s, g.rider)); break;
       case 'sips': ev = B.sips(g, me, msg.act); break;
+      case 'bak': ev = B.bak(g, me); break;
       default: return;
     }
     if (ev) this.broadcast();
@@ -273,7 +274,7 @@ class Table {
         const base = { name: p.name, connected: p.connected };
         if (!g) return base;
         const gp = g.players[i];
-        return { ...base, cards: gp.hand.length, laid: gp.laid.length, got: gp.got, drank: gp.drank, owe: gp.pending + gp.saved, saved: gp.saved, dealt: gp.dealt, goed: gp.goed };
+        return { ...base, cards: gp.hand.length, laid: gp.laid.length, got: gp.got, drank: gp.drank, owe: gp.pending + gp.saved, saved: gp.saved, dealt: gp.dealt, goed: gp.goed, bak: gp.bak, bakken: gp.bakken };
       }),
     };
     if (!g) return out;
@@ -281,7 +282,7 @@ class Table {
     // tijdens de vragenronde liggen alle kaarten open, daarna houdt iedereen zijn kaarten voor zich
     out.hands = g.phase === 'vragen' ? g.players.map((x) => x.hand) : null;
     out.hand = p.hand;
-    out.me = { pending: p.pending, from: p.from, saved: p.saved, settle: p.settle };
+    out.me = { pending: p.pending, from: p.from, saved: p.saved, settle: p.settle, bak: p.bak, bakFrom: p.bakFrom };
     out.round = g.round;
     out.turn = g.turn;
     out.deals = g.deals.map((d) => ({ from: d.from, sips: d.sips }));

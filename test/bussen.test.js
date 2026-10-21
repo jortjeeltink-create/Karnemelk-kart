@@ -41,7 +41,11 @@ test('de vier vragen: rood/zwart, hoger/lager, binnen/buiten en het teken, gelij
   assert.equal(B.truth(2, [c(4), c(10)], c(4, 3)), null);
   assert.equal(B.truth(2, [c(8), c(8)], c(9)), 'buiten');
   assert.equal(B.truth(2, [c(8), c(8)], c(8, 1)), null);
-  assert.equal(B.truth(3, [], c(3, 2)), 'klaveren');
+  // vraag 4: heb je het vormpje al?
+  assert.equal(B.truth(3, [c(2, 0), c(5, 2), c(9, 2)], c(13, 2)), 'ja');
+  assert.equal(B.truth(3, [c(2, 0), c(5, 2), c(9, 2)], c(13, 1)), 'nee');
+  assert.equal(B.canDisco([c(2, 0), c(5, 1), c(9, 2)]), true);
+  assert.equal(B.canDisco([c(2, 0), c(5, 1), c(9, 1)]), false);
   assert.deepEqual(B.QUESTIONS.map((q) => q.sips), [1, 2, 3, 4]);
 });
 
@@ -154,6 +158,46 @@ test('aan het eind van het spel kan sparen niet meer', () => {
   assert.equal(ev.kind, 'eind');
   assert.equal(g.players[r].saved, 0);
   assert.equal(g.players[r].settle, null);
+});
+
+test('disco: met drie verschillende vormen, en de vierde vorm betekent een bak voor iedereen', () => {
+  const setup = (hand0, next) => {
+    // meteen naar vraag 4, met zelfgekozen kaarten
+    const h = B.newGame(['Jort', 'Meke', 'Sim'], { seed: 4 });
+    h.round = 3; h.turn = 0;
+    h.players.forEach((p) => { p.hand = [c(2, 0), c(3, 0), c(4, 0)]; });
+    h.players[0].hand = hand0;
+    h.deck.push(next);
+    return h;
+  };
+  // geen drie verschillende vormen: disco mag niet
+  const g0 = setup([c(2, 0), c(5, 1), c(9, 1)], c(13, 3));
+  assert.equal(B.answer(g0, 0, 'disco'), null);
+  // disco goed: iedereen een bak, niets uitdelen
+  const g = setup([c(2, 0), c(5, 1), c(9, 2)], c(13, 3));
+  const ev = B.answer(g, 0, 'disco');
+  assert.equal(ev.ok, true);
+  assert.equal(ev.disco, true);
+  assert.equal(g.deals.length, 0);
+  assert.deepEqual(g.players.map((p) => p.bak), [1, 1, 1]);
+  assert.equal(g.players[1].bakFrom, 0);
+  assert.equal(g.players[0].disco, 1);
+  assert.equal(B.bak(g, 1).type, 'bak');
+  assert.equal(g.players[1].bak, 0);
+  assert.equal(g.players[1].bakken, 1);
+  assert.equal(B.bak(g, 1), null, 'geen bak meer te doen');
+  assert.ok(B.titles(g).some((t) => t.id === 'disco' && t.names[0] === 'Jort'));
+  // disco mis: de vorm had je al, dat is 4 slokken
+  const g2 = setup([c(2, 0), c(5, 1), c(9, 2)], c(13, 1));
+  const ev2 = B.answer(g2, 0, 'disco');
+  assert.equal(ev2.ok, false);
+  assert.equal(ev2.right, 'ja');
+  assert.equal(g2.players[0].pending, 4);
+  assert.deepEqual(g2.players.map((p) => p.bak), [0, 0, 0]);
+  // gewoon nee zeggen bij de vierde vorm: goed, en 4 slokken uitdelen
+  const g3 = setup([c(2, 0), c(5, 1), c(9, 2)], c(13, 3));
+  assert.equal(B.answer(g3, 0, 'nee').ok, true);
+  assert.deepEqual(g3.deals, [{ from: 0, sips: 4 }]);
 });
 
 test('paal telt als fout en kost de slokken van die vraag', () => {

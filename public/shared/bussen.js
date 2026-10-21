@@ -26,13 +26,16 @@ export const QUESTIONS = [
   { id: 'kleur', q: 'Rood of zwart?', sips: 1, options: ['rood', 'zwart'] },
   { id: 'hogerlager', q: 'Hoger of lager?', sips: 2, options: ['hoger', 'lager'] },
   { id: 'binnenbuiten', q: 'Binnen of buiten?', sips: 3, options: ['binnen', 'buiten'] },
-  { id: 'teken', q: 'Welk teken?', sips: 4, options: SUITS.map((s) => s.id) },
+  // heb je de vorm (harten, ruiten, klaveren of schoppen) van je vierde kaart al? Met 3 verschillende vormen mag ook disco
+  { id: 'vorm', q: 'Heb je het vormpje al?', sips: 4, options: ['ja', 'nee', 'disco'] },
 ];
 
 export const rankLabel = (c) => RANK_LABEL[c.r] || String(c.r);
 export const label = (c) => rankLabel(c) + SUITS[c.s].sym;
 export const isRed = (c) => SUITS[c.s].red;
 export const sipsText = (n) => `${n} ${n === 1 ? 'slok' : 'slokken'}`;
+// disco kan alleen als je eerste drie kaarten drie verschillende vormen hebben
+export const canDisco = (hand) => hand.length === 3 && new Set(hand.map((c) => c.s)).size === 3;
 
 // "de 7♥", "de vrouw ♠"
 export function cardName(c, lidwoord = 'de') {
@@ -88,7 +91,7 @@ export function truth(round, hand, card) {
     if (card.r === lo || card.r === hi) return null;
     return card.r > lo && card.r < hi ? 'binnen' : 'buiten';
   }
-  return SUITS[card.s].id;
+  return hand.some((c) => c.s === card.s) ? 'ja' : 'nee';
 }
 
 export function busTruth(prev, card) {
@@ -112,6 +115,10 @@ export function newGame(names, { busLength = BUS_DEFAULT, seed = Math.floor(Math
       saved: 0,        // gespaarde slokken
       savedTotal: 0,
       settle: null,    // 'ronde' of 'eind': je gespaarde slokken komen terug
+      bak: 0,          // bakken die je nog moet doen (disco), die kun je niet sparen
+      bakFrom: -1,     // wie er disco riep
+      bakken: 0,
+      disco: 0,
     })),
     deck: [],
     round: 0,
@@ -160,15 +167,20 @@ function roundEnd(g, kind = 'ronde') {
 export function answer(g, player, option) {
   if (g.phase !== 'vragen' || g.deals.length || player !== g.turn) return null;
   const Q = QUESTIONS[g.round];
-  if (!Q.options.includes(option)) return null;
   const p = g.players[player];
+  if (!Q.options.includes(option) || (option === 'disco' && !canDisco(p.hand))) return null;
   const card = g.deck.pop();
   const right = truth(g.round, p.hand, card);
-  const ok = right === option;
+  // disco is goed als de vierde kaart de ontbrekende vorm is: dan moet iedereen een bak
+  const disco = option === 'disco';
+  const ok = disco ? right === 'nee' : right === option;
   p.hand.push(card);
-  if (ok) { p.goed++; queueDeal(g, player, Q.sips); }
+  if (ok && disco) {
+    p.goed++; p.disco++;
+    for (const x of g.players) { x.bak++; x.bakFrom = player; }
+  } else if (ok) { p.goed++; queueDeal(g, player, Q.sips); }
   else { p.fout++; addSips(g, player, Q.sips, -1); }
-  const ev = emit(g, { type: 'vraag', player, round: g.round, hand: p.hand.slice(), card, option, right, ok, paal: right === null, sips: Q.sips });
+  const ev = emit(g, { type: 'vraag', player, round: g.round, hand: p.hand.slice(), card, option, right, ok, paal: right === null, sips: Q.sips, disco });
   if (++g.turn >= g.players.length) { g.turn = 0; g.round++; }
   if (g.round >= QUESTIONS.length) { startPyramid(g); roundEnd(g); }
   return ev;
@@ -224,6 +236,15 @@ export function sips(g, player, act) {
     return emit(g, { type: 'slok', player, act, n, kind });
   }
   return null;
+}
+
+// Een bak gedaan (na een disco). Een bak kun je niet sparen.
+export function bak(g, player) {
+  const p = g.players[player];
+  if (!p || p.bak <= 0) return null;
+  p.bak--;
+  p.bakken++;
+  return emit(g, { type: 'bak', player });
 }
 
 function startPyramid(g) {
@@ -368,6 +389,8 @@ export function titles(g) {
   if (got) out.push({ id: 'dorstig', title: 'Dorstigste', names: got.names, text: `${sipsText(got.value)} gekregen` });
   const saved = topOf(g, 'savedTotal');
   if (saved) out.push({ id: 'spaarpot', title: 'Spaarpot', names: saved.names, text: `${sipsText(saved.value)} gespaard` });
+  const disco = topOf(g, 'disco');
+  if (disco) out.push({ id: 'disco', title: 'Discokoning', names: disco.names, text: `${disco.value} keer disco: iedereen een bak` });
   const laid = Math.max(...g.players.map((p) => p.laid.length));
   if (laid > 0) out.push({ id: 'piramide', title: 'Piramidekoning', names: g.players.filter((p) => p.laid.length === laid).map((p) => p.name), text: `${laid} ${laid === 1 ? 'kaart' : 'kaarten'} in de piramide gelegd` });
   return out;
