@@ -205,7 +205,9 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.equal(hall.status, 200);
     const hallHtml = await hall.text();
     assert.match(hallHtml, /<title>Speelhal<\/title>/);
-    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
+    for (const href of ['/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
+    for (const href of ['/megaball', '/stockmarket', '/rodezone']) assert.ok(!hallHtml.includes(`'${href}'`), `${href} staat niet meer in de speelhal`);
+    assert.match(hallHtml, /'Mario Bak'/, 'de kartgame heet Mario Bak');
     assert.match(hallHtml, /rel="manifest" href="\/speelhal\.webmanifest"/);
     // op het beginscherm en bij het delen heet het Speelhal, met een eigen logo
     const hallManifest = await (await fetch(srv.url + '/speelhal.webmanifest')).json();
@@ -217,10 +219,10 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.equal((await fetch(srv.url + '/img/speelhal-180.png')).status, 200);
     assert.equal((await (await fetch(srv.url + '/manifest.webmanifest')).json()).start_url, '/kart', 'de kartgame opent de race');
     // uitnodigingen naar de oude hoofdpagina komen nog steeds in de kartgame
-    assert.match(await (await fetch(srv.url + '/?room=ABCD')).text(), /<title>Karnemelk Kart<\/title>/);
+    assert.match(await (await fetch(srv.url + '/?room=ABCD')).text(), /<title>Mario Bak<\/title>/);
     const first = await fetch(srv.url + '/kart');
     const html = await first.text();
-    assert.match(html, /Karnemelk Kart/);
+    assert.match(html, /Mario Bak/);
     // apparaatcookie: zo herkent de server deze telefoon
     const cookie = first.headers.get('set-cookie');
     assert.match(cookie, /^kk_dev=[A-Za-z0-9_-]{32}; Path=\/; Max-Age=\d+; HttpOnly; SameSite=Lax/);
@@ -247,7 +249,7 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.equal(three.headers.get('content-encoding'), 'gzip');
     assert.ok(+three.headers.get('content-length') < 250000, 'three.js gecomprimeerd klein genoeg voor mobiel');
     const join = await fetch(srv.url + '/join/ABCD');
-    assert.match(await join.text(), /Karnemelk Kart/);
+    assert.match(await join.text(), /Mario Bak/);
     const megaball = await fetch(srv.url + '/megaball');
     assert.equal(megaball.status, 200);
     assert.match(await megaball.text(), /<title>Mega Ball Speelgeld<\/title>/);

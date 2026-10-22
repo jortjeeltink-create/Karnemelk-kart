@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Speelhal</title>
-<meta name="description" content="Al je spellen op één plek: Karnemelk Kart, Mega Ball, Stock Market, Rode Zone, Bussen, Boer zoekt vrouw, Mexen, Fuck the dealer, Paardenrace, Rotonde en Mijnenveld.">
+<meta name="description" content="Al je spellen op één plek: Mario Bak, Bussen, Boer zoekt vrouw, Mexen, Fuck the dealer, Paardenrace, Rotonde en Mijnenveld.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -44,8 +44,6 @@
   --glass:rgba(255,255,255,.08);
   --glass-line:rgba(255,255,255,.24);
   --kart:#ff7a00;
-  --mega:#f7c548;
-  --stock:#2fbf71;
   --zone:#ff4a24;
   --display:"Sofia Sans Extra Condensed","Arial Narrow","Helvetica Neue",sans-serif;
   --mono:"Martian Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
@@ -206,7 +204,7 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
   <a class="pill glass" href="#top" data-nav>↑ Terug naar boven</a>
 </footer>
 
-<div class="legal" aria-hidden="true"><span>Speelhal</span><span>/</span><span>Alles met nep geld</span></div>
+<div class="legal" aria-hidden="true"><span>Speelhal</span><span>/</span><span>Drink met mate</span></div>
 
 <div class="menu" id="menu" hidden>
   <nav id="menuNav"></nav>
@@ -239,30 +237,12 @@ const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 
 /* ================= SPELLEN ================= */
 const GAMES = [
-  { id: 'karnemelk', name: 'Karnemelk', name2: 'Kart', short: 'Karnemelk Kart', acc: '#ff7a00', tint: '#2c1410', bg: '#9fd8ff',
+  { id: 'mariobak', name: 'Mario', name2: 'Bak', short: 'Mario Bak', acc: '#ff7a00', tint: '#2c1410', bg: '#9fd8ff',
     url: '/kart',
     chips: ['Racen', 'Online met vrienden'],
     text: 'Kartracen door Nederland: langs de molen, door de grachten en tussen de sterren. Race live tegen je vrienden of tegen bots, pak items en drift door de bochten.',
     facts: [['Banen', '13'], ['Live', 'tot 10 vrienden'], ['Extra', 'items, schansen, winkel']],
-    cta: 'Speel Karnemelk Kart' },
-  { id: 'megaball', name: 'Mega', name2: 'Ball', short: 'Mega Ball', acc: '#f7c548', tint: '#0e1636', bg: '#060c24',
-    url: '/megaball',
-    chips: ['Gameshow', 'Speelgeld'],
-    text: 'Namaak van de live gameshow Mega Ball, met nep geld. Koop je kaarten, kijk hoe de ballen vallen en hoop dat de Mega Ball je lijn afmaakt.',
-    facts: [['Ballen', '51, er vallen er 20'], ['Kaarten', '1 tot 400'], ['Multiplier', '5× tot 100×']],
-    cta: 'Speel Mega Ball' },
-  { id: 'stock', name: 'Stock', name2: 'Market', short: 'Stock Market', acc: '#2fbf71', tint: '#0b2016', bg: '#07140e',
-    url: '/stockmarket',
-    chips: ['Beurs', 'Speelgeld'],
-    text: 'Zet in op stijging of daling en kijk hoe de koers live beweegt. Presentator Martin praat mee, en met vrienden zien jullie dezelfde koers.',
-    facts: [['Inzetten', '10 seconden'], ['Winst', 'tot 2× je inzet'], ['Jackpot', 'Superheet']],
-    cta: 'Speel Stock Market' },
-  { id: 'rodezone', name: 'Rode', name2: 'Zone', short: 'Rode Zone', acc: '#ff4a24', tint: '#2a0c10', bg: '#0b0b0d',
-    url: '/rodezone',
-    chips: ['Simulator', 'Met geluid'],
-    text: 'Revv-simulator met echte auto’s en motoren. Geef gas, schakel en rem, en hoor dat elke motor zijn eigen ritme heeft.',
-    facts: [['Voertuigen', '7 auto’s, 3 motoren'], ['Geluid', 'live berekend'], ['Dashboard', 'per model']],
-    cta: 'Speel Rode Zone' },
+    cta: 'Speel Mario Bak' },
   { id: 'bussen', name: 'Bussen', name2: '', short: 'Bussen', acc: '#4f8dff', tint: '#101b3f', bg: '#0b1230',
     url: '/bussen',
     chips: ['Kaartspel', 'Online met vrienden'],
@@ -338,10 +318,6 @@ function catmull(pts, t){
   const k = (a, b, c, d) => .5 * ((2 * b) + (-a + c) * u + (2 * a - 5 * b + 4 * c - d) * u * u + (-a + 3 * b - 3 * c + d) * u * u * u);
   return [k(p0[0], p1[0], p2[0], p3[0]), k(p0[1], p1[1], p2[1], p3[1])];
 }
-const megaBalls = Array.from({ length: 34 }, (_, i) => ({ n: (i * 7) % 51 + 1, x: Math.cos(i * 2.4) * .5, y: Math.sin(i * 2.4) * .5 + .2, vx: 0, vy: 0 }));
-const DEC = ['#2f6fe0', '#d93a5a', '#158a5e', '#8a4be8', '#cf6a12'];
-const decade = n => n <= 10 ? 0 : n <= 20 ? 1 : n <= 30 ? 2 : n <= 40 ? 3 : 4;
-let stockPts = [], stockLast = 100;
 // een vaste reeks worpen voor het voorproefje van Mijnenveld: 12 kaarten, waarvan er een paar op een mijn liggen
 const MIJN = (() => {
   let seed = 9; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
@@ -392,7 +368,7 @@ const RACE = (() => {
   return { track, steps, winner: steps[steps.length - 1].h };
 })();
 const PREV = {
-  karnemelk(c, w, h, t){
+  mariobak(c, w, h, t){
     const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#9fd8ff'); g.addColorStop(1, '#bfe7ff'); c.fillStyle = g; c.fillRect(0, 0, w, h);
     const s = Math.min(w, h) / 330, ox = w / 2 - 22 * s, oy = h / 2 + 8 * s;
     c.save(); c.translate(ox, oy); c.scale(s, s);
@@ -420,68 +396,6 @@ const PREV = {
     });
     c.restore();
     T(c, 'ZILTE ZEEWEG', w - 14, 18, Math.max(10, 11 * s * 1.1), 'rgba(34,34,59,.6)', { f: MF, w: 700, a: 'right' });
-  },
-  megaball(c, w, h, t, dt){
-    const g = c.createRadialGradient(w / 2, -h * .2, 10, w / 2, h * .3, h); g.addColorStop(0, '#1a3a86'); g.addColorStop(1, '#060c24'); c.fillStyle = g; c.fillRect(0, 0, w, h);
-    const R = Math.min(w, h) * .36, cx = w * .5, cy = h * .47, RB = .1;
-    if (!reduce) {
-      const k = Math.min(.033, dt / 1000);
-      for (const b of megaBalls) {
-        b.vy += 2.2 * k; if (b.y > 0) b.vy -= (6 + Math.random() * 6) * k; b.vx += (Math.random() - .5) * 12 * k; b.vy += (Math.random() - .5) * 8 * k;
-        const sp = Math.hypot(b.vx, b.vy); if (sp > 2.6) { b.vx *= 2.6 / sp; b.vy *= 2.6 / sp; }
-        b.x += b.vx * k; b.y += b.vy * k;
-        const d = Math.hypot(b.x, b.y), lim = 1 - RB; if (d > lim) { const nx = b.x / d, ny = b.y / d; b.x = nx * lim; b.y = ny * lim; const vn = b.vx * nx + b.vy * ny; if (vn > 0) { b.vx -= 1.6 * vn * nx; b.vy -= 1.6 * vn * ny; } }
-      }
-      const mn = 2 * RB;
-      for (let i = 0; i < megaBalls.length; i++) for (let j = i + 1; j < megaBalls.length; j++) {
-        const a = megaBalls[i], b = megaBalls[j], dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy;
-        if (d2 < mn * mn && d2 > 1e-9) { const d = Math.sqrt(d2), nx = dx / d, ny = dy / d, ov = (mn - d) / 2; a.x -= nx * ov; a.y -= ny * ov; b.x += nx * ov; b.y += ny * ov; const rv = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny; if (rv < 0) { const im = -.8 * rv; a.vx -= im * nx; a.vy -= im * ny; b.vx += im * nx; b.vy += im * ny; } }
-      }
-    }
-    c.fillStyle = 'rgba(150,190,255,.12)'; c.fillRect(cx - R * .14, 0, R * .28, cy - R + 4);
-    const gg = c.createRadialGradient(cx - R * .3, cy - R * .35, R * .1, cx, cy, R); gg.addColorStop(0, 'rgba(150,190,255,.2)'); gg.addColorStop(1, 'rgba(40,80,170,.1)');
-    c.beginPath(); c.arc(cx, cy, R, 0, TAU); c.fillStyle = gg; c.fill();
-    const br = RB * R;
-    for (const b of megaBalls) { const x = cx + b.x * R, y = cy + b.y * R; c.beginPath(); c.arc(x, y, br, 0, TAU); c.fillStyle = DEC[decade(b.n)]; c.fill(); c.beginPath(); c.arc(x, y, br * .58, 0, TAU); c.fillStyle = '#fff'; c.fill(); T(c, String(b.n), x, y + 1, Math.max(7, br * .75), '#1a2147', { w: 700 }); }
-    c.beginPath(); c.arc(cx, cy, R, 0, TAU); c.lineWidth = 2; c.strokeStyle = 'rgba(170,205,255,.6)'; c.stroke();
-    c.beginPath(); c.moveTo(cx - R * .42, cy + R * .92); c.lineTo(cx + R * .42, cy + R * .92); c.lineTo(cx + R * .7, h); c.lineTo(cx - R * .7, h); c.closePath(); c.fillStyle = '#14285d'; c.fill();
-    const mx = w * .86, my = h * .18, mr = Math.min(w, h) * .085, pulse = reduce ? 1 : 1 + Math.sin(t * .004) * .05;
-    const mg = c.createLinearGradient(mx - mr, my - mr, mx + mr, my + mr); mg.addColorStop(0, '#ffe07a'); mg.addColorStop(1, '#df9a1c');
-    c.save(); c.translate(mx, my); c.scale(pulse, pulse); c.shadowColor = 'rgba(247,197,72,.8)'; c.shadowBlur = 24; c.beginPath(); c.arc(0, 0, mr, 0, TAU); c.fillStyle = mg; c.fill(); c.shadowBlur = 0;
-    c.beginPath(); c.arc(0, 0, mr * .6, 0, TAU); c.fillStyle = '#fff'; c.fill(); T(c, '42', 0, 1, mr * .62, '#3a2500'); c.restore();
-    T(c, '100×', mx, my + mr + 18, Math.max(14, mr * .7), '#f7c548', { w: 900 });
-  },
-  stock(c, w, h, t){
-    c.fillStyle = '#07140e'; c.fillRect(0, 0, w, h);
-    c.strokeStyle = 'rgba(47,191,113,.12)'; c.lineWidth = 1;
-    for (let x = 0; x < w; x += w / 8) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); }
-    for (let y = 0; y < h; y += h / 6) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
-    const n = 48;
-    if (!stockPts.length) { let v = 100; for (let i = 0; i < n; i++) { v += Math.sin(i * .7) * 2 + (i % 5 - 2) * 1.2 + .4; stockPts.push(v); } stockLast = t; }
-    if (!reduce && t - stockLast > 420) { stockLast = t; const v = stockPts[stockPts.length - 1] + (Math.random() - .45) * 6; stockPts.push(v); stockPts.shift(); }
-    const mn = Math.min(...stockPts) - 4, mx = Math.max(...stockPts) + 4, X = i => 14 + i * (w - 28) / (n - 1), Y = v => h - 24 - (v - mn) / (mx - mn) * (h - 70);
-    const fill = c.createLinearGradient(0, 0, 0, h); fill.addColorStop(0, 'rgba(47,191,113,.35)'); fill.addColorStop(1, 'rgba(47,191,113,0)');
-    c.beginPath(); stockPts.forEach((v, i) => i ? c.lineTo(X(i), Y(v)) : c.moveTo(X(i), Y(v))); c.lineTo(X(n - 1), h); c.lineTo(X(0), h); c.closePath(); c.fillStyle = fill; c.fill();
-    c.beginPath(); stockPts.forEach((v, i) => i ? c.lineTo(X(i), Y(v)) : c.moveTo(X(i), Y(v))); c.lineWidth = 2.5; c.strokeStyle = '#2fbf71'; c.stroke();
-    const last = stockPts[n - 1], up = last >= stockPts[n - 2];
-    c.beginPath(); c.arc(X(n - 1), Y(last), 5, 0, TAU); c.fillStyle = up ? '#2fbf71' : '#ff5a5a'; c.shadowColor = c.fillStyle; c.shadowBlur = 12; c.fill(); c.shadowBlur = 0;
-    const pct = (last / stockPts[0] - 1) * 100, pos = pct >= 0;
-    rr(c, 14, 14, 150, 40, 20); c.fillStyle = 'rgba(7,20,14,.85)'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = pos ? 'rgba(53,227,163,.7)' : 'rgba(255,85,119,.7)'; c.stroke();
-    T(c, (pos ? '▲ ' : '▼ ') + Math.abs(pct).toFixed(1).replace('.', ',') + '%', 89, 35, 15, pos ? '#35e3a3' : '#ff5577', { f: MF });
-    T(c, 'KARNEMELK', w - 16, 34, 12, 'rgba(191,245,214,.7)', { f: MF, a: 'right' });
-  },
-  rodezone(c, w, h, t){
-    c.fillStyle = '#0b0b0d'; c.fillRect(0, 0, w, h);
-    const cx = w / 2, cy = h * .56, R = Math.min(w * .38, h * .44), a0 = Math.PI * .75, a1 = Math.PI * 2.25;
-    const cyc = reduce ? .55 : (t * .00035) % 1, rpm = 900 + (cyc < .6 ? Math.pow(cyc / .6, 1.4) : Math.max(0, 1 - (cyc - .6) / .25)) * 8200 + (cyc > .55 && cyc < .6 && !reduce ? Math.sin(t * .09) * 250 : 0);
-    const A = v => a0 + clamp(v, 0, 9000) / 9000 * (a1 - a0);
-    const fg = c.createRadialGradient(cx, cy - R * .3, 5, cx, cy, R); fg.addColorStop(0, '#1d1d22'); fg.addColorStop(1, '#0b0b0d');
-    c.beginPath(); c.arc(cx, cy, R, 0, TAU); c.fillStyle = fg; c.fill(); c.lineWidth = 3; c.strokeStyle = '#2a2a2e'; c.stroke();
-    c.beginPath(); c.arc(cx, cy, R * .885, A(7500), A(9000)); c.lineWidth = R * .07; c.strokeStyle = '#e3261b'; c.stroke();
-    for (let v = 0; v <= 9000; v += 500) { const a = A(v), maj = v % 1000 === 0, r1 = maj ? R * .78 : R * .86; c.beginPath(); c.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); c.lineTo(cx + Math.cos(a) * R * .93, cy + Math.sin(a) * R * .93); c.lineWidth = maj ? 2.5 : 1; c.strokeStyle = '#e9e9ea'; c.stroke(); if (maj) T(c, String(v / 1000), cx + Math.cos(a) * R * .62, cy + Math.sin(a) * R * .62, R * .16, '#f5f5f5'); }
-    const na = A(rpm); c.save(); c.translate(cx, cy); c.rotate(na); c.shadowColor = '#ff5a1f'; c.shadowBlur = 10; c.fillStyle = '#ff5a1f'; c.beginPath(); c.moveTo(-R * .14, -R * .02); c.lineTo(R * .9, -2); c.lineTo(R * .9, 2); c.lineTo(-R * .14, R * .02); c.closePath(); c.fill(); c.restore();
-    c.beginPath(); c.arc(cx, cy, R * .075, 0, TAU); c.fillStyle = '#151517'; c.fill();
-    T(c, Math.round(rpm / 10) * 10 + ' tpm', cx, cy + R * .52, R * .13, rpm > 7500 ? '#ff5a3a' : '#f5f5f5', { f: MF });
   },
   bussen(c, w, h, t){
     const g = c.createRadialGradient(w / 2, h * .1, 10, w / 2, h * .45, h); g.addColorStop(0, '#24397a'); g.addColorStop(1, '#0b1230'); c.fillStyle = g; c.fillRect(0, 0, w, h);

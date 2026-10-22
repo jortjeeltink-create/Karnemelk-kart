@@ -404,7 +404,7 @@ function topOf(g, key) {
   return { names: g.players.filter((p) => p[key] === best).map((p) => p.name), value: best };
 }
 
-// Titels voor de uitslag, zoals de titels na een race in Karnemelk Kart.
+// Titels voor de uitslag, zoals de titels na een race in Mario Bak.
 export function titles(g) {
   const out = [];
   if (g.rider != null && g.bus) {

@@ -53,7 +53,6 @@ export const SHOP_ITEMS = [
 
   // --- specials: extra coureurs om mee te racen (alleen uiterlijk) ---
   { id: 'special_meke', slot: 'special', name: 'Meke', rarity: 'episch', price: 250, look: { character: 'meke' } },
-  { id: 'special_meike', slot: 'special', name: 'Meike', rarity: 'episch', price: 250, look: { character: 'meike' } },
   { id: 'special_sim', slot: 'special', name: 'Sim', rarity: 'episch', price: 250, look: { character: 'sim' } },
   { id: 'special_ridderkees', slot: 'special', name: 'Ridder Kees', rarity: 'episch', price: 250, look: { character: 'ridderkees' } },
   { id: 'special_ridderjort', slot: 'special', name: 'Ridder Jort', rarity: 'episch', price: 250, look: { character: 'ridderjort' } },
@@ -108,8 +107,8 @@ export const FREE_ITEMS = SHOP_ITEMS.filter((i) => i.free).map((i) => i.id);
 export const START_MP = 150; // welkomstcadeau voor nieuwe spelers
 
 // Spullen die uit de winkel zijn gehaald: wie ze had, krijgt de MP terug.
-export const RETIRED_ITEMS = { special_nicole: 250, special_cherso: 250 };
-const RETIRED_CHARACTERS = ['nicole', 'cherso'];
+export const RETIRED_ITEMS = { special_nicole: 250, special_cherso: 250, special_meike: 250 };
+const RETIRED_CHARACTERS = ['nicole', 'cherso', 'meike'];
 
 // Geeft het aantal teruggegeven MP terug (0 als er niks te doen was).
 export function refundRetired(p) {

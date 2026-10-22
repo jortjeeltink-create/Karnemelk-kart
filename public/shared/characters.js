@@ -7,10 +7,6 @@ export const CHARACTERS = [
     look: { skin: '#f6c9a5', hair: 'lang', hairColor: '#ecc96d', shirt: '#7b6cff', height: 'extralang', build: 'dun', glasses: 'geen', facial: 'geen', heightScale: 1.42, buildScale: 0.72 },
   },
   {
-    id: 'meike', friend: true, special: 'special_meike', name: 'Meike', desc: 'Donker haar en dun: glipt overal tussendoor.', head: 'mens', body: '#9b5de5', skin: '#f6c9a5', kart: '#8e4fd9', accent: '#ffffff',
-    look: { skin: '#f6c9a5', hair: 'lang', hairColor: '#3a2418', shirt: '#9b5de5', height: 'normaal', build: 'dun', glasses: 'geen', facial: 'geen' },
-  },
-  {
     id: 'sim', friend: true, special: 'special_sim', name: 'Sim', desc: 'Donker haar, net niet helemaal: lichtdonker. Rijdt altijd de ideale lijn.', head: 'mens', body: '#4aa3ff', skin: '#f6c9a5', kart: '#3b8fe6', accent: '#ffffff',
     look: { skin: '#f6c9a5', hair: 'kort', hairColor: '#5c3b24', shirt: '#4aa3ff', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
   },
