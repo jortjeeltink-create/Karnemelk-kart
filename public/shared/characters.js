@@ -3,10 +3,6 @@
 export const CHARACTERS = [
   { id: 'kees', name: 'Kees Karnemelk', desc: 'Een vrolijk melkpak met een snor.', head: 'pak', body: '#2f7de1', skin: '#ffffff', kart: '#3a8ef6', accent: '#ffffff' },
   {
-    id: 'meke', friend: true, special: 'special_meke', name: 'Meke', desc: 'Lang en dun: ziet elke bocht als eerste aankomen.', head: 'mens', body: '#7b6cff', skin: '#f6c9a5', kart: '#8f7dff', accent: '#ffd23f',
-    look: { skin: '#f6c9a5', hair: 'lang', hairColor: '#ecc96d', shirt: '#7b6cff', height: 'extralang', build: 'dun', glasses: 'geen', facial: 'geen', heightScale: 1.42, buildScale: 0.72 },
-  },
-  {
     id: 'sim', friend: true, special: 'special_sim', name: 'Sim', desc: 'Donker haar, net niet helemaal: lichtdonker. Rijdt altijd de ideale lijn.', head: 'mens', body: '#4aa3ff', skin: '#f6c9a5', kart: '#3b8fe6', accent: '#ffffff',
     look: { skin: '#f6c9a5', hair: 'kort', hairColor: '#5c3b24', shirt: '#4aa3ff', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
   },
@@ -55,7 +51,7 @@ export const DEFAULT_CHARACTER = 'kees';
 // gratis coureurs (specials koop je in de winkel; je eigen coureur maak je zelf)
 export const BOT_CHARACTERS = CHARACTERS.filter((c) => !c.custom && !c.special);
 
-// Racenaam: met een special heet je bijvoorbeeld "Meke (Jort)", zodat je meerdere Mekes uit elkaar houdt.
+// Racenaam: met een special heet je bijvoorbeeld "Sim (Jort)", zodat je meerdere Sims uit elkaar houdt.
 export function racerName(playerName, characterId) {
   const ch = CHARACTER_BY_ID[characterId];
   if (!ch || !ch.special) return playerName;

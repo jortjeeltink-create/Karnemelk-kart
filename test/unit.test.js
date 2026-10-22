@@ -14,7 +14,7 @@ import { Profiles, isDeviceToken, cleanBackup } from '../public/shared/profiles.
 import { makeSigner, makeSecretCheck } from '../server/store.js';
 import { createHash } from 'node:crypto';
 import { CHARACTER_BY_ID, BOT_CHARACTERS, racerName } from '../public/shared/characters.js';
-import { cleanLook, lookScales, BUILDS, HEIGHTS } from '../public/shared/look.js';
+import { cleanLook } from '../public/shared/look.js';
 import { botInput } from '../public/shared/bots.js';
 import { Predictor } from '../public/js/game/predict.js';
 import { rng } from '../public/shared/util.js';
@@ -272,6 +272,54 @@ test('botsingen vertragen de geraakte kart en duwen hem opzij', () => {
   assert.equal(b.bumpT, 0, 'schild beschermt');
 });
 
+test('inhaalhulp: de koploper is het traagst, elke plek erachter een tikje sneller, tot hooguit 10%', () => {
+  const tr = buildTrack(TRACK_BY_ID.zandstorm);
+  const entrants = Array.from({ length: 8 }, (_, kid) => ({ kid, id: 'p' + kid, name: 'P' + kid, isBot: false }));
+  const race = new Race({ track: tr, entrants, startDelay: 0 });
+  race.update(0.001);
+  // kart 0 ligt voor, kart 7 achteraan
+  race.karts.forEach((k, i) => { k.lap = 1; k.s = 600 - i * 40; });
+  race.rank();
+  race.rubberBand();
+  const mul = race.karts.map((k) => +k.maxMul.toFixed(3));
+  assert.deepEqual(mul, [1, 1.02, 1.04, 1.06, 1.08, 1.1, 1.1, 1.1]);
+  // wie al over de finish is, telt niet mee: dan is de volgende de traagste
+  race.karts[0].finished = true; race.karts[0].finishTime = 60;
+  race.rank();
+  race.rubberBand();
+  assert.equal(race.karts[1].maxMul, 1);
+  assert.equal(+race.karts[2].maxMul.toFixed(3), 1.02);
+  // haalt de achterste iedereen in, dan is hij de traagste
+  race.karts[7].s = 900;
+  race.rank();
+  race.rubberBand();
+  assert.equal(race.karts[7].maxMul, 1);
+  assert.equal(+race.karts[1].maxMul.toFixed(3), 1.02);
+  // en sneller rijden doet het echt: met 10% erbij haal je een hogere topsnelheid
+  const top = (m) => {
+    const k = createKart(0, tr, 0);
+    k.maxMul = m;
+    // 4 seconden vol gas over het rechte stuk na de start (daarna komt een schans)
+    for (let n = 0; n < 4 * 60; n++) stepKart(k, { steer: 0, gas: true, brake: false, drift: false, item: false, boost: false }, tr, null);
+    return Math.hypot(k.vx, k.vz);
+  };
+  assert.ok(top(1.1) > top(1) * 1.05, 'achteraan haal je een hogere snelheid');
+});
+
+test('inhaalhulp geldt ook voor bots, bovenop hun eigen tempo', () => {
+  const tr = buildTrack(TRACK_BY_ID.zandstorm);
+  const entrants = [{ kid: 0, id: 'a', name: 'A', isBot: false }, { kid: 1, id: 'b', name: 'Bot', isBot: true }];
+  const race = new Race({ track: tr, entrants, startDelay: 0, botLevel: 'normaal' });
+  race.update(0.001);
+  const [human, bot] = race.karts;
+  human.lap = 1; human.s = 300;
+  bot.lap = 1; bot.s = 280;
+  race.rank();
+  race.rubberBand();
+  assert.equal(human.maxMul, 1, 'de mens ligt voor');
+  assert.ok(Math.abs(bot.maxMul - bot.baseMul * 1.02) < 1e-9, 'de bot ligt tweede: zijn eigen tempo plus 2%');
+});
+
 test('voorspelling komt overeen met de server (zelfde invoer = zelfde plek)', () => {
   const tr = buildTrack(TRACK_BY_ID.paddenstoelen);
   const race = new Race({ track: tr, entrants: [{ kid: 0, id: 'a', name: 'A' }], startDelay: 0 });
@@ -447,13 +495,7 @@ test('server vergeten (gratis hosting herstart): de telefoon zet naam, MP en spu
   assert.equal(off.profile.backup, undefined);
 });
 
-test('coureurs: Meke lang en dun, de vrienden en de ridders als specials', () => {
-  const sc = (id) => lookScales({ ...cleanLook(CHARACTER_BY_ID[id].look), ...CHARACTER_BY_ID[id].look });
-  const meke = sc('meke');
-  assert.ok(meke.hs > 1.3 && meke.ws < 0.8, 'Meke is lang en dun');
-  assert.equal(CHARACTER_BY_ID.meke.look.hairColor, '#ecc96d', 'Meke is blond');
-  const maxH = Math.max(...Object.values(HEIGHTS).map((b) => b.s));
-  assert.ok(meke.hs > maxH, 'Meke is de langste');
+test('coureurs: de vrienden en de ridders als specials', () => {
   // de vrienden met hun kapsels
   assert.equal(CHARACTER_BY_ID.stan.look.hair, 'warrig');
   assert.equal(CHARACTER_BY_ID.jullian.look.hair, 'stoppels');
@@ -462,18 +504,16 @@ test('coureurs: Meke lang en dun, de vrienden en de ridders als specials', () =>
   assert.equal(CHARACTER_BY_ID.morris.look.hair, 'scheiding');
   assert.equal(CHARACTER_BY_ID.sim.look.hair, 'kort');
   assert.ok(CHARACTER_BY_ID.ridderkees.armor && CHARACTER_BY_ID.ridderjort.armor && CHARACTER_BY_ID.ridderjort.look.helm, 'ridders in harnas');
-  // Nicole, Cherso Duif en Meike zijn eruit
-  assert.equal(CHARACTER_BY_ID.nicole, undefined);
-  assert.equal(CHARACTER_BY_ID.cherso, undefined);
-  assert.equal(CHARACTER_BY_ID.meike, undefined);
+  // Nicole, Cherso Duif, Meike en Meke zijn eruit
+  for (const id of ['nicole', 'cherso', 'meike', 'meke']) assert.equal(CHARACTER_BY_ID[id], undefined, `${id} is eruit`);
   // de nieuwe kapsels kun je ook zelf kiezen
   assert.equal(cleanLook({ hair: 'scheiding' }).hair, 'scheiding');
   // bots gebruiken geen zelfgemaakte coureur en geen specials
   assert.ok(!BOT_CHARACTERS.some((c) => c.custom || c.special));
-  for (const id of ['meke', 'sim', 'stan', 'jullian', 'melle', 'duuk', 'morris', 'ridderkees', 'ridderjort']) assert.ok(CHARACTER_BY_ID[id].special, `${id} is een special`);
-  assert.equal(racerName('Jort', 'meke'), 'Meke (Jort)');
+  for (const id of ['sim', 'stan', 'jullian', 'melle', 'duuk', 'morris', 'ridderkees', 'ridderjort']) assert.ok(CHARACTER_BY_ID[id].special, `${id} is een special`);
+  assert.equal(racerName('Jort', 'sim'), 'Sim (Jort)');
   assert.equal(racerName('Jort', 'ridderjort'), 'Ridder Jort (Jort)');
-  assert.equal(racerName('Meke', 'meke'), 'Meke');
+  assert.equal(racerName('Sim', 'sim'), 'Sim');
   assert.equal(racerName('Jort', 'kees'), 'Jort');
 });
 
@@ -483,10 +523,10 @@ test('uit de winkel gehaalde specials: MP terug', async () => {
   await kv.set('p:abcdefghij', { key: 'abcdefghij', name: 'Jort', mp: 40, owned: ['special_cherso', 'special_nicole', 'cape_rood'], lastCharacter: 'cherso' });
   const p = await store.get('abcdefghij');
   assert.equal(p.mp, 540, '2 x 250 MP terug');
-  // Meike ook: wie haar had, krijgt de MP terug en racet weer met een gewone coureur
-  await kv.set('p:meikemeike', { key: 'meikemeike', name: 'Sim', mp: 5, owned: ['special_meike', 'special_sim'], lastCharacter: 'meike' });
+  // Meike en Meke ook: wie ze had, krijgt de MP terug en racet weer met een gewone coureur
+  await kv.set('p:meikemeike', { key: 'meikemeike', name: 'Sim', mp: 5, owned: ['special_meike', 'special_meke', 'special_sim'], lastCharacter: 'meke' });
   const m = await store.get('meikemeike');
-  assert.equal(m.mp, 255);
+  assert.equal(m.mp, 505);
   assert.deepEqual(m.owned, ['special_sim']);
   assert.equal(m.lastCharacter, null);
   assert.deepEqual(p.owned, ['cape_rood']);
@@ -504,7 +544,7 @@ test('alles is betaalbaar: een special heb je binnen 5 races', () => {
   const third = computePoints(rows).c.mp;
   const after5 = START_MP + 5 * third;
   const specials = SHOP_ITEMS.filter((i) => i.slot === 'special');
-  assert.ok(specials.length >= 9, 'Meke, Sim, de ridders en de vrienden');
+  assert.ok(specials.length >= 8, 'Sim, de ridders en de vrienden');
   for (const sp of specials) assert.ok(sp.price <= after5, `${sp.name} (${sp.price} MP) haalbaar na 5 races (${after5} MP)`);
   // zelfs wie 5 keer laatste wordt, kan elke special kopen
   const last = computePoints(rows).d.mp;
@@ -515,25 +555,25 @@ test('alles is betaalbaar: een special heb je binnen 5 races', () => {
   for (const it of SHOP_ITEMS) if (it.id !== 'cape_goud') assert.ok(it.price <= 450);
 });
 
-test('specials: eerst kopen, dan racen als "Meke (jouw naam)"', async () => {
+test('specials: eerst kopen, dan racen als "Sim (jouw naam)"', async () => {
   const clock = { t: Date.UTC(2026, 9, 6, 12) };
   const hub = makeHub(clock);
   const a = await newPlayer(hub, 'Jort');
   await hub.message(a, { t: 'create' });
-  await hub.message(a, { t: 'char', id: 'meke' });
+  await hub.message(a, { t: 'char', id: 'sim' });
   assert.match(a.last('err').msg, /special/);
-  assert.notEqual(a.last('room').players[0].character, 'meke');
+  assert.notEqual(a.last('room').players[0].character, 'sim');
   // genoeg MP sparen en kopen
   (await hub.store.get(a.profile.id)).mp = 400;
-  await hub.message(a, { t: 'buy', id: 'special_meke' });
-  assert.equal(a.last('profile').bought, 'special_meke');
-  await hub.message(a, { t: 'equip', id: 'special_meke' });
-  assert.equal(a.last('room').players[0].character, 'meke');
+  await hub.message(a, { t: 'buy', id: 'special_sim' });
+  assert.equal(a.last('profile').bought, 'special_sim');
+  await hub.message(a, { t: 'equip', id: 'special_sim' });
+  assert.equal(a.last('room').players[0].character, 'sim');
   await hub.message(a, { t: 'settings', settings: { bots: 1 } });
   await hub.message(a, { t: 'start' });
   const race = a.last('race');
   const mine = race.entrants.find((e) => e.kid === race.you);
-  assert.equal(mine.name, 'Meke (Jort)');
+  assert.equal(mine.name, 'Sim (Jort)');
   assert.ok(race.entrants.filter((e) => e.isBot).every((e) => !CHARACTER_BY_ID[e.character].special));
 });
 
