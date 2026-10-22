@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="vilt" cx="50%" cy="38%" r="72%"><stop offset="0" stop-color="#35a862"/><stop offset=".55" stop-color="#21823f"/><stop offset="1" stop-color="#125a2e"/></radialGradient>
+    <pattern id="rug" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="22" height="22" fill="#3a1d43"/><rect width="5" height="22" fill="#a28fe3" fill-opacity=".5"/></pattern>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#vilt)"/>
+  <rect x="26" y="26" width="460" height="460" rx="90" fill="none" stroke="#f7c548" stroke-opacity=".4" stroke-width="6"/>
+  <!-- de stapel van de dealer -->
+  <g transform="rotate(-12 190 260)">
+    <rect x="104" y="146" width="176" height="246" rx="22" fill="url(#rug)" stroke="#f3efdb" stroke-width="12" transform="translate(14 12)"/>
+    <rect x="104" y="146" width="176" height="246" rx="22" fill="url(#rug)" stroke="#f3efdb" stroke-width="12"/>
+  </g>
+  <!-- de bovenste kaart: schoppen aas -->
+  <g transform="rotate(10 320 230)">
+    <rect x="228" y="100" width="176" height="246" rx="22" fill="#fffdf4" stroke="#e4dec2" stroke-width="4"/>
+    <text x="252" y="150" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="46" fill="#24132a">A</text>
+    <path transform="translate(316 232) scale(1.25)" d="M0 -46 C18 -24 44 -10 44 12 C44 30 26 38 10 30 C12 40 16 48 22 54 H-22 C-16 48 -12 40 -10 30 C-26 38 -44 30 -44 12 C-44 -10 -18 -24 0 -46 Z" fill="#24132a"/>
+  </g>
+  <!-- de vraag: welke kaart? -->
+  <circle cx="390" cy="380" r="62" fill="#a28fe3" stroke="#f3efdb" stroke-width="10"/>
+  <text x="390" y="408" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="84" fill="#fff">?</text>
+</svg>

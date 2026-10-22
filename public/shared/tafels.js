@@ -10,6 +10,7 @@
 //   settings(t, msg)     de host past een instelling aan; true = laat iedereen het zien
 //   joinBlocked(t)       mag er nu iemand bij? null = ja, anders de reden voor de nieuwe speler
 //   joined(t, seat)      er is een nieuwe speler bij gekomen terwijl er een potje loopt
+//   presence(t)          (mag ontbreken) iemand ging weg of kwam terug terwijl er een potje loopt
 //   start(t, seed)       het potje (een gewoon object) of null als het nog niet kan
 //   canAgain(t)          mag de host terug naar de lobby?
 //   action(t, s, me, msg) een zet van een speler; geeft iets terug als iedereen een nieuwe stand moet zien
@@ -203,6 +204,7 @@ class Table {
     const live = this.players.findIndex((p) => p.connected);
     if (live < 0) { this.emptySince = this.hub.now(); return; }
     if (!this.players[this.host] || !this.players[this.host].connected) this.host = live;
+    if (this.g && this.game.presence) this.game.presence(this);
     this.broadcast();
   }
 

@@ -205,7 +205,7 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.equal(hall.status, 200);
     const hallHtml = await hall.text();
     assert.match(hallHtml, /<title>Speelhal<\/title>/);
-    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone', '/bussen', '/boer', '/mexen']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
+    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone', '/bussen', '/boer', '/mexen', '/dealer']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
     assert.match(hallHtml, /rel="manifest"/);
     // uitnodigingen naar de oude hoofdpagina komen nog steeds in de kartgame
     assert.match(await (await fetch(srv.url + '/?room=ABCD')).text(), /<title>Karnemelk Kart<\/title>/);
@@ -276,6 +276,13 @@ test('de server levert de game en een gezondheidscheck', async () => {
     const mexManifest = await (await fetch(srv.url + '/mexen.webmanifest')).json();
     assert.equal(mexManifest.start_url, '/mexen');
     for (const icon of mexManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
+    // Fuck the dealer: ook een losse app, met een uitnodigingslink per tafel
+    assert.match(await (await fetch(srv.url + '/dealer')).text(), /<title>Fuck the dealer<\/title>/);
+    assert.match(await (await fetch(srv.url + '/dealer/ABCD')).text(), /<title>Fuck the dealer<\/title>/);
+    assert.equal((await fetch(srv.url + '/shared/ftd.js')).status, 200);
+    const dealerManifest = await (await fetch(srv.url + '/dealer.webmanifest')).json();
+    assert.equal(dealerManifest.start_url, '/dealer');
+    for (const icon of dealerManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
     const health = await (await fetch(srv.url + '/health')).json();
     assert.equal(health.ok, true);
     assert.equal((await fetch(srv.url + '/../server/store.js')).status, 404);
@@ -361,6 +368,30 @@ test('Mexen online: twee telefoons, de host gooit en de ander ziet de worp', asy
     assert.ok(st.dice[0].every((v) => v >= 1 && v <= 6));
     const health = await (await fetch(srv.url + '/health')).json();
     assert.deepEqual(health.mexen, { tables: 1, players: 2 });
+    [a, b].forEach((c) => c.close());
+  } finally {
+    await srv.stop();
+  }
+});
+
+test('Fuck the dealer online: alleen de dealer krijgt de bovenste kaart', async () => {
+  const srv = await startServer();
+  try {
+    const url = srv.ws + '/dealer';
+    const [a, b] = await Promise.all([new Client(url).open(), new Client(url).open()]);
+    const sa = await a.request({ t: 'create', name: 'Jort', token: 'ftd-telefoon-a-0123456789' }, 'state');
+    assert.match(sa.build, /^[\w-]{12}$/);
+    await b.request({ t: 'join', code: sa.code, name: 'Meke', token: 'ftd-telefoon-b-0123456789' }, (m) => m.t === 'state' && m.players.length === 2);
+    const states = [a, b].map((p) => p.wait((m) => m.t === 'state' && m.phase === 'raden'));
+    a.send({ t: 'start' });
+    const [x, y] = await Promise.all(states);
+    assert.equal(x.dealer, y.dealer);
+    const dealerState = x.dealer === 0 ? x : y, guesserState = x.dealer === 0 ? y : x;
+    assert.ok(dealerState.top && Number.isInteger(dealerState.top.r), 'de dealer ziet de kaart');
+    assert.equal(guesserState.top, null, 'de rest niet');
+    assert.equal(guesserState.deckLeft, 52);
+    const health = await (await fetch(srv.url + '/health')).json();
+    assert.deepEqual(health.dealer, { tables: 1, players: 2 });
     [a, b].forEach((c) => c.close());
   } finally {
     await srv.stop();
