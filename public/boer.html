@@ -420,7 +420,7 @@ const store = {
 };
 
 // wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
-// Je naam neemt hij over van Bussen als je die al eens hebt ingevuld.
+// Je naam neemt hij over van een ander spel in de speelhal als je die daar al eens hebt ingevuld.
 const me = (() => {
   const v = store.get(KEY.me, {}) || {};
   let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
@@ -429,7 +429,7 @@ const me = (() => {
     crypto.getRandomValues(a);
     token = [...a].map((x) => abc[x & 63]).join('');
   }
-  const name = typeof v.name === 'string' && v.name ? v.name : (store.get('bussen-ik', {}) || {}).name;
+  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
   const o = { token, name: typeof name === 'string' ? name.slice(0, V.NAME_MAX) : '' };
   store.set(KEY.me, o);
   return o;
@@ -963,6 +963,8 @@ function renderSheet() {
 
 function toast(msg, cls = '') {
   const box = $('#toasts'), el = document.createElement('div');
+  // dezelfde melding nog in beeld (bijvoorbeeld na een paar keer tikken)? Dan alleen de nieuwe
+  for (const old of box.querySelectorAll('div:not(.net)')) if (old.textContent === msg) old.remove();
   el.textContent = msg; if (cls) el.className = cls;
   box.appendChild(el);
   while (box.children.length > 3) box.firstChild.remove();

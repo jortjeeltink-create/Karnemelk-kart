@@ -445,7 +445,9 @@ const me = (() => {
     crypto.getRandomValues(a);
     token = [...a].map((x) => abc[x & 63]).join('');
   }
-  const o = { token, name: typeof v.name === 'string' ? v.name.slice(0, B.NAME_MAX) : '' };
+  // je naam neemt hij over van een ander spel in de speelhal als je die daar al eens hebt ingevuld
+  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
+  const o = { token, name: typeof name === 'string' ? name.slice(0, B.NAME_MAX) : '' };
   store.set(KEY.me, o);
   return o;
 })();
@@ -1193,6 +1195,8 @@ function renderSheet() {
 
 function toast(msg, cls = '') {
   const box = $('#toasts'), el = document.createElement('div');
+  // dezelfde melding nog in beeld (bijvoorbeeld na een paar keer tikken)? Dan alleen de nieuwe
+  for (const old of box.querySelectorAll('div:not(.net)')) if (old.textContent === msg) old.remove();
   el.textContent = msg; if (cls) el.className = cls;
   box.appendChild(el);
   while (box.children.length > 3) box.firstChild.remove();
