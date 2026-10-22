@@ -17,12 +17,13 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
 - **3 rondes** met aftellen, raketstart, live posities, minikaart, finishscherm, uitslag met podium.
 - **Botsen**: wie een kart ramt, vertraagt die en duwt hem opzij. Iedereen ziet de botsing (wolkje, geluid, trilling en "BOTS!") en de nieuwe posities live.
 - **Driften** met mini-turbo (witte, gele en roze vonken) en **power-ups**: Stroopwafel-turbo, Drie stroopwafels, Kaasschild, Karnemelkplas (glad obstakel) en Klompkanon.
+- **Inhaalhulp** (zoals in GTA): wie verder achter ligt, rijdt een tikje harder. De koploper is het traagst, elke plek daarachter haalt 2% meer topsnelheid, tot hooguit 10% voor wie ver achter ligt. Zo kun je altijd nog inhalen. Het geldt voor iedereen die nog rijdt, ook voor de computerkarts.
 - **Oefenmodus** voor één speler, met 0 tot 9 computerkarts (makkelijk, normaal, moeilijk).
 - **Winnaar en verliezer**: de laatste mens krijgt de uitdaging "Een atje karnemelk!". De verliezer of host kan hem overslaan, een andere kiezen of afvinken. De host kan de tekst vooraf aanpassen of uitzetten.
 - **Het rad**: met minstens 2 mensen ziet de winnaar "Je bent de winnaar!" en tikt hij op wie er óók een atje karnemelk moet doen. Daarna draait bij iedereen tegelijk een rad met alle namen, dat stopt op die persoon. Kiest de winnaar niet binnen 30 seconden, dan beslist het rad zelf. De verliezer moet sowieso.
 - **Geen wachtwoord of PIN**: je kiest alleen een naam. Je telefoon onthoudt je, en je MP-punten en spullen blijven op die telefoon. Nieuwe telefoon? Met een overzetcode (Instellingen) neem je alles mee.
 - **MP-punten** na elke race, plus een **dagbonus** van 25 MP voor je eerste uitgereden race van de dag.
-- **Specials**: Meke (lang, dun en blond), Sim (lichtdonker haar), Stan, Jullian, Melle, Duuk, Morris, Ridder Kees en Ridder Jort (allebei in een volledig ridderpak) koop je met MP-punten. In de race heet je dan bijvoorbeeld **Meke (Jort)**, zodat je meerdere Mekes uit elkaar houdt.
+- **Specials**: Sim (lichtdonker haar), Stan, Jullian, Melle, Duuk, Morris, Ridder Kees en Ridder Jort (allebei in een volledig ridderpak) koop je met MP-punten. In de race heet je dan bijvoorbeeld **Sim (Jort)**, zodat je meerdere Sims uit elkaar houdt.
 - **Mijn coureur**: maak je eigen coureur met huidskleur, haar, haarkleur, shirt, lengte, bouw, bril en snor of baard.
 - **Winkel** met specials, andere karts (o.a. een Roze droomkart, Tractorkart, Badkuip-kart en Monstertruck), hoeden, capes, kartkleuren, bandeneffecten, lichtsporen en overwinningsposes in 5 zeldzaamheden. Alles is betaalbaar: een special heb je na een paar races. Alleen uiterlijk, iedereen ziet elkaars spullen in de race.
 - **Langs de weg**: tribunes met juichend publiek, reclameborden met grappige teksten, bochtpijlen, bandenstapels, vlaggen, pionnen en per baan eigen spullen (fietsen in de stad, melkbussen en schapen op de boerderij, surfplanken aan de kust, ...).
@@ -200,7 +201,7 @@ De prijzen zijn bewust betaalbaar. Een race met vier vrienden levert al snel 40 
 
 | Soort | Items en prijzen (MP) |
 |---|---|
-| Specials | Allemaal 250: Meke, Sim, Stan, Jullian, Melle, Duuk, Morris, Ridder Kees, Ridder Jort (na 5 online races heb je er altijd genoeg voor, ook als je steeds laatste wordt). Nicole, Cherso Duif en Meike zijn uit de winkel: wie ze had, kreeg de MP terug. |
+| Specials | Allemaal 250: Sim, Stan, Jullian, Melle, Duuk, Morris, Ridder Kees, Ridder Jort (na 5 online races heb je er altijd genoeg voor, ook als je steeds laatste wordt). Nicole, Cherso Duif, Meike en Meke zijn uit de winkel: wie ze had, kreeg de MP terug. |
 | Capes | Rode cape 50, Hemelsblauwe cape 50, Oranje feestcape 110, Boerenzakdoek-cape 130, Sterrennacht-cape 220, Regenboogcape 380, **Gouden cape 900 (Legendarisch)** |
 | Karts | Bakfietskart 70, Roze droomkart 140, Tractorkart 160, Melkwagen 220, Badkuip-kart 240, Klompkart 320, Monstertruck 380, Raketkart 450 |
 | Kartkleuren | Melkwit 30, Weidegroen 30, Kauwgomroze 40, Koningsoranje 80, Nachtblauw 80, Koeienvlekken 180, Spiegelchroom 300, Lavagloed 320 |
@@ -213,7 +214,7 @@ De prijzen zijn bewust betaalbaar. Een race met vier vrienden levert al snel 40 
 
 Gratis coureurs (allemaal even snel): Kees Karnemelk, Bella Boerin, Dirk Drop, Fien Friet, Otto Ooievaar, Saar Stroopwafel, Bram Bitterbal, Molenaar Mo, Tess Tulp, Gijs Gouda en **Mijn coureur** (zelf gemaakt).
 
-Specials (te koop met MP): **Meke** (lang, dun, blond), **Sim** (kort, lichtdonker haar), **Stan** (kort, donkerbruin en warrig), **Jullian** (kaal en blond), **Melle** (kort lichtblond), **Duuk** (kaal), **Morris** (blond met middenscheiding), **Ridder Kees** en **Ridder Jort** (volledig ridderpak met helm en pluim). Wie met een special racet, heet in de race "Meke (spelersnaam)". Computerkarts gebruiken nooit een special.
+Specials (te koop met MP): **Sim** (kort, lichtdonker haar), **Stan** (kort, donkerbruin en warrig), **Jullian** (kaal en blond), **Melle** (kort lichtblond), **Duuk** (kaal), **Morris** (blond met middenscheiding), **Ridder Kees** en **Ridder Jort** (volledig ridderpak met helm en pluim). Wie met een special racet, heet in de race "Sim (spelersnaam)". Computerkarts gebruiken nooit een special.
 
 | Baan | Plek | Bijzonder |
 |---|---|---|
@@ -271,7 +272,7 @@ tools/             baanvoorbeelden tekenen, offline-demo bouwen
 
 Getest in deze omgeving:
 
-- 27 snelle tests: banen (geen te krappe bochten of overlappende stukken), elke schans op elke baan (lanceert, ring is te halen, geen muur na de landing), vliegen over karts, sloten, fysica, rondes en checkpoints, punten en dagbonus, winkel en betaalbaarheid, specials ("Meke (Jort)"), eigen coureur, inloggen per telefoon (ook via het cookie), overzetcode, reservekopie op de telefoon (terugzetten, vervalste kopie geweigerd, nieuwste kopie wint bij twee telefoons), botsingen, titels, toeteren, voorspelling, lobby, herverbinden, opslag in bestand en in (nagebootste) Upstash.
+- 27 snelle tests: banen (geen te krappe bochten of overlappende stukken), elke schans op elke baan (lanceert, ring is te halen, geen muur na de landing), vliegen over karts, sloten, fysica, rondes en checkpoints, punten en dagbonus, winkel en betaalbaarheid, specials ("Sim (Jort)"), eigen coureur, inloggen per telefoon (ook via het cookie), overzetcode, reservekopie op de telefoon (terugzetten, vervalste kopie geweigerd, nieuwste kopie wint bij twee telefoons), botsingen, titels, toeteren, voorspelling, lobby, herverbinden, opslag in bestand en in (nagebootste) Upstash.
 - Een echte race met **10 gelijktijdige spelers** via WebSockets: allemaal gefinisht, zo'n 80 botsingen die iedereen live zag, een speler die wegviel en in dezelfde kart terugkwam, punten 155 → 45 (inclusief dagbonus), winkel, alles bewaard na een herstart van de server, én teruggezet vanaf de telefoon na een herstart met een lege schijf.
 - **Bussen**: 20 snelle tests voor de spelregels en de tafels (vragen, paal, disco en bakken, uitdelen, nu doen of sparen per ronde, piramide, kaart kiezen bij gelijkspel, de bus, 40 hele potjes met 9 spelers, meedoen met code, opnieuw verbinden, de host die invalt, wat elke telefoon wel en niet te zien krijgt), plus een test met twee echte WebSocket-verbindingen. In Chromium een heel potje gespeeld met drie telefoons tegelijk (iPhone en iPhone SE), inclusief uitdelen, sparen, een gelijkspel om de bus, wegvallen en terugkomen. Zonder fouten in de console.
 - **Boer zoekt vrouw**: 8 snelle tests (rollen met precies één boer en één vrouw, tellen, te vroeg raden, wie het tweede glas drinkt, de tijd aanpassen, aanschuiven tussendoor, wat elke telefoon wel en niet te zien krijgt, de host die raadt als de boer wegvalt), plus een test met drie echte WebSocket-verbindingen. In Chromium een hele ronde gespeeld met drie telefoons tegelijk (iPhone en iPhone SE).

@@ -53,6 +53,13 @@ export const JUMP = {
   clear: 1.3,         // zoveel hoogteverschil en karts raken elkaar niet
 };
 
+// Inhaalhulp (zoals in GTA): wie verder achter ligt, rijdt een tikje harder. De koploper is het traagst, elke plek
+// daarachter mag perPlace sneller (2% per plek), tot hooguit max (10%) voor wie ver achter ligt.
+export const CATCHUP = {
+  perPlace: 0.02,
+  max: 0.1,
+};
+
 export const DRIFT_LEVELS = [0.9, 1.8, 2.9];       // seconden laden per niveau
 export const DRIFT_BOOST = [0, 0.7, 1.15, 1.7];     // boostduur per niveau
 
