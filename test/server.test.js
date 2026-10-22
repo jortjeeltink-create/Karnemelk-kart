@@ -205,7 +205,7 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.equal(hall.status, 200);
     const hallHtml = await hall.text();
     assert.match(hallHtml, /<title>Speelhal<\/title>/);
-    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone', '/bussen', '/boer', '/mexen', '/dealer']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
+    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
     assert.match(hallHtml, /rel="manifest" href="\/speelhal\.webmanifest"/);
     // op het beginscherm en bij het delen heet het Speelhal, met een eigen logo
     const hallManifest = await (await fetch(srv.url + '/speelhal.webmanifest')).json();
@@ -292,6 +292,13 @@ test('de server levert de game en een gezondheidscheck', async () => {
     const dealerManifest = await (await fetch(srv.url + '/dealer.webmanifest')).json();
     assert.equal(dealerManifest.start_url, '/dealer');
     for (const icon of dealerManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
+    // Paardenrace: ook een losse app, met een uitnodigingslink per tafel
+    assert.match(await (await fetch(srv.url + '/paardenrace')).text(), /<title>Paardenrace<\/title>/);
+    assert.match(await (await fetch(srv.url + '/paardenrace/ABCD')).text(), /<title>Paardenrace<\/title>/);
+    assert.equal((await fetch(srv.url + '/shared/paard.js')).status, 200);
+    const paardManifest = await (await fetch(srv.url + '/paardenrace.webmanifest')).json();
+    assert.equal(paardManifest.start_url, '/paardenrace');
+    for (const icon of paardManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
     const health = await (await fetch(srv.url + '/health')).json();
     assert.equal(health.ok, true);
     assert.equal((await fetch(srv.url + '/../server/store.js')).status, 404);
@@ -401,6 +408,32 @@ test('Fuck the dealer online: alleen de dealer krijgt de bovenste kaart', async 
     assert.equal(guesserState.deckLeft, 52);
     const health = await (await fetch(srv.url + '/health')).json();
     assert.deepEqual(health.dealer, { tables: 1, players: 2 });
+    [a, b].forEach((c) => c.close());
+  } finally {
+    await srv.stop();
+  }
+});
+
+test('Paardenrace online: twee telefoons zetten in, de race begint en de stapel blijft op de server', async () => {
+  const srv = await startServer();
+  try {
+    const url = srv.ws + '/paardenrace';
+    const [a, b] = await Promise.all([new Client(url).open(), new Client(url).open()]);
+    const sa = await a.request({ t: 'create', name: 'Jort', token: 'paard-telefoon-a-0123456789' }, 'state');
+    assert.match(sa.build, /^[\w-]{12}$/);
+    await b.request({ t: 'join', code: sa.code, name: 'Meke', token: 'paard-telefoon-b-0123456789' }, (m) => m.t === 'state' && m.players.length === 2);
+    const betting = b.wait((m) => m.t === 'state' && m.phase === 'inzetten');
+    a.send({ t: 'start' });
+    await betting;
+    a.send({ t: 'bet', horse: 0, bet: 2, ready: true });
+    const racing = a.wait((m) => m.t === 'state' && m.phase === 'race');
+    b.send({ t: 'bet', horse: 3, bet: 1, ready: true });
+    const st = await racing;
+    assert.deepEqual(st.racers, [0, 1]);
+    assert.equal(st.pileLeft, 41);
+    assert.ok(st.track.every((c) => c === null), 'de kaarten naast de baan liggen dicht');
+    const health = await (await fetch(srv.url + '/health')).json();
+    assert.deepEqual(health.paardenrace, { tables: 1, players: 2 });
     [a, b].forEach((c) => c.close());
   } finally {
     await srv.stop();

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Speelhal</title>
-<meta name="description" content="Al je spellen op één plek: Karnemelk Kart, Mega Ball, Stock Market, Rode Zone, Bussen, Boer zoekt vrouw, Mexen en Fuck the dealer.">
+<meta name="description" content="Al je spellen op één plek: Karnemelk Kart, Mega Ball, Stock Market, Rode Zone, Bussen, Boer zoekt vrouw, Mexen, Fuck the dealer en Paardenrace.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -143,6 +143,11 @@ main{position:relative;z-index:1;padding-left:max(16px,env(safe-area-inset-left,
 footer{max-width:1180px;margin:0 auto;padding-block:10vh 22vh;text-align:center;display:grid;gap:12px;justify-items:center;color:var(--ink-soft);font-size:var(--s1)}
 footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw,150px);line-height:.85;color:var(--cream);text-transform:uppercase}
 
+/* passen niet alle namen in de balk, dan alleen de naam van het spel waar je bent */
+@media (max-width:1439px){
+  .seg button:not([aria-current="true"]) span{display:none}
+  .seg button:not([aria-current="true"]){padding:10px}
+}
 @media (max-width:900px){
   .legal{display:none}
   .gcard{grid-template-columns:minmax(0,1fr)}
@@ -278,7 +283,13 @@ const GAMES = [
     chips: ['Kaartspel', 'Online met vrienden'],
     text: 'De dealer ziet de bovenste kaart op zijn telefoon, de rest raadt. In één keer goed: de dealer drinkt 5. Fout? Dan hoor je hoger of lager. Weer fout: jij drinkt het verschil. Speelt de dealer er drie achter elkaar uit, dan gaat de stapel door.',
     facts: [['Spelers', '2 tot 10'], ['Dealer af', 'na 3 keer'], ['Meedoen', 'met een code']],
-    cta: 'Speel Fuck the dealer' }
+    cta: 'Speel Fuck the dealer' },
+  { id: 'paard', name: 'Paarden', name2: 'race', short: 'Paardenrace', acc: '#a6d83c', tint: '#1c2a0e', bg: '#121c08',
+    url: '/paardenrace',
+    chips: ['Kaartspel', 'Online met vrienden'],
+    text: 'De vier azen zijn de paarden. Kies er een, zet slokken in en trek om de beurt een kaart: het paard met die vorm galoppeert een stap vooruit. Zijn alle paarden langs een dichte kaart, dan gaat die open en moet dat paard terug. Zette je op het verkeerde paard? Dan drink je je inzet en die van de winnaar.',
+    facts: [['Spelers', '2 tot 10'], ['Paarden', 'de vier azen'], ['Meedoen', 'met een code']],
+    cta: 'Speel Paardenrace' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 function build(){
@@ -316,6 +327,20 @@ const megaBalls = Array.from({ length: 34 }, (_, i) => ({ n: (i * 7) % 51 + 1, x
 const DEC = ['#2f6fe0', '#d93a5a', '#158a5e', '#8a4be8', '#cf6a12'];
 const decade = n => n <= 10 ? 0 : n <= 20 ? 1 : n <= 30 ? 2 : n <= 40 ? 3 : 4;
 let stockPts = [], stockLast = 100;
+// een vaste race die steeds opnieuw loopt, met dezelfde regels als het echte spel
+const RACE = (() => {
+  let seed = 11; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const deck = []; for (let s = 0; s < 4; s++) for (let r = 0; r < 12; r++) deck.push(s);
+  for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+  const track = deck.splice(0, 7), pos = [0, 0, 0, 0], steps = [];
+  let open = 0;
+  for (;;) {
+    const h = deck.pop(); pos[h]++; steps.push({ pos: pos.slice(), open, h, back: false });
+    if (pos[h] >= 8) break;
+    while (open < 7 && Math.min(...pos) > open) { const b = track[open++]; pos[b] = Math.max(0, pos[b] - 1); steps.push({ pos: pos.slice(), open, h: b, back: true }); }
+  }
+  return { track, steps, winner: steps[steps.length - 1].h };
+})();
 const PREV = {
   karnemelk(c, w, h, t){
     const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#9fd8ff'); g.addColorStop(1, '#bfe7ff'); c.fillStyle = g; c.fillRect(0, 0, w, h);
@@ -540,6 +565,44 @@ const PREV = {
     else if (cyc < 2.1) bubble('LAGER', '#ffb35c');
     else if (cyc < 3) bubble('6?', '#fff');
     else if (cyc > 3.6) T(c, '4 SLOKKEN', w * .62, h * .17, Math.min(w * .065, h * .13), '#ff5a64', { w: 900 });
+  },
+  paard(c, w, h, t){
+    const g = c.createRadialGradient(w / 2, h * .1, 10, w / 2, h * .45, h); g.addColorStop(0, '#2b5a16'); g.addColorStop(1, '#121c08'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    // links de start, rechts de finish; bovenin de zeven kaarten, daaronder een baan per aas
+    const SYM = ['♥', '♦', '♣', '♠'], NAME = ['HARTEN', 'RUITEN', 'KLAVEREN', 'SCHOPPEN'], STEP = 560, PAUSE = 6;
+    const x0 = w * .06, cw = (w * .9) / 9, top = h * .27, rh = (h * .69) / 4;
+    const card = Math.min(cw * .78, rh * .76 / 1.4), ch = card * 1.4;
+    const n = RACE.steps.length, i = reduce ? Math.floor(n * .7) : Math.floor(t / STEP) % (n + PAUSE), done = i >= n;
+    const cur = RACE.steps[Math.min(i, n - 1)], prev = i > 0 ? RACE.steps[Math.min(i, n) - 1] : { pos: [0, 0, 0, 0], open: 0 };
+    const e = done || reduce ? 1 : clamp((t % STEP) / (STEP * .45), 0, 1), ease = 1 - (1 - e) * (1 - e);
+    for (let r = 0; r < 4; r++) { rr(c, x0, top + r * rh + 2, cw * 9, rh - 4, 8); c.fillStyle = r % 2 ? 'rgba(0,0,0,.18)' : 'rgba(0,0,0,.1)'; c.fill(); }
+    // de finish: geblokte streep voor de laatste kolom
+    const fx = x0 + cw * 8, q = Math.max(2, Math.min(rh / 9, cw * .09)), bottom = top + rh * 4;
+    for (let y = top, k = 0; y < bottom; y += q, k++) for (let j = 0; j < 2; j++) { c.fillStyle = (k + j) % 2 ? '#141414' : '#fff'; c.fillRect(fx - q + j * q, y, q, Math.min(q, bottom - y)); }
+    c.setLineDash([5, 5]); c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 2; c.beginPath(); c.moveTo(x0 + cw, top); c.lineTo(x0 + cw, top + rh * 4); c.stroke(); c.setLineDash([]);
+    const face = (x, y, s, open, lbl, red, glow) => {
+      c.save(); c.translate(x, y); c.scale(Math.max(.03, s), 1);
+      c.shadowColor = glow ? 'rgba(247,197,72,.8)' : 'rgba(0,0,0,.4)'; c.shadowBlur = glow ? 16 : 6; c.shadowOffsetY = glow ? 0 : 2;
+      rr(c, -card / 2, -ch / 2, card, ch, card * .14); c.fillStyle = open ? '#fffdf4' : '#3a1d43'; c.fill(); c.shadowColor = 'transparent';
+      if (open) T(c, lbl, 0, 1, card * .42, red ? '#d2343f' : '#24132a', { w: 900 });
+      else { c.lineWidth = Math.max(1.2, card * .06); c.strokeStyle = '#f3efdb'; rr(c, -card / 2 + card * .08, -ch / 2 + card * .08, card * .84, ch - card * .16, card * .1); c.stroke(); }
+      if (glow) { c.lineWidth = 3; c.strokeStyle = '#f7c548'; rr(c, -card / 2, -ch / 2, card, ch, card * .14); c.stroke(); }
+      c.restore();
+    };
+    // de zeven kaarten boven de baan; de laatst omgedraaide draait open
+    const ty = h * .04 + ch / 2;
+    RACE.track.forEach((s, k) => {
+      const open = k < cur.open, flipping = open && k === cur.open - 1 && cur.back && !done && i < n;
+      const p = flipping ? clamp(e * 1.6, 0, 1) : 1;
+      face(x0 + cw * (k + 1.5), ty, open ? (flipping ? Math.abs(Math.cos(p * Math.PI)) : 1) : 1, open && (!flipping || p > .5), SYM[s], s < 2, false);
+    });
+    // de azen: van de vorige stand naar de nieuwe
+    for (let s = 0; s < 4; s++) {
+      const a = prev.pos[s], b = cur.pos[s], at = a + (b - a) * ease;
+      const hop = a !== b && !done ? Math.sin(ease * Math.PI) * rh * .16 : 0;
+      face(x0 + cw * (at + .5), top + rh * (s + .5) - hop, 1, true, 'A' + SYM[s], s < 2, done && s === RACE.winner);
+    }
+    if (done) T(c, `${NAME[RACE.winner]} WINT!`, w * .52, top + rh * 2, Math.min(w * .1, h * .17), '#f7c548', { w: 900 });
   }
 };
 let prevs = [];

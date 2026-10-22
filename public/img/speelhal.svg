@@ -10,24 +10,26 @@
   <g fill="#fff" opacity=".5"><circle cx="92" cy="96" r="2.5"/><circle cx="420" cy="80" r="2"/><circle cx="446" cy="420" r="2.5"/><circle cx="70" cy="410" r="2"/><circle cx="388" cy="150" r="1.6"/></g>
   <!-- een neonring met de kleur van elk spel -->
   <g fill="none" stroke-width="24" stroke-linecap="round" filter="url(#gloed)" opacity=".85">
-    <path d="M272.2 76.7A186 186 0 0 1 375.6 119.5" stroke="#ff7a00"/>
-    <path d="M398.5 142.4A186 186 0 0 1 441.3 245.8" stroke="#f7c548"/>
-    <path d="M441.3 278.2A186 186 0 0 1 398.5 381.6" stroke="#2fbf71"/>
-    <path d="M375.6 404.5A186 186 0 0 1 272.2 447.3" stroke="#ff4a24"/>
-    <path d="M239.8 447.3A186 186 0 0 1 136.4 404.5" stroke="#4f8dff"/>
-    <path d="M113.5 381.6A186 186 0 0 1 70.7 278.2" stroke="#ff6b8b"/>
-    <path d="M70.7 245.8A186 186 0 0 1 113.5 142.4" stroke="#36c5d6"/>
-    <path d="M136.4 119.5A186 186 0 0 1 239.8 76.7" stroke="#a28fe3"/>
+    <path d="M270.6 76.6A186 186 0 0 1 364.0 110.6" stroke="#ff7a00"/>
+    <path d="M386.4 129.3A186 186 0 0 1 436.1 215.4" stroke="#f7c548"/>
+    <path d="M441.1 244.2A186 186 0 0 1 423.9 342.1" stroke="#2fbf71"/>
+    <path d="M409.3 367.4A186 186 0 0 1 333.1 431.3" stroke="#ff4a24"/>
+    <path d="M305.7 441.2A186 186 0 0 1 206.3 441.2" stroke="#4f8dff"/>
+    <path d="M178.9 431.3A186 186 0 0 1 102.7 367.4" stroke="#ff6b8b"/>
+    <path d="M88.1 342.1A186 186 0 0 1 70.9 244.2" stroke="#36c5d6"/>
+    <path d="M75.9 215.4A186 186 0 0 1 125.6 129.3" stroke="#a28fe3"/>
+    <path d="M148.0 110.6A186 186 0 0 1 241.4 76.6" stroke="#a6d83c"/>
   </g>
   <g fill="none" stroke-width="16" stroke-linecap="round">
-    <path d="M272.2 76.7A186 186 0 0 1 375.6 119.5" stroke="#ff7a00"/>
-    <path d="M398.5 142.4A186 186 0 0 1 441.3 245.8" stroke="#f7c548"/>
-    <path d="M441.3 278.2A186 186 0 0 1 398.5 381.6" stroke="#2fbf71"/>
-    <path d="M375.6 404.5A186 186 0 0 1 272.2 447.3" stroke="#ff4a24"/>
-    <path d="M239.8 447.3A186 186 0 0 1 136.4 404.5" stroke="#4f8dff"/>
-    <path d="M113.5 381.6A186 186 0 0 1 70.7 278.2" stroke="#ff6b8b"/>
-    <path d="M70.7 245.8A186 186 0 0 1 113.5 142.4" stroke="#36c5d6"/>
-    <path d="M136.4 119.5A186 186 0 0 1 239.8 76.7" stroke="#a28fe3"/>
+    <path d="M270.6 76.6A186 186 0 0 1 364.0 110.6" stroke="#ff7a00"/>
+    <path d="M386.4 129.3A186 186 0 0 1 436.1 215.4" stroke="#f7c548"/>
+    <path d="M441.1 244.2A186 186 0 0 1 423.9 342.1" stroke="#2fbf71"/>
+    <path d="M409.3 367.4A186 186 0 0 1 333.1 431.3" stroke="#ff4a24"/>
+    <path d="M305.7 441.2A186 186 0 0 1 206.3 441.2" stroke="#4f8dff"/>
+    <path d="M178.9 431.3A186 186 0 0 1 102.7 367.4" stroke="#ff6b8b"/>
+    <path d="M88.1 342.1A186 186 0 0 1 70.9 244.2" stroke="#36c5d6"/>
+    <path d="M75.9 215.4A186 186 0 0 1 125.6 129.3" stroke="#a28fe3"/>
+    <path d="M148.0 110.6A186 186 0 0 1 241.4 76.6" stroke="#a6d83c"/>
   </g>
   <!-- de joystick -->
   <ellipse cx="256" cy="356" rx="118" ry="44" fill="#1a0b1f"/>
