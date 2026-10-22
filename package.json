@@ -1,7 +1,7 @@
 {
   "name": "karnemelk-kart",
   "version": "1.0.0",
-  "description": "Karnemelk Kart - een originele multiplayer arcade-kartgame voor de browser (ook op telefoons).",
+  "description": "Speelhal: Mario Bak (een multiplayer arcade-kartgame) en drankspellen voor de browser, ieder op zijn eigen telefoon.",
   "private": true,
   "type": "module",
   "main": "server/index.js",

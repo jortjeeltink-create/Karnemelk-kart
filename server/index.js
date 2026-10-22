@@ -1,4 +1,4 @@
-// Karnemelk Kart server: levert de game-bestanden en regelt de live multiplayer.
+// De server van de speelhal: levert de bestanden en regelt de live multiplayer van Mario Bak en de tafelspellen.
 // Start met:  npm start   (standaard op http://localhost:3000)
 import http from 'node:http';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -217,7 +217,7 @@ const tickTimer = setInterval(() => hub.tick(), 1000 / 60);
 const busTimer = setInterval(() => { busHub.tick(); boerHub.tick(); mexHub.tick(); dealerHub.tick(); paardHub.tick(); rotondeHub.tick(); mijnHub.tick(); }, 5000);
 
 server.listen(PORT, HOST, () => {
-  log(`Karnemelk Kart draait op http://localhost:${PORT}`);
+  log(`Speelhal draait op http://localhost:${PORT}`);
   for (const ifs of Object.values(os.networkInterfaces())) {
     for (const i of ifs || []) {
       if (i.family === 'IPv4' && !i.internal) log(`Op je wifi (telefoon): http://${i.address}:${PORT}`);

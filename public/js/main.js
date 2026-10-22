@@ -1,4 +1,4 @@
-// Karnemelk Kart — startpunt in de browser.
+// Mario Bak — startpunt in de browser.
 import { Engine, webglAvailable } from './render/engine.js';
 import { Showroom } from './render/showroom.js';
 import { Net, LocalNet } from './net.js';
@@ -401,9 +401,9 @@ class App {
   }
 
   async share(code, url) {
-    const text = `Race mee in Karnemelk Kart! Groepscode: ${code}`;
+    const text = `Race mee in Mario Bak! Groepscode: ${code}`;
     if (navigator.share) {
-      try { await navigator.share({ title: 'Karnemelk Kart', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+      try { await navigator.share({ title: 'Mario Bak', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
     }
     this.copy(url);
   }
