@@ -1,6 +1,6 @@
 // De race zelf: alle karts, items, botsingen, posities en de finish.
 // Draait op de server (en in de offline-demo in de browser).
-import { DT, TICK_RATE, KART_RADIUS, FINISH_GRACE, MAX_RACE_TIME, LAPS, JUMP } from './constants.js';
+import { DT, TICK_RATE, KART_RADIUS, FINISH_GRACE, MAX_RACE_TIME, LAPS, JUMP, CATCHUP } from './constants.js';
 import { createKart, stepKart, hitKart, raceDistance } from './physics.js';
 import { botInput, autopilotInput, initBot } from './bots.js';
 import { ITEM, rollItem, ITEM_ROLL_TIME, BOX_RESPAWN } from './items.js';
@@ -311,18 +311,22 @@ export class Race {
     this.order = sorted;
   }
 
-  // bots die ver achter liggen worden een tikje sneller, bots die ver voor liggen iets trager
+  // Inhaalhulp voor iedereen die nog rijdt (zie CATCHUP): de koploper is het traagst, elke plek daarachter een
+  // tikje sneller. Bots hebben daaronder hun eigen tempo: ver achter de beste mens een tikje sneller, ver voor
+  // iets trager.
   rubberBand() {
-    const humans = this.karts.filter((k) => !k.isBot);
-    if (!humans.length) return;
     const tr = this.track;
-    const bestHuman = Math.max(...humans.map((k) => raceDistance(k, tr)));
-    for (const k of this.karts) {
-      if (!k.isBot || k.finished) continue;
-      const gap = raceDistance(k, tr) - bestHuman;
-      const adj = gap > 120 ? -0.05 : gap > 60 ? -0.025 : gap < -150 ? 0.04 : 0;
-      k.maxMul = Math.min(1.0, k.baseMul + adj);
-    }
+    const humans = this.karts.filter((k) => !k.isBot);
+    const bestHuman = humans.length ? Math.max(...humans.map((k) => raceDistance(k, tr))) : null;
+    this.order.filter((k) => !k.finished).forEach((k, behind) => {
+      let base = 1;
+      if (k.isBot) {
+        const gap = bestHuman == null ? 0 : raceDistance(k, tr) - bestHuman;
+        const adj = gap > 120 ? -0.05 : gap > 60 ? -0.025 : gap < -150 ? 0.04 : 0;
+        base = Math.min(1.0, k.baseMul + adj);
+      }
+      k.maxMul = base * (1 + Math.min(CATCHUP.max, CATCHUP.perPlace * behind));
+    });
   }
 
   checkEnd() {
