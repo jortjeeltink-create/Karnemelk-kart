@@ -1,9 +1,10 @@
 // Mijnenveld: het kaart- en dobbelspel, online met iedereen op zijn eigen telefoon.
-// 36 dichte kaarten liggen in een raster van 6 bij 6, met 8 verstopte mijnen ertussen. Om de beurt gooi je twee
-// stenen: de eerste is de kolom, de tweede de rij. Ligt die kaart al open, dan wordt het de eerstvolgende dichte
-// kaart. Ligt er een mijn op, dan drink je de slokken per mijn en leg je hem ergens anders neer: op een kaart,
-// tussen twee kaarten of op een hoek (dan raakt hij er vier). Daarna gok je rood of zwart en draai je de kaart om.
-// Goed: de volgende is aan de beurt. Fout: 3 slokken en je gooit opnieuw. Liggen alle kaarten open, dan is het klaar.
+// 36 dichte kaarten liggen in een raster van 6 bij 6, met 8 verstopte mijnen ertussen. Om de beurt gooi je de steen
+// twee keer: eerst voor de kolom, dan voor de rij. Ligt die kaart al open, dan wordt het de eerstvolgende dichte
+// kaart. Ligt er een mijn op, dan drink je de slokken per mijn en leg je hem ergens anders neer: op een kaart of
+// tussen twee kaarten (dan raakt hij ze allebei). Daarna gok je rood of zwart en draai je de kaart om.
+// Goed: de volgende is aan de beurt. Fout: 2 slokken en je gooit opnieuw. Liggen alle kaarten open, dan is het klaar.
+// Zo speelt ook de online versie van dark-mark.com.
 // Een potje is een gewoon object (JSON) met de seed van de random-generator erin, net als bij Bussen.
 import { SUITS, newDeck, shuffle, rand, cleanNames, NAME_MAX } from './bussen.js';
 
@@ -13,7 +14,7 @@ export const MAX_PLAYERS = 10;
 export const SIDE = 6;                 // 6 bij 6
 export const SIZE = SIDE * SIDE;
 export const MINES = 8;                // zoveel verstopte mijnen aan het begin
-export const WRONG_SIPS = 3;           // fout gegokt
+export const WRONG_SIPS = 2;           // fout gegokt
 export const MINE_SIPS = [3, 5, 10];   // slokken per mijn: de host kiest
 export const MINE_DEFAULT = 5;
 export const COLORS = ['rood', 'zwart'];
@@ -32,7 +33,7 @@ function emit(g, ev) {
   return ev;
 }
 
-// Waar een mijn mag liggen: op één kaart, tussen twee kaarten naast of onder elkaar, of op de hoek van vier.
+// Waar een mijn mag liggen: op één kaart, of tussen twee kaarten naast of onder elkaar.
 // Geeft de kaarten op volgorde terug, of null als het geen plek is.
 export function spotCells(cells) {
   if (!Array.isArray(cells) || !cells.every((i) => Number.isInteger(i) && i >= 0 && i < SIZE)) return null;
@@ -40,10 +41,6 @@ export function spotCells(cells) {
   if (c.length !== cells.length) return null;
   if (c.length === 1) return c;
   if (c.length === 2) return (c[1] === c[0] + 1 && rowOf(c[0]) === rowOf(c[1])) || c[1] === c[0] + SIDE ? c : null;
-  if (c.length === 4) {
-    const a = c[0];
-    return colOf(a) < SIDE - 1 && c[1] === a + 1 && c[2] === a + SIDE && c[3] === a + SIDE + 1 ? c : null;
-  }
   return null;
 }
 
@@ -64,12 +61,12 @@ export function newGame(names, { seed = Date.now(), mineSips = MINE_DEFAULT } = 
     seed: seed >>> 0,
     mineSips: MINE_SIPS.includes(mineSips) ? mineSips : MINE_DEFAULT,
     players: cleanNames(names).map(newPlayer),
-    phase: 'gooien',   // gooien, plaatsen (mijnen verleggen), gokken (rood of zwart), klaar
+    phase: 'gooien',   // gooien (voor de kolom), rij (gooien voor de rij), plaatsen (mijnen verleggen), gokken, klaar
     round: 0,
     cards: [],
     mines: [],         // { cells, hidden, count }: verstopt aan het begin, open als iemand hem verlegd heeft
     turn: -1,
-    dice: null,        // de laatste worp: [kolom, rij], 1 tot en met 6
+    dice: null,        // de worpen van deze beurt: [kolom, rij] (rij is null zolang die nog niet gegooid is)
     target: -1,        // de kaart waar de stenen op wezen
     hit: 0,            // zoveel mijnen moet wie aan de beurt is nog neerleggen
     log: [],
@@ -97,6 +94,7 @@ function nextAfter(g, from, live) {
 function giveTurn(g, to) {
   g.turn = to;
   g.phase = 'gooien';
+  g.dice = null;
   g.target = -1;
   g.hit = 0;
   return emit(g, { type: 'beurt', to });
@@ -117,10 +115,17 @@ export function begin(g, live, starter) {
 
 export const minesOn = (g, i) => g.mines.filter((m) => m.cells.includes(i));
 
-// De stenen gooien. `dice` is alleen voor de tests; aan tafel gooit de server.
-export function roll(g, player, dice = null) {
-  if (g.phase !== 'gooien' || player < 0 || player !== g.turn) return null;
-  const d = dice || [die(g), die(g)];
+// De steen gooien: de eerste keer voor de kolom, de tweede keer voor de rij.
+// `value` is alleen voor de tests; aan tafel gooit de server.
+export function roll(g, player, value = null) {
+  if ((g.phase !== 'gooien' && g.phase !== 'rij') || player < 0 || player !== g.turn) return null;
+  const v = value || die(g);
+  if (g.phase === 'gooien') {
+    g.dice = [v, null];
+    g.phase = 'rij';
+    return emit(g, { type: 'kolom', player, value: v });
+  }
+  const d = [g.dice[0], v];
   const aim = (d[1] - 1) * SIDE + (d[0] - 1);
   // ligt die kaart al open, dan de eerstvolgende dichte (naar rechts, dan de rij eronder)
   let target = aim;
@@ -170,7 +175,7 @@ export function guess(g, player, color, live) {
   if (!closed(g)) finish(g);
   // goed: de volgende; fout: zelf opnieuw gooien
   else if (ok) passTurn(g, player, live);
-  else g.phase = 'gooien';
+  else { g.phase = 'gooien'; g.dice = null; }
   return ev;
 }
 

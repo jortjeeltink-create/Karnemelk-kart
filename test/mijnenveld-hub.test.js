@@ -1,4 +1,4 @@
-// Mijnenveld online: gooien, mijnen leggen en gokken via de telefoon; verstopte mijnen blijven op de server.
+// Mijnenveld online: twee keer gooien, mijnen leggen en gokken via de telefoon; verstopte mijnen blijven op de server.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { MijnenveldHub } from '../public/shared/mijnenveldhub.js';
@@ -41,6 +41,9 @@ test('de host kiest de slokken per mijn en begint; verstopte mijnen en dichte ka
   phones[1].say({ t: 'roll' });
   assert.equal(phones[2].state().dice, null, 'niet aan de beurt');
   phones[0].say({ t: 'roll' });
+  assert.equal(phones[2].state().phase, 'rij', 'eerst de kolom');
+  assert.equal(phones[2].state().dice[1], null);
+  phones[0].say({ t: 'roll' });
   const r = phones[2].state();
   assert.equal(r.phase, 'gokken');
   assert.ok(r.dice.every((d) => d >= 1 && d <= 6));
@@ -53,6 +56,7 @@ test('de host kiest de slokken per mijn en begint; verstopte mijnen en dichte ka
   const g = t.g, dicht = [0, 1, 2, 35];
   g.cards.forEach((c, i) => { c.open = !dicht.includes(i); });
   g.mines = dicht.map((i) => ({ cells: [i], hidden: true, count: 1 }));
+  phones[1].say({ t: 'roll' });
   phones[1].say({ t: 'roll' });
   const boem = phones[0].state();
   assert.equal(boem.phase, 'plaatsen');
@@ -75,6 +79,7 @@ test('valt wie aan de beurt is weg, dan is de volgende aan de beurt; de host leg
   assert.equal(t.g.players.length, 4);
   t.g.mines = [];
   t.g.cards.forEach((c, i) => { if (i) c.open = true; });
+  phones[1].say({ t: 'roll' });
   phones[1].say({ t: 'roll' });
   phones[1].say({ t: 'guess', color: 'rood' });
   assert.equal(late.state().phase, 'klaar');

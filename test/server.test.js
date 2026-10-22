@@ -480,7 +480,7 @@ test('Rotonde online: twee telefoons, de host kiest een kaart en gokt, de ander 
   }
 });
 
-test('Mijnenveld online: twee telefoons, de host gooit en de ander ziet waar de stenen op wijzen', async () => {
+test('Mijnenveld online: twee telefoons, de host gooit twee keer en de ander ziet waar de steen op wijst', async () => {
   const srv = await startServer();
   try {
     const url = srv.ws + '/mijnenveld';
@@ -493,7 +493,8 @@ test('Mijnenveld online: twee telefoons, de host gooit en de ander ziet waar de 
     a.send({ t: 'start' });
     const st = await started;
     assert.deepEqual([st.turn, st.hiddenMines], [0, 8]);
-    const rolled = b.wait((m) => m.t === 'state' && m.dice);
+    const rolled = b.wait((m) => m.t === 'state' && m.dice && m.dice[1]);
+    a.send({ t: 'roll' });
     a.send({ t: 'roll' });
     const r = await rolled;
     assert.ok(r.dice.every((d) => d >= 1 && d <= 6));

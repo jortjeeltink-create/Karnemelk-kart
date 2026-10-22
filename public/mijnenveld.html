@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mijnenveld</title>
-<meta name="description" content="Het drankspel Mijnenveld online: gooi de stenen naar een kaart in het veld van 6 bij 6, ontwijk de mijnen en gok rood of zwart.">
+<meta name="description" content="Het drankspel Mijnenveld online: gooi de steen naar een kaart in het veld van 6 bij 6, ontwijk de mijnen en gok rood of zwart.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -151,10 +151,9 @@ p{margin:0}
 .mine b{position:absolute;right:-30%;top:-25%;min-width:16px;padding:0 4px;border-radius:999px;background:var(--boom);color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;box-shadow:0 0 0 1.5px #140d17}
 .mine.fresh{animation:drop .45s cubic-bezier(.2,.9,.3,1.4) both}
 @keyframes drop{from{transform:translate(-50%,-120%) scale(1.6);opacity:0}}
-/* waar je een mijn neer kunt leggen: op een kaart, tussen twee kaarten of op een hoek */
+/* waar je een mijn neer kunt leggen: op een kaart of tussen twee kaarten */
 .spot{z-index:4;width:calc(var(--cw) * .5);height:calc(var(--cw) * .5);border-radius:50%;background:rgba(255,90,31,.18);box-shadow:inset 0 0 0 2px rgba(255,176,32,.9),0 0 10px rgba(255,90,31,.5);transition:transform .1s}
 .spot.e{width:calc(var(--cw) * .36);height:calc(var(--cw) * .36);background:rgba(255,90,31,.32)}
-.spot.k{width:calc(var(--cw) * .4);height:calc(var(--cw) * .4);border-radius:30%;background:rgba(255,90,31,.42)}
 .spot:hover,.spot:active{transform:translate(-50%,-50%) scale(1.25);background:var(--boom)}
 .table.shake{animation:shake .6s cubic-bezier(.36,.07,.19,.97) both}
 @keyframes shake{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(4px,-2px)}30%,50%,70%{transform:translate(-6px,2px)}40%,60%{transform:translate(6px,-2px)}}
@@ -232,14 +231,15 @@ button.seat:active .ava{transform:scale(.94)}
 .optrow{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:700;color:#fff}
 .minechip{flex:none;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(255,90,31,.14);box-shadow:inset 0 0 0 1px rgba(255,176,32,.5);font-size:var(--s1);font-weight:700;color:var(--amber);white-space:nowrap}
 .minechip svg{width:16px;height:16px}
-/* de twee stenen: blauw is de kolom, goud de rij */
+/* de steen twee keer: blauw is de worp voor de kolom, goud die voor de rij (nog niet gegooid: een vraagteken) */
 .dice{display:flex;align-items:center;gap:14px}
 .die{position:relative;flex:none;width:46px;height:46px;border-radius:11px;background:linear-gradient(160deg,#fffdf4,#e9e0c2);box-shadow:inset 0 -3px 0 rgba(43,21,49,.18),0 0 0 3px var(--dc),0 6px 14px rgba(0,0,0,.45);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:7px}
 .die i{width:8px;height:8px;margin:auto;border-radius:50%;background:var(--ink);visibility:hidden}
 .die i.on{visibility:visible}
 .die small{position:absolute;left:50%;top:calc(100% + 6px);transform:translateX(-50%);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dc);white-space:nowrap}
 .die.roll{animation:roll .6s cubic-bezier(.2,.8,.2,1) both}
-.die.roll+.die.roll{animation-delay:.08s}
+.die.wait{display:grid;place-items:center;padding:0;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 2px var(--dc)}
+.die.wait b{font-family:var(--display);font-weight:900;font-size:26px;line-height:1;color:var(--dc)}
 @keyframes roll{0%{transform:translateY(-30px) rotate(-200deg) scale(.6);opacity:0}70%{transform:rotate(12deg)}}
 .dicewrap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;padding-bottom:12px}
 .dock h2.boom-h{color:var(--boom)}
@@ -352,11 +352,10 @@ const G = .14, CH = 1.3, FW = 6.7, FH = 8.5;
 const px = (u) => `${(u / FW * 100).toFixed(2)}%`, py = (u) => `${(u / FH * 100).toFixed(2)}%`;
 const cx = (c) => c * (1 + G) + .5, cy = (r) => r * (CH + G) + CH / 2;
 const gx = (c) => (c + 1) * (1 + G) - G / 2, gy = (r) => (r + 1) * (CH + G) - G / 2;   // de naad na kolom c of rij r
-// het midden van een plek voor een mijn: een kaart, de naad tussen twee kaarten of de hoek van vier
+// het midden van een plek voor een mijn: een kaart, of de naad tussen twee kaarten
 function spotPos(cells) {
   const a = cells[0], r = M.rowOf(a), c = M.colOf(a);
   if (cells.length === 1) return [cx(c), cy(r)];
-  if (cells.length === 4) return [gx(c), gy(r)];
   return cells[1] === a + 1 ? [gx(c), cy(r)] : [cx(c), gy(r)];
 }
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
@@ -422,7 +421,7 @@ const Snd = {
   chip() { this.tone(2400, .04, { type: 'triangle', vol: .08 }); this.tone(1800, .05, { type: 'triangle', vol: .06, at: .03 }); },
   flip() { this.noise(.11, { vol: .35, freq: 3200 }); this.tone(1700, .03, { type: 'triangle', vol: .04, at: .07 }); },
   deal() { for (let i = 0; i < 6; i++) this.noise(.07, { vol: .24, freq: 2800 + i * 200, at: i * .06 }); },
-  // de stenen rollen over tafel
+  // de steen rolt over tafel
   dice() { for (let i = 0; i < 5; i++) this.noise(.05, { vol: .28, freq: 1800 + i * 300, at: i * .07 + Math.random() * .03 }); },
   // een mijn: een diepe klap met gerommel
   boom() { this.noise(.7, { vol: .9, freq: 160 }); this.noise(.35, { vol: .5, freq: 700 }); this.tone(90, .6, { type: 'sine', vol: .35, slide: .4 }); },
@@ -479,7 +478,7 @@ const ui = {
   joining: false, error: '', name: me.name, code: urlCode,
   seen: 0, banner: null, bannerTimer: 0, lastView: null, lastStep: null, dockPop: false, sheet: null, sheetHtml: null, build: null,
   show: null, showTimer: 0, showFresh: false,   // de laatst omgedraaide kaart, even met de uitslag in beeld
-  rolled: false,    // de stenen rollen nog (één keer tekenen)
+  rolled: '',       // welke steen er nog rolt: 'kolom' of 'rij' (één keer tekenen)
   boom: false, boomTimer: 0,   // de tafel schudt na een mijn
   dropped: '',      // de mijn die net is neergelegd (één keer tekenen)
   sent: -1,         // na een tik wachten op de server, zodat een dubbele tik niet twee keer telt
@@ -547,12 +546,15 @@ function show(ev) {
 // een gebeurtenis van de server laten zien en horen
 function present(ev) {
   switch (ev.type) {
-    case 'worp':
+    case 'kolom':
       ui.show = null;
-      ui.rolled = true; Snd.dice();
+      ui.rolled = 'kolom'; Snd.dice();
+      break;
+    case 'worp':
+      ui.rolled = 'rij'; Snd.dice();
       break;
     case 'mijn':
-      // eerst de stenen laten uitrollen, dan de klap
+      // eerst de steen laten uitrollen, dan de klap
       setTimeout(() => {
         if (!S) return;
         Snd.boom(); buzz(ev.player === S.you ? [200, 60, 200] : [120]);
@@ -607,7 +609,7 @@ const myTurn = () => {
   return t === S.you ? t : isHost() && !S.players[t].connected ? t : -1;
 };
 
-// Waar wie aan de beurt is een mijn neer kan leggen: op een dichte kaart, tussen twee of op de hoek van vier
+// Waar wie aan de beurt is een mijn neer kan leggen: op een dichte kaart of tussen twee dichte kaarten
 // (nooit op de kaart van de worp).
 function placeSpots() {
   const free = (i) => !S.cards[i] && i !== S.target;
@@ -618,20 +620,19 @@ function placeSpots() {
     out.push([i]);
     if (c < M.SIDE - 1 && free(i + 1)) out.push([i, i + 1]);
     if (r < M.SIDE - 1 && free(i + M.SIDE)) out.push([i, i + M.SIDE]);
-    if (c < M.SIDE - 1 && r < M.SIDE - 1 && free(i + 1) && free(i + M.SIDE) && free(i + M.SIDE + 1)) out.push([i, i + 1, i + M.SIDE, i + M.SIDE + 1]);
   }
   return out;
 }
-const spotName = (cells) => cells.length === 1 ? `op ${place(cells[0])}` : cells.length === 2 ? `tussen ${place(cells[0])} en ${place(cells[1])}` : `op de hoek van ${place(cells[0])} tot en met ${place(cells[3])}`;
+const spotName = (cells) => cells.length === 1 ? `op ${place(cells[0])}` : `tussen ${place(cells[0])} en ${place(cells[1])}`;
 
 // Het veld. cards: 36 × (kaart of null), mines: [{ cells, count }], target: de kaart van de worp,
-// dice: [kolom, rij], fresh: de net omgedraaide kaart { i, ok, flip }, spots: plekken om een mijn neer te leggen.
+// dice: [kolom, rij] (rij kan nog null zijn), fresh: de net omgedraaide kaart { i, ok, flip }, spots: plekken om een mijn neer te leggen.
 function fieldHTML({ cards, mines = [], target = -1, dice = null, fresh = null, spots = null }) {
   let h = '';
   if (dice) {
     const c = dice[0] - 1, r = dice[1] - 1;
     h += `<span class="line" style="left:${px(c * (1 + G) - .06)};width:${px(1.12)};top:-1%;height:102%"></span>`;
-    h += `<span class="line" style="top:${py(r * (CH + G) - .06)};height:${py(CH + .12)};left:-1%;width:102%"></span>`;
+    if (dice[1]) h += `<span class="line" style="top:${py(r * (CH + G) - .06)};height:${py(CH + .12)};left:-1%;width:102%"></span>`;
   }
   for (let k = 0; k < M.SIDE; k++) {
     h += `<span class="lab${dice && dice[0] === k + 1 ? ' on' : ''}" style="--x:${px(cx(k))};--y:${py(-.3)}">${k + 1}</span>`;
@@ -653,16 +654,19 @@ function fieldHTML({ cards, mines = [], target = -1, dice = null, fresh = null, 
   if (spots) {
     for (const cells of spots) {
       const [x, y] = spotPos(cells);
-      h += `<button class="spot${cells.length === 2 ? ' e' : cells.length === 4 ? ' k' : ''}" type="button" style="--x:${px(x)};--y:${py(y)}" data-act="place" data-cells="${cells.join(',')}" aria-label="Mijn ${spotName(cells)}"></button>`;
+      h += `<button class="spot${cells.length === 2 ? ' e' : ''}" type="button" style="--x:${px(x)};--y:${py(y)}" data-act="place" data-cells="${cells.join(',')}" aria-label="Mijn ${spotName(cells)}"></button>`;
     }
   }
   return `<div class="field" role="group" aria-label="Het mijnenveld: ${cards.filter((c) => !c).length} van de ${M.SIZE} kaarten liggen nog dicht">${h}</div>`;
 }
 
-const dieHTML = (v, what, color, roll) => `<span class="die${roll ? ' roll' : ''}" style="--dc:${color}" role="img" aria-label="${what} ${v}">${Array.from({ length: 9 }, (_, k) => `<i class="${PIPS[v].includes(k) ? 'on' : ''}"></i>`).join('')}<small>${what} ${v}</small></span>`;
-const diceHTML = (d, roll = false) => `<div class="dice">${dieHTML(d[0], 'kolom', DICE_COL, roll)}${dieHTML(d[1], 'rij', DICE_ROW, roll)}</div>`;
+const dieHTML = (v, what, color, roll) => v
+  ? `<span class="die${roll ? ' roll' : ''}" style="--dc:${color}" role="img" aria-label="${what} ${v}">${Array.from({ length: 9 }, (_, k) => `<i class="${PIPS[v].includes(k) ? 'on' : ''}"></i>`).join('')}<small>${what} ${v}</small></span>`
+  : `<span class="die wait" style="--dc:${color}" role="img" aria-label="${what}: nog gooien"><b>?</b><small>${what}</small></span>`;
+// de twee worpen van deze beurt; de steen die net gegooid is, rolt
+const diceHTML = (d) => `<div class="dice">${dieHTML(d[0], 'kolom', DICE_COL, ui.rolled === 'kolom')}${dieHTML(d[1], 'rij', DICE_ROW, ui.rolled === 'rij')}</div>`;
 const mineChip = () => `<span class="minechip" title="Verstopte mijnen">${BOMB}${S.hiddenMines} verstopt</span>`;
-// waar de stenen op wezen, in één zin
+// waar de twee worpen op wezen, in één zin
 function aimLine() {
   const w = lastOf('worp');
   if (!w || !S.dice) return '';
@@ -753,14 +757,14 @@ const mineSeg = () => `<div class="seg" role="group" aria-label="Slokken per mij
 /* ================= SCHERMEN ================= */
 function vHome() {
   const empty = Array.from({ length: 4 }, () => ({ name: 'Vrije plek', empty: true }));
-  const demo = fieldHTML({ cards: Array(M.SIZE).fill(null), mines: [{ cells: [8, 9, 14, 15], count: 1 }, { cells: [27], count: 2 }] });
+  const demo = fieldHTML({ cards: Array(M.SIZE).fill(null), mines: [{ cells: [8, 9], count: 1 }, { cells: [27], count: 2 }] });
   const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: demo });
   const busy = ui.joining ? 'disabled' : '';
   return `
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${M.MIN_PLAYERS} tot ${M.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>36 kaarten in een veld van 6 bij 6, met ${M.MINES} verstopte mijnen. Gooi de stenen: de eerste is de kolom, de tweede de rij. Land je op een mijn, dan drink je en leg je hem ergens anders neer. Daarna gok je rood of zwart.</p>
+    <p>36 kaarten in een veld van 6 bij 6, met ${M.MINES} verstopte mijnen. Gooi de steen twee keer: eerst voor de kolom, dan voor de rij. Land je op een mijn, dan drink je en leg je hem ergens anders neer. Daarna gok je rood of zwart.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${M.NAME_MAX}" placeholder="Bijvoorbeeld Jort" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -796,7 +800,7 @@ function vSpel() {
   const ev = ui.show, actor = myTurn(), placing = actor >= 0 && S.phase === 'plaatsen';
   const aiming = S.phase === 'plaatsen' || S.phase === 'gokken';
   const field = fieldHTML({
-    cards: S.cards, mines: S.mines, target: aiming ? S.target : -1, dice: aiming ? S.dice : null,
+    cards: S.cards, mines: S.mines, target: aiming ? S.target : -1, dice: aiming || S.phase === 'rij' ? S.dice : null,
     fresh: ev ? { i: ev.i, ok: ev.ok, flip: ui.showFresh } : null, spots: placing && ui.sent !== S.seq ? placeSpots() : null,
   });
   const boom = boomNow();
@@ -824,14 +828,19 @@ function myDock(actor, ev) {
   if (S.phase === 'gooien') {
     const fout = ev && ev.player === actor && !ev.ok;
     return `${forNote}<div class="ask-h"><h2 class="${fout ? 'boom-h' : ''}">${fout ? `Fout! Drink ${ev.sips}` : actor === S.you ? 'Jij gooit' : `Jij gooit voor ${nameOf(actor)}`}</h2>${mineChip()}</div>
-      ${fout ? `<p class="sub">${resultLine(ev)} Probeer het opnieuw: gooi nog een keer.</p>` : '<p class="sub">De eerste steen is de kolom, de tweede de rij. Ligt daar een mijn, dan ontploft hij.</p>'}
-      <button class="cta hot" type="button" data-act="roll" ${busy}><span>Gooi de stenen</span>${ARR}</button>`;
+      ${fout ? `<p class="sub">${resultLine(ev)} Probeer het opnieuw: gooi nog een keer.</p>` : '<p class="sub">Eerst gooi je voor de kolom, dan voor de rij. Ligt op die kaart een mijn, dan ontploft hij.</p>'}
+      <button class="cta hot" type="button" data-act="roll" ${busy}><span>Gooi voor de kolom</span>${ARR}</button>`;
   }
-  const dice = `<div class="dicewrap">${diceHTML(S.dice, ui.rolled)}<p class="sub">${aimLine()}</p></div>`;
+  if (S.phase === 'rij') {
+    return `${forNote}<div class="ask-h"><h2>Kolom ${S.dice[0]}</h2>${mineChip()}</div>
+      <div class="dicewrap">${diceHTML(S.dice)}<p class="sub">Gooi nu voor de rij in die kolom.</p></div>
+      <button class="cta hot" type="button" data-act="roll" ${busy}><span>Gooi voor de rij</span>${ARR}</button>`;
+  }
+  const dice = `<div class="dicewrap">${diceHTML(S.dice)}<p class="sub">${aimLine()}</p></div>`;
   if (S.phase === 'plaatsen') {
     const boom = boomNow();
     return `${forNote}<div class="ask-h"><h2 class="boom-h">Boem!${boom ? ` Drink ${boom.sips}` : ''}</h2>${mineChip()}</div>${dice}
-      <p class="sub">Leg de mijn ergens anders neer: tik op een kaart, tussen twee kaarten of op een hoek (dan raakt hij er vier).${S.hit > 1 ? ` Nog <b>${S.hit}</b> mijnen.` : ''}</p>`;
+      <p class="sub">Leg de mijn ergens anders neer: tik op een kaart, of tussen twee kaarten (dan raakt hij ze allebei).${S.hit > 1 ? ` Nog <b>${S.hit}</b> mijnen.` : ''}</p>`;
   }
   return `${forNote}<div class="ask-h"><h2>Rood of zwart?</h2>${mineChip()}</div>${dice}
     <div class="rz"><button class="red" type="button" data-act="guess" data-c="rood" ${busy}>Rood<small>♥♦</small></button><button class="black" type="button" data-act="guess" data-c="zwart" ${busy}>Zwart<small>♣♠</small></button></div>
@@ -840,8 +849,8 @@ function myDock(actor, ev) {
 
 function waitDock() {
   const t = S.turn;
-  const doing = { gooien: 'gooit de stenen', plaatsen: 'legt de mijn ergens anders neer', gokken: 'gokt rood of zwart' }[S.phase];
-  const dice = S.phase !== 'gooien' && S.dice ? `<div class="dicewrap">${diceHTML(S.dice, ui.rolled)}<p class="sub">${aimLine()}</p></div>` : '';
+  const doing = { gooien: 'gooit voor de kolom', rij: 'gooit voor de rij', plaatsen: 'legt de mijn ergens anders neer', gokken: 'gokt rood of zwart' }[S.phase];
+  const dice = S.phase !== 'gooien' && S.dice ? `<div class="dicewrap">${diceHTML(S.dice)}<p class="sub">${S.phase === 'rij' ? `Kolom ${S.dice[0]}.` : aimLine()}</p></div>` : '';
   return `<div class="ask-h"><h2>${nameOf(t)} is aan de beurt</h2>${mineChip()}</div>${dice}
     <p class="waitline">${nameOf(t)} ${doing}</p>`;
 }
@@ -895,12 +904,12 @@ function rulesHTML() {
     <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander.</p>
     <ol>
       <li><b>Het veld.</b> ${M.SIZE} kaarten liggen dicht in een veld van 6 bij 6. Ertussen liggen ${M.MINES} verstopte mijnen.</li>
-      <li><b>Gooien.</b> Wie aan de beurt is, gooit twee stenen: de eerste (blauw) is de kolom van links, de tweede (goud) de rij van boven. Ligt die kaart al open, dan wordt het de eerstvolgende dichte kaart.</li>
-      <li><b>Boem.</b> Ligt er een mijn op die kaart, dan drink je ${slok(mine)} per mijn. Daarna leg je de mijn ergens anders neer: op een kaart, tussen twee kaarten of op de hoek van vier kaarten (dan raakt hij ze alle vier). Verlegde mijnen ziet iedereen.</li>
+      <li><b>Gooien.</b> Wie aan de beurt is, gooit de steen twee keer: eerst (blauw) voor de kolom van links, dan (goud) voor de rij van boven. Ligt die kaart al open, dan wordt het de eerstvolgende dichte kaart.</li>
+      <li><b>Boem.</b> Ligt er een mijn op die kaart, dan drink je ${slok(mine)} per mijn. Daarna leg je de mijn ergens anders neer: op een kaart, of tussen twee kaarten (dan raakt hij ze allebei). Verlegde mijnen ziet iedereen.</li>
       <li><b>Gokken.</b> Daarna gok je of de kaart rood of zwart is, en de kaart gaat open. Goed: de volgende is aan de beurt. Fout: je drinkt ${slok(M.WRONG_SIPS)} en gooit opnieuw.</li>
       <li><b>Klaar.</b> Liggen alle kaarten open, dan is het veld leeg. De host kan een nieuw veld leggen; de stand blijft staan.</li>
     </ol>
-    <p class="small">De host kiest in de lobby hoeveel slokken een mijn is: 3, 5 of 10. Valt wie aan de beurt is weg, dan is de volgende aan de beurt; moest hij nog een mijn leggen, dan legt de server die. Drink met mate: water of karnemelk telt ook.</p>
+    <p class="small">De host kiest in de lobby hoeveel slokken een mijn is: 3, 5 of 10. Zo speelt ook de online versie van dark-mark.com. Valt wie aan de beurt is weg, dan is de volgende aan de beurt; moest hij nog een mijn leggen, dan legt de server die. Drink met mate: water of karnemelk telt ook.</p>
   </div>`;
 }
 
@@ -970,7 +979,7 @@ function render() {
   ui.lastView = v;
   // een beweging speelt maar één keer af, ook als er tussendoor opnieuw getekend wordt
   ui.showFresh = false;
-  ui.rolled = false;
+  ui.rolled = '';
   ui.dropped = '';
   const own = $('#owe');
   if (S && S.phase !== 'lobby') {
