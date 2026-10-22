@@ -1,0 +1,1103 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mijnenveld</title>
+<meta name="description" content="Het drankspel Mijnenveld online: gooi de stenen naar een kaart in het veld van 6 bij 6, ontwijk de mijnen en gok rood of zwart.">
+<meta name="theme-color" content="#150b18">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mijnenveld">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="/mijnenveld.webmanifest">
+<link rel="icon" href="/img/mijnenveld.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/mijnenveld-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@400;500;700&family=Sofia+Sans+Extra+Condensed:wght@500;700;800;900&display=swap">
+<style>
+:root{
+  /* Dezelfde tafel als Bussen en Rotonde: bovenin een glazen balk, in het midden de groene vilten tafel met de
+     spelers rondom (jij altijd onderaan) en het veld van 6 bij 6 op het vilt, onderin een donkere actiebalk. */
+  --night:#150b18;
+  --night-3:#0b060d;
+  --cream:#f3efdb;
+  --cream-2:#e4dec2;
+  --cream-3:#d6cfae;
+  --plum:#2b1531;
+  --plum-2:#6a4570;
+  --pink:#d690c9;
+  --pink-2:#b866a8;
+  --rose:#ff6b8b;
+  --amber:#ffb020;
+  --boom:#ff5a1f;
+  --gold:#f7c548;
+  --blue:#4f8dff;
+  --paper:#fffdf4;
+  --paper-2:#efe7cc;
+  --ink:#24132a;
+  --suit-red:#d2343f;
+  --good:#3ee07f;
+  --bad:#ff5a64;
+  --ink-soft:#c9b9cf;
+  --glass:rgba(255,255,255,.08);
+  --glass-line:rgba(255,255,255,.24);
+  --glow:var(--amber);
+  --display:"Sofia Sans Extra Condensed","Arial Narrow","Helvetica Neue",sans-serif;
+  --mono:"Martian Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --s1:11px; --s2:13px; --s3:15px;
+  color-scheme:dark;
+}
+html[data-view="lobby"],html[data-view="home"]{--glow:var(--pink)}
+html[data-view="klaar"]{--glow:var(--gold)}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+html{background:var(--night)}
+body{margin:0;background:radial-gradient(120% 90% at 50% 30%,#2a1534 0%,var(--night) 55%,var(--night-3) 100%) fixed;color:var(--cream);font-family:var(--mono);font-size:var(--s2);line-height:1.55;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;overscroll-behavior:none}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+button:disabled{cursor:default}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--pink);outline-offset:3px;border-radius:12px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;font-weight:800;letter-spacing:-.005em}
+p{margin:0}
+.glow{position:fixed;left:50%;top:-34vh;width:150vw;max-width:1100px;height:70vh;transform:translateX(-50%);background:radial-gradient(closest-side,var(--glow),transparent);opacity:.3;pointer-events:none;z-index:0;transition:background .6s}
+.stars{position:fixed;inset:0;background-image:radial-gradient(rgba(255,255,255,.55) 1px,transparent 1.6px),radial-gradient(rgba(255,217,138,.5) 1px,transparent 1.6px);background-size:61px 67px,97px 89px;background-position:0 0,31px 43px;opacity:.16;pointer-events:none;z-index:0}
+
+/* ---------- vaste UI ---------- */
+.app{position:relative;z-index:1;max-width:560px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px 6px}
+.bar-r{display:flex;gap:8px}
+.glass{background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -6px 14px rgba(0,0,0,.25),0 8px 24px rgba(0,0,0,.35)}
+.round{display:inline-grid;place-items:center;width:42px;height:42px;border-radius:50%;color:var(--cream)}
+.round:hover{background:rgba(255,255,255,.14)}
+.owe{display:inline-flex;align-items:center;gap:5px;height:42px;padding:0 13px;border-radius:999px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+.owe svg{width:16px;height:16px}
+.owe.zero{color:var(--ink-soft)}
+.brand{display:flex;align-items:center;gap:7px;font-family:var(--display);font-weight:900;font-size:24px;line-height:1;letter-spacing:.06em;color:var(--cream);white-space:nowrap}
+.brand svg{width:24px;height:24px;color:var(--mag);flex:none}
+
+.screen{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:2px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.screen.is-game{padding-bottom:0}
+.view{display:flex;flex-direction:column;gap:14px;min-height:100%}
+.view.game{display:grid;grid-template-rows:minmax(300px,1fr) auto;height:100%;min-height:0;gap:0}
+
+.kick{font-size:var(--s1);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft)}
+.cream{background:var(--cream);color:var(--plum);border-radius:22px;box-shadow:0 24px 70px rgba(0,0,0,.45)}
+.chip{display:inline-flex;align-items:center;padding:5px 11px;border-radius:999px;background:var(--plum);color:var(--cream);font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;line-height:1.3}
+.chip.line{background:transparent;color:var(--plum);box-shadow:inset 0 0 0 1px rgba(43,21,49,.35)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.cta{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;border-radius:999px;padding:9px 10px 9px 22px;font-family:var(--display);font-weight:700;font-size:26px;line-height:1.1;color:var(--cream);text-decoration:none;text-align:left;background:linear-gradient(90deg,#2a1330 0%,#57295d 46%,#c47fba 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 10px 30px rgba(43,21,49,.35);transition:filter .2s,transform .2s}
+.cta:hover{filter:brightness(1.12)}
+.cta:active{transform:translateY(1px)}
+.cta .arr{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.14);flex:none}
+.cta:disabled{background:var(--cream-2);color:var(--plum-2);box-shadow:inset 0 0 0 1.5px rgba(43,21,49,.2);filter:none;transform:none}
+.cta:disabled .arr{background:rgba(43,21,49,.08)}
+.dock .cta{background:linear-gradient(90deg,#3a1b42 0%,#6b3472 46%,#d690c9 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 30px rgba(0,0,0,.4)}
+.dock .cta.hot{background:linear-gradient(90deg,#4a1d0a 0%,#a8461a 46%,#ffb020 100%)}
+.dock .cta:disabled{background:rgba(255,255,255,.08);color:var(--ink-soft);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+.ghostbtn{display:block;width:100%;border-radius:999px;padding:14px 20px;font-size:var(--s2);font-weight:700;color:var(--plum);box-shadow:inset 0 0 0 1px rgba(43,21,49,.3);text-decoration:none;text-align:center}
+.ghostbtn:hover{background:var(--cream-2)}
+.dock .ghostbtn{padding:11px 18px;color:var(--cream);box-shadow:inset 0 0 0 1px rgba(255,255,255,.28)}
+.dock .ghostbtn:hover{background:rgba(255,255,255,.08)}
+.linkbtn{justify-self:start;padding:4px 0;font-size:var(--s1);font-weight:700;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px}
+
+/* ---------- de tafel ---------- */
+.table{position:relative;min-height:0;container-type:size;margin:4px -6px 8px}
+.rail{position:absolute;inset:5% 6% 10%;border-radius:50%/30%;background:linear-gradient(180deg,#45323a 0%,#1d1418 50%,#110b0e 100%);box-shadow:0 26px 60px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.6),inset 0 2px 0 rgba(255,255,255,.16),inset 0 -4px 10px rgba(0,0,0,.5)}
+.felt{position:absolute;inset:calc(5% + 11px) calc(6% + 11px) calc(10% + 11px);border-radius:50%/30%;overflow:hidden;background:radial-gradient(ellipse 75% 60% at 50% 42%,#35a862 0%,#21823f 46%,#125a2e 100%);box-shadow:inset 0 0 0 2px rgba(247,197,72,.3),inset 0 10px 40px rgba(0,0,0,.35),inset 0 -20px 50px rgba(0,0,0,.3)}
+.felt::before{content:"";position:absolute;inset:8% 10%;border-radius:50%/30%;border:1.5px solid rgba(255,255,255,.09)}
+.center{position:absolute;left:50%;top:47.5%;z-index:2;transform:translate(-50%,-50%);width:66cqw;display:grid;justify-items:center;gap:2cqh;text-align:center}
+.felt-logo{font-family:var(--display);font-weight:900;font-size:min(20cqw,110px);line-height:.8;letter-spacing:.02em;text-transform:uppercase;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.25),0 0 30px rgba(255,255,255,.2)}
+.felt-logo.small{font-size:min(12cqw,64px);line-height:.86}
+.felt-logo.code{letter-spacing:.14em;margin-right:-.14em;color:var(--gold);text-shadow:0 4px 0 rgba(90,52,0,.5),0 0 30px rgba(247,197,72,.35)}
+.felt-sub{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(243,239,219,.75)}
+.banner{position:absolute;inset:0;z-index:6;display:grid;place-content:center;justify-items:center;gap:6px;text-align:center;pointer-events:none;background:radial-gradient(closest-side,rgba(11,6,13,.82),rgba(11,6,13,0));animation:banner 2s ease both}
+.banner-t{font-family:var(--display);font-weight:900;font-size:min(15cqw,74px);line-height:.85;text-transform:uppercase;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.35),0 0 30px rgba(255,90,31,.6);max-width:80cqw}
+@keyframes banner{0%{opacity:0;transform:scale(.85)}14%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+
+
+/* ---------- het veld van 6 bij 6 ----------
+   Midden op het vilt; kolommen 1 tot en met 6 van links naar rechts, rijen 1 tot en met 6 van boven naar onder.
+   Kaarten, mijnen en de plekken om een mijn neer te leggen staan op --x en --y (procenten van het veld). */
+.field{position:absolute;left:50%;top:48%;z-index:2;--cw:min(8.2cqw,6.4cqh,50px);width:calc(var(--cw) * 6.7);height:calc(var(--cw) * 8.5);transform:translate(-50%,-50%)}
+.field .cell,.field .mine,.field .spot,.field .lab{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%)}
+.cell{width:calc(100% / 6.7);height:calc(100% / 8.5 * 1.3);border-radius:calc(var(--cw) * .14);display:grid;place-items:center;font-family:var(--display);font-weight:900;line-height:.85}
+.cell.down{background:radial-gradient(circle at 50% 50%,rgba(255,176,32,.28) 0 14%,transparent 15%),repeating-linear-gradient(45deg,rgba(255,176,32,.16) 0 2px,transparent 2px 7px),linear-gradient(160deg,#41204b,#22102a);box-shadow:inset 0 0 0 max(2px,calc(var(--cw) * .07)) var(--cream),0 3px 8px rgba(0,0,0,.45)}
+.cell.open{background:linear-gradient(160deg,var(--paper),var(--paper-2));color:var(--ink);box-shadow:inset 0 0 0 1px rgba(43,21,49,.2),0 2px 5px rgba(0,0,0,.35);font-size:calc(var(--cw) * .44);opacity:.86}
+.cell.open b{display:block;text-align:center;font-weight:900}
+.cell.open i{display:block;text-align:center;font-style:normal;font-size:.85em}
+.cell.red{color:var(--suit-red)}
+.cell.aim{z-index:2;opacity:1;box-shadow:inset 0 0 0 max(2px,calc(var(--cw) * .07)) var(--cream),0 0 0 3px var(--gold),0 0 22px rgba(247,197,72,.75)}
+.cell.aim::after{content:"";position:absolute;inset:-6px;border-radius:calc(var(--cw) * .2);box-shadow:0 0 0 2px var(--gold);animation:pulse 1.2s ease-in-out infinite;pointer-events:none}
+.cell.fresh{z-index:2;opacity:1}
+.cell.flip{animation:cflip .55s cubic-bezier(.3,.7,.2,1) both}
+@keyframes cflip{0%{transform:translate(-50%,-50%) scaleX(0) scale(1.25)}60%{transform:translate(-50%,-50%) scale(1.25)}100%{transform:translate(-50%,-50%)}}
+.cell.fresh.ok{box-shadow:0 0 0 3px var(--good),0 0 20px rgba(62,224,127,.7)}
+.cell.fresh.no{box-shadow:0 0 0 3px var(--bad),0 0 20px rgba(255,90,100,.75)}
+.cell.boom{animation:boomcell .7s ease-out both}
+@keyframes boomcell{0%{box-shadow:0 0 0 0 rgba(255,90,31,.9),0 0 40px 20px rgba(255,176,32,.9)}100%{box-shadow:inset 0 0 0 max(2px,calc(var(--cw) * .07)) var(--cream),0 0 0 3px var(--gold)}}
+/* de rij en kolom van de worp */
+.line{position:absolute;z-index:1;border-radius:calc(var(--cw) * .2);background:rgba(247,197,72,.13);box-shadow:inset 0 0 0 1px rgba(247,197,72,.35);pointer-events:none}
+.lab{z-index:2;font-size:10px;font-weight:700;color:rgba(243,239,219,.6);font-variant-numeric:tabular-nums}
+.lab.on{color:var(--gold);font-size:12px}
+/* een mijn: een bom met een lont, met een getal als er meer op dezelfde plek liggen */
+.mine{z-index:3;width:calc(var(--cw) * .74);height:calc(var(--cw) * .74);pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.mine svg{width:100%;height:100%;display:block}
+.mine b{position:absolute;right:-30%;top:-25%;min-width:16px;padding:0 4px;border-radius:999px;background:var(--boom);color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;box-shadow:0 0 0 1.5px #140d17}
+.mine.fresh{animation:drop .45s cubic-bezier(.2,.9,.3,1.4) both}
+@keyframes drop{from{transform:translate(-50%,-120%) scale(1.6);opacity:0}}
+/* waar je een mijn neer kunt leggen: op een kaart, tussen twee kaarten of op een hoek */
+.spot{z-index:4;width:calc(var(--cw) * .5);height:calc(var(--cw) * .5);border-radius:50%;background:rgba(255,90,31,.18);box-shadow:inset 0 0 0 2px rgba(255,176,32,.9),0 0 10px rgba(255,90,31,.5);transition:transform .1s}
+.spot.e{width:calc(var(--cw) * .36);height:calc(var(--cw) * .36);background:rgba(255,90,31,.32)}
+.spot.k{width:calc(var(--cw) * .4);height:calc(var(--cw) * .4);border-radius:30%;background:rgba(255,90,31,.42)}
+.spot:hover,.spot:active{transform:translate(-50%,-50%) scale(1.25);background:var(--boom)}
+.table.shake{animation:shake .6s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes shake{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(4px,-2px)}30%,50%,70%{transform:translate(-6px,2px)}40%,60%{transform:translate(6px,-2px)}}
+.flash{position:absolute;inset:0;z-index:7;pointer-events:none;background:radial-gradient(circle at 50% 48%,rgba(255,220,120,.9),rgba(255,90,31,.6) 30%,transparent 65%);animation:flash .7s ease-out both}
+@keyframes flash{from{opacity:1}to{opacity:0}}
+
+/* stoelen */
+.seat{--ava:clamp(34px,12.5cqmin,54px);position:absolute;left:50%;top:50%;z-index:3;width:var(--ava);height:var(--ava);margin:calc(var(--ava) / -2) 0 0 calc(var(--ava) / -2);display:block;color:var(--cream);transition:opacity .3s,filter .3s}
+.ava{position:absolute;inset:0;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 32% 26%,rgba(255,255,255,.55),rgba(255,255,255,0) 46%),var(--pc);box-shadow:0 0 0 3px #140d17,0 0 0 4.5px rgba(255,255,255,.22),0 10px 20px rgba(0,0,0,.55);font-family:var(--display);font-weight:900;font-size:calc(var(--ava) * .52);line-height:1;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.35);transition:transform .1s}
+.seat.empty .ava{background:rgba(0,0,0,.35);box-shadow:0 0 0 2px rgba(255,255,255,.18);color:rgba(255,255,255,.55);border:1.5px dashed rgba(255,255,255,.35)}
+.seat.off .ava{filter:grayscale(1) brightness(.7)}
+.seat.now .ava{box-shadow:0 0 0 3px #140d17,0 0 0 5px var(--gold),0 0 26px rgba(247,197,72,.6),0 10px 20px rgba(0,0,0,.55)}
+.seat.now::before{content:"";position:absolute;inset:-10px;border-radius:50%;background:conic-gradient(var(--gold),rgba(247,197,72,0) 40%,rgba(247,197,72,0) 60%,var(--gold));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));animation:spin 2.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.plate{position:absolute;left:50%;top:calc(100% - 7px);z-index:1;transform:translateX(-50%);min-width:calc(var(--ava) * 1.75);max-width:calc(var(--ava) * 2.4);padding:3px 8px 4px;border-radius:9px;background:linear-gradient(180deg,#241b27,#0d090f);border:1px solid rgba(255,255,255,.16);box-shadow:0 6px 14px rgba(0,0,0,.55);display:grid;justify-items:center;line-height:1.2;white-space:nowrap}
+.plate b{max-width:100%;overflow:hidden;text-overflow:ellipsis;font-size:10.5px;font-weight:700;color:#fff}
+.plate span{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+.plate span.zero{color:rgba(243,239,219,.45)}
+.plate span.off{color:var(--ink-soft);font-weight:500}
+.plate svg{width:11px;height:11px}
+.seat.now .plate{border-color:var(--gold)}
+.seat.me .plate{background:linear-gradient(180deg,#3a2240,#160c19);border-color:rgba(214,144,201,.6)}
+button.seat{cursor:pointer}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+button.seat:active .ava{transform:scale(.94)}
+.tagwrap{position:absolute;left:50%;top:50%;z-index:4;width:0;height:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.tag{flex:none;transform:translateX(var(--tx,0px)) rotate(-5deg);padding:4px 9px 5px;border-radius:8px;font-family:var(--display);font-weight:900;font-size:calc(var(--ava) * .34 + 3px);line-height:1;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;color:#2a1600;background:linear-gradient(180deg,#ffe892,#f7c548 50%,#d99a17);box-shadow:0 0 0 2px #2a1600,0 6px 18px rgba(0,0,0,.5),0 0 24px rgba(247,197,72,.55);animation:tagin .45s cubic-bezier(.2,.9,.3,1.4) both}
+.tag.bad{color:#fff;background:linear-gradient(180deg,#ff7b82,#d2343f 55%,#a11d27);box-shadow:0 0 0 2px #3a0a0e,0 6px 18px rgba(0,0,0,.5),0 0 24px rgba(210,52,63,.55)}
+@keyframes tagin{from{transform:translateX(var(--tx,0px)) scale(.4) rotate(-14deg);opacity:0}}
+.dealer{position:absolute;z-index:2;width:22px;height:22px;border-radius:50%;transform:translate(-50%,-50%);display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#fff,#e4dec2);color:var(--plum);font-size:10px;font-weight:700;box-shadow:0 0 0 2px rgba(0,0,0,.35),0 3px 6px rgba(0,0,0,.5)}
+
+/* ---------- actiebalk ---------- */
+.dock{position:relative;z-index:5;margin:0 -16px;padding:16px 16px calc(14px + env(safe-area-inset-bottom,0px));border-radius:24px 24px 0 0;background:linear-gradient(180deg,#26152c,#120a15 70%);border-top:1px solid rgba(255,255,255,.14);box-shadow:0 -14px 40px rgba(0,0,0,.45);display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.dock h2{font-size:32px;line-height:.92;color:#fff}
+.dock h2.good-h{color:var(--good)}
+.sub{font-size:var(--s2);color:var(--ink-soft);line-height:1.5}
+.sub b{color:#fff}
+.fine{font-size:10.5px;color:rgba(243,239,219,.55);line-height:1.45}
+.fine.warn{color:var(--gold)}
+.waitline{font-size:var(--s2);color:var(--ink-soft)}
+.waitline::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.4s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+.ask-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.sharebtn{display:inline-flex;align-items:center;gap:7px;flex:none;padding:8px 14px;border-radius:999px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--glass-line);font-size:var(--s1);font-weight:700;color:var(--cream)}
+.sharebtn svg{width:14px;height:14px}
+/* de pot: groeit met elke goede gok */
+.potchip{flex:none;display:inline-flex;align-items:baseline;gap:6px;padding:6px 13px;border-radius:999px;background:rgba(247,197,72,.14);box-shadow:inset 0 0 0 1px rgba(247,197,72,.5);font-size:var(--s1);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gold)}
+.potchip b{font-family:var(--display);font-weight:900;font-size:24px;line-height:.8;letter-spacing:0;color:#fff;font-variant-numeric:tabular-nums}
+.pop{animation:pop .35s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes pop{from{transform:translateY(10px);opacity:.3}}
+.res-h{display:grid;gap:4px}
+.verdict{font-family:var(--display);font-weight:900;font-size:46px;line-height:.86;text-transform:uppercase}
+.res-h.good .verdict{color:var(--good)}
+.res-h.bad .verdict{color:var(--bad)}
+.action{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);font-family:var(--display);font-weight:800;font-size:24px;line-height:1.05;color:#fff}
+.action svg{width:20px;height:20px;flex:none;color:var(--gold)}
+.action small{display:block;margin-top:3px;font-family:var(--mono);font-size:10.5px;font-weight:500;color:var(--ink-soft)}
+/* rood of zwart */
+.rz{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rz button{display:grid;justify-items:center;gap:2px;padding:12px 8px 11px;border-radius:18px;font-family:var(--display);font-weight:900;font-size:30px;line-height:1;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 -4px 0 rgba(0,0,0,.25),0 8px 20px rgba(0,0,0,.4);transition:transform .1s}
+.rz button:active{transform:translateY(2px)}
+.rz button small{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:.2em}
+.rz .red{background:linear-gradient(180deg,#ff6a70,#d2343f 55%,#a11d27)}
+.rz .black{background:linear-gradient(180deg,#4d3a52,#24132a 55%,#120a15);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),inset 0 -4px 0 rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,255,255,.18),0 8px 20px rgba(0,0,0,.4)}
+.rz button:disabled{opacity:.45}
+.standing{display:grid;gap:2px;font-size:var(--s1);color:var(--ink-soft)}
+.standing div{display:flex;justify-content:space-between;gap:10px;padding:4px 2px;border-bottom:1px dashed rgba(255,255,255,.1)}
+.standing div:last-child{border-bottom:0}
+.standing b{color:#fff;font-weight:700}
+.standing i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--pc);margin-right:6px}
+
+.seg{display:flex;gap:2px;padding:4px;border-radius:999px;background:rgba(255,255,255,.1);flex:none}
+.seg button{min-width:40px;border-radius:999px;padding:7px 10px;font-size:var(--s1);font-weight:700;color:var(--ink-soft)}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--plum)}
+.optrow{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:700;color:#fff}
+.minechip{flex:none;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(255,90,31,.14);box-shadow:inset 0 0 0 1px rgba(255,176,32,.5);font-size:var(--s1);font-weight:700;color:var(--amber);white-space:nowrap}
+.minechip svg{width:16px;height:16px}
+/* de twee stenen: blauw is de kolom, goud de rij */
+.dice{display:flex;align-items:center;gap:14px}
+.die{position:relative;flex:none;width:46px;height:46px;border-radius:11px;background:linear-gradient(160deg,#fffdf4,#e9e0c2);box-shadow:inset 0 -3px 0 rgba(43,21,49,.18),0 0 0 3px var(--dc),0 6px 14px rgba(0,0,0,.45);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:7px}
+.die i{width:8px;height:8px;margin:auto;border-radius:50%;background:var(--ink);visibility:hidden}
+.die i.on{visibility:visible}
+.die small{position:absolute;left:50%;top:calc(100% + 6px);transform:translateX(-50%);font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dc);white-space:nowrap}
+.die.roll{animation:roll .6s cubic-bezier(.2,.8,.2,1) both}
+.die.roll+.die.roll{animation-delay:.08s}
+@keyframes roll{0%{transform:translateY(-30px) rotate(-200deg) scale(.6);opacity:0}70%{transform:rotate(12deg)}}
+.dicewrap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;padding-bottom:12px}
+.dock h2.boom-h{color:var(--boom)}
+
+/* ---------- start ---------- */
+.table.lobby.home{flex:none;height:min(340px,46svh);min-height:260px;margin-bottom:-4px}
+.startcard{padding:20px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.startcard>p{font-size:var(--s3);line-height:1.55}
+.fld{display:grid;gap:6px;font-size:var(--s1);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--plum-2)}
+.inp{width:100%;min-width:0;height:50px;padding:0 18px;border:0;border-radius:999px;background:#fff;color:var(--plum);font-size:16px;box-shadow:inset 0 0 0 1.5px rgba(43,21,49,.2)}
+.inp::placeholder{color:#9b8aa0}
+.inp:focus{outline:none;box-shadow:inset 0 0 0 2px var(--pink-2)}
+.inp.code{flex:1;text-transform:uppercase;letter-spacing:.3em;font-weight:700}
+.addrow{display:flex;gap:8px}
+.addbtn{flex:none;height:50px;padding:0 18px;border-radius:999px;background:var(--plum);color:var(--cream);font-weight:700}
+.addbtn:disabled{opacity:.4}
+.or{display:flex;align-items:center;gap:12px;font-size:var(--s1);color:var(--plum-2)}
+.or::before,.or::after{content:"";flex:1;height:1px;background:rgba(43,21,49,.2)}
+.errline{padding:10px 14px;border-radius:14px;background:#fde3e3;color:#a11d27;font-size:var(--s2);font-weight:700}
+.note{font-size:var(--s1);color:var(--ink-soft);text-align:center}
+
+/* ---------- vellen ---------- */
+.overlay{position:fixed;inset:0;z-index:50;display:grid;align-items:end;justify-items:center;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));background:rgba(11,6,13,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.sheet{width:min(520px,100%);max-height:calc(100dvh - 40px);overflow:auto;overscroll-behavior:contain;padding:22px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.sheet.anim{animation:up .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{transform:translateY(30px);opacity:0}}
+.sheet-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.sheet-title{font-weight:900;font-size:44px;line-height:.9}
+.xbtn{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--cream-2);flex:none;font-size:18px}
+.xbtn:hover{background:var(--cream-3)}
+.sheet .kick{color:var(--plum-2)}
+.sheet>p{font-size:var(--s3);line-height:1.55}
+.mlist{display:grid}
+.mlist>*{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:11px 0;border-bottom:1px dashed rgba(43,21,49,.2);font-family:var(--display);font-weight:700;font-size:30px;line-height:1.1;text-align:left;text-decoration:none;color:var(--plum)}
+.mlist>button:hover,.mlist>a:hover{color:var(--pink-2)}
+.mlist span{font-family:var(--mono);font-size:var(--s1);font-weight:500;color:var(--plum-2)}
+.rules{display:grid;gap:10px;font-size:var(--s2);line-height:1.55}
+.rules ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.rules .small{font-size:var(--s1);color:var(--plum-2)}
+.scorecard{padding:0}
+.scorecard table{width:100%;border-collapse:collapse;font-size:var(--s1)}
+.scorecard th{padding:9px 4px 7px;text-align:right;font-size:9.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--plum-2)}
+.scorecard td{padding:8px 4px;text-align:right;border-top:1px solid rgba(43,21,49,.12);font-variant-numeric:tabular-nums;font-weight:700}
+.scorecard th:first-child,.scorecard td:first-child{text-align:left}
+.scorecard td:first-child{font-family:var(--display);font-size:20px;font-weight:800}
+.scorecard td:first-child i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--pc);margin-right:7px;vertical-align:2px}
+
+.toasts{position:fixed;left:50%;top:calc(66px + env(safe-area-inset-top,0px));z-index:60;transform:translateX(-50%);display:grid;gap:6px;justify-items:center;width:max-content;max-width:calc(100vw - 24px);pointer-events:none}
+.toasts div{padding:9px 15px;border-radius:999px;background:var(--cream);color:var(--plum);font-size:var(--s1);font-weight:700;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.45);animation:toast 2.8s ease both}
+.toasts div.net{background:#2a1631;color:var(--gold);box-shadow:inset 0 0 0 1px rgba(247,197,72,.5),0 10px 30px rgba(0,0,0,.45);animation:none}
+@keyframes toast{0%{opacity:0;transform:translateY(-8px)}8%{opacity:1;transform:none}88%{opacity:1}100%{opacity:0}}
+.confetti{position:fixed;inset:0;z-index:40;overflow:hidden;pointer-events:none}
+.confetti i{position:absolute;top:-24px;width:8px;height:14px;border-radius:2px;animation:fall var(--t) cubic-bezier(.2,.6,.4,1) var(--dl) forwards}
+@keyframes fall{to{transform:translate(var(--x),112vh) rotate(var(--r))}}
+
+@media (max-width:379px){.brand{font-size:20px}}
+@media (max-width:339px){.brand span{display:none}}
+@media (max-height:720px){
+  .dock{padding-top:12px;gap:8px}
+  .dock h2{font-size:27px}
+  .verdict{font-size:40px}
+  .fine{display:none}
+  .rz button{padding:9px 8px 8px;font-size:26px}
+  .view.game{grid-template-rows:minmax(280px,1fr) auto}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<div class="stars" aria-hidden="true"></div>
+
+<div class="app">
+  <header class="bar">
+    <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="14" r="7.5" fill="currentColor"/><path d="M15.5 8.5l2-2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M17.5 6.5c1-1.5 2.5-1.5 3-3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="20.6" cy="3.4" r="1.9" fill="#ffd36b"/><circle cx="8" cy="11.5" r="2" fill="#150b18" opacity=".35"/></svg><span>MIJNENVELD</span></div>
+    <div class="bar-r">
+      <button class="owe glass" id="owe" type="button" data-act="mine" hidden></button>
+      <button class="round glass" type="button" data-act="menu" aria-label="Menu" aria-haspopup="dialog">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </header>
+  <main class="screen" id="screen"></main>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet cream" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
+</div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<div class="confetti" id="confetti" aria-hidden="true"></div>
+
+<script type="module">
+import * as M from '/shared/mijnenveld.js';
+import * as B from '/shared/bussen.js';
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// vaste kleur per stoel aan tafel
+const PC = ['#4f8dff', '#d690c9', '#ff7a00', '#2fbf71', '#f7c548', '#ff4a24', '#a28fe3', '#36c5d6', '#e86aa0', '#9ccf3c'];
+const SUITNAME = { harten: 'Harten', ruiten: 'Ruiten', klaveren: 'Klaveren', schoppen: 'Schoppen' };
+const ARR = '<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>';
+const GLASS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l-1.6 16.2a2 2 0 0 1-2 1.8H9.6a2 2 0 0 1-2-1.8z"/><path d="M6.6 9h10.8"/></svg>';
+const SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+const BOMB = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="14" r="7.5" fill="#1d1418" stroke="#ff9a3c" stroke-width="1.2"/><circle cx="8" cy="11.5" r="2" fill="#fff" opacity=".35"/><path d="M15.5 8.5l2-2" stroke="#6b4f3a" stroke-width="2.2" stroke-linecap="round"/><path d="M17.5 6.5c1-1.5 2.5-1.5 3-3" stroke="#c9a46a" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="20.6" cy="3.4" r="1.8" fill="#ffd36b"/></svg>';
+const SHOW_MS = 2200;   // zo lang blijft een omgedraaide kaart met de uitslag in beeld
+const DICE_COL = '#4f8dff', DICE_ROW = '#f7c548';
+// Het veld in kaartbreedtes: een kaart is 1 breed en 1,3 hoog, met 0,14 ertussen; samen 6,7 bij 8,5.
+const G = .14, CH = 1.3, FW = 6.7, FH = 8.5;
+const px = (u) => `${(u / FW * 100).toFixed(2)}%`, py = (u) => `${(u / FH * 100).toFixed(2)}%`;
+const cx = (c) => c * (1 + G) + .5, cy = (r) => r * (CH + G) + CH / 2;
+const gx = (c) => (c + 1) * (1 + G) - G / 2, gy = (r) => (r + 1) * (CH + G) - G / 2;   // de naad na kolom c of rij r
+// het midden van een plek voor een mijn: een kaart, de naad tussen twee kaarten of de hoek van vier
+function spotPos(cells) {
+  const a = cells[0], r = M.rowOf(a), c = M.colOf(a);
+  if (cells.length === 1) return [cx(c), cy(r)];
+  if (cells.length === 4) return [gx(c), gy(r)];
+  return cells[1] === a + 1 ? [gx(c), cy(r)] : [cx(c), gy(r)];
+}
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+
+/* ================= OPSLAG (alleen gemak, per telefoon) ================= */
+const KEY = { me: 'mijn-ik', table: 'mijn-tafel', mute: 'mijn-stil' };
+const store = {
+  get(k, d) { try { const v = JSON.parse(localStorage.getItem(k) ?? 'null'); return v ?? d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* opslag niet beschikbaar */ } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) { /* idem */ } },
+};
+
+// wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
+// Je naam neemt hij over van een ander spel in de speelhal als je die daar al eens hebt ingevuld.
+const me = (() => {
+  const v = store.get(KEY.me, {}) || {};
+  let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
+  if (!token) {
+    const abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_', a = new Uint8Array(24);
+    crypto.getRandomValues(a);
+    token = [...a].map((x) => abc[x & 63]).join('');
+  }
+  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik'].map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
+  const o = { token, name: typeof name === 'string' ? name.slice(0, M.NAME_MAX) : '' };
+  store.set(KEY.me, o);
+  return o;
+})();
+const urlCode = ((location.pathname.match(/^\/mijnenveld\/([A-Za-z]{4})$/) || [])[1] || new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+
+/* ================= GELUID ================= */
+const Snd = {
+  ctx: null, out: null, muted: !!store.get(KEY.mute, false),
+  ac() {
+    if (this.muted) return null;
+    if (!this.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      this.ctx = new AC();
+      this.out = this.ctx.createDynamicsCompressor();
+      this.out.connect(this.ctx.destination);
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    return this.ctx;
+  },
+  tone(f, d, { type = 'sine', vol = .15, at = 0, slide = 0, lp = 0 } = {}) {
+    const c = this.ac(); if (!c) return;
+    const t = c.currentTime + at, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f * slide), t + d);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    let node = o;
+    if (lp) { const f2 = c.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = lp; o.connect(f2); node = f2; }
+    node.connect(g); g.connect(this.out); o.start(t); o.stop(t + d + .05);
+  },
+  noise(d, { vol = .2, at = 0, freq = 2600 } = {}) {
+    const c = this.ac(); if (!c) return;
+    const t = c.currentTime + at, len = Math.ceil(c.sampleRate * d), buf = c.createBuffer(1, len, c.sampleRate), data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = buf; bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = .9; g.gain.value = vol;
+    src.connect(bp); bp.connect(g); g.connect(this.out); src.start(t);
+  },
+  chip() { this.tone(2400, .04, { type: 'triangle', vol: .08 }); this.tone(1800, .05, { type: 'triangle', vol: .06, at: .03 }); },
+  flip() { this.noise(.11, { vol: .35, freq: 3200 }); this.tone(1700, .03, { type: 'triangle', vol: .04, at: .07 }); },
+  deal() { for (let i = 0; i < 6; i++) this.noise(.07, { vol: .24, freq: 2800 + i * 200, at: i * .06 }); },
+  // de stenen rollen over tafel
+  dice() { for (let i = 0; i < 5; i++) this.noise(.05, { vol: .28, freq: 1800 + i * 300, at: i * .07 + Math.random() * .03 }); },
+  // een mijn: een diepe klap met gerommel
+  boom() { this.noise(.7, { vol: .9, freq: 160 }); this.noise(.35, { vol: .5, freq: 700 }); this.tone(90, .6, { type: 'sine', vol: .35, slide: .4 }); },
+  good() { [660, 880, 1320].forEach((f, i) => this.tone(f, .2, { type: 'triangle', vol: .12, at: i * .07 })); },
+  turn() { this.tone(988, .09, { type: 'triangle', vol: .1 }); this.tone(1319, .14, { type: 'triangle', vol: .1, at: .1 }); },
+  bad() { this.tone(233, .34, { type: 'sawtooth', vol: .08, slide: .6, lp: 1400 }); this.tone(175, .38, { type: 'square', vol: .05, slide: .6, at: .03, lp: 1000 }); },
+  win() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, .24, { type: 'triangle', vol: .11, at: i * .1 })); },
+};
+const buzz = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* niet ondersteund */ } };
+
+// het scherm aan laten zolang je aan tafel zit
+let wake = null;
+async function keepAwake(on) {
+  try {
+    if (on && !wake && 'wakeLock' in navigator && document.visibilityState === 'visible') {
+      wake = await navigator.wakeLock.request('screen');
+      wake.addEventListener('release', () => { wake = null; });
+    } else if (!on && wake) { const w = wake; wake = null; await w.release(); }
+  } catch (e) { wake = null; }
+}
+
+/* ================= VERBINDING ================= */
+const Net = {
+  ws: null, want: null, retry: 0, timer: 0, status: 'idle',
+  url: `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/mijnenveld`,
+  // msg wordt (opnieuw) gestuurd bij elke verbinding: zo kom je na wegvallen vanzelf terug aan tafel
+  go(msg) { this.want = msg; if (!this.send(msg)) this.open(); },
+  open() {
+    if (this.ws && this.ws.readyState <= 1) return;
+    clearTimeout(this.timer);
+    this.setStatus('connecting');
+    let ws;
+    try { ws = new WebSocket(this.url); } catch (e) { this.later(); return; }
+    this.ws = ws;
+    ws.onopen = () => { this.retry = 0; this.setStatus('open'); if (this.want) this.send(this.want); };
+    ws.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (err) { return; } onMessage(m); };
+    ws.onclose = () => { if (this.ws !== ws) return; this.ws = null; this.setStatus('closed'); if (this.want) this.later(); };
+    ws.onerror = () => {};
+  },
+  later() { clearTimeout(this.timer); this.timer = setTimeout(() => this.open(), Math.min(5000, 400 * 2 ** this.retry++)); },
+  send(o) { if (this.ws && this.ws.readyState === 1) { this.ws.send(JSON.stringify(o)); return true; } return false; },
+  stop() { this.want = null; clearTimeout(this.timer); if (this.ws) { const ws = this.ws; this.ws = null; ws.close(); } this.setStatus('idle'); },
+  setStatus(s) { this.status = s; netPill(); },
+};
+const wakeNet = () => { if (Net.want && (!Net.ws || Net.ws.readyState > 1)) { Net.retry = 0; Net.open(); } };
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { wakeNet(); if (S) keepAwake(true); } });
+addEventListener('online', wakeNet);
+setInterval(() => { if (S) Net.send({ t: 'ping' }); }, 20000);
+
+
+/* ================= STAAT ================= */
+let S = null;   // de laatste stand van de server
+const ui = {
+  joining: false, error: '', name: me.name, code: urlCode,
+  seen: 0, banner: null, bannerTimer: 0, lastView: null, lastStep: null, dockPop: false, sheet: null, sheetHtml: null, build: null,
+  show: null, showTimer: 0, showFresh: false,   // de laatst omgedraaide kaart, even met de uitslag in beeld
+  rolled: false,    // de stenen rollen nog (één keer tekenen)
+  boom: false, boomTimer: 0,   // de tafel schudt na een mijn
+  dropped: '',      // de mijn die net is neergelegd (één keer tekenen)
+  sent: -1,         // na een tik wachten op de server, zodat een dubbele tik niet twee keer telt
+  wasMine: false,
+};
+
+function onMessage(m) {
+  if (m.t === 'state') return onState(m);
+  if (m.t === 'joinFailed') {
+    Net.stop(); store.del(KEY.table);
+    S = null; ui.joining = false; ui.error = m.msg;
+    return render();
+  }
+  if (m.t === 'left') return leaveLocal(m.reason);
+  if (m.t === 'err') toast(m.msg);
+}
+
+function onState(m) {
+  // is de server bijgewerkt terwijl deze pagina openstond? Dan opnieuw laden, anders draait hier oude code.
+  // Na het laden kom je met je sleutel vanzelf weer op je eigen plek.
+  if (m.build) {
+    if (ui.build && ui.build !== m.build) { Net.stop(); location.reload(); return; }
+    ui.build = m.build;
+  }
+  const first = !S || S.code !== m.code;
+  S = m;
+  ui.joining = false; ui.error = '';
+  store.set(KEY.table, { code: m.code });
+  Net.want = { t: 'join', code: m.code, name: me.name, token: me.token };
+  if (location.pathname !== `/mijnenveld/${m.code}`) history.replaceState(null, '', `/mijnenveld/${m.code}`);
+  const seq = m.seq || 0;
+  if (first || m.phase === 'lobby' || seq < ui.seen) ui.seen = seq;   // geen oude gebeurtenissen opnieuw afspelen
+  else for (const ev of m.log || []) if (ev.seq > ui.seen) present(ev);
+  ui.seen = seq;
+  // ben jij nu aan de beurt? Even trillen en een toon
+  const mine = m.phase !== 'lobby' && m.phase !== 'klaar' && myTurn() >= 0;
+  if (mine && !ui.wasMine && !first) { buzz(60); Snd.turn(); }
+  ui.wasMine = mine;
+  keepAwake(true);
+  render();
+}
+
+function leaveLocal(reason) {
+  Net.stop();
+  store.del(KEY.table);
+  S = null; ui.banner = null; ui.sheet = null; ui.show = null; ui.code = '';
+  history.replaceState(null, '', '/mijnenveld');
+  keepAwake(false);
+  render();
+  if (reason) toast(reason);
+}
+
+function banner(title, sub = '', ms = 2000) {
+  ui.banner = { title, sub };
+  clearTimeout(ui.bannerTimer);
+  ui.bannerTimer = setTimeout(() => { ui.banner = null; render(); }, ms);
+}
+
+function show(ev) {
+  clearTimeout(ui.showTimer);
+  ui.show = ev; ui.showFresh = true;
+  ui.showTimer = setTimeout(() => { ui.show = null; render(); }, SHOW_MS);
+}
+
+// een gebeurtenis van de server laten zien en horen
+function present(ev) {
+  switch (ev.type) {
+    case 'worp':
+      ui.show = null;
+      ui.rolled = true; Snd.dice();
+      break;
+    case 'mijn':
+      // eerst de stenen laten uitrollen, dan de klap
+      setTimeout(() => {
+        if (!S) return;
+        Snd.boom(); buzz(ev.player === S.you ? [200, 60, 200] : [120]);
+        banner('Boem!', `${ev.player === S.you ? 'Jij drinkt' : `${S.players[ev.player].name} drinkt`} ${B.sipsText(ev.sips)}${ev.count > 1 ? ` (${ev.count} mijnen)` : ''}`, 2200);
+        ui.boom = true;
+        clearTimeout(ui.boomTimer);
+        ui.boomTimer = setTimeout(() => { ui.boom = false; }, 700);
+        render();
+      }, reduce ? 0 : 650);
+      break;
+    case 'gelegd':
+      ui.dropped = ev.cells.join(); Snd.chip();
+      break;
+    case 'kaart':
+      show(ev); Snd.flip();
+      setTimeout(() => {
+        if (!S) return;
+        if (ev.ok) Snd.good(); else Snd.bad();
+        if (!ev.ok && ev.player === S.you) buzz([90, 50, 90]);
+      }, 350);
+      break;
+    case 'klaar':
+      banner('Veld leeg!', 'Alle kaarten liggen open', 2400);
+      Snd.win(); celebrate();
+      break;
+    case 'nieuw':
+      banner('Nieuw mijnenveld', `${M.MINES} mijnen verstopt`);
+      Snd.deal();
+      break;
+  }
+}
+
+/* ================= BOUWSTENEN ================= */
+const nameOf = (i) => esc(S.players[i].name);
+const who = (i) => i === S.you ? 'Jij' : nameOf(i);
+const initial = (name) => [...name.trim()][0]?.toUpperCase() || '?';
+const isHost = () => S && S.you === S.host;
+const order = () => S.players.map((_, k) => (S.you + k) % S.players.length);
+const liveCount = () => S.players.filter((p) => p.connected).length;
+const label = (c) => `<b>${B.label(c)}</b>`;
+const spoken = (c) => `${SUITNAME[B.SUITS[c.s].id]} ${B.RANK_NAME[c.r] || c.r}`;
+const slok = (n) => B.sipsText(n);
+const place = (i) => `kolom ${M.colOf(i) + 1}, rij ${M.rowOf(i) + 1}`;
+// de laatste gebeurtenis van een soort (uit het logboek van de server)
+const lastOf = (type) => (S.log || []).filter((e) => e.type === type).at(-1) || null;
+// de mijn van de worp van nu, als die er was
+const boomNow = () => { const w = lastOf('worp'), b = lastOf('mijn'); return w && b && b.seq > w.seq && b.target === S.target ? b : null; };
+// voor wie jij nu mag gooien, leggen en gokken: jezelf, of als host iemand die weg is
+const myTurn = () => {
+  const t = S.turn;
+  if (t == null || t < 0 || S.phase === 'klaar') return -1;
+  return t === S.you ? t : isHost() && !S.players[t].connected ? t : -1;
+};
+
+// Waar wie aan de beurt is een mijn neer kan leggen: op een dichte kaart, tussen twee of op de hoek van vier
+// (nooit op de kaart van de worp).
+function placeSpots() {
+  const free = (i) => !S.cards[i] && i !== S.target;
+  const out = [];
+  for (let i = 0; i < M.SIZE; i++) {
+    if (!free(i)) continue;
+    const r = M.rowOf(i), c = M.colOf(i);
+    out.push([i]);
+    if (c < M.SIDE - 1 && free(i + 1)) out.push([i, i + 1]);
+    if (r < M.SIDE - 1 && free(i + M.SIDE)) out.push([i, i + M.SIDE]);
+    if (c < M.SIDE - 1 && r < M.SIDE - 1 && free(i + 1) && free(i + M.SIDE) && free(i + M.SIDE + 1)) out.push([i, i + 1, i + M.SIDE, i + M.SIDE + 1]);
+  }
+  return out;
+}
+const spotName = (cells) => cells.length === 1 ? `op ${place(cells[0])}` : cells.length === 2 ? `tussen ${place(cells[0])} en ${place(cells[1])}` : `op de hoek van ${place(cells[0])} tot en met ${place(cells[3])}`;
+
+// Het veld. cards: 36 × (kaart of null), mines: [{ cells, count }], target: de kaart van de worp,
+// dice: [kolom, rij], fresh: de net omgedraaide kaart { i, ok, flip }, spots: plekken om een mijn neer te leggen.
+function fieldHTML({ cards, mines = [], target = -1, dice = null, fresh = null, spots = null }) {
+  let h = '';
+  if (dice) {
+    const c = dice[0] - 1, r = dice[1] - 1;
+    h += `<span class="line" style="left:${px(c * (1 + G) - .06)};width:${px(1.12)};top:-1%;height:102%"></span>`;
+    h += `<span class="line" style="top:${py(r * (CH + G) - .06)};height:${py(CH + .12)};left:-1%;width:102%"></span>`;
+  }
+  for (let k = 0; k < M.SIDE; k++) {
+    h += `<span class="lab${dice && dice[0] === k + 1 ? ' on' : ''}" style="--x:${px(cx(k))};--y:${py(-.3)}">${k + 1}</span>`;
+    h += `<span class="lab${dice && dice[1] === k + 1 ? ' on' : ''}" style="--x:${px(-.3)};--y:${py(cy(k))}">${k + 1}</span>`;
+  }
+  cards.forEach((card, i) => {
+    const pos = `--x:${px(cx(M.colOf(i)))};--y:${py(cy(M.rowOf(i)))}`;
+    const isFresh = fresh && fresh.i === i;
+    if (card) {
+      h += `<span class="cell open${B.isRed(card) ? ' red' : ''}${isFresh ? ` fresh ${fresh.ok ? 'ok' : 'no'}${fresh.flip ? ' flip' : ''}` : ''}" style="${pos}" role="img" aria-label="${spoken(card)}"><span><b>${B.rankLabel(card)}</b><i>${B.SUITS[card.s].sym}</i></span></span>`;
+    } else {
+      h += `<span class="cell down${i === target ? ` aim${ui.boom ? ' boom' : ''}` : ''}" style="${pos}" role="img" aria-label="dichte kaart, ${place(i)}"></span>`;
+    }
+  });
+  for (const m of mines) {
+    const [x, y] = spotPos(m.cells), key = m.cells.join();
+    h += `<span class="mine${ui.dropped === key ? ' fresh' : ''}" style="--x:${px(x)};--y:${py(y)}" role="img" aria-label="${m.count > 1 ? `${m.count} mijnen` : 'mijn'} ${spotName(m.cells)}">${BOMB}${m.count > 1 ? `<b>${m.count}</b>` : ''}</span>`;
+  }
+  if (spots) {
+    for (const cells of spots) {
+      const [x, y] = spotPos(cells);
+      h += `<button class="spot${cells.length === 2 ? ' e' : cells.length === 4 ? ' k' : ''}" type="button" style="--x:${px(x)};--y:${py(y)}" data-act="place" data-cells="${cells.join(',')}" aria-label="Mijn ${spotName(cells)}"></button>`;
+    }
+  }
+  return `<div class="field" role="group" aria-label="Het mijnenveld: ${cards.filter((c) => !c).length} van de ${M.SIZE} kaarten liggen nog dicht">${h}</div>`;
+}
+
+const dieHTML = (v, what, color, roll) => `<span class="die${roll ? ' roll' : ''}" style="--dc:${color}" role="img" aria-label="${what} ${v}">${Array.from({ length: 9 }, (_, k) => `<i class="${PIPS[v].includes(k) ? 'on' : ''}"></i>`).join('')}<small>${what} ${v}</small></span>`;
+const diceHTML = (d, roll = false) => `<div class="dice">${dieHTML(d[0], 'kolom', DICE_COL, roll)}${dieHTML(d[1], 'rij', DICE_ROW, roll)}</div>`;
+const mineChip = () => `<span class="minechip" title="Verstopte mijnen">${BOMB}${S.hiddenMines} verstopt</span>`;
+// waar de stenen op wezen, in één zin
+function aimLine() {
+  const w = lastOf('worp');
+  if (!w || !S.dice) return '';
+  return w.moved
+    ? `Kolom ${S.dice[0]}, rij ${S.dice[1]} lag al open: het werd de eerstvolgende dichte kaart, ${place(S.target)}.`
+    : `Kolom ${S.dice[0]}, rij ${S.dice[1]}.`;
+}
+
+// Stoelen op gelijke afstand langs de rand van de tafel: jij onderaan, daarna met de klok mee.
+const seatCache = new Map();
+function seatPositions(n, aspect) {
+  const key = `${n}:${aspect.toFixed(2)}`;
+  if (seatCache.has(key)) return seatCache.get(key);
+  // de rand in procenten van de tafel (zie .rail): zijkanten op 6% en 94%, boven- en onderkant als halve ellips
+  const rx = 44, ry = 25.5, top = 30.5, bot = 64.5, pts = [];
+  const cap = (cy, a0, a1) => { for (let k = 0; k <= 48; k++) { const a = a0 + (a1 - a0) * k / 48; pts.push([50 + rx * Math.cos(a), cy + ry * Math.sin(a)]); } };
+  cap(bot, Math.PI / 2, Math.PI);
+  cap(top, Math.PI, Math.PI * 2);
+  cap(bot, 0, Math.PI / 2);
+  // afstanden in echte verhoudingen, zodat de stoelen ook op een smalle tafel gelijk verdeeld zijn
+  const len = [0];
+  for (let i = 1; i < pts.length; i++) len.push(len[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], (pts[i][1] - pts[i - 1][1]) / aspect));
+  const total = len[len.length - 1], out = [];
+  for (let s = 0; s < n; s++) {
+    const want = total * s / n;
+    let i = 1;
+    while (i < len.length - 1 && len[i] < want) i++;
+    const t = (want - len[i - 1]) / ((len[i] - len[i - 1]) || 1);
+    out.push([pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t]);
+  }
+  seatCache.set(key, out);
+  return out;
+}
+
+// Zet de stoelen op hun plek. Valt een naambordje of label buiten het scherm, dan schuift het naar binnen.
+function placeSeats() {
+  const scr = $('#screen').getBoundingClientRect(), minX = scr.left + 4, maxX = scr.right - 4;
+  const inward = (cx, half) => cx - half < minX ? minX - (cx - half) : cx + half > maxX ? maxX - (cx + half) : 0;
+  for (const t of document.querySelectorAll('.table')) {
+    const r = t.getBoundingClientRect();
+    if (!r.width || !r.height) continue;
+    const seats = t.querySelectorAll('.seat');
+    const pos = seatPositions(seats.length, r.width / r.height);
+    seats.forEach((el, i) => {
+      const [x, y] = pos[i];
+      const cx = r.left + x / 100 * r.width;
+      const shift = inward(cx, el.querySelector('.plate').offsetWidth / 2);
+      el.style.left = shift ? `calc(${x}% + ${shift}px)` : `${x}%`;
+      el.style.top = `${y}%`;
+      const tag = el.querySelector('.tag');
+      if (tag) tag.style.setProperty('--tx', `${inward(cx + shift, tag.offsetWidth / 2 + 4)}px`);
+    });
+    const d = t.querySelector('.dealer');
+    if (d && pos.length) {
+      const [x, y] = pos[+d.dataset.seat] || pos[0];
+      d.style.left = `${x + (50 - x) * .2 + (x < 50 ? 9 : -9)}%`; d.style.top = `${y + (50 - y) * .22}%`;
+    }
+  }
+}
+
+// De tafel: rand, vilt, iets in het midden en de spelers eromheen (order: wie op welke stoel, jij eerst).
+// seat(i) -> { now, kick, tag: [soort, tekst] }
+function tableHTML({ order: seatsOrder, people, center = '', seat = () => ({}), dealer = -1, cls = '' }) {
+  const seats = seatsOrder.map((i) => {
+    const p = people[i], o = seat(i) || {};
+    const btn = o.kick ? ` type="button" data-act="kickask" data-seat="${i}" aria-label="${esc(p.name)} van tafel halen"` : '';
+    const el = btn ? 'button' : 'div';
+    const line = p.empty ? '' : p.connected === false ? '<span class="off">weg</span>'
+      : p.sips != null ? `<span class="${p.sips ? '' : 'zero'}" title="Slokken gedronken">${GLASS}${p.sips}</span>` : '';
+    const isMe = S && i === S.you && !p.empty;
+    return `<${el} class="seat${o.now ? ' now' : ''}${p.empty ? ' empty' : ''}${isMe ? ' me' : ''}${p.connected === false ? ' off' : ''}" style="--pc:${PC[i % PC.length]}"${btn}>
+      <span class="ava">${p.empty ? '+' : esc(initial(p.name))}</span>
+      <span class="plate"><b>${p.empty ? 'Vrij' : esc(p.name)}</b>${line}</span>
+      ${o.tag ? `<span class="tagwrap"><span class="tag ${o.tag[0]}">${o.tag[1]}</span></span>` : ''}
+    </${el}>`;
+  }).join('');
+  const d = seatsOrder.indexOf(dealer);
+  const ban = ui.banner ? `<div class="banner"><p class="felt-sub">${esc(ui.banner.sub)}</p><p class="banner-t">${esc(ui.banner.title)}</p></div>` : '';
+  return `<div class="table ${cls}"><div class="rail"></div><div class="felt"></div>${d >= 0 ? `<span class="dealer" data-seat="${d}" title="Host" aria-hidden="true">H</span>` : ''}${center}${seats}${ban}</div>`;
+}
+
+// tijdens het spel zonder het H-rondje van de host: dat zou over het veld vallen
+const gameTable = (center, seat, cls = '') => tableHTML({ order: order(), people: S.players, center, seat, cls });
+const sheetTop = (title, kick = '', close = true) => `<div class="sheet-top"><div>${kick ? `<p class="kick">${kick}</p>` : ''}<h2 class="sheet-title" id="sheetTitle">${title}</h2></div>${close ? '<button class="xbtn" type="button" data-act="close" aria-label="Sluiten">✕</button>' : ''}</div>`;
+// de slokken per mijn: de host kiest, in de lobby en als een veld klaar is
+const mineSeg = () => `<div class="seg" role="group" aria-label="Slokken per mijn">${M.MINE_SIPS.map((n) => `<button type="button" data-act="minesips" data-n="${n}" aria-pressed="${S.mineSips === n}">${n}</button>`).join('')}</div>`;
+
+/* ================= SCHERMEN ================= */
+function vHome() {
+  const empty = Array.from({ length: 4 }, () => ({ name: 'Vrije plek', empty: true }));
+  const demo = fieldHTML({ cards: Array(M.SIZE).fill(null), mines: [{ cells: [8, 9, 14, 15], count: 1 }, { cells: [27], count: 2 }] });
+  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: demo });
+  const busy = ui.joining ? 'disabled' : '';
+  return `
+  ${table}
+  <div class="startcard cream">
+    <div class="chips"><span class="chip">${M.MIN_PLAYERS} tot ${M.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
+    <p>36 kaarten in een veld van 6 bij 6, met ${M.MINES} verstopte mijnen. Gooi de stenen: de eerste is de kolom, de tweede de rij. Land je op een mijn, dan drink je en leg je hem ergens anders neer. Daarna gok je rood of zwart.</p>
+    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${M.NAME_MAX}" placeholder="Bijvoorbeeld Jort" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
+    <form class="addrow" id="joinForm" autocomplete="off">
+      <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
+      <button class="addbtn" type="submit" ${busy}>Meedoen</button>
+    </form>
+    <div class="or">of</div>
+    <button class="cta" type="button" data-act="create" ${busy}><span>${ui.joining ? 'Verbinden…' : 'Nieuwe tafel'}</span>${ARR}</button>
+    ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
+    <button class="ghostbtn" type="button" data-act="rules">Spelregels</button>
+  </div>
+  <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
+}
+
+function vLobby() {
+  const n = S.players.length, host = isHost(), short = M.MIN_PLAYERS - liveCount();
+  const table = tableHTML({
+    order: order(), people: S.players, cls: 'lobby', dealer: S.host,
+    center: `<div class="center"><p class="felt-sub">Code van de tafel</p><div class="felt-logo code">${S.code}</div><p class="felt-sub">${n} van ${M.MAX_PLAYERS} plekken</p></div>`,
+    seat: (i) => ({ kick: host && i !== S.you, now: i === S.host }),
+  });
+  const dock = `<div class="ask-h"><h2>${host ? 'Jij bent de host' : 'Je zit aan tafel'}</h2><button class="sharebtn" type="button" data-act="share">${SHARE}Uitnodigen</button></div>
+    <p class="sub">Vrienden doen mee met code <b>${S.code}</b> of met de link. De host gooit als eerste.</p>
+    ${host ? `<div class="optrow"><span>Slokken per mijn</span>${mineSeg()}</div>` : `<p class="sub">Een mijn is <b>${slok(S.mineSips)}</b>, fout gokken ${slok(M.WRONG_SIPS)}.</p>`}
+    ${host
+      ? `<button class="cta" type="button" data-act="start" ${short > 0 ? 'disabled' : ''}><span>${short > 0 ? `Wacht op ${short} ${short === 1 ? 'speler' : 'spelers'}` : 'Start het spel'}</span>${ARR}</button>
+        ${n > 1 ? '<p class="fine">Tik op een speler om die van tafel te halen.</p>' : ''}`
+      : `<p class="waitline">Wachten tot ${nameOf(S.host)} het spel start</p>`}
+    <button class="linkbtn" type="button" data-act="leaveask">Verlaat tafel</button>`;
+  return `${table}<div class="dock">${dock}</div>`;
+}
+
+function vSpel() {
+  const ev = ui.show, actor = myTurn(), placing = actor >= 0 && S.phase === 'plaatsen';
+  const aiming = S.phase === 'plaatsen' || S.phase === 'gokken';
+  const field = fieldHTML({
+    cards: S.cards, mines: S.mines, target: aiming ? S.target : -1, dice: aiming ? S.dice : null,
+    fresh: ev ? { i: ev.i, ok: ev.ok, flip: ui.showFresh } : null, spots: placing && ui.sent !== S.seq ? placeSpots() : null,
+  });
+  const boom = boomNow();
+  const seat = (i) => {
+    const o = { now: S.phase !== 'klaar' && i === S.turn };
+    if (ev && i === ev.player) o.tag = ev.ok ? ['', 'Goed!'] : ['bad', `Drinkt ${ev.sips}`];
+    else if (boom && i === boom.player && aiming) o.tag = ['bad', `Boem! ${boom.sips}`];
+    return o;
+  };
+  let dock;
+  if (S.phase === 'klaar') dock = doneDock();
+  else if (actor >= 0) dock = myDock(actor, ev);
+  else dock = ev ? resultDock(ev) : waitDock();
+  // na een mijn schudt de tafel en flitst het vilt
+  return `${gameTable(field + (ui.boom ? '<div class="flash"></div>' : ''), seat, ui.boom ? 'shake' : '')}<div class="dock${ui.dockPop ? ' pop' : ''}">${dock}</div>`;
+}
+
+// de uitslag van de laatste kaart, in één zin
+const resultLine = (ev) => `${who(ev.player)} gokte ${ev.color} en het was ${label(ev.card)}.`;
+
+// Jij bent aan de beurt (of je speelt als host voor iemand die weg is).
+function myDock(actor, ev) {
+  const forNote = actor !== S.you ? `<p class="fine warn">${nameOf(actor)} is weg. Jij speelt nu voor ${nameOf(actor)}.</p>` : '';
+  const busy = ui.sent === S.seq ? 'disabled' : '';
+  if (S.phase === 'gooien') {
+    const fout = ev && ev.player === actor && !ev.ok;
+    return `${forNote}<div class="ask-h"><h2 class="${fout ? 'boom-h' : ''}">${fout ? `Fout! Drink ${ev.sips}` : actor === S.you ? 'Jij gooit' : `Jij gooit voor ${nameOf(actor)}`}</h2>${mineChip()}</div>
+      ${fout ? `<p class="sub">${resultLine(ev)} Probeer het opnieuw: gooi nog een keer.</p>` : '<p class="sub">De eerste steen is de kolom, de tweede de rij. Ligt daar een mijn, dan ontploft hij.</p>'}
+      <button class="cta hot" type="button" data-act="roll" ${busy}><span>Gooi de stenen</span>${ARR}</button>`;
+  }
+  const dice = `<div class="dicewrap">${diceHTML(S.dice, ui.rolled)}<p class="sub">${aimLine()}</p></div>`;
+  if (S.phase === 'plaatsen') {
+    const boom = boomNow();
+    return `${forNote}<div class="ask-h"><h2 class="boom-h">Boem!${boom ? ` Drink ${boom.sips}` : ''}</h2>${mineChip()}</div>${dice}
+      <p class="sub">Leg de mijn ergens anders neer: tik op een kaart, tussen twee kaarten of op een hoek (dan raakt hij er vier).${S.hit > 1 ? ` Nog <b>${S.hit}</b> mijnen.` : ''}</p>`;
+  }
+  return `${forNote}<div class="ask-h"><h2>Rood of zwart?</h2>${mineChip()}</div>${dice}
+    <div class="rz"><button class="red" type="button" data-act="guess" data-c="rood" ${busy}>Rood<small>♥♦</small></button><button class="black" type="button" data-act="guess" data-c="zwart" ${busy}>Zwart<small>♣♠</small></button></div>
+    <p class="fine">Goed: de volgende is aan de beurt. Fout: ${slok(M.WRONG_SIPS)} en je gooit opnieuw.</p>`;
+}
+
+function waitDock() {
+  const t = S.turn;
+  const doing = { gooien: 'gooit de stenen', plaatsen: 'legt de mijn ergens anders neer', gokken: 'gokt rood of zwart' }[S.phase];
+  const dice = S.phase !== 'gooien' && S.dice ? `<div class="dicewrap">${diceHTML(S.dice, ui.rolled)}<p class="sub">${aimLine()}</p></div>` : '';
+  return `<div class="ask-h"><h2>${nameOf(t)} is aan de beurt</h2>${mineChip()}</div>${dice}
+    <p class="waitline">${nameOf(t)} ${doing}</p>`;
+}
+
+function resultDock(ev) {
+  return `<div class="ask-h"><div class="res-h ${ev.ok ? 'good' : 'bad'}"><span class="verdict">${ev.ok ? 'Goed!' : 'Fout!'}</span></div>${mineChip()}</div>
+    <p class="sub">${resultLine(ev)}</p>
+    ${ev.ok ? '' : `<div class="action">${GLASS}<span>${ev.player === S.you ? 'Jij drinkt' : `${nameOf(ev.player)} drinkt`} ${slok(ev.sips)}</span></div>`}`;
+}
+
+function doneDock() {
+  const rows = S.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.sips - a.p.sips).map(({ p, i }) =>
+    `<div style="--pc:${PC[i % PC.length]}"><span><i></i>${who(i)}</span><b>${slok(p.sips)}</b></div>`).join('');
+  return `<div class="ask-h"><h2>Veld leeg!</h2><span class="potchip">Ronde <b>${S.round}</b></span></div>
+    <p class="sub">Alle kaarten liggen open en alle mijnen zijn ontploft.</p>
+    <div class="standing">${rows}</div>
+    ${isHost()
+      ? `<div class="optrow"><span>Slokken per mijn</span>${mineSeg()}</div><button class="cta hot" type="button" data-act="next"><span>Nieuw mijnenveld</span>${ARR}</button>`
+      : `<p class="waitline">Wachten tot ${nameOf(S.host)} een nieuw veld legt</p>`}`;
+}
+
+/* ================= VELLEN ================= */
+function menuHTML() {
+  const host = isHost(), game = S && S.phase !== 'lobby';
+  return `${sheetTop('Menu')}
+  <nav class="mlist">
+    <button type="button" data-act="rules">Spelregels <span>›</span></button>
+    ${game ? '<button type="button" data-act="score">Stand <span>›</span></button>' : ''}
+    <button type="button" data-act="mute">Geluid <span>${Snd.muted ? 'uit' : 'aan'}</span></button>
+    ${S ? `<button type="button" data-act="share">Uitnodigen <span>${S.code}</span></button>` : ''}
+    ${game && host ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
+    ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
+    <a href="/">Naar de speelhal <span>›</span></a>
+  </nav>`;
+}
+
+function scoreHTML() {
+  const rows = S.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.sips - a.p.sips);
+  return `${sheetTop('Stand')}
+  <div class="scorecard"><table>
+    <thead><tr><th>Speler</th><th>Slokken</th><th>Mijnen</th><th>Goed</th><th>Fout</th></tr></thead>
+    <tbody>${rows.map(({ p, i }) => `<tr style="--pc:${PC[i % PC.length]}"><td><i></i>${esc(p.name)}</td><td>${p.sips}</td><td>${p.mines}</td><td>${p.right}</td><td>${p.wrong}</td></tr>`).join('')}</tbody>
+  </table></div>
+  <p class="sub">Slokken: hoeveel iemand moest drinken. Mijnen: op hoeveel mijnen iemand landde. Goed en fout: hoe vaak iemand de kleur goed of fout gokte.</p>`;
+}
+
+function rulesHTML() {
+  const mine = S ? S.mineSips : M.MINE_DEFAULT;
+  return `${sheetTop('Spelregels', 'Mijnenveld')}
+  <div class="rules">
+    <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander.</p>
+    <ol>
+      <li><b>Het veld.</b> ${M.SIZE} kaarten liggen dicht in een veld van 6 bij 6. Ertussen liggen ${M.MINES} verstopte mijnen.</li>
+      <li><b>Gooien.</b> Wie aan de beurt is, gooit twee stenen: de eerste (blauw) is de kolom van links, de tweede (goud) de rij van boven. Ligt die kaart al open, dan wordt het de eerstvolgende dichte kaart.</li>
+      <li><b>Boem.</b> Ligt er een mijn op die kaart, dan drink je ${slok(mine)} per mijn. Daarna leg je de mijn ergens anders neer: op een kaart, tussen twee kaarten of op de hoek van vier kaarten (dan raakt hij ze alle vier). Verlegde mijnen ziet iedereen.</li>
+      <li><b>Gokken.</b> Daarna gok je of de kaart rood of zwart is, en de kaart gaat open. Goed: de volgende is aan de beurt. Fout: je drinkt ${slok(M.WRONG_SIPS)} en gooit opnieuw.</li>
+      <li><b>Klaar.</b> Liggen alle kaarten open, dan is het veld leeg. De host kan een nieuw veld leggen; de stand blijft staan.</li>
+    </ol>
+    <p class="small">De host kiest in de lobby hoeveel slokken een mijn is: 3, 5 of 10. Valt wie aan de beurt is weg, dan is de volgende aan de beurt; moest hij nog een mijn leggen, dan legt de server die. Drink met mate: water of karnemelk telt ook.</p>
+  </div>`;
+}
+
+function openSheet(key, html) { ui.sheet = { key, html }; renderSheet(); }
+function closeSheet() { ui.sheet = null; renderSheet(); }
+
+function renderSheet() {
+  const ov = $('#overlay'), sh = $('#sheet');
+  if (!ui.sheet) { if (!ov.hidden) { ov.hidden = true; sh.innerHTML = ''; } ui.sheetHtml = null; return; }
+  const wasHidden = ov.hidden;
+  if (!wasHidden && ui.sheetHtml === ui.sheet.html) return;
+  sh.innerHTML = ui.sheet.html;
+  sh.classList.toggle('anim', wasHidden);
+  ov.hidden = false;
+  ui.sheetHtml = ui.sheet.html;
+  if (wasHidden) { const first = sh.querySelector('button, a'); if (first) first.focus({ preventScroll: true }); }
+}
+
+function toast(msg, cls = '') {
+  const box = $('#toasts'), el = document.createElement('div');
+  el.textContent = msg; if (cls) el.className = cls;
+  box.appendChild(el);
+  while (box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => el.remove(), 2800);
+}
+
+function netPill() {
+  const box = $('#toasts');
+  let el = box.querySelector('.net');
+  const bad = S && Net.status !== 'open';
+  if (bad && !el) { el = document.createElement('div'); el.className = 'net'; el.textContent = 'Verbinding kwijt, opnieuw verbinden…'; box.prepend(el); }
+  if (!bad && el) el.remove();
+}
+
+function celebrate() {
+  if (reduce) return;
+  const box = $('#confetti'), cols = ['#f7c548', '#ffb020', '#ff5a1f', '#2fbf71', '#4f8dff', '#f3efdb'];
+  box.innerHTML = Array.from({ length: 70 }, () => `<i style="left:${(Math.random() * 100).toFixed(1)}%;background:${cols[Math.floor(Math.random() * cols.length)]};--t:${(2.4 + Math.random() * 2).toFixed(2)}s;--dl:${(Math.random() * .6).toFixed(2)}s;--x:${Math.round((Math.random() - .5) * 160)}px;--r:${Math.round(360 + Math.random() * 720)}deg"></i>`).join('');
+  setTimeout(() => { box.innerHTML = ''; }, 5200);
+}
+
+
+/* ================= TEKENEN ================= */
+function view() {
+  if (!S) return 'home';
+  if (S.phase === 'lobby') return 'lobby';
+  return S.phase === 'klaar' ? 'klaar' : 'spel';
+}
+
+function render() {
+  const v = view();
+  // een nieuwe stap: het dock springt even op
+  const step = S ? `${v}:${S.turn}:${S.phase}:${!!ui.show}` : v;
+  ui.dockPop = step !== ui.lastStep;
+  ui.lastStep = step;
+  document.documentElement.dataset.view = v;
+  const scr = $('#screen');
+  const nameIn = $('#nameIn'), codeIn = $('#codeIn');
+  if (nameIn) ui.name = nameIn.value;
+  if (codeIn) ui.code = codeIn.value;
+  const keep = v === ui.lastView ? scr.scrollTop : 0;
+  const html = { home: vHome, lobby: vLobby, spel: vSpel, klaar: vSpel }[v]();
+  scr.classList.toggle('is-game', v !== 'home');
+  scr.innerHTML = `<div class="view v-${v}${v !== 'home' ? ' game' : ''}">${html}</div>`;
+  placeSeats();
+  scr.scrollTop = keep;
+  ui.lastView = v;
+  // een beweging speelt maar één keer af, ook als er tussendoor opnieuw getekend wordt
+  ui.showFresh = false;
+  ui.rolled = false;
+  ui.dropped = '';
+  const own = $('#owe');
+  if (S && S.phase !== 'lobby') {
+    const n = S.players[S.you].sips;
+    own.hidden = false;
+    own.classList.toggle('zero', !n);
+    own.innerHTML = `${GLASS}${n}`;
+    own.setAttribute('aria-label', `Jij dronk ${slok(n)}`);
+  } else own.hidden = true;
+  if (ui.sheet && ui.sheet.key === 'menu') ui.sheet.html = menuHTML();
+  if (ui.sheet && ui.sheet.key === 'score' && S) ui.sheet.html = scoreHTML();
+  renderSheet();
+  netPill();
+}
+
+/* ================= BEDIENING ================= */
+function myName() {
+  const input = $('#nameIn');
+  const name = M.cleanNames([input ? input.value : ui.name])[0] || '';
+  if (!name) { ui.error = 'Vul eerst je naam in.'; render(); const n = $('#nameIn'); if (n) n.focus(); return null; }
+  me.name = name; ui.name = name; store.set(KEY.me, me);
+  return name;
+}
+
+function joinWith(code) {
+  const name = myName();
+  if (!name) return;
+  code = String(code || '').toUpperCase().replace(/[^A-Z]/g, '');
+  if (code.length !== 4) { ui.error = 'Vul de code van 4 letters in.'; render(); return; }
+  ui.joining = true; ui.error = ''; ui.code = code;
+  Snd.ac();
+  Net.go({ t: 'join', code, name, token: me.token });
+  render();
+}
+
+// na een tik even wachten op de server, zodat een dubbele tik niet twee keer telt
+function sendOnce(msg) {
+  Snd.ac();
+  const seq = S.seq;
+  ui.sent = seq;
+  Net.send(msg);
+  setTimeout(() => { if (ui.sent === seq) { ui.sent = -1; render(); } }, 2500);
+  render();
+}
+
+
+const actions = {
+  create() {
+    const name = myName();
+    if (!name) return;
+    ui.joining = true; ui.error = '';
+    Snd.ac();
+    Net.go({ t: 'create', name, token: me.token });
+    render();
+  },
+  start() { Snd.ac(); Net.send({ t: 'start' }); },
+  share() {
+    const url = `${location.origin}/mijnenveld/${S.code}`, text = `Doe mee met Mijnenveld aan tafel ${S.code}`;
+    closeSheet();
+    if (navigator.share) navigator.share({ title: 'Mijnenveld', text, url }).catch(() => {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast('Link gekopieerd'), () => toast(url));
+    else toast(url);
+  },
+  kickask(el) {
+    const i = +el.dataset.seat;
+    openSheet('kick', `${sheetTop(`${nameOf(i)} van tafel halen?`)}
+      <p>${nameOf(i)} kan daarna opnieuw meedoen met de code.</p>
+      <button class="cta" type="button" data-act="kick" data-seat="${i}"><span>Ja, van tafel halen</span>${ARR}</button>
+      <button class="ghostbtn" type="button" data-act="close">Nee</button>`);
+  },
+  kick(el) { Net.send({ t: 'kick', seat: +el.dataset.seat }); closeSheet(); },
+  minesips(el) { Snd.ac(); Snd.chip(); Net.send({ t: 'settings', mineSips: +el.dataset.n }); },
+  roll() { sendOnce({ t: 'roll' }); },
+  place(el) { sendOnce({ t: 'place', cells: el.dataset.cells.split(',').map(Number) }); },
+  guess(el) { sendOnce({ t: 'guess', color: el.dataset.c }); },
+  next() { Snd.ac(); Net.send({ t: 'next' }); },
+  mine() {
+    const n = S.players[S.you].sips;
+    toast(n ? `Jij dronk al ${slok(n)}` : 'Jij hebt nog niks hoeven drinken');
+  },
+  menu() { openSheet('menu', menuHTML()); },
+  rules() { openSheet('rules', rulesHTML()); },
+  score() { openSheet('score', scoreHTML()); },
+  mute() { Snd.muted = !Snd.muted; store.set(KEY.mute, Snd.muted); if (!Snd.muted) Snd.chip(); openSheet('menu', menuHTML()); },
+  againask() {
+    openSheet('again', `${sheetTop('Terug naar de lobby?')}
+      <p>De stand begint dan opnieuw. In de lobby kunnen nieuwe spelers aanschuiven en kun je spelers van tafel halen.</p>
+      <button class="cta" type="button" data-act="again"><span>Ja, terug naar de lobby</span>${ARR}</button>
+      <button class="ghostbtn" type="button" data-act="close">Nee, verder spelen</button>`);
+  },
+  again() { Net.send({ t: 'again' }); closeSheet(); },
+  leaveask() {
+    openSheet('leave', `${sheetTop('Tafel verlaten?')}
+      <p>${S && S.phase !== 'lobby' ? 'Met de code kom je terug op je eigen plek, met je eigen stand.' : 'Met de code kun je later weer aanschuiven.'}</p>
+      <button class="cta" type="button" data-act="leave"><span>Ja, verlaten</span>${ARR}</button>
+      <button class="ghostbtn" type="button" data-act="close">Nee, blijven</button>`);
+  },
+  leave() { Net.send({ t: 'leave' }); leaveLocal(); },
+  close: closeSheet,
+};
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-act]');
+  if (el && !el.disabled && actions[el.dataset.act]) { actions[el.dataset.act](el); return; }
+  if (e.target === $('#overlay')) closeSheet();
+});
+document.addEventListener('submit', (e) => { if (e.target.id === 'joinForm') { e.preventDefault(); joinWith($('#codeIn').value); } });
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'codeIn') { const v = e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4); if (v !== e.target.value) e.target.value = v; }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !$('#overlay').hidden) closeSheet();
+  if (e.key === 'Enter' && e.target.id === 'nameIn') { e.preventDefault(); const c = $('#codeIn'); if (c && c.value.length === 4) joinWith(c.value); else if (c) c.focus(); }
+});
+addEventListener('resize', placeSeats);
+
+/* ================= START ================= */
+// zat je net nog aan een tafel (en open je niet een andere link)? Dan meteen terug op je plek.
+const lastTable = store.get(KEY.table, null);
+if (lastTable && typeof lastTable.code === 'string' && (!urlCode || urlCode === lastTable.code)) {
+  ui.joining = true;
+  Net.go({ t: 'join', code: lastTable.code, name: me.name, token: me.token });
+}
+render();
+if (urlCode && !ui.joining) { const n = $('#nameIn'); if (n && !n.value) n.focus(); }
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeSeats);
+</script>
+</body>
+</html>
+

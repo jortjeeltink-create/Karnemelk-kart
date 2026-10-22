@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Speelhal</title>
-<meta name="description" content="Al je spellen op één plek: Karnemelk Kart, Mega Ball, Stock Market, Rode Zone, Bussen, Boer zoekt vrouw, Mexen, Fuck the dealer, Paardenrace en Rotonde.">
+<meta name="description" content="Al je spellen op één plek: Karnemelk Kart, Mega Ball, Stock Market, Rode Zone, Bussen, Boer zoekt vrouw, Mexen, Fuck the dealer, Paardenrace, Rotonde en Mijnenveld.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -90,7 +90,8 @@ p{margin:0}
 .pinkbtn{width:52px;height:52px;border-radius:50%;background:var(--pink);color:var(--plum);display:grid;place-items:center;flex:none;box-shadow:inset 0 -3px 0 rgba(43,21,49,.15)}
 .pinkbtn:hover{background:#e0a2d4}
 .logo{font-family:var(--display);font-weight:900;font-size:28px;line-height:1;letter-spacing:-.02em;padding:0 8px;color:var(--plum);white-space:nowrap}
-.seg{display:flex;gap:2px;padding:4px;border-radius:999px;background:var(--cream-3);min-width:0}
+.seg{display:flex;gap:2px;padding:4px;border-radius:999px;background:var(--cream-3);min-width:0;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
 .seg button{display:flex;align-items:center;gap:7px;border-radius:999px;padding:8px 12px;font-size:var(--s1);font-weight:700;color:var(--plum-2);white-space:nowrap}
 .seg button i{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none;box-shadow:0 0 0 2px rgba(255,255,255,.6)}
 .seg button[aria-current="true"]{background:#fff;color:var(--plum);box-shadow:0 2px 8px rgba(43,21,49,.18)}
@@ -156,6 +157,8 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
   .seg button{padding:10px}
 }
 @media (max-width:720px){
+  /* op een telefoon passen alle stippen dan nog naast elkaar */
+  .seg button,.seg button:not([aria-current="true"]){padding:10px 5px}
   .meter{display:none}
   .logo{display:none}
   .facts{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
@@ -295,7 +298,13 @@ const GAMES = [
     chips: ['Kaartspel', 'Online met vrienden'],
     text: '37 kaarten liggen als een zon op tafel, en de kleur zegt hoeveel slokken een kaart waard is: van 1 aan de buitenkant tot 12 in het midden. Kies een kaart en gok rood of zwart. Goed? Dan gaat hij in de pot. Fout? Dan drink je de kaart plus de hele pot.',
     facts: [['Spelers', '2 tot 10'], ['Kaarten', '37, van 1 tot 12'], ['Meedoen', 'met een code']],
-    cta: 'Speel Rotonde' }
+    cta: 'Speel Rotonde' },
+  { id: 'mijnenveld', name: 'Mijnen', name2: 'veld', short: 'Mijnenveld', acc: '#c9803a', tint: '#2a1a08', bg: '#1a1006',
+    url: '/mijnenveld',
+    chips: ['Dobbel- en kaartspel', 'Online met vrienden'],
+    text: '36 kaarten in een veld van 6 bij 6, met 8 verstopte mijnen. Gooi twee stenen: de eerste is de kolom, de tweede de rij. Land je op een mijn? Boem: drinken, en dan leg jij hem ergens anders neer, zelfs op de hoek van vier kaarten. Daarna gok je rood of zwart.',
+    facts: [['Spelers', '2 tot 10'], ['Mijnen', '8 verstopt'], ['Meedoen', 'met een code']],
+    cta: 'Speel Mijnenveld' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 function build(){
@@ -333,6 +342,23 @@ const megaBalls = Array.from({ length: 34 }, (_, i) => ({ n: (i * 7) % 51 + 1, x
 const DEC = ['#2f6fe0', '#d93a5a', '#158a5e', '#8a4be8', '#cf6a12'];
 const decade = n => n <= 10 ? 0 : n <= 20 ? 1 : n <= 30 ? 2 : n <= 40 ? 3 : 4;
 let stockPts = [], stockLast = 100;
+// een vaste reeks worpen voor het voorproefje van Mijnenveld: 12 kaarten, waarvan er een paar op een mijn liggen
+const MIJN = (() => {
+  let seed = 9; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const mines = new Set([8, 14, 21, 26, 33]), open = new Set(), steps = [];
+  const faces = ['7♥', 'B♠', '3♦', '9♣', 'A♥', '5♠', 'V♦', '2♣', '10♥', 'H♠', '4♦', '8♣'];
+  for (let k = 0; k < 12; k++) {
+    const c = 1 + Math.floor(rnd() * 6), r = 1 + Math.floor(rnd() * 6);
+    let t = (r - 1) * 6 + (c - 1);
+    while (open.has(t)) t = (t + 1) % 36;
+    // een paar keer precies op een mijn, zodat je het ziet ontploffen
+    const boom = mines.has(t) || k === 2 || k === 7;
+    mines.delete(t);
+    open.add(t);
+    steps.push({ c, r, t, boom, face: faces[k] });
+  }
+  return steps;
+})();
 // de zon van Rotonde, en een vaste reeks gokken die steeds opnieuw loopt: 13 kaarten en dan het midden
 const ROT = (() => {
   let seed = 5; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
@@ -659,6 +685,50 @@ const PREV = {
       T(c, cur.ok ? 'GOED' : 'FOUT!', w - side / 2, h * .42, Math.min(side * .34, h * .12), cur.ok ? '#3ee07f' : '#ff5a64', { w: 900 });
       T(c, cur.ok ? `+${cur.v}` : `${cur.sips} ${cur.sips === 1 ? 'SLOK' : 'SLOKKEN'}`, w - side / 2, h * .55, Math.min(side * (cur.ok ? .3 : .13), h * .1), '#fff', { w: 900 });
     }
+  },
+  mijnenveld(c, w, h, t){
+    const g = c.createRadialGradient(w / 2, h * .1, 10, w / 2, h * .45, h); g.addColorStop(0, '#4a2a0c'); g.addColorStop(1, '#1a1006'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    // elke 1,6 seconden een worp: de stenen rollen, de kolom en rij lichten op, en dan boem of de kaart gaat open
+    const STEP = 1600, n = MIJN.length, k = reduce ? 4 : Math.floor(t / STEP) % (n + 2), e = reduce ? .9 : (t % STEP) / STEP;
+    const cur = k < n ? MIJN[k] : null, open = new Map(MIJN.slice(0, Math.min(k, n)).map((s) => [s.t, s]));
+    const cw = Math.min(w * .085, h * .1), ch = cw * 1.3, gap = cw * .14, gw = 6 * cw + 5 * gap, gh = 6 * ch + 5 * gap;
+    const x0 = w * .38 - gw / 2, y0 = (h - gh) / 2;
+    const aim = cur && e > .35;
+    if (aim) {
+      c.fillStyle = 'rgba(247,197,72,.14)';
+      c.fillRect(x0 + (cur.c - 1) * (cw + gap) - gap / 2, y0 - gap, cw + gap, gh + gap * 2);
+      c.fillRect(x0 - gap, y0 + (cur.r - 1) * (ch + gap) - gap / 2, gw + gap * 2, ch + gap);
+    }
+    for (let i = 0; i < 36; i++) {
+      const x = x0 + (i % 6) * (cw + gap), y = y0 + Math.floor(i / 6) * (ch + gap);
+      const shown = open.get(i), isCur = cur && cur.t === i, flip = isCur && !cur.boom ? clamp((e - .6) / .15, 0, 1) : shown ? 1 : 0;
+      const face = flip > .5, sx = isCur && !cur.boom ? Math.abs(Math.cos(flip * Math.PI)) : 1;
+      c.save(); c.translate(x + cw / 2, y + ch / 2); c.scale(Math.max(.03, sx), 1);
+      if (isCur && aim) { c.shadowColor = 'rgba(247,197,72,.9)'; c.shadowBlur = 14; }
+      rr(c, -cw / 2, -ch / 2, cw, ch, cw * .14); c.fillStyle = face ? '#fffdf4' : '#3a1d43'; c.fill(); c.shadowColor = 'transparent';
+      if (face) { const f = isCur ? cur.face : shown.face; T(c, f, 0, 1, cw * .34, /[♥♦]/.test(f) ? '#d2343f' : '#24132a', { w: 900 }); }
+      else { c.lineWidth = Math.max(1, cw * .06); c.strokeStyle = '#f3efdb'; rr(c, -cw / 2 + cw * .07, -ch / 2 + cw * .07, cw * .86, ch - cw * .14, cw * .1); c.stroke(); }
+      c.restore();
+    }
+    // boem: een flits en een bom op de kaart
+    if (cur && cur.boom && e > .6) {
+      const bx = x0 + (cur.c - 1) * (cw + gap) + cw / 2, by = y0 + (cur.r - 1) * (ch + gap) + ch / 2, p = clamp((e - .6) / .4, 0, 1);
+      const fl = c.createRadialGradient(bx, by, 0, bx, by, cw * 3); fl.addColorStop(0, `rgba(255,243,176,${1 - p})`); fl.addColorStop(.4, `rgba(255,176,32,${.8 * (1 - p)})`); fl.addColorStop(1, 'rgba(255,90,31,0)');
+      c.fillStyle = fl; c.fillRect(bx - cw * 3, by - cw * 3, cw * 6, cw * 6);
+      c.beginPath(); c.arc(bx, by + cw * .05, cw * .34, 0, TAU); c.fillStyle = '#1d1418'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#ff9a3c'; c.stroke();
+      c.beginPath(); c.arc(bx + cw * .32, by - cw * .32, cw * .08, 0, TAU); c.fillStyle = '#ffd36b'; c.fill();
+    }
+    // de stenen rechts: blauw is de kolom, goud de rij
+    const ds = Math.min(w * .1, h * .17), dx = w * .82, roll = cur && e < .35;
+    [[cur ? (roll ? 1 + Math.floor(t / 90) % 6 : cur.c) : 1, '#4f8dff', h * .36, 'KOLOM'], [cur ? (roll ? 1 + Math.floor(t / 70 + 3) % 6 : cur.r) : 1, '#f7c548', h * .64, 'RIJ']].forEach(([v, col, y, lbl]) => {
+      c.save(); c.translate(dx, y); if (roll) c.rotate(Math.sin(t / 60) * .3);
+      rr(c, -ds / 2, -ds / 2, ds, ds, ds * .22); c.fillStyle = '#fffdf4'; c.fill(); c.lineWidth = 3; c.strokeStyle = col; c.stroke();
+      const P = { 1: [5], 2: [3, 7], 3: [3, 5, 7], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] }[v];
+      for (const q of P) { const gx = (q - 1) % 3 - 1, gy = Math.ceil(q / 3) - 2; c.beginPath(); c.arc(gx * ds * .27, gy * ds * .27, ds * .08, 0, TAU); c.fillStyle = '#24132a'; c.fill(); }
+      c.restore();
+      T(c, lbl, dx, y + ds * .78, Math.min(ds * .24, 12), col, { f: MF });
+    });
+    if (cur && cur.boom && e > .62) T(c, 'BOEM!', x0 + gw / 2, h * .5, Math.min(w * .11, h * .2), '#ff5a1f', { w: 900 });
   }
 };
 let prevs = [];
