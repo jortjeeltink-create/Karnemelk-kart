@@ -205,7 +205,7 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.equal(hall.status, 200);
     const hallHtml = await hall.text();
     assert.match(hallHtml, /<title>Speelhal<\/title>/);
-    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
+    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
     assert.match(hallHtml, /rel="manifest" href="\/speelhal\.webmanifest"/);
     // op het beginscherm en bij het delen heet het Speelhal, met een eigen logo
     const hallManifest = await (await fetch(srv.url + '/speelhal.webmanifest')).json();
@@ -299,6 +299,13 @@ test('de server levert de game en een gezondheidscheck', async () => {
     const paardManifest = await (await fetch(srv.url + '/paardenrace.webmanifest')).json();
     assert.equal(paardManifest.start_url, '/paardenrace');
     for (const icon of paardManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
+    // Rotonde: ook een losse app, met een uitnodigingslink per tafel
+    assert.match(await (await fetch(srv.url + '/rotonde')).text(), /<title>Rotonde<\/title>/);
+    assert.match(await (await fetch(srv.url + '/rotonde/ABCD')).text(), /<title>Rotonde<\/title>/);
+    assert.equal((await fetch(srv.url + '/shared/rotonde.js')).status, 200);
+    const rotondeManifest = await (await fetch(srv.url + '/rotonde.webmanifest')).json();
+    assert.equal(rotondeManifest.start_url, '/rotonde');
+    for (const icon of rotondeManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
     const health = await (await fetch(srv.url + '/health')).json();
     assert.equal(health.ok, true);
     assert.equal((await fetch(srv.url + '/../server/store.js')).status, 404);
@@ -434,6 +441,32 @@ test('Paardenrace online: twee telefoons zetten in, de race begint en de stapel 
     assert.ok(st.track.every((c) => c === null), 'de kaarten naast de baan liggen dicht');
     const health = await (await fetch(srv.url + '/health')).json();
     assert.deepEqual(health.paardenrace, { tables: 1, players: 2 });
+    [a, b].forEach((c) => c.close());
+  } finally {
+    await srv.stop();
+  }
+});
+
+test('Rotonde online: twee telefoons, de host kiest een kaart en gokt, de ander ziet hem open gaan', async () => {
+  const srv = await startServer();
+  try {
+    const url = srv.ws + '/rotonde';
+    const [a, b] = await Promise.all([new Client(url).open(), new Client(url).open()]);
+    const sa = await a.request({ t: 'create', name: 'Jort', token: 'rotonde-telefoon-a-0123456789' }, 'state');
+    assert.match(sa.build, /^[\w-]{12}$/);
+    await b.request({ t: 'join', code: sa.code, name: 'Meke', token: 'rotonde-telefoon-b-0123456789' }, (m) => m.t === 'state' && m.players.length === 2);
+    const started = b.wait((m) => m.t === 'state' && m.phase === 'kiezen');
+    a.send({ t: 'start' });
+    const st = await started;
+    assert.equal(st.turn, 0, 'de host begint');
+    assert.ok(st.cards.every((c) => !c.card), 'alle kaarten liggen dicht');
+    const opened = b.wait((m) => m.t === 'state' && m.cards[0].card);
+    a.send({ t: 'pick', i: 0 });
+    a.send({ t: 'guess', color: 'rood' });
+    const after = await opened;
+    assert.ok(after.pot === 12 || after.players[0].sips === 12, 'goed in de pot, of fout gedronken');
+    const health = await (await fetch(srv.url + '/health')).json();
+    assert.deepEqual(health.rotonde, { tables: 1, players: 2 });
     [a, b].forEach((c) => c.close());
   } finally {
     await srv.stop();

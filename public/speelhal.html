@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Speelhal</title>
-<meta name="description" content="Al je spellen op één plek: Karnemelk Kart, Mega Ball, Stock Market, Rode Zone, Bussen, Boer zoekt vrouw, Mexen, Fuck the dealer en Paardenrace.">
+<meta name="description" content="Al je spellen op één plek: Karnemelk Kart, Mega Ball, Stock Market, Rode Zone, Bussen, Boer zoekt vrouw, Mexen, Fuck the dealer, Paardenrace en Rotonde.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -144,7 +144,7 @@ footer{max-width:1180px;margin:0 auto;padding-block:10vh 22vh;text-align:center;
 footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw,150px);line-height:.85;color:var(--cream);text-transform:uppercase}
 
 /* passen niet alle namen in de balk, dan alleen de naam van het spel waar je bent */
-@media (max-width:1439px){
+@media (max-width:1599px){
   .seg button:not([aria-current="true"]) span{display:none}
   .seg button:not([aria-current="true"]){padding:10px}
 }
@@ -289,7 +289,13 @@ const GAMES = [
     chips: ['Kaartspel', 'Online met vrienden'],
     text: 'De vier azen zijn de paarden. Kies er een, zet slokken in en trek om de beurt een kaart: het paard met die vorm galoppeert een stap vooruit. Zijn alle paarden langs een dichte kaart, dan gaat die open en moet dat paard terug. Zette je op het verkeerde paard? Dan drink je je inzet en die van de winnaar.',
     facts: [['Spelers', '2 tot 10'], ['Paarden', 'de vier azen'], ['Meedoen', 'met een code']],
-    cta: 'Speel Paardenrace' }
+    cta: 'Speel Paardenrace' },
+  { id: 'rotonde', name: 'Rotonde', name2: '', short: 'Rotonde', acc: '#d63bb5', tint: '#2a0f26', bg: '#1a0b18',
+    url: '/rotonde',
+    chips: ['Kaartspel', 'Online met vrienden'],
+    text: '37 kaarten liggen als een zon op tafel, en de kleur zegt hoeveel slokken een kaart waard is: van 1 aan de buitenkant tot 12 in het midden. Kies een kaart en gok rood of zwart. Goed? Dan gaat hij in de pot. Fout? Dan drink je de kaart plus de hele pot.',
+    facts: [['Spelers', '2 tot 10'], ['Kaarten', '37, van 1 tot 12'], ['Meedoen', 'met een code']],
+    cta: 'Speel Rotonde' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 function build(){
@@ -327,6 +333,24 @@ const megaBalls = Array.from({ length: 34 }, (_, i) => ({ n: (i * 7) % 51 + 1, x
 const DEC = ['#2f6fe0', '#d93a5a', '#158a5e', '#8a4be8', '#cf6a12'];
 const decade = n => n <= 10 ? 0 : n <= 20 ? 1 : n <= 30 ? 2 : n <= 40 ? 3 : 4;
 let stockPts = [], stockLast = 100;
+// de zon van Rotonde, en een vaste reeks gokken die steeds opnieuw loopt: 13 kaarten en dan het midden
+const ROT = (() => {
+  let seed = 5; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const spots = [{ ring: 0, ang: 0, v: 12 }];
+  for (let k = 0; k < 8; k++) spots.push({ ring: 1, ang: k * 45, v: 4 });
+  for (let k = 0; k < 12; k++) spots.push({ ring: 2, ang: k * 30, v: k % 3 ? 2 : 3 });
+  for (let k = 0; k < 16; k++) spots.push({ ring: 3, ang: k * 22.5, v: 1 });
+  const idx = spots.map((_, i) => i).slice(1);
+  for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+  const faces = ['7♥', 'B♠', '3♦', '9♣', 'A♥', '5♠', 'V♦', '2♣', '10♥', 'H♠', '4♦', '8♣', '6♥', 'A♠'];
+  let pot = 0;
+  const steps = [...idx.slice(0, 13), 0].map((i, k) => {
+    const ok = i === 0 ? false : rnd() < .62, v = spots[i].v, before = pot;
+    pot = ok ? pot + v : 0;
+    return { i, ok, v, face: faces[k], sips: ok ? 0 : v + before, pot };
+  });
+  return { spots, steps };
+})();
 // een vaste race die steeds opnieuw loopt, met dezelfde regels als het echte spel
 const RACE = (() => {
   let seed = 11; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
@@ -603,6 +627,38 @@ const PREV = {
       face(x0 + cw * (at + .5), top + rh * (s + .5) - hop, 1, true, 'A' + SYM[s], s < 2, done && s === RACE.winner);
     }
     if (done) T(c, `${NAME[RACE.winner]} WINT!`, w * .52, top + rh * 2, Math.min(w * .1, h * .17), '#f7c548', { w: 900 });
+  },
+  rotonde(c, w, h, t){
+    const g = c.createRadialGradient(w / 2, h * .1, 10, w / 2, h * .45, h); g.addColorStop(0, '#4a1a44'); g.addColorStop(1, '#1a0b18'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    // elke 1,3 seconden een kaart: kiezen, omdraaien, goed in de pot of fout drinken; daarna weer van voren af aan
+    const COL = { 1: '#e5484d', 2: '#f78a1d', 3: '#4a5ae8', 4: '#34c25a', 12: '#d63bb5' }, STEP = 1300, n = ROT.steps.length;
+    const k = reduce ? 9 : Math.floor(t / STEP) % (n + 3), e = reduce ? 1 : (t % STEP) / STEP;
+    const S = Math.min(w * .62, h * .94), u = S / 6.9, cw = u * .63, ch = cw * 1.4, cx = w / 2, cy = h / 2;
+    const open = new Map(); ROT.steps.slice(0, Math.min(k, n)).forEach((s) => open.set(s.i, s));
+    const cur = k < n ? ROT.steps[k] : null;
+    ROT.spots.forEach((s, i) => {
+      const a = s.ang * Math.PI / 180, x = cx + s.ring * u * Math.sin(a), y = cy - s.ring * u * Math.cos(a);
+      const shown = open.get(i), isCur = cur && cur.i === i, flip = isCur ? clamp((e - .35) / .2, 0, 1) : shown ? 1 : 0;
+      const sx = isCur ? Math.abs(Math.cos(flip * Math.PI)) : 1, face = flip > .5;
+      c.save(); c.translate(x, y); c.rotate(a); c.scale(Math.max(.03, sx) * (isCur ? 1.18 : 1), isCur ? 1.18 : 1);
+      c.shadowColor = isCur && face ? (cur.ok ? 'rgba(62,224,127,.9)' : 'rgba(255,90,100,.9)') : isCur ? 'rgba(247,197,72,.9)' : 'rgba(0,0,0,.35)'; c.shadowBlur = isCur ? 16 : 4; c.shadowOffsetY = isCur ? 0 : 2;
+      rr(c, -cw / 2, -ch / 2, cw, ch, cw * .16); c.fillStyle = face ? '#fffdf4' : COL[s.v]; c.fill(); c.shadowColor = 'transparent';
+      c.lineWidth = Math.max(1, cw * .07); c.strokeStyle = face ? COL[s.v] : '#fff';
+      if (face) { rr(c, -cw / 2, -ch / 2, cw, ch, cw * .16); c.stroke(); }
+      else { rr(c, -cw / 2 + cw * .1, -ch / 2 + cw * .1, cw * .8, ch - cw * .2, cw * .1); c.stroke(); }
+      c.rotate(-a);
+      const txt = face ? (isCur ? cur.face : shown.face) : String(s.v);
+      T(c, txt, 0, 1, cw * (face ? .4 : .5), face ? (/[♥♦]/.test(txt) ? '#d2343f' : '#24132a') : '#fff', { w: 900 });
+      c.restore();
+    });
+    // de pot links, de uitslag rechts
+    const side = (w - S) / 2, potNow = cur ? (e > .55 ? cur.pot : k ? ROT.steps[k - 1].pot : 0) : 0;
+    T(c, 'POT', side / 2, h * .42, Math.min(side * .2, h * .07), 'rgba(247,197,72,.8)', { f: MF });
+    T(c, String(potNow), side / 2, h * .55, Math.min(side * .5, h * .2), '#f7c548', { w: 900 });
+    if (cur && e > .55) {
+      T(c, cur.ok ? 'GOED' : 'FOUT!', w - side / 2, h * .42, Math.min(side * .34, h * .12), cur.ok ? '#3ee07f' : '#ff5a64', { w: 900 });
+      T(c, cur.ok ? `+${cur.v}` : `${cur.sips} ${cur.sips === 1 ? 'SLOK' : 'SLOKKEN'}`, w - side / 2, h * .55, Math.min(side * (cur.ok ? .3 : .13), h * .1), '#fff', { w: 900 });
+    }
   }
 };
 let prevs = [];
