@@ -3,6 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { startServer, loginClient, Client, sleep } from './helpers.js';
+import WsSocket from 'ws';
 import { TRACK_BY_ID } from '../public/shared/tracks.js';
 import { buildTrack } from '../public/shared/trackgeo.js';
 import { botInput } from '../public/shared/bots.js';
@@ -505,6 +506,43 @@ test('Mijnenveld online: twee telefoons, de host gooit twee keer en de ander zie
     const health = await (await fetch(srv.url + '/health')).json();
     assert.deepEqual(health.mijnenveld, { tables: 1, players: 2 });
     [a, b].forEach((c) => c.close());
+  } finally {
+    await srv.stop();
+  }
+});
+
+test('tafelspellen: een telefoon die stil wegvalt, is binnen 10 seconden weg en de volgende is aan de beurt', async () => {
+  const srv = await startServer();
+  // telefoons via de ws-bibliotheek: daarmee kunnen we er een laten stoppen met antwoorden
+  const phone = async () => { const ws = new WsSocket(srv.ws + '/dealer'); await new Promise((res) => ws.once('open', res)); return ws; };
+  const waitFor = (ws, pred, ms = 12000) => new Promise((res, rej) => {
+    const timer = setTimeout(() => { ws.off('message', on); rej(new Error('geen bericht op tijd')); }, ms);
+    const on = (data) => { const m = JSON.parse(data); if (pred(m)) { clearTimeout(timer); ws.off('message', on); res(m); } };
+    ws.on('message', on);
+  });
+  try {
+    const phones = [await phone(), await phone(), await phone()];
+    const said = (i, msg) => phones[i].send(JSON.stringify(msg));
+    const made = waitFor(phones[0], (m) => m.t === 'state');
+    said(0, { t: 'create', name: 'Jort', token: 'stil-telefoon-0-0123456789' });
+    const { code } = await made;
+    for (const i of [1, 2]) {
+      const joined = waitFor(phones[i], (m) => m.t === 'state');
+      said(i, { t: 'join', code, name: ['', 'Meke', 'Sim'][i], token: `stil-telefoon-${i}-0123456789` });
+      await joined;
+    }
+    const started = waitFor(phones[0], (m) => m.t === 'state' && m.phase === 'raden');
+    said(0, { t: 'start' });
+    const { guesser } = await started;
+    // wie moet raden, valt stil weg: zijn telefoon antwoordt nergens meer op, ook niet op de pings van de server
+    const other = phones.findIndex((_, i) => i !== guesser);
+    const t0 = Date.now();
+    const noticed = waitFor(phones[other], (m) => m.t === 'state' && m.players[guesser].connected === false);
+    phones[guesser]._socket.pause();
+    const st = await noticed;
+    assert.ok(Date.now() - t0 < 10000, `pas na ${Date.now() - t0} ms`);
+    assert.notEqual(st.guesser, guesser, 'de volgende is aan de beurt');
+    phones.forEach((ws) => ws.terminate());
   } finally {
     await srv.stop();
   }
