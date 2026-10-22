@@ -206,7 +206,16 @@ test('de server levert de game en een gezondheidscheck', async () => {
     const hallHtml = await hall.text();
     assert.match(hallHtml, /<title>Speelhal<\/title>/);
     for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone', '/bussen', '/boer', '/mexen', '/dealer']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
-    assert.match(hallHtml, /rel="manifest"/);
+    assert.match(hallHtml, /rel="manifest" href="\/speelhal\.webmanifest"/);
+    // op het beginscherm en bij het delen heet het Speelhal, met een eigen logo
+    const hallManifest = await (await fetch(srv.url + '/speelhal.webmanifest')).json();
+    assert.equal(hallManifest.name, 'Speelhal');
+    assert.equal(hallManifest.start_url, '/');
+    for (const icon of hallManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
+    assert.match(hallHtml, /property="og:title" content="Speelhal"/);
+    assert.equal((await fetch(srv.url + '/img/speelhal-deel.png')).status, 200);
+    assert.equal((await fetch(srv.url + '/img/speelhal-180.png')).status, 200);
+    assert.equal((await (await fetch(srv.url + '/manifest.webmanifest')).json()).start_url, '/kart', 'de kartgame opent de race');
     // uitnodigingen naar de oude hoofdpagina komen nog steeds in de kartgame
     assert.match(await (await fetch(srv.url + '/?room=ABCD')).text(), /<title>Karnemelk Kart<\/title>/);
     const first = await fetch(srv.url + '/kart');

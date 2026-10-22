@@ -1,0 +1,18 @@
+{
+  "name": "Speelhal",
+  "short_name": "Speelhal",
+  "description": "Al mijn spellen op één plek: kart, kaartspellen, drankspellen en meer.",
+  "lang": "nl",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#150b18",
+  "theme_color": "#150b18",
+  "icons": [
+    { "src": "/img/speelhal-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/img/speelhal-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/img/speelhal.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

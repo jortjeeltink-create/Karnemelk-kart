@@ -6,7 +6,7 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
 
 ## Wat zit erin
 
-- **Speelhal** (de hoofdpagina, `/`): een scrollpagina met al de spellen: Karnemelk Kart (`/kart`), Mega Ball, Stock Market Trainer, Rode Zone, Bussen, Boer zoekt vrouw, Mexen en Fuck the dealer. Wie de site als app op het beginscherm heeft gezet, komt hier binnen. Vanuit elk spel ga je terug naar de speelhal.
+- **Speelhal** (de hoofdpagina, `/`): een scrollpagina met al de spellen: Karnemelk Kart (`/kart`), Mega Ball, Stock Market Trainer, Rode Zone, Bussen, Boer zoekt vrouw, Mexen en Fuck the dealer. Zet je de site als app op je beginscherm, dan heet hij **Speelhal**, met een eigen logo (een joystick in een neonring met de kleur van elk spel); deel je de link, dan zie je die naam en een plaatje met alle spellen. Vanuit elk spel ga je terug naar de speelhal.
 - **Live multiplayer** voor maximaal 10 spelers (mensen + computerkarts) per room.
 - **Privéroom met groepscode** van 4 letters, plus een deelbare link (`https://jouw-site/kart?room=ABCD`; oude links met `/?room=ABCD` werken ook nog).
 - **Lobby** met wie er meedoet, wie klaar is, coureurkeuze, baankeuze, computerkarts en de uitdaging voor de verliezer. De host start de race (en kan spelers verwijderen).
