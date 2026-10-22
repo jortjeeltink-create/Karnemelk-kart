@@ -132,6 +132,9 @@ Je krijgt een adres als `https://iets-willekeurigs.trycloudflare.com` dat werkt 
 | `KK_SECRET` | – | Geheim om reservekopieën te ondertekenen. Niet ingevuld: de server maakt er zelf één en bewaart die in de opslag. Op hosting zonder vaste schijf moet je dit invullen (Render doet het automatisch) |
 | `UPSTASH_REDIS_REST_URL` | – | Optioneel: opslag in Upstash Redis in plaats van een bestand |
 | `UPSTASH_REDIS_REST_TOKEN` | – | Hoort bij de URL hierboven |
+| `REDIRECT_TO` | – | Verhuisd naar een nieuw adres? Zet hier het nieuwe adres (bijvoorbeeld `https://speelhal.onrender.com`) op de oude server, dan stuurt die iedereen door, met de rest van de link erbij. `/health` blijft gewoon werken |
+
+**Naar een ander webadres verhuizen** (bijvoorbeeld van `karnemelk-kart.onrender.com` naar `speelhal.onrender.com`): het adres van een bestaande service op Render kun je niet hernoemen. Maak daarom een nieuwe gratis Web Service met dezelfde repository en de nieuwe naam, en neem bij Environment de `KK_SECRET` van de oude service over (anders herkent de nieuwe server de reservekopieën op de telefoons niet en zijn de MP-punten weg). Werkt het nieuwe adres, zet dan `REDIRECT_TO` op de oude service, en pas het adres van het deelplaatje (`og:image` in `public/speelhal.html`) aan.
 
 `/health` geeft de status terug (aantal rooms en spelers), handig voor hostingcontroles.
 

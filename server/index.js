@@ -88,12 +88,20 @@ const boerHub = new BoerHub({ log, build: buildOf('/boer.html') });
 const mexHub = new MexHub({ log, build: buildOf('/mexen.html') });
 const dealerHub = new DealerHub({ log, build: buildOf('/dealer.html') });
 
+// Verhuisd naar een nieuw adres? Zet REDIRECT_TO (bijvoorbeeld https://speelhal.onrender.com) op de oude server,
+// dan stuurt die iedereen door, met de rest van de link erbij. Alleen /health blijft, zodat Render de server ziet.
+const MOVED_TO = (process.env.REDIRECT_TO || '').replace(/\/+$/, '');
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://x');
   let path = decodeURIComponent(url.pathname);
   if (path === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: true, ...hub.stats(), bussen: busHub.stats(), boer: boerHub.stats(), mexen: mexHub.stats(), dealer: dealerHub.stats() }));
+  }
+  if (MOVED_TO) {
+    res.writeHead(301, { Location: MOVED_TO + req.url, 'Cache-Control': 'no-cache' });
+    return res.end();
   }
   // de speelhal is de hoofdpagina; uitnodigingen (/?room=, /join/) gaan nog steeds naar de kartgame
   if (path === '/kart' || path === '/kart/' || path.startsWith('/join/') || (path === '/' && url.searchParams.has('room'))) path = '/index.html';

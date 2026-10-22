@@ -406,3 +406,16 @@ test('Fuck the dealer online: alleen de dealer krijgt de bovenste kaart', async 
     await srv.stop();
   }
 });
+
+test('verhuisd: met REDIRECT_TO stuurt de oude server alles door naar het nieuwe adres', async () => {
+  const srv = await startServer({ env: { REDIRECT_TO: 'https://speelhal.onrender.com/' } });
+  try {
+    const r = await fetch(srv.url + '/bussen/ABCD?x=1', { redirect: 'manual' });
+    assert.equal(r.status, 301);
+    assert.equal(r.headers.get('location'), 'https://speelhal.onrender.com/bussen/ABCD?x=1');
+    assert.equal((await fetch(srv.url + '/', { redirect: 'manual' })).headers.get('location'), 'https://speelhal.onrender.com/');
+    assert.equal((await fetch(srv.url + '/health')).status, 200, 'Render blijft zien dat de server leeft');
+  } finally {
+    await srv.stop();
+  }
+});
