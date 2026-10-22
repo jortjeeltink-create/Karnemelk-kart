@@ -205,7 +205,7 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.equal(hall.status, 200);
     const hallHtml = await hall.text();
     assert.match(hallHtml, /<title>Speelhal<\/title>/);
-    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
+    for (const href of ['/kart', '/megaball', '/stockmarket', '/rodezone', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
     assert.match(hallHtml, /rel="manifest" href="\/speelhal\.webmanifest"/);
     // op het beginscherm en bij het delen heet het Speelhal, met een eigen logo
     const hallManifest = await (await fetch(srv.url + '/speelhal.webmanifest')).json();
@@ -306,6 +306,13 @@ test('de server levert de game en een gezondheidscheck', async () => {
     const rotondeManifest = await (await fetch(srv.url + '/rotonde.webmanifest')).json();
     assert.equal(rotondeManifest.start_url, '/rotonde');
     for (const icon of rotondeManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
+    // Mijnenveld: ook een losse app, met een uitnodigingslink per tafel
+    assert.match(await (await fetch(srv.url + '/mijnenveld')).text(), /<title>Mijnenveld<\/title>/);
+    assert.match(await (await fetch(srv.url + '/mijnenveld/ABCD')).text(), /<title>Mijnenveld<\/title>/);
+    assert.equal((await fetch(srv.url + '/shared/mijnenveld.js')).status, 200);
+    const mijnManifest = await (await fetch(srv.url + '/mijnenveld.webmanifest')).json();
+    assert.equal(mijnManifest.start_url, '/mijnenveld');
+    for (const icon of mijnManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
     const health = await (await fetch(srv.url + '/health')).json();
     assert.equal(health.ok, true);
     assert.equal((await fetch(srv.url + '/../server/store.js')).status, 404);
@@ -467,6 +474,34 @@ test('Rotonde online: twee telefoons, de host kiest een kaart en gokt, de ander 
     assert.ok(after.pot === 12 || after.players[0].sips === 12, 'goed in de pot, of fout gedronken');
     const health = await (await fetch(srv.url + '/health')).json();
     assert.deepEqual(health.rotonde, { tables: 1, players: 2 });
+    [a, b].forEach((c) => c.close());
+  } finally {
+    await srv.stop();
+  }
+});
+
+test('Mijnenveld online: twee telefoons, de host gooit twee keer en de ander ziet waar de steen op wijst', async () => {
+  const srv = await startServer();
+  try {
+    const url = srv.ws + '/mijnenveld';
+    const [a, b] = await Promise.all([new Client(url).open(), new Client(url).open()]);
+    const sa = await a.request({ t: 'create', name: 'Jort', token: 'mijn-telefoon-a-0123456789' }, 'state');
+    assert.equal(sa.mineSips, 5);
+    assert.match(sa.build, /^[\w-]{12}$/);
+    await b.request({ t: 'join', code: sa.code, name: 'Meke', token: 'mijn-telefoon-b-0123456789' }, (m) => m.t === 'state' && m.players.length === 2);
+    const started = b.wait((m) => m.t === 'state' && m.phase === 'gooien');
+    a.send({ t: 'start' });
+    const st = await started;
+    assert.deepEqual([st.turn, st.hiddenMines], [0, 8]);
+    const rolled = b.wait((m) => m.t === 'state' && m.dice && m.dice[1]);
+    a.send({ t: 'roll' });
+    a.send({ t: 'roll' });
+    const r = await rolled;
+    assert.ok(r.dice.every((d) => d >= 1 && d <= 6));
+    assert.ok(r.target >= 0 && r.target < 36);
+    assert.ok(r.phase === 'gokken' || r.phase === 'plaatsen');
+    const health = await (await fetch(srv.url + '/health')).json();
+    assert.deepEqual(health.mijnenveld, { tables: 1, players: 2 });
     [a, b].forEach((c) => c.close());
   } finally {
     await srv.stop();
