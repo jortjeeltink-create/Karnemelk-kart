@@ -13,6 +13,7 @@ import { BusHub } from '../public/shared/bushub.js';
 import { BoerHub } from '../public/shared/boerhub.js';
 import { MexHub } from '../public/shared/mexhub.js';
 import { DealerHub } from '../public/shared/ftdhub.js';
+import { PaardHub } from '../public/shared/paardhub.js';
 import { createStore, randomString, loadSecret, makeSigner, makeSecretCheck } from './store.js';
 import { isDeviceToken } from '../public/shared/profiles.js';
 
@@ -87,6 +88,7 @@ const busHub = new BusHub({ log, build: buildOf('/bussen.html') });
 const boerHub = new BoerHub({ log, build: buildOf('/boer.html') });
 const mexHub = new MexHub({ log, build: buildOf('/mexen.html') });
 const dealerHub = new DealerHub({ log, build: buildOf('/dealer.html') });
+const paardHub = new PaardHub({ log, build: buildOf('/paardenrace.html') });
 
 // Verhuisd naar een nieuw adres? Zet REDIRECT_TO (bijvoorbeeld https://speelhal.onrender.com) op de oude server,
 // dan stuurt die iedereen door, met de rest van de link erbij. Alleen /health blijft, zodat Render de server ziet.
@@ -97,7 +99,7 @@ const server = http.createServer((req, res) => {
   let path = decodeURIComponent(url.pathname);
   if (path === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ ok: true, ...hub.stats(), bussen: busHub.stats(), boer: boerHub.stats(), mexen: mexHub.stats(), dealer: dealerHub.stats() }));
+    return res.end(JSON.stringify({ ok: true, ...hub.stats(), bussen: busHub.stats(), boer: boerHub.stats(), mexen: mexHub.stats(), dealer: dealerHub.stats(), paardenrace: paardHub.stats() }));
   }
   if (MOVED_TO) {
     res.writeHead(301, { Location: MOVED_TO + req.url, 'Cache-Control': 'no-cache' });
@@ -114,6 +116,7 @@ const server = http.createServer((req, res) => {
   else if (path === '/boer' || path === '/boer/' || /^\/boer\/[A-Za-z]{4}$/.test(path)) path = '/boer.html';
   else if (path === '/mexen' || path === '/mexen/' || /^\/mexen\/[A-Za-z]{4}$/.test(path)) path = '/mexen.html';
   else if (path === '/dealer' || path === '/dealer/' || /^\/dealer\/[A-Za-z]{4}$/.test(path)) path = '/dealer.html';
+  else if (path === '/paardenrace' || path === '/paardenrace/' || /^\/paardenrace\/[A-Za-z]{4}$/.test(path)) path = '/paardenrace.html';
   if (path.includes('..') || path.includes(sep + sep)) { res.writeHead(400); return res.end(); }
   const f = files.get(path);
   if (!f) {
@@ -138,9 +141,10 @@ const busWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 const boerWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 const mexWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 const dealerWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
+const paardWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 server.on('upgrade', (req, socket, head) => {
   const { pathname } = new URL(req.url, 'http://x');
-  const target = { '/ws': wss, '/ws/bussen': busWss, '/ws/boer': boerWss, '/ws/mexen': mexWss, '/ws/dealer': dealerWss }[pathname];
+  const target = { '/ws': wss, '/ws/bussen': busWss, '/ws/boer': boerWss, '/ws/mexen': mexWss, '/ws/dealer': dealerWss, '/ws/paardenrace': paardWss }[pathname];
   if (!target) { socket.destroy(); return; }
   target.handleUpgrade(req, socket, head, (ws) => target.emit('connection', ws, req));
 });
@@ -188,10 +192,11 @@ tableChannel(busWss, busHub);
 tableChannel(boerWss, boerHub);
 tableChannel(mexWss, mexHub);
 tableChannel(dealerWss, dealerHub);
+tableChannel(paardWss, paardHub);
 
 // dode verbindingen opruimen
 const heartbeat = setInterval(() => {
-  for (const ws of [...wss.clients, ...busWss.clients, ...boerWss.clients, ...mexWss.clients, ...dealerWss.clients]) {
+  for (const ws of [...wss.clients, ...busWss.clients, ...boerWss.clients, ...mexWss.clients, ...dealerWss.clients, ...paardWss.clients]) {
     if (!ws.isAlive) { ws.terminate(); continue; }
     ws.isAlive = false;
     ws.ping();
@@ -199,7 +204,7 @@ const heartbeat = setInterval(() => {
 }, 15000);
 
 const tickTimer = setInterval(() => hub.tick(), 1000 / 60);
-const busTimer = setInterval(() => { busHub.tick(); boerHub.tick(); mexHub.tick(); dealerHub.tick(); }, 5000);
+const busTimer = setInterval(() => { busHub.tick(); boerHub.tick(); mexHub.tick(); dealerHub.tick(); paardHub.tick(); }, 5000);
 
 server.listen(PORT, HOST, () => {
   log(`Karnemelk Kart draait op http://localhost:${PORT}`);
