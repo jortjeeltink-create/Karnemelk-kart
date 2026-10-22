@@ -204,14 +204,19 @@ tableChannel(paardWss, paardHub);
 tableChannel(rotondeWss, rotondeHub);
 tableChannel(mijnWss, mijnHub);
 
-// dode verbindingen opruimen
-const heartbeat = setInterval(() => {
-  for (const ws of [...wss.clients, ...busWss.clients, ...boerWss.clients, ...mexWss.clients, ...dealerWss.clients, ...paardWss.clients, ...rotondeWss.clients, ...mijnWss.clients]) {
+// dode verbindingen opruimen: wie twee keer op rij niet antwoordt, valt weg (en komt vanzelf terug zodra hij weer
+// verbinding heeft). Bij de tafelspellen gaat dat sneller, zodat de rest niet lang hoeft te wachten als wie aan de
+// beurt is stil wegvalt (bijvoorbeeld buiten de wifi).
+function sweep(clients) {
+  for (const ws of clients) {
     if (!ws.isAlive) { ws.terminate(); continue; }
     ws.isAlive = false;
     ws.ping();
   }
-}, 15000);
+}
+const tableChannels = [busWss, boerWss, mexWss, dealerWss, paardWss, rotondeWss, mijnWss];
+const heartbeat = setInterval(() => sweep(wss.clients), 15000);
+const tableBeat = setInterval(() => { for (const channel of tableChannels) sweep(channel.clients); }, 4000);
 
 const tickTimer = setInterval(() => hub.tick(), 1000 / 60);
 const busTimer = setInterval(() => { busHub.tick(); boerHub.tick(); mexHub.tick(); dealerHub.tick(); paardHub.tick(); rotondeHub.tick(); mijnHub.tick(); }, 5000);
@@ -228,6 +233,7 @@ server.listen(PORT, HOST, () => {
 function shutdown() {
   log('Afsluiten...');
   clearInterval(heartbeat);
+  clearInterval(tableBeat);
   clearInterval(tickTimer);
   clearInterval(busTimer);
   try { store.flush(); } catch (e) { console.error(e); }
