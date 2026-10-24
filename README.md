@@ -77,7 +77,7 @@ Alle personages, banen, items, geluiden en afbeeldingen zijn zelf bedacht en wor
   - Een eigen stijl: een vrolijk spelbord van 7 bij 7 met gekleurde vakjes op een houten tafel, pionnen in de kleur van elke speler die vakje voor vakje lopen, en een grote steen om te gooien.
   - 48 vakjes van start tot finish. Om de beurt gooi je met je telefoon en loopt je pion zoveel vakjes. Rood: jij drinkt. Groen: geef slokken aan wie jij kiest. Oranje: iedereen, je buren of de laatste drinkt. Paars: een vraag voor de groep ("Wie single is, drinkt 2") of bedenk een regel. Geel: dubbel of niks, een duel (allebei gooien, de laagste drinkt 3), een drinkmaatje (die drinkt mee als jij drinkt) of van plek ruilen.
   - Zoals ganzenbord: op de gans loop je nog een keer zoveel verder, de brug brengt je naar 12, in het café drink je 2 en sla je een beurt over, in de put zit je vast tot een ander erin valt, het doolhof zet je 5 terug en de doodskop stuurt je terug naar start. Vakje 47 is een ad fundum.
-  - Je moet precies op de finish komen; gooi je te veel, dan loop je terug. Wie als eerste op de finish staat, wint, en wie dan het verst achter staat drinkt 5. Daarna start de host een nieuw potje; de stand blijft.
+  - Je moet precies op de finish komen; gooi je te veel, dan loop je terug. Wie als eerste op de finish staat, wint en mag een bak uitdelen: hij kiest wie er zijn glas in één keer leeg drinkt (telt in de stand als 5). Wie dan het verst achter staat, drinkt 5. Daarna start de host een nieuw potje; de stand blijft.
   - Valt wie aan de beurt is weg, dan is de volgende aan de beurt (moest hij nog iemand kiezen, dan kiest de telefoon). Wie later aanschuift, begint op start. Tik op een vakje om te zien wat het doet.
 - Alles in het Nederlands.
 

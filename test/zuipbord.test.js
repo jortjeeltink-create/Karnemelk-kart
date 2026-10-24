@@ -57,7 +57,7 @@ test('de gans: nog een keer zoveel verder; de brug naar 12; het doolhof terug; d
   assert.equal(g.players[1].sips, 6);
 });
 
-test('precies op de finish: te veel gooien is teruglopen; de winnaar wint en de laatste drinkt', () => {
+test('precies op de finish: te veel gooien is teruglopen; de winnaar deelt een bak uit en de laatste drinkt', () => {
   const g = game(3);
   const ev = from(g, 0, 45, 5);
   assert.deepEqual(ev.path, [46, 47, 48, 47, 46]);
@@ -65,9 +65,16 @@ test('precies op de finish: te veel gooien is teruglopen; de winnaar wint en de 
   g.players[1].pos = 10;
   g.players[2].pos = 20;
   from(g, 0, 44, 4);
-  assert.equal(g.phase, 'klaar');
   assert.equal(g.winner, 0);
   assert.equal(g.players[0].wins, 1);
+  // de winnaar deelt een bak uit
+  assert.deepEqual([g.phase, g.pending], ['kiezen', { kind: 'bak', n: Z.AD_SIPS }]);
+  assert.equal(Z.choose(g, 1, 2, seats(3)), null, 'alleen de winnaar kiest');
+  const sips2 = g.players[2].sips;
+  Z.choose(g, 0, 2, seats(3));
+  assert.deepEqual(last(g, 'keuze').drinks, [[2, Z.AD_SIPS]]);
+  assert.equal(g.players[2].sips, sips2 + Z.AD_SIPS);
+  assert.equal(g.phase, 'klaar');
   assert.deepEqual(last(g, 'klaar').drinks, [[1, Z.LAST_SIPS]], 'wie het verst achter staat');
   assert.equal(Z.roll(g, 1, seats(3), 3), null);
   assert.ok(Z.next(g, seats(3)));
