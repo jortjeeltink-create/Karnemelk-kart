@@ -378,7 +378,7 @@ const me = (() => {
     crypto.getRandomValues(a);
     token = [...a].map((x) => abc[x & 63]).join('');
   }
-  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik', 'wolf-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
+  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik', 'wolf-ik', 'bord-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
   const o = { token, name: typeof name === 'string' ? name.slice(0, M.NAME_MAX) : '' };
   store.set(KEY.me, o);
   return o;
