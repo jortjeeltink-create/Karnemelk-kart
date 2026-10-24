@@ -315,6 +315,7 @@ const ICON = {
   finish: svg(`<path ${ST} d="M5 21V3"/><path fill="currentColor" d="M5 3h4v3H5zM13 3h4v3h-4zM9 6h4v3H9zM5 9h4v3H5zM13 9h4v3h-4zM17 6h3v3h-3zM9 3h4v0zM17 3h3v0z"/>`),
 };
 // soort vakje -> kleur, plaatje, korte naam en uitleg
+const nOf = (t) => Z.BOARD.find((s) => s.t === t).n;
 const KIND = {
   start: { c: 'var(--v-geef)', name: 'Start', lb: () => 'Start', text: 'Hier begint iedereen.' },
   drink: { c: 'var(--v-drink)', name: 'Drink', lb: (s) => `Drink ${s.n}`, text: 'Jij drinkt.' },
@@ -325,18 +326,18 @@ const KIND = {
   gans: { c: 'var(--v-beweeg)', name: 'Gans', lb: () => 'Gans', text: 'Nog een keer zoveel vakjes verder.' },
   brug: { c: 'var(--v-beweeg)', name: 'Brug', lb: () => 'Brug', text: `Over de brug naar vakje ${Z.BRIDGE_TO}.` },
   doolhof: { c: 'var(--v-beweeg)', name: 'Doolhof', lb: () => 'Doolhof', text: `${Z.MAZE_BACK} vakjes terug.` },
-  dood: { c: 'var(--v-dood)', name: 'Doodskop', lb: () => 'Dood', text: 'Terug naar start, en drink 3.' },
-  cafe: { c: 'var(--v-beweeg)', name: 'Café', lb: () => 'Café', text: 'Drink 2 en sla een beurt over.' },
+  dood: { c: 'var(--v-dood)', name: 'Doodskop', lb: () => 'Dood', text: `Terug naar start, en drink ${nOf('dood')}.` },
+  cafe: { c: 'var(--v-beweeg)', name: 'Café', lb: () => 'Café', text: `Drink ${nOf('cafe')} en sla een beurt over.` },
   put: { c: 'var(--v-beweeg)', name: 'Put', lb: () => 'Put', text: 'Je zit vast tot iemand anders erin valt.' },
   vraag: { c: 'var(--v-vraag)', name: 'Vraag', lb: () => 'Vraag', big: '?', text: 'Een vraag of opdracht voor de groep.' },
   regel: { c: 'var(--v-vraag)', name: 'Regel', lb: () => 'Regel', big: '!', text: 'Bedenk een regel voor de rest van het potje.' },
-  dubbel: { c: 'var(--v-speciaal)', name: 'Dubbel of niks', lb: () => 'Dubbel', dark: true, text: 'Gooi nog eens: even, dan drinkt de rest 2; oneven, dan drink jij 4.' },
-  duel: { c: 'var(--v-speciaal)', name: 'Duel', lb: () => 'Duel', dark: true, text: 'Kies iemand: jullie gooien allebei, de laagste drinkt 3.' },
+  dubbel: { c: 'var(--v-speciaal)', name: 'Dubbel of niks', lb: () => 'Dubbel', dark: true, text: `Gooi nog eens: even, dan drinkt de rest 1; oneven, dan drink jij ${nOf('dubbel')}.` },
+  duel: { c: 'var(--v-speciaal)', name: 'Duel', lb: () => 'Duel', dark: true, text: `Kies iemand: jullie gooien allebei, de laagste drinkt ${nOf('duel')}.` },
   maatje: { c: 'var(--v-speciaal)', name: 'Drinkmaatje', lb: () => 'Maatje', dark: true, text: 'Kies een maatje: als jij drinkt, drinkt die mee.' },
   ruil: { c: 'var(--v-speciaal)', name: 'Ruil', lb: () => 'Ruil', dark: true, text: 'Kies iemand en ruil van plek.' },
   rust: { c: 'var(--v-rust)', name: 'Rust', lb: () => 'Rust', dark: true, text: 'Even niks. Proost!' },
   ad: { c: 'var(--v-drink)', name: 'Ad fundum', lb: () => 'Ad!', big: 'AD', text: 'Ad fundum (of 5 slokken).' },
-  finish: { c: '#222', name: 'Finish', lb: () => 'Finish', text: 'Kom je hier precies op, dan win je en mag je een bak uitdelen.' },
+  finish: { c: '#222', name: 'Finish', lb: () => 'Finish', text: 'Wie hier als eerste komt, wint en mag een bak uitdelen.' },
   bak: { c: 'var(--v-drink)', name: 'Bak', lb: () => 'Bak', text: 'De winnaar kiest wie er een bak trekt.' },
 };
 const SHOW_STEP = 210;   // zo snel loopt een pion van vakje naar vakje
@@ -679,7 +680,7 @@ function drinkLine(drinks) {
   if (!drinks || !drinks.length) return '';
   const by = new Map();
   for (const [p, n, why] of drinks) { const k = `${n}`; if (!by.has(k)) by.set(k, []); by.get(k).push(why === 'maatje' ? `${whoLow(p)} (maatje)` : whoLow(p)); }
-  return [...by].map(([n, list]) => `${andList(list)} ${list.length === 1 && list[0] !== 'jij' ? 'drinkt' : 'drinken'} <strong>${slok(+n)}</strong>`).join('; ').replace(/^./, (c) => c.toUpperCase());
+  return [...by].map(([n, list]) => `${andList(list)} ${list.length === 1 ? 'drinkt' : 'drinken'} <strong>${slok(+n)}</strong>`).join('; ').replace(/^./, (c) => c.toUpperCase());
 }
 
 // wat er op het vakje gebeurde: titel en uitleg
@@ -856,7 +857,7 @@ function rulesHTML() {
     <ol>
       <li><b>Gooien.</b> Om de beurt gooi je de steen en loopt je pion zoveel vakjes vooruit.</li>
       <li><b>Het vakje.</b> Doe wat er staat. Moet je iemand kiezen, dan doe je dat op je telefoon.</li>
-      <li><b>De finish.</b> Je moet er precies op komen. Gooi je te veel, dan loop je de rest terug.</li>
+      <li><b>De finish.</b> Gooi je verder dan de finish, dan sta je er ook op.</li>
       <li><b>Winnen.</b> Wie als eerste op de finish staat, wint en mag een bak uitdelen: kies wie er zijn glas in één keer leeg drinkt. Wie dan het verst achter staat, drinkt ${slok(Z.LAST_SIPS)}.</li>
     </ol>
     <div class="legend">${legend}</div>

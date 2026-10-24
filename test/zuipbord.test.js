@@ -35,7 +35,9 @@ test('gooien kan alleen wie aan de beurt is; je loopt zoveel vakjes en de volgen
   assert.equal(g.players[0].sips, 1);
   assert.equal(g.turn, 1);
   Z.roll(g, 1, seats(3), 4);
-  assert.deepEqual(last(g, 'vak').drinks, [[0, 1], [1, 1], [2, 1]], 'vakje 4: iedereen drinkt 1');
+  assert.equal(last(g, 'vak').t, 'rust', 'vakje 4: niks');
+  from(g, 2, 13, 4);
+  assert.deepEqual(last(g, 'vak').drinks, [[0, 1], [1, 1], [2, 1]], 'vakje 17: iedereen drinkt 1');
 });
 
 test('de gans: nog een keer zoveel verder; de brug naar 12; het doolhof terug; de doodskop terug naar start', () => {
@@ -46,25 +48,24 @@ test('de gans: nog een keer zoveel verder; de brug naar 12; het doolhof terug; d
   Z.choose(g, 0, 1, [0, 1]);
   from(g, 1, 3, 3);
   assert.equal(g.players[1].pos, Z.BRIDGE_TO);
-  assert.deepEqual(g.pending, { kind: 'geef', n: 3 }, 'na de brug geldt vakje 12');
+  assert.deepEqual(g.pending, { kind: 'geef', n: 2 }, 'na de brug geldt vakje 12');
   Z.choose(g, 1, 0, [0, 1]);
-  assert.equal(g.players[0].sips, 3);
-  assert.equal(g.players[1].sips, 3, 'speler 1 is het drinkmaatje van speler 0');
+  assert.equal(g.players[0].sips, 2);
+  assert.equal(g.players[1].sips, 2, 'speler 1 is het drinkmaatje van speler 0');
   from(g, 0, 40, 2);
   assert.equal(g.players[0].pos, 37, 'doolhof: 5 terug, en daar gebeurt niks');
   from(g, 1, 44, 2);
   assert.equal(g.players[1].pos, 0);
-  assert.equal(g.players[1].sips, 6);
+  assert.equal(g.players[1].sips, 4);
 });
 
-test('precies op de finish: te veel gooien is teruglopen; de winnaar deelt een bak uit en de laatste drinkt', () => {
+test('de finish: verder gooien mag, je stopt erop; de winnaar deelt een bak uit en de laatste drinkt', () => {
   const g = game(3);
-  const ev = from(g, 0, 45, 5);
-  assert.deepEqual(ev.path, [46, 47, 48, 47, 46]);
-  assert.equal(g.players[0].pos, 0, 'terug op de doodskop, en dan naar start');
   g.players[1].pos = 10;
   g.players[2].pos = 20;
-  from(g, 0, 44, 4);
+  const ev = from(g, 0, 45, 5);
+  assert.deepEqual(ev.path, [46, 47, 48], 'je loopt niet terug');
+  assert.equal(g.players[0].pos, Z.SIZE);
   assert.equal(g.winner, 0);
   assert.equal(g.players[0].wins, 1);
   // de winnaar deelt een bak uit
@@ -88,7 +89,7 @@ test('café: een beurt overslaan; put: vast tot een ander erin valt', () => {
   const g = game(3);
   from(g, 0, 18, 1);
   assert.equal(g.players[0].skip, 1);
-  assert.equal(g.players[0].sips, 2);
+  assert.equal(g.players[0].sips, 1);
   g.turn = 2; g.phase = 'gooien';
   Z.roll(g, 2, seats(3), 1);
   assert.equal(g.turn, 1, 'speler 0 slaat over');
@@ -135,7 +136,7 @@ test('buren, de laatste, dubbel of niks en ad fundum', () => {
   from(g, 0, 17, 1);
   const d = last(g, 'vak');
   assert.ok(d.r >= 1 && d.r <= 6);
-  if (d.r % 2) assert.deepEqual(d.drinks, [[0, 4]]);
+  if (d.r % 2) assert.deepEqual(d.drinks, [[0, 3]]);
   else assert.deepEqual(d.drinks.map((x) => x[0]), [1, 2, 3]);
   from(g, 0, 46, 1);
   assert.deepEqual(last(g, 'vak').drinks, [[0, Z.AD_SIPS]]);
@@ -164,5 +165,23 @@ test('honderd potjes met willekeurige worpen lopen altijd af', () => {
     }
     assert.equal(g.phase, 'klaar', `seed ${seed}`);
     assert.equal(g.players[g.winner].pos, Z.SIZE);
+  }
+});
+
+test('een potje blijft te doen: gemiddeld zo\'n 15 slokken per speler, en niemand komt boven de 60', () => {
+  for (const n of [3, 6, 10]) {
+    let total = 0, most = 0;
+    for (let seed = 1; seed <= 300; seed++) {
+      const g = Z.newGame(names(n), { seed });
+      Z.begin(g, seats(n), 0);
+      for (let k = 0; g.phase !== 'klaar' && k < 5000; k++) {
+        if (g.phase === 'gooien') Z.roll(g, g.turn, seats(n));
+        else Z.choose(g, g.turn, (g.turn + 1 + (k % (n - 1))) % n, seats(n));
+      }
+      for (const p of g.players) { total += p.sips; most = Math.max(most, p.sips); }
+    }
+    const avg = total / 300 / n;
+    assert.ok(avg >= 10 && avg <= 20, `${n} spelers: gemiddeld ${avg.toFixed(1)}`);
+    assert.ok(most <= 60, `${n} spelers: de meeste ${most}`);
   }
 });

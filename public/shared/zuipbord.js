@@ -3,9 +3,10 @@
 // een opdracht: zelf drinken, uitdelen, iedereen drinkt, je buren drinken, een vraag, een regel, een duel, een
 // drinkmaatje kiezen of van plek ruilen. Op een gans loop je nog een keer zoveel vakjes verder, de brug brengt je naar
 // 12, in het café sla je een beurt over, in de put zit je vast tot een ander erin valt, het doolhof zet je 5 terug en
-// bij de doodskop ga je terug naar start. Je moet precies op de finish komen: gooi je te veel, dan loop je terug.
+// bij de doodskop ga je terug naar start. Gooi je verder dan de finish, dan sta je er ook op.
 // Wie als eerste op de finish staat, wint en mag een bak uitdelen: iemand drinkt zijn glas leeg. Wie dan het verst
-// achter staat, drinkt er 5.
+// achter staat, drinkt er 3.
+// De slokken zijn zo gekozen dat een potje te doen blijft: gemiddeld zo'n 15 per speler (de vragen niet meegeteld).
 // Heb je een drinkmaatje, dan drinkt die mee als jij moet drinken (behalve als iedereen drinkt: dan al).
 // Een potje is een gewoon object (JSON) met de seed van de random-generator erin, net als bij Bussen.
 import { rand, cleanNames, NAME_MAX } from './bussen.js';
@@ -17,20 +18,20 @@ export const SIZE = 48;
 export const BRIDGE_TO = 12;
 export const MAZE_BACK = 5;
 export const AD_SIPS = 5;      // een ad fundum (of een bak) telt in de stand als 5 slokken
-export const LAST_SIPS = 5;    // wie het verst achter staat als iemand wint
+export const LAST_SIPS = 3;    // wie het verst achter staat als iemand wint
 const LOG_SIZE = 20;
 
 // Het bord, vakje voor vakje. t: de soort, n: hoeveel slokken.
 export const BOARD = [
   { t: 'start' },
-  { t: 'drink', n: 1 }, { t: 'geef', n: 2 }, { t: 'vraag' }, { t: 'iedereen', n: 1 }, { t: 'gans' }, { t: 'brug' },
-  { t: 'drink', n: 2 }, { t: 'maatje' }, { t: 'vraag' }, { t: 'duel', n: 3 }, { t: 'buren', n: 1 }, { t: 'geef', n: 3 },
-  { t: 'regel' }, { t: 'gans' }, { t: 'drink', n: 2 }, { t: 'vraag' }, { t: 'iedereen', n: 2 }, { t: 'dubbel', n: 4 },
-  { t: 'cafe', n: 2 }, { t: 'geef', n: 2 }, { t: 'vraag' }, { t: 'laatste', n: 2 }, { t: 'gans' }, { t: 'drink', n: 3 },
-  { t: 'ruil' }, { t: 'vraag' }, { t: 'buren', n: 2 }, { t: 'rust' }, { t: 'geef', n: 3 }, { t: 'duel', n: 3 },
-  { t: 'put' }, { t: 'gans' }, { t: 'iedereen', n: 2 }, { t: 'vraag' }, { t: 'drink', n: 2 }, { t: 'maatje' },
-  { t: 'regel' }, { t: 'dubbel', n: 4 }, { t: 'vraag' }, { t: 'geef', n: 4 }, { t: 'gans' }, { t: 'doolhof' },
-  { t: 'iedereen', n: 3 }, { t: 'vraag' }, { t: 'drink', n: 3 }, { t: 'dood', n: 3 }, { t: 'ad' }, { t: 'finish' },
+  { t: 'drink', n: 1 }, { t: 'geef', n: 1 }, { t: 'vraag' }, { t: 'rust' }, { t: 'gans' }, { t: 'brug' },
+  { t: 'drink', n: 1 }, { t: 'maatje' }, { t: 'vraag' }, { t: 'duel', n: 2 }, { t: 'buren', n: 1 }, { t: 'geef', n: 2 },
+  { t: 'regel' }, { t: 'gans' }, { t: 'drink', n: 2 }, { t: 'vraag' }, { t: 'iedereen', n: 1 }, { t: 'dubbel', n: 3 },
+  { t: 'cafe', n: 1 }, { t: 'geef', n: 2 }, { t: 'vraag' }, { t: 'laatste', n: 2 }, { t: 'gans' }, { t: 'drink', n: 2 },
+  { t: 'ruil' }, { t: 'vraag' }, { t: 'buren', n: 1 }, { t: 'rust' }, { t: 'geef', n: 2 }, { t: 'duel', n: 2 },
+  { t: 'put' }, { t: 'gans' }, { t: 'regel' }, { t: 'vraag' }, { t: 'drink', n: 2 }, { t: 'maatje' },
+  { t: 'rust' }, { t: 'vraag' }, { t: 'drink', n: 1 }, { t: 'geef', n: 3 }, { t: 'gans' }, { t: 'doolhof' },
+  { t: 'iedereen', n: 1 }, { t: 'vraag' }, { t: 'drink', n: 2 }, { t: 'dood', n: 2 }, { t: 'ad' }, { t: 'finish' },
 ];
 // vakjes waarop je iemand kiest (en de bak van de winnaar)
 export const CHOOSE = ['geef', 'maatje', 'duel', 'ruil', 'bak'];
@@ -178,15 +179,10 @@ function drink(g, p, n, out = [], buddy = true) {
   return out;
 }
 
-// Lopen van `from` met `v` ogen; voorbij de finish loop je terug. Geeft de vakjes die je langsgaat.
+// Lopen van `from` met `v` ogen; op de finish stop je. Geeft de vakjes die je langsgaat.
 function walk(from, v) {
   const path = [];
-  let at = from, dir = 1;
-  for (let k = 0; k < v; k++) {
-    if (at === SIZE) dir = -1;
-    at += dir;
-    path.push(at);
-  }
+  for (let at = from + 1; at <= Math.min(from + v, SIZE); at++) path.push(at);
   return path;
 }
 
@@ -259,9 +255,9 @@ function land(g, player, v, live, depth) {
     case 'vraag': return done({ i: Math.floor(rand(g) * VRAGEN.length) });
     case 'regel': return done({ i: Math.floor(rand(g) * REGELS.length) });
     case 'dubbel': {
-      // even: de rest drinkt 2, oneven: jij drinkt 4
+      // even: de rest drinkt 1, oneven: jij drinkt n
       const r = die(g), drinks = [];
-      if (r % 2 === 0) for (const q of others) drink(g, q, sq.n / 2, drinks);
+      if (r % 2 === 0) for (const q of others) drink(g, q, 1, drinks);
       else drink(g, player, sq.n, drinks);
       return done({ n: sq.n, r, drinks });
     }
