@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Speelhal</title>
-<meta name="description" content="Al je spellen op één plek: Mario Bak, Bussen, Boer zoekt vrouw, Mexen, Fuck the dealer, Paardenrace, Rotonde en Mijnenveld.">
+<meta name="description" content="Al je spellen op één plek: Mario Bak, Bussen, Boer zoekt vrouw, Mexen, Fuck the dealer, Paardenrace, Rotonde, Mijnenveld en Weerwolven.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -188,7 +188,7 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
     <p class="kicker">van Jort</p>
     <h1>Speelhal</h1>
     <div class="hero-card cream">
-      <div class="chips"><span class="chip">Acht spellen</span><span class="chip line">Eén pagina</span></div>
+      <div class="chips"><span class="chip">Negen spellen</span><span class="chip line">Eén pagina</span></div>
       <p>Al mijn spellen op één plek. Scroll naar beneden om ze te bekijken, of spring er direct in.</p>
       <div class="hero-list" id="heroList"></div>
     </div>
@@ -284,7 +284,13 @@ const GAMES = [
     chips: ['Dobbel- en kaartspel', 'Online met vrienden'],
     text: '36 kaarten in een veld van 6 bij 6, met 8 verstopte mijnen. Gooi de steen twee keer: eerst voor de kolom, dan voor de rij. Land je op een mijn? Boem: drinken, en dan leg jij hem ergens anders neer, op een kaart of tussen twee kaarten. Daarna gok je rood of zwart.',
     facts: [['Spelers', '2 tot 10'], ['Mijnen', '8 verstopt'], ['Meedoen', 'met een code']],
-    cta: 'Speel Mijnenveld' }
+    cta: 'Speel Mijnenveld' },
+  { id: 'weerwolven', name: 'Weer', name2: 'wolven', short: 'Weerwolven', acc: '#e5383b', tint: '#2a0d10', bg: '#0b1433',
+    url: '/weerwolven',
+    chips: ['Rollenspel', 'Online met vrienden'],
+    text: 'Weerwolven van Wakkerdam, zonder spelleider: je telefoon deelt de rollen uit en regelt de nacht. \'s Nachts kiezen de wolven een slachtoffer, overdag stemt het dorp wie er hangt. Met de ziener, de heks, de jager en Cupido. Wie doodgaat drinkt, en de verliezers ook.',
+    facts: [['Spelers', '4 tot 12'], ['Rollen', '6, door de host te kiezen'], ['Meedoen', 'met een code']],
+    cta: 'Speel Weerwolven' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 function build(){
@@ -643,8 +649,51 @@ const PREV = {
       T(c, lbl, dx, y + ds * .78, Math.min(ds * .24, 12), col, { f: MF });
     });
     if (cur && cur.boom && e > .62) T(c, 'BOEM!', x0 + gw / 2, h * .5, Math.min(w * .11, h * .2), '#ff5a1f', { w: 900 });
+  },
+  weerwolven(c, w, h, t){
+    // een nacht en een dag aan tafel: de wolven (rode ogen) kiezen iemand, overdag stemt het dorp een wolf weg
+    const L = 9000, k = reduce ? 7600 : t % L, day = clamp((k - 4000) / 500, 0, 1) * (1 - clamp((k - 8500) / 500, 0, 1));
+    c.fillStyle = '#0b1433'; c.fillRect(0, 0, w, h);
+    const cx = w / 2, cy = h / 2, rx = Math.min(w * .4, h * .78), ry = h * .4, ar = Math.min(w, h) * .075;
+    // het vilt: 's nachts donkerblauw, overdag groen
+    const felt = (a, c0, c1) => { c.globalAlpha = a; const g = c.createRadialGradient(cx, cy * .8, 4, cx, cy, rx * 1.1); g.addColorStop(0, c0); g.addColorStop(1, c1); c.fillStyle = g; c.beginPath(); c.ellipse(cx, cy, rx * .86, ry * .82, 0, 0, TAU); c.fill(); c.globalAlpha = 1; };
+    felt(1, '#33498a', '#0b1433'); felt(day, '#35a862', '#125a2e');
+    const COLS = ['#4f8dff', '#d690c9', '#ff7a00', '#2fbf71', '#f7c548', '#ff4a24', '#a28fe3'], INI = 'JMSSDMM';
+    const pos = COLS.map((_, i) => { const a = Math.PI / 2 + i * TAU / 7; return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)]; });
+    const WOLVES = [2, 5], VICTIM = 4, HANGED = 5;
+    const deadV = k > 3000, deadH = k > 7000 && k < 8500;
+    // 's nachts: de wolven kiezen; overdag: de stemmen
+    const line = (from, to, p, col) => { const [x0, y0] = pos[from], [x1, y1] = pos[to]; c.strokeStyle = col; c.lineWidth = 2.5; c.setLineDash([6, 5]); c.beginPath(); c.moveTo(x0, y0); c.lineTo(x0 + (x1 - x0) * p, y0 + (y1 - y0) * p); c.stroke(); c.setLineDash([]); };
+    if (k > 1500 && k < 4000) for (const wv of WOLVES) line(wv, VICTIM, clamp((k - 1500) / 900, 0, 1), 'rgba(229,56,59,.85)');
+    if (k > 4800 && k < 8500) [0, 1, 3, 6, 2].forEach((v, j) => line(v, HANGED, clamp((k - 4800 - j * 300) / 600, 0, 1), 'rgba(247,197,72,.8)'));
+    pos.forEach(([x, y], i) => {
+      const dead = (i === VICTIM && deadV) || (i === HANGED && deadH);
+      c.beginPath(); c.arc(x, y, ar, 0, TAU); c.fillStyle = dead ? '#3a3340' : COLS[i]; c.fill();
+      c.lineWidth = 3; c.strokeStyle = '#140d17'; c.stroke();
+      if (dead) { rr(c, x - ar * .38, y - ar * .45, ar * .76, ar * .95, ar * .38); c.fillStyle = 'rgba(255,255,255,.7)'; c.fill(); }
+      else T(c, INI[i], x, y + 1, ar * 1.05, '#fff', { w: 900 });
+      // rode ogen bij de wolven, alleen 's nachts
+      if (WOLVES.includes(i) && !dead && k > 700 && k < 4000) {
+        c.fillStyle = '#ff3b3f'; c.shadowColor = 'rgba(255,59,63,.9)'; c.shadowBlur = 10;
+        for (const s of [-1, 1]) { c.beginPath(); c.ellipse(x + s * ar * .55, y - ar * 1.15, ar * .16, ar * .09, s * .4, 0, TAU); c.fill(); }
+        c.shadowBlur = 0; c.shadowColor = 'transparent';
+      }
+    });
+    // het midden: maan of zon, en wat er gebeurt
+    const big = Math.min(w * .09, h * .17), small = Math.min(w * .032, h * .06);
+    if (day < .5) {
+      // de maan, dezelfde als op de tafel van het spel
+      c.save(); c.translate(cx - big * .6, cy - big * 1.7); c.scale(big / 20, big / 20); c.fillStyle = '#cfd9ff'; c.fill(MOON_PATH); c.restore();
+      T(c, 'NACHT 1', cx, cy + big * .15, big, '#fff', { w: 900 });
+      T(c, deadV ? 'MEKE IS OPGEGETEN' : 'DE WOLVEN KIEZEN', cx, cy + big * .95, small, deadV ? '#ff5a64' : 'rgba(243,239,219,.8)', { f: MF });
+    } else {
+      c.beginPath(); c.arc(cx, cy - big * 1.1, big * .45, 0, TAU); c.fillStyle = '#f7c548'; c.fill();
+      T(c, deadH ? 'WEERWOLF!' : 'DAG 1', cx, cy + big * .15, big, deadH ? '#ff5a64' : '#fff', { w: 900 });
+      T(c, deadH ? 'HET DORP HING EEN WOLF OP' : 'STEM WIE ER HANGT', cx, cy + big * .95, small, 'rgba(243,239,219,.85)', { f: MF });
+    }
   }
 };
+const MOON_PATH = new Path2D('M20.6 14.8A9 9 0 0 1 9.2 3.4a9 9 0 1 0 11.4 11.4z');
 let prevs = [];
 function sizePrevs(){
   const dpr = Math.min(2, devicePixelRatio || 1);

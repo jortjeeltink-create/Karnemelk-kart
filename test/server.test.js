@@ -206,7 +206,7 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.equal(hall.status, 200);
     const hallHtml = await hall.text();
     assert.match(hallHtml, /<title>Speelhal<\/title>/);
-    for (const href of ['/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
+    for (const href of ['/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld', '/weerwolven']) assert.ok(hallHtml.includes(`'${href}'`), `speelhal linkt naar ${href}`);
     for (const href of ['/megaball', '/stockmarket', '/rodezone']) assert.ok(!hallHtml.includes(`'${href}'`), `${href} staat niet meer in de speelhal`);
     assert.match(hallHtml, /'Mario Bak'/, 'de kartgame heet Mario Bak');
     assert.match(hallHtml, /rel="manifest" href="\/speelhal\.webmanifest"/);
@@ -316,6 +316,13 @@ test('de server levert de game en een gezondheidscheck', async () => {
     const mijnManifest = await (await fetch(srv.url + '/mijnenveld.webmanifest')).json();
     assert.equal(mijnManifest.start_url, '/mijnenveld');
     for (const icon of mijnManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
+    // Weerwolven: ook een losse app, met een uitnodigingslink per tafel
+    assert.match(await (await fetch(srv.url + '/weerwolven')).text(), /<title>Weerwolven<\/title>/);
+    assert.match(await (await fetch(srv.url + '/weerwolven/ABCD')).text(), /<title>Weerwolven<\/title>/);
+    assert.equal((await fetch(srv.url + '/shared/weerwolven.js')).status, 200);
+    const wolfManifest = await (await fetch(srv.url + '/weerwolven.webmanifest')).json();
+    assert.equal(wolfManifest.start_url, '/weerwolven');
+    for (const icon of wolfManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
     const health = await (await fetch(srv.url + '/health')).json();
     assert.equal(health.ok, true);
     assert.equal((await fetch(srv.url + '/../server/store.js')).status, 404);
@@ -506,6 +513,34 @@ test('Mijnenveld online: twee telefoons, de host gooit twee keer en de ander zie
     const health = await (await fetch(srv.url + '/health')).json();
     assert.deepEqual(health.mijnenveld, { tables: 1, players: 2 });
     [a, b].forEach((c) => c.close());
+  } finally {
+    await srv.stop();
+  }
+});
+
+test('Weerwolven online: vier telefoons, iedereen krijgt geheim een rol en alleen de wolf ziet de andere wolven', async () => {
+  const srv = await startServer();
+  try {
+    const url = srv.ws + '/weerwolven';
+    const phones = await Promise.all([0, 1, 2, 3].map(() => new Client(url).open()));
+    const s0 = await phones[0].request({ t: 'create', name: 'Jort', token: 'wolf-telefoon-0-0123456789' }, 'state');
+    assert.deepEqual(s0.settings, { wolves: 0, ziener: true, heks: true, jager: true, cupido: false });
+    assert.match(s0.build, /^[\w-]{12}$/);
+    for (const [i, name] of ['Meke', 'Sim', 'Stan'].entries()) {
+      await phones[i + 1].request({ t: 'join', code: s0.code, name, token: `wolf-telefoon-${i + 1}-0123456789` }, (m) => m.t === 'state' && m.players.length === i + 2);
+    }
+    const dealt = phones.map((p) => p.wait((m) => m.t === 'state' && m.phase === 'rollen'));
+    phones[0].send({ t: 'start' });
+    const views = await Promise.all(dealt);
+    assert.deepEqual(views.map((v) => v.me.role).sort(), ['heks', 'jager', 'wolf', 'ziener']);
+    for (const v of views) assert.ok(v.players.every((p) => p.role === undefined), 'geen rollen van anderen');
+    const night = phones.map((p) => p.wait((m) => m.t === 'state' && m.phase === 'nacht'));
+    phones.forEach((p) => p.send({ t: 'ready' }));
+    const nv = await Promise.all(night);
+    assert.deepEqual(nv.map((v) => v.me.task).sort(), ['heks', 'verdenk', 'wolf', 'zien']);
+    const health = await (await fetch(srv.url + '/health')).json();
+    assert.deepEqual(health.weerwolven, { tables: 1, players: 4 });
+    phones.forEach((c) => c.close());
   } finally {
     await srv.stop();
   }
