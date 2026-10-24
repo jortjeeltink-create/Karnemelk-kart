@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zuipbord</title>
+<meta name="description" content="Zuipbord: het drankspel als ganzenbord, online met iedereen op zijn eigen telefoon. Gooi de steen, loop met je pion en doe wat er op het vakje staat.">
+<meta name="theme-color" content="#2e180a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Zuipbord">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="/zuipbord.webmanifest">
+<link rel="icon" href="/img/zuipbord.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/zuipbord-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+:root{
+  /* Zuipbord heeft de sfeer van een bordspel: een vrolijk bord met gekleurde vakjes op een houten tafel, pionnen in
+     de kleur van elke speler en een grote steen om te gooien. Koppen in Lilita One, tekst in Nunito. */
+  --wood:#6b3f1f;
+  --wood-2:#4a2a13;
+  --wood-3:#2e180a;
+  --paper:#fff3d6;
+  --paper-2:#f6e3b8;
+  --ink:#3a2412;
+  --ink-2:#7a5a3a;
+  --cream:#fff3d6;
+  --soft:#e8d3b0;
+  --gold:#ffc533;
+  --good:#3ccf72;
+  --bad:#ff5b4d;
+  /* de soorten vakjes */
+  --v-drink:#e5483b;
+  --v-geef:#2eaa57;
+  --v-iedereen:#f08c1a;
+  --v-beweeg:#3d7fe0;
+  --v-vraag:#8b5bd6;
+  --v-speciaal:#f2c230;
+  --v-rust:#e9dcbc;
+  --v-dood:#2a2422;
+  --display:"Lilita One","Arial Rounded MT Bold","Helvetica Neue",sans-serif;
+  --body:"Nunito","Helvetica Neue",Arial,sans-serif;
+  --s1:12px; --s2:14px; --s3:16px;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+html{background:var(--wood-3)}
+/* een houten tafel */
+body{margin:0;color:var(--cream);font-family:var(--body);font-weight:700;font-size:var(--s2);line-height:1.45;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;overscroll-behavior:none;
+  background:radial-gradient(120% 90% at 50% 35%,rgba(0,0,0,0) 40%,rgba(0,0,0,.55) 100%),repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 2px,transparent 2px 9px,rgba(0,0,0,.05) 9px 11px,transparent 11px 23px),linear-gradient(180deg,#7a4825 0%,#5a3318 50%,#3a200d 100%) fixed}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+button:disabled{cursor:default}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:12px}
+h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0;letter-spacing:.01em}
+p{margin:0}
+
+/* ---------- vaste UI ---------- */
+.app{position:relative;z-index:1;max-width:560px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) 0 env(safe-area-inset-left,0px)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px 6px}
+.bar-r{display:flex;gap:8px}
+.knob{background:linear-gradient(180deg,#8a5530,#5a3318);border:1px solid rgba(255,230,190,.25);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 6px 14px rgba(0,0,0,.4)}
+.round{display:inline-grid;place-items:center;width:42px;height:42px;border-radius:50%;color:var(--cream)}
+.owe{display:inline-flex;align-items:center;gap:5px;height:42px;padding:0 13px;border-radius:999px;font-weight:900;font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums}
+.owe svg{width:16px;height:16px}
+.owe.zero{color:var(--soft)}
+.brand{display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:28px;line-height:1;color:var(--paper);white-space:nowrap;text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.brand svg{width:28px;height:28px;flex:none;filter:drop-shadow(0 2px 0 rgba(0,0,0,.35))}
+
+.screen{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:2px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.screen.is-game{padding-bottom:0}
+.view{display:flex;flex-direction:column;gap:12px;min-height:100%}
+.view.game{display:grid;grid-template-rows:minmax(240px,1fr) auto auto;height:100%;min-height:0;gap:0}
+
+/* ---------- het bord ---------- */
+.boardwrap{position:relative;min-height:0;container-type:size;display:grid;place-items:center;padding:4px 0 8px;margin:0 -10px}
+.board{position:relative;width:min(100cqw,100cqh);aspect-ratio:1;container-type:inline-size;padding:2.6cqw;border-radius:5cqw;background:linear-gradient(145deg,#a8703f,#6b3f1f 60%,#4a2a13);box-shadow:inset 0 2px 0 rgba(255,255,255,.25),inset 0 -3px 0 rgba(0,0,0,.35),0 18px 40px rgba(0,0,0,.5)}
+.paper{position:relative;width:100%;height:100%;border-radius:3cqw;background:radial-gradient(circle at 30% 20%,#fffaf0,#fff3d6 50%,#f1dcae);box-shadow:inset 0 0 0 1px rgba(58,36,18,.25),inset 0 0 30px rgba(140,90,40,.25);display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);gap:1cqw;padding:1.4cqw}
+.tile{position:relative;border-radius:2.2cqw;display:grid;grid-template-rows:auto 1fr auto;justify-items:center;align-items:center;padding:.6cqw .4cqw .8cqw;background:var(--tc);color:#fff;box-shadow:inset 0 -.8cqw 0 rgba(0,0,0,.18),inset 0 .5cqw 0 rgba(255,255,255,.25),0 .4cqw .8cqw rgba(58,36,18,.25);overflow:hidden}
+.tile.dark{color:var(--ink)}
+.tile .no{justify-self:start;padding-left:.6cqw;font-family:var(--display);font-size:max(8px,2.4cqw);line-height:1;opacity:.85}
+.tile svg{width:5.2cqw;height:5.2cqw;display:block;filter:drop-shadow(0 .3cqw 0 rgba(0,0,0,.18))}
+.tile .lb{font-size:max(8.5px,2.5cqw);font-weight:900;line-height:1;white-space:nowrap;letter-spacing:-.02em}
+.tile .big{font-family:var(--display);font-size:4.6cqw;line-height:1}
+.tile.start{background:repeating-linear-gradient(45deg,#3ccf72 0 2cqw,#2eaa57 2cqw 4cqw)}
+.tile.finish{background:repeating-conic-gradient(#fff 0 25%,#222 0 50%) 0 0/3.4cqw 3.4cqw;color:#222}
+.tile.finish .lb{background:var(--gold);color:var(--ink);padding:.3cqw .8cqw;border-radius:99px}
+.tile.finish .no{color:#fff;mix-blend-mode:difference}
+.tile.hot{box-shadow:inset 0 -.8cqw 0 rgba(0,0,0,.18),0 0 0 .7cqw var(--gold),0 0 3cqw rgba(255,197,51,.9);z-index:1}
+/* de pionnen */
+.pawns{position:absolute;inset:calc(2.6cqw + 1.4cqw);pointer-events:none}
+.pawn{position:absolute;left:var(--x);top:var(--y);width:6.4cqw;height:6.4cqw;margin:-3.2cqw 0 0 -3.2cqw;border-radius:50% 50% 50% 50%/56% 56% 44% 44%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.6),rgba(255,255,255,0) 50%),var(--pc);color:#fff;font-family:var(--display);font-size:3.4cqw;line-height:1;text-shadow:0 .2cqw .4cqw rgba(0,0,0,.4);box-shadow:0 0 0 .5cqw #fff,0 .8cqw 1.4cqw rgba(0,0,0,.45);transition:left .2s cubic-bezier(.3,.7,.3,1),top .2s cubic-bezier(.3,.7,.3,1);z-index:2}
+.pawn.turn{z-index:3;animation:bob 1s ease-in-out infinite}
+.pawn.me{box-shadow:0 0 0 .5cqw #fff,0 0 0 1cqw var(--gold),0 .8cqw 1.4cqw rgba(0,0,0,.45)}
+.pawn.walk{z-index:4;animation:hop .2s ease-out}
+.pawn.off{filter:grayscale(1) brightness(.75)}
+@keyframes bob{50%{transform:translateY(-14%)}}
+@keyframes hop{50%{transform:translateY(-30%) scale(1.1)}}
+.over{position:absolute;inset:0;z-index:5;display:grid;place-items:center;pointer-events:none}
+.over .card{pointer-events:auto;width:min(78%,320px);padding:16px 14px;border-radius:20px;text-align:center;background:var(--paper);color:var(--ink);box-shadow:0 0 0 4px #fff,0 0 0 7px var(--wood-2),0 20px 40px rgba(0,0,0,.5);display:grid;gap:4px;justify-items:center}
+.over .kickline{font-size:var(--s1);font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.over .code{font-family:var(--display);font-size:min(14cqw,58px);line-height:1;letter-spacing:.12em;margin-right:-.12em;color:var(--v-drink)}
+.over .title{font-family:var(--display);font-size:min(10cqw,44px);line-height:1;color:var(--v-drink)}
+.banner{position:absolute;inset:0;z-index:6;display:grid;place-content:center;justify-items:center;gap:4px;text-align:center;pointer-events:none;animation:banner 1.8s ease both}
+.banner-t{font-family:var(--display);font-size:min(14cqw,64px);line-height:.9;color:#fff;padding:6px 18px 8px;border-radius:18px;background:var(--bc,var(--v-drink));box-shadow:0 0 0 4px #fff,0 14px 30px rgba(0,0,0,.45);transform:rotate(-4deg);text-shadow:0 3px 0 rgba(0,0,0,.25)}
+.banner-s{font-weight:900;font-size:var(--s2);color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8)}
+@keyframes banner{0%{opacity:0;transform:scale(.6)}14%{opacity:1;transform:scale(1.05)}22%{transform:none}80%{opacity:1}100%{opacity:0}}
+
+/* ---------- de spelers ---------- */
+.strip{display:flex;gap:6px;overflow-x:auto;padding:0 2px 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.strip::-webkit-scrollbar{display:none}
+.pl{flex:none;display:flex;align-items:center;gap:7px;padding:5px 10px 5px 5px;border-radius:999px;background:rgba(30,15,5,.55);box-shadow:inset 0 0 0 1px rgba(255,230,190,.18);color:var(--cream);white-space:nowrap}
+.pl .dot{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--pc);font-family:var(--display);font-size:14px;color:#fff;box-shadow:0 0 0 2px #fff}
+.pl b{font-weight:900;font-size:13px;line-height:1.1}
+.pl small{display:block;font-size:11px;font-weight:700;color:var(--soft);line-height:1.1}
+.pl small i{font-style:normal;color:var(--gold)}
+.pl.turn{background:rgba(255,197,51,.2);box-shadow:inset 0 0 0 2px var(--gold)}
+.pl.off{opacity:.5}
+.pl .ic{font-size:12px}
+button.pl{cursor:pointer}
+
+/* ---------- actiebalk ---------- */
+.dock{position:relative;z-index:5;margin:0 -16px;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));border-radius:22px 22px 0 0;background:linear-gradient(180deg,#fff3d6,#f1dcae);color:var(--ink);box-shadow:0 -10px 30px rgba(0,0,0,.45),inset 0 3px 0 #fff;display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.dock h2{font-size:30px;line-height:.95;color:var(--ink)}
+.sub{font-size:var(--s2);color:var(--ink-2);line-height:1.4}
+.sub b{color:var(--ink)}
+.fine{font-size:12px;color:var(--ink-2);line-height:1.4}
+.fine.warn{color:#b5480f}
+.waitline{font-size:var(--s2);color:var(--ink-2)}
+.waitline::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.4s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+.ask-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pill{flex:none;display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:rgba(58,36,18,.08);box-shadow:inset 0 0 0 1px rgba(58,36,18,.2);font-size:var(--s1);font-weight:900;color:var(--ink)}
+.pill i{width:12px;height:12px;border-radius:50%;background:var(--pc);font-style:normal}
+.cta{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;border-radius:999px;padding:9px 10px 9px 22px;font-family:var(--display);font-size:25px;line-height:1.1;color:#fff;text-decoration:none;text-align:left;background:linear-gradient(180deg,#f4614f,#d63a2c);box-shadow:inset 0 -4px 0 rgba(0,0,0,.2),inset 0 2px 0 rgba(255,255,255,.3),0 8px 18px rgba(150,40,20,.35);transition:filter .2s,transform .1s;text-shadow:0 2px 0 rgba(0,0,0,.2)}
+.cta:active{transform:translateY(2px)}
+.cta.green{background:linear-gradient(180deg,#43c76f,#28994d);box-shadow:inset 0 -4px 0 rgba(0,0,0,.2),inset 0 2px 0 rgba(255,255,255,.3),0 8px 18px rgba(30,110,50,.35)}
+.cta .arr{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.22);flex:none}
+.cta:disabled{background:rgba(58,36,18,.12);color:var(--ink-2);box-shadow:none;text-shadow:none}
+.cta:disabled .arr{background:rgba(58,36,18,.08)}
+.ghostbtn{display:block;width:100%;border-radius:999px;padding:12px 20px;font-size:var(--s2);font-weight:900;color:var(--ink);box-shadow:inset 0 0 0 2px rgba(58,36,18,.3);text-decoration:none;text-align:center}
+.linkbtn{justify-self:start;padding:4px 0;font-size:var(--s1);font-weight:800;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
+.sharebtn{display:inline-flex;align-items:center;gap:7px;flex:none;padding:8px 14px;border-radius:999px;background:var(--ink);font-size:var(--s1);font-weight:900;color:var(--cream)}
+.sharebtn svg{width:14px;height:14px}
+.pop{animation:pop .35s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes pop{from{transform:translateY(10px);opacity:.3}}
+/* de steen */
+.throw{display:flex;align-items:center;gap:14px;width:100%;padding:10px 14px 10px 10px;border-radius:22px;background:linear-gradient(180deg,#f4614f,#d63a2c);color:#fff;box-shadow:inset 0 -5px 0 rgba(0,0,0,.2),inset 0 2px 0 rgba(255,255,255,.3),0 10px 22px rgba(150,40,20,.4);text-align:left;transition:transform .1s}
+.throw:active{transform:translateY(3px)}
+.throw:disabled{filter:saturate(.4) brightness(.9)}
+.throw b{display:block;font-family:var(--display);font-weight:400;font-size:30px;line-height:1;text-shadow:0 2px 0 rgba(0,0,0,.2)}
+.throw small{display:block;font-size:12px;font-weight:800;opacity:.9}
+.die{flex:none;width:58px;height:58px;border-radius:14px;background:linear-gradient(145deg,#fff,#efe4cc);box-shadow:inset 0 -4px 0 rgba(0,0,0,.12),0 4px 10px rgba(0,0,0,.3);display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:9px;gap:2px}
+.die i{border-radius:50%;background:transparent}
+.die i.on{background:var(--ink)}
+.die.q{display:grid;place-items:center;grid-template-columns:1fr;grid-template-rows:1fr;font-family:var(--display);font-size:34px;color:var(--v-drink)}
+.die.roll{animation:dieroll .5s linear infinite}
+@keyframes dieroll{25%{transform:rotate(14deg) translateY(-4px)}50%{transform:rotate(-8deg)}75%{transform:rotate(10deg) translateY(-2px)}}
+/* wat er op het vakje gebeurde */
+.vk{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;padding:10px 12px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 2px rgba(58,36,18,.12),0 4px 10px rgba(58,36,18,.12)}
+.vk .sq{width:52px;height:52px;border-radius:12px;display:grid;place-items:center;background:var(--tc);color:#fff;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18)}
+.vk .sq.dark{color:var(--ink)}
+.vk .sq svg{width:30px;height:30px}
+.vk .sq .big{font-family:var(--display);font-size:24px;line-height:1}
+.vk b{display:block;font-family:var(--display);font-weight:400;font-size:22px;line-height:1.05;color:var(--ink)}
+.vk span{display:block;font-size:13px;line-height:1.35;color:var(--ink-2)}
+.vk span strong{color:var(--ink)}
+.who{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.who button{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 2px rgba(58,36,18,.15),0 3px 0 rgba(58,36,18,.15);font-weight:900;font-size:15px;color:var(--ink);text-align:left;transition:transform .1s}
+.who button:active{transform:translateY(2px)}
+.who button:disabled{opacity:.5}
+.who i{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--pc);font-family:var(--display);font-style:normal;font-size:14px;color:#fff}
+.standing{display:grid;gap:2px;font-size:13px;color:var(--ink-2)}
+.standing div{display:flex;justify-content:space-between;gap:10px;padding:4px 2px;border-bottom:1px dashed rgba(58,36,18,.2)}
+.standing div:last-child{border-bottom:0}
+.standing b{color:var(--ink)}
+.standing i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--pc);margin-right:6px}
+.standing .won b{color:#1f8a46}
+
+/* ---------- start ---------- */
+.homeboard{flex:none;height:min(340px,44svh);min-height:240px}
+.homeboard .boardwrap{height:100%}
+.startcard{padding:20px;display:grid;grid-template-columns:minmax(0,1fr);gap:13px;border-radius:22px;background:linear-gradient(180deg,#fff8e6,#f6e3b8);color:var(--ink);box-shadow:0 0 0 4px #fff,0 0 0 7px var(--wood-2),0 24px 50px rgba(0,0,0,.5)}
+.startcard>p{font-size:var(--s3);line-height:1.5}
+.chip{display:inline-flex;align-items:center;padding:5px 11px;border-radius:999px;background:var(--ink);color:var(--paper);font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;line-height:1.3}
+.chip.line{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px rgba(58,36,18,.35)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.fld{display:grid;gap:6px;font-size:var(--s1);font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.inp{width:100%;min-width:0;height:50px;padding:0 18px;border:0;border-radius:999px;background:#fff;color:var(--ink);font-size:17px;font-weight:800;box-shadow:inset 0 0 0 2px rgba(58,36,18,.2)}
+.inp::placeholder{color:#b49a7c}
+.inp:focus{outline:none;box-shadow:inset 0 0 0 3px #d63a2c}
+.inp.code{flex:1;text-transform:uppercase;letter-spacing:.3em}
+.addrow{display:flex;gap:8px}
+.addbtn{flex:none;height:50px;padding:0 18px;border-radius:999px;background:var(--ink);color:var(--paper);font-weight:900}
+.addbtn:disabled{opacity:.4}
+.or{display:flex;align-items:center;gap:12px;font-size:var(--s1);color:var(--ink-2)}
+.or::before,.or::after{content:"";flex:1;height:2px;border-radius:2px;background:rgba(58,36,18,.15)}
+.errline{padding:10px 14px;border-radius:14px;background:#ffd9d2;color:#a3261a;font-size:var(--s2);font-weight:900}
+.note{font-size:var(--s1);color:var(--soft);text-align:center}
+
+/* ---------- vellen ---------- */
+.overlay{position:fixed;inset:0;z-index:50;display:grid;align-items:end;justify-items:center;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));background:rgba(20,10,3,.6);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+.sheet{width:min(520px,100%);max-height:calc(100dvh - 40px);overflow:auto;overscroll-behavior:contain;padding:22px;display:grid;grid-template-columns:minmax(0,1fr);gap:14px;border-radius:22px;background:linear-gradient(180deg,#fff8e6,#f6e3b8);color:var(--ink);box-shadow:0 0 0 4px #fff,0 0 0 7px var(--wood-2),0 24px 60px rgba(0,0,0,.55)}
+.sheet.anim{animation:up .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{transform:translateY(30px);opacity:0}}
+.sheet-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.sheet-title{font-size:42px;line-height:.95;color:var(--ink)}
+.xbtn{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:rgba(58,36,18,.1);flex:none;font-size:18px;color:var(--ink)}
+.kick{font-size:var(--s1);font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.sheet>p{font-size:var(--s3);line-height:1.5}
+.mlist{display:grid}
+.mlist>*{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:10px 0;border-bottom:2px dashed rgba(58,36,18,.15);font-family:var(--display);font-size:28px;line-height:1.1;text-align:left;text-decoration:none;color:var(--ink)}
+.mlist>button:hover,.mlist>a:hover{color:#d63a2c}
+.mlist span{font-family:var(--body);font-size:var(--s1);font-weight:800;color:var(--ink-2)}
+.rules{display:grid;gap:10px;font-size:var(--s2);line-height:1.5}
+.rules ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.rules .small{font-size:var(--s1);color:var(--ink-2)}
+.legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.legend div{display:flex;align-items:center;gap:8px;font-size:12.5px;line-height:1.25}
+.legend .sq{flex:none;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--tc);color:#fff}
+.legend .sq.dark{color:var(--ink)}
+.legend .sq svg{width:19px;height:19px}
+.legend .sq .big{font-family:var(--display);font-size:15px}
+.scorecard table{width:100%;border-collapse:collapse;font-size:13px}
+.scorecard th{padding:9px 4px 7px;text-align:right;font-size:10.5px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.scorecard td{padding:8px 4px;text-align:right;border-top:2px solid rgba(58,36,18,.1);font-variant-numeric:tabular-nums;font-weight:900}
+.scorecard th:first-child,.scorecard td:first-child{text-align:left}
+.scorecard td:first-child{font-family:var(--display);font-size:20px;font-weight:400}
+.scorecard td:first-child i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--pc);margin-right:7px;vertical-align:1px}
+
+.toasts{position:fixed;left:50%;top:calc(66px + env(safe-area-inset-top,0px));z-index:60;transform:translateX(-50%);display:grid;gap:6px;justify-items:center;width:max-content;max-width:calc(100vw - 24px);pointer-events:none}
+.toasts div{padding:9px 15px;border-radius:999px;background:var(--paper);color:var(--ink);font-size:13px;font-weight:900;text-align:center;box-shadow:0 0 0 2px #fff,0 10px 30px rgba(0,0,0,.45);animation:toast 2.8s ease both}
+.toasts div.net{background:var(--ink);color:var(--gold);animation:none}
+@keyframes toast{0%{opacity:0;transform:translateY(-8px)}8%{opacity:1;transform:none}88%{opacity:1}100%{opacity:0}}
+.confetti{position:fixed;inset:0;z-index:40;overflow:hidden;pointer-events:none}
+.confetti i{position:absolute;top:-24px;width:8px;height:14px;border-radius:2px;animation:fall var(--t) cubic-bezier(.2,.6,.4,1) var(--dl) forwards}
+@keyframes fall{to{transform:translate(var(--x),112vh) rotate(var(--r))}}
+
+@media (max-width:379px){.brand{font-size:24px}}
+@media (max-height:720px){
+  .dock{padding-top:11px;gap:8px}
+  .dock h2{font-size:26px}
+  .fine{display:none}
+  .die{width:50px;height:50px;padding:8px}
+  .throw b{font-size:26px}
+  .vk{padding:8px 10px}
+  .vk .sq{width:44px;height:44px}
+  .view.game{grid-template-rows:minmax(220px,1fr) auto auto}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="7" fill="#fff" stroke="#3a2412" stroke-width="2"/><circle cx="10" cy="10" r="3" fill="#e5483b"/><circle cx="22" cy="10" r="3" fill="#3a2412"/><circle cx="16" cy="16" r="3" fill="#3a2412"/><circle cx="10" cy="22" r="3" fill="#3a2412"/><circle cx="22" cy="22" r="3" fill="#e5483b"/></svg><span>Zuipbord</span></div>
+    <div class="bar-r">
+      <button class="owe knob" id="owe" type="button" data-act="mine" hidden></button>
+      <button class="round knob" type="button" data-act="menu" aria-label="Menu" aria-haspopup="dialog">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </header>
+  <main class="screen" id="screen"></main>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle"></div>
+</div>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<div class="confetti" id="confetti" aria-hidden="true"></div>
+
+<script type="module">
+import * as Z from '/shared/zuipbord.js';
+import * as B from '/shared/bussen.js';
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// vaste kleur per pion
+const PC = ['#3d7fe0', '#e5483b', '#2eaa57', '#f08c1a', '#8b5bd6', '#e6407f', '#17a5b8', '#c9a227', '#6b4a2b', '#5c5f6b'];
+const ARR = '<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>';
+const GLASS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l-1.6 16.2a2 2 0 0 1-2 1.8H9.6a2 2 0 0 1-2-1.8z"/><path d="M6.6 9h10.8"/></svg>';
+const SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+const svg = (inner) => `<svg viewBox="0 0 24 24" aria-hidden="true">${inner}</svg>`;
+const F = 'fill="currentColor"', ST = 'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"';
+// plaatjes voor de vakjes
+const ICON = {
+  drink: svg(`<path ${F} d="M6 2.5h12l-1.7 17a2.2 2.2 0 0 1-2.2 2H9.9a2.2 2.2 0 0 1-2.2-2z"/><path fill="rgba(255,255,255,.7)" d="M6.5 7.5h11l.3-3H6.2z"/>`),
+  geef: svg(`<path ${F} d="M3 4h9l-1.2 12a1.8 1.8 0 0 1-1.8 1.6H6a1.8 1.8 0 0 1-1.8-1.6z"/><path ${ST} d="M14 12h7M18 8.5l3.5 3.5L18 15.5"/>`),
+  iedereen: svg(`<path ${F} d="M2.5 6h7l-1 11a1.6 1.6 0 0 1-1.6 1.4H5.1A1.6 1.6 0 0 1 3.5 17zM14.5 6h7l-1 11a1.6 1.6 0 0 1-1.6 1.4h-1.8a1.6 1.6 0 0 1-1.6-1.4z"/><path ${F} d="M8.5 3h7l-1 11a1.6 1.6 0 0 1-1.6 1.4h-1.8a1.6 1.6 0 0 1-1.6-1.4z" opacity=".75"/>`),
+  buren: svg(`<path ${ST} d="M9 6L3 12l6 6M15 6l6 6-6 6M3 12h7M14 12h7"/>`),
+  laatste: svg(`<path ${F} d="M13 6a6 6 0 1 1 0 12H4a2 2 0 0 1-2-2v0a2 2 0 0 1 2-2h1.2A6 6 0 0 1 13 6z"/><path fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1.8" stroke-linecap="round" d="M13 9.5a2.5 2.5 0 1 1-2.5 2.5"/><path ${ST} d="M4.5 13V8.5M6.5 13V9"/>`),
+  gans: svg(`<path ${F} d="M7 3.5a2.6 2.6 0 0 1 2.6 2.6c0 1.8-.9 3.1-.9 5 0 1.7 1.3 2.8 3.4 2.8 2.3 0 4.6-1.4 7.2-3.6.8 4.2-1.2 9.2-7.6 9.2H8.2A4.2 4.2 0 0 1 4 15.3c0-2.4 1.3-3.6 1.3-6.1 0-.8-.3-1.4-.9-1.9L2 7l2.6-.6A2.7 2.7 0 0 1 7 3.5z"/><circle cx="7.2" cy="6" r=".9" fill="rgba(0,0,0,.55)"/>`),
+  brug: svg(`<path ${F} d="M1 13h22v3h-2v4h-3v-4a6 6 0 0 0-12 0v4H3v-4H1z"/><path ${ST} d="M2 9c4 3 16 3 20 0"/>`),
+  doolhof: svg(`<path ${ST} d="M3 3h18v18H3zM7 7h10v10H7zM11 11h2v2M7 3v4M17 17v4"/>`),
+  dood: svg(`<path ${F} d="M12 2.5c5 0 8.5 3.4 8.5 8 0 2.6-1.2 4.4-3 5.4V19a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-3.1c-1.8-1-3-2.8-3-5.4 0-4.6 3.5-8 8.5-8z"/><circle cx="8.6" cy="11" r="2.3" fill="rgba(0,0,0,.6)"/><circle cx="15.4" cy="11" r="2.3" fill="rgba(0,0,0,.6)"/><path fill="rgba(0,0,0,.6)" d="M12 13.5l1.4 2.4h-2.8z"/>`),
+  cafe: svg(`<path ${F} d="M3 5h12v13a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z"/><path ${ST} d="M15 8h2.5a2.5 2.5 0 0 1 0 5H15"/><path fill="rgba(255,255,255,.75)" d="M2.5 4.5c0-1.5 1.5-2.5 3-2 1-1.2 3-1.2 4 0 1.5-.6 3.5.3 3.5 2.2V7H2.5z"/>`),
+  put: svg(`<path ${F} d="M3 9h18l-2 12H5z"/><path ${ST} d="M2 7l10-5 10 5M12 2v9"/><path fill="rgba(0,0,0,.3)" d="M6 12h12v2H6z"/>`),
+  duel: svg(`<path ${ST} d="M4 4l11 11M20 4L9 15M13 17l4 4M11 17l-4 4M15 13l2-2M9 13l-2-2"/>`),
+  maatje: svg(`<path ${F} d="M12 21s-7.6-4.6-9.4-9.4C1.3 8.2 3.5 4.4 7.2 4.4c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.7 0 5.9 3.8 4.6 7.2C19.6 16.4 12 21 12 21z"/>`),
+  ruil: svg(`<path ${ST} d="M4 9h14l-3.5-3.5M20 15H6l3.5 3.5"/>`),
+  dubbel: svg(`<rect x="1.5" y="6" width="11" height="11" rx="2.5" ${F}/><rect x="11.5" y="3" width="11" height="11" rx="2.5" ${F} opacity=".8"/><circle cx="4.5" cy="9" r="1.1" fill="rgba(0,0,0,.5)"/><circle cx="9.5" cy="14" r="1.1" fill="rgba(0,0,0,.5)"/><circle cx="17" cy="8.5" r="1.1" fill="rgba(0,0,0,.5)"/>`),
+  rust: svg(`<circle cx="12" cy="12" r="9.5" ${F}/><path fill="none" stroke="rgba(0,0,0,.5)" stroke-width="1.9" stroke-linecap="round" d="M7.5 10.5c.6-.8 1.6-.8 2.2 0M14.3 10.5c.6-.8 1.6-.8 2.2 0M8 14.5c2.2 2 5.8 2 8 0"/>`),
+  start: svg(`<path ${ST} d="M5 21V3M5 4h12l-2.5 4L17 12H5"/>`),
+  finish: svg(`<path ${ST} d="M5 21V3"/><path fill="currentColor" d="M5 3h4v3H5zM13 3h4v3h-4zM9 6h4v3H9zM5 9h4v3H5zM13 9h4v3h-4zM17 6h3v3h-3zM9 3h4v0zM17 3h3v0z"/>`),
+};
+// soort vakje -> kleur, plaatje, korte naam en uitleg
+const KIND = {
+  start: { c: 'var(--v-geef)', name: 'Start', lb: () => 'Start', text: 'Hier begint iedereen.' },
+  drink: { c: 'var(--v-drink)', name: 'Drink', lb: (s) => `Drink ${s.n}`, text: 'Jij drinkt.' },
+  geef: { c: 'var(--v-geef)', name: 'Geef', lb: (s) => `Geef ${s.n}`, text: 'Kies wie er drinkt.' },
+  iedereen: { c: 'var(--v-iedereen)', name: 'Iedereen', lb: (s) => `Allen ${s.n}`, text: 'Iedereen drinkt, jij ook.' },
+  buren: { c: 'var(--v-iedereen)', name: 'Buren', lb: (s) => `Buren ${s.n}`, text: 'De spelers naast je drinken.' },
+  laatste: { c: 'var(--v-iedereen)', name: 'De laatste', lb: (s) => `Laatste ${s.n}`, text: 'Wie het verst achter staat, drinkt.' },
+  gans: { c: 'var(--v-beweeg)', name: 'Gans', lb: () => 'Gans', text: 'Nog een keer zoveel vakjes verder.' },
+  brug: { c: 'var(--v-beweeg)', name: 'Brug', lb: () => 'Brug', text: `Over de brug naar vakje ${Z.BRIDGE_TO}.` },
+  doolhof: { c: 'var(--v-beweeg)', name: 'Doolhof', lb: () => 'Doolhof', text: `${Z.MAZE_BACK} vakjes terug.` },
+  dood: { c: 'var(--v-dood)', name: 'Doodskop', lb: () => 'Dood', text: 'Terug naar start, en drink 3.' },
+  cafe: { c: 'var(--v-beweeg)', name: 'Café', lb: () => 'Café', text: 'Drink 2 en sla een beurt over.' },
+  put: { c: 'var(--v-beweeg)', name: 'Put', lb: () => 'Put', text: 'Je zit vast tot iemand anders erin valt.' },
+  vraag: { c: 'var(--v-vraag)', name: 'Vraag', lb: () => 'Vraag', big: '?', text: 'Een vraag of opdracht voor de groep.' },
+  regel: { c: 'var(--v-vraag)', name: 'Regel', lb: () => 'Regel', big: '!', text: 'Bedenk een regel voor de rest van het potje.' },
+  dubbel: { c: 'var(--v-speciaal)', name: 'Dubbel of niks', lb: () => 'Dubbel', dark: true, text: 'Gooi nog eens: even, dan drinkt de rest 2; oneven, dan drink jij 4.' },
+  duel: { c: 'var(--v-speciaal)', name: 'Duel', lb: () => 'Duel', dark: true, text: 'Kies iemand: jullie gooien allebei, de laagste drinkt 3.' },
+  maatje: { c: 'var(--v-speciaal)', name: 'Drinkmaatje', lb: () => 'Maatje', dark: true, text: 'Kies een maatje: als jij drinkt, drinkt die mee.' },
+  ruil: { c: 'var(--v-speciaal)', name: 'Ruil', lb: () => 'Ruil', dark: true, text: 'Kies iemand en ruil van plek.' },
+  rust: { c: 'var(--v-rust)', name: 'Rust', lb: () => 'Rust', dark: true, text: 'Even niks. Proost!' },
+  ad: { c: 'var(--v-drink)', name: 'Ad fundum', lb: () => 'Ad!', big: 'AD', text: 'Ad fundum (of 5 slokken).' },
+  finish: { c: '#222', name: 'Finish', lb: () => 'Finish', text: 'Precies hierop komen en je wint.' },
+};
+const SHOW_STEP = 210;   // zo snel loopt een pion van vakje naar vakje
+
+/* ================= OPSLAG (alleen gemak, per telefoon) ================= */
+const KEY = { me: 'bord-ik', table: 'bord-tafel', mute: 'bord-stil' };
+const store = {
+  get(k, d) { try { const v = JSON.parse(localStorage.getItem(k) ?? 'null'); return v ?? d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* opslag niet beschikbaar */ } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) { /* idem */ } },
+};
+
+// wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
+// Je naam neemt hij over van een ander spel in de speelhal als je die daar al eens hebt ingevuld.
+const me = (() => {
+  const v = store.get(KEY.me, {}) || {};
+  let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
+  if (!token) {
+    const abc = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_', a = new Uint8Array(24);
+    crypto.getRandomValues(a);
+    token = [...a].map((x) => abc[x & 63]).join('');
+  }
+  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik', 'wolf-ik', 'bord-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
+  const o = { token, name: typeof name === 'string' ? name.slice(0, Z.NAME_MAX) : '' };
+  store.set(KEY.me, o);
+  return o;
+})();
+const urlCode = ((location.pathname.match(/^\/zuipbord\/([A-Za-z]{4})$/) || [])[1] || new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+
+/* ================= GELUID ================= */
+const Snd = {
+  ctx: null, out: null, muted: !!store.get(KEY.mute, false),
+  ac() {
+    if (this.muted) return null;
+    if (!this.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      this.ctx = new AC();
+      this.out = this.ctx.createDynamicsCompressor();
+      this.out.connect(this.ctx.destination);
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    return this.ctx;
+  },
+  tone(f, d, { type = 'sine', vol = .15, at = 0, slide = 0, lp = 0 } = {}) {
+    const c = this.ac(); if (!c) return;
+    const t = c.currentTime + at, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f * slide), t + d);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    let node = o;
+    if (lp) { const f2 = c.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = lp; o.connect(f2); node = f2; }
+    node.connect(g); g.connect(this.out); o.start(t); o.stop(t + d + .05);
+  },
+  noise(d, { vol = .2, at = 0, freq = 2600 } = {}) {
+    const c = this.ac(); if (!c) return;
+    const t = c.currentTime + at, len = Math.ceil(c.sampleRate * d), buf = c.createBuffer(1, len, c.sampleRate), data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = buf; bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = .9; g.gain.value = vol;
+    src.connect(bp); bp.connect(g); g.connect(this.out); src.start(t);
+  },
+  // de steen rolt over tafel
+  roll() { for (let i = 0; i < 5; i++) this.noise(.05, { vol: .3, freq: 1400 + Math.random() * 1200, at: i * .07 + Math.random() * .02 }); },
+  step() { this.tone(660 + Math.random() * 80, .05, { type: 'triangle', vol: .06 }); },
+  chip() { this.tone(2400, .04, { type: 'triangle', vol: .08 }); this.tone(1800, .05, { type: 'triangle', vol: .06, at: .03 }); },
+  gulp() { this.tone(300, .12, { type: 'sine', vol: .12, slide: .6 }); this.tone(240, .14, { type: 'sine', vol: .1, slide: .6, at: .14 }); },
+  honk() { this.tone(330, .16, { type: 'square', vol: .06, lp: 1200 }); this.tone(294, .2, { type: 'square', vol: .06, lp: 1200, at: .17 }); },
+  turn() { this.tone(988, .09, { type: 'triangle', vol: .1 }); this.tone(1319, .14, { type: 'triangle', vol: .1, at: .1 }); },
+  bad() { this.tone(233, .34, { type: 'sawtooth', vol: .08, slide: .6, lp: 1400 }); this.tone(175, .38, { type: 'square', vol: .05, slide: .6, at: .03, lp: 1000 }); },
+  win() { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, .24, { type: 'triangle', vol: .11, at: i * .1 })); },
+};
+const buzz = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* niet ondersteund */ } };
+
+// het scherm aan laten zolang je aan tafel zit
+let wake = null;
+async function keepAwake(on) {
+  try {
+    if (on && !wake && 'wakeLock' in navigator && document.visibilityState === 'visible') {
+      wake = await navigator.wakeLock.request('screen');
+      wake.addEventListener('release', () => { wake = null; });
+    } else if (!on && wake) { const w = wake; wake = null; await w.release(); }
+  } catch (e) { wake = null; }
+}
+
+/* ================= VERBINDING ================= */
+const Net = {
+  ws: null, want: null, retry: 0, timer: 0, status: 'idle',
+  url: `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws/zuipbord`,
+  // msg wordt (opnieuw) gestuurd bij elke verbinding: zo kom je na wegvallen vanzelf terug aan tafel
+  go(msg) { this.want = msg; if (!this.send(msg)) this.open(); },
+  open() {
+    if (this.ws && this.ws.readyState <= 1) return;
+    clearTimeout(this.timer);
+    this.setStatus('connecting');
+    let ws;
+    try { ws = new WebSocket(this.url); } catch (e) { this.later(); return; }
+    this.ws = ws;
+    ws.onopen = () => { this.retry = 0; this.setStatus('open'); if (this.want) this.send(this.want); };
+    ws.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (err) { return; } onMessage(m); };
+    ws.onclose = () => { if (this.ws !== ws) return; this.ws = null; this.setStatus('closed'); if (this.want) this.later(); };
+    ws.onerror = () => {};
+  },
+  later() { clearTimeout(this.timer); this.timer = setTimeout(() => this.open(), Math.min(5000, 400 * 2 ** this.retry++)); },
+  send(o) { if (this.ws && this.ws.readyState === 1) { this.ws.send(JSON.stringify(o)); return true; } return false; },
+  stop() { this.want = null; clearTimeout(this.timer); if (this.ws) { const ws = this.ws; this.ws = null; ws.close(); } this.setStatus('idle'); },
+  setStatus(s) { this.status = s; netPill(); },
+};
+const wakeNet = () => { if (Net.want && (!Net.ws || Net.ws.readyState > 1)) { Net.retry = 0; Net.open(); } };
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { wakeNet(); if (S) keepAwake(true); } });
+addEventListener('online', wakeNet);
+setInterval(() => { if (S) Net.send({ t: 'ping' }); }, 20000);
+
+/* ================= STAAT ================= */
+let S = null;   // de laatste stand van de server
+const ui = {
+  joining: false, error: '', name: me.name, code: urlCode,
+  seen: 0, banner: null, bannerTimer: 0, lastView: null, lastStep: null, dockPop: false, sheet: null, sheetHtml: null, build: null,
+  shown: [],        // waar elke pion nu op het scherm staat (tijdens het lopen anders dan op de server)
+  queue: [],        // nog te lopen: { p, path }
+  walking: null,    // { p, path, i, timer }
+  card: null,       // wat er het laatst op een vakje gebeurde
+  rolling: false,   // de steen rolt (na een tik, tot de server antwoordt)
+  lastRoll: null,   // { p, v }
+  sent: -1,
+  wasMine: false,
+};
+
+function onMessage(m) {
+  if (m.t === 'state') return onState(m);
+  if (m.t === 'joinFailed') {
+    Net.stop(); store.del(KEY.table);
+    S = null; ui.joining = false; ui.error = m.msg;
+    return render();
+  }
+  if (m.t === 'left') return leaveLocal(m.reason);
+  if (m.t === 'err') toast(m.msg);
+}
+
+function onState(m) {
+  // is de server bijgewerkt terwijl deze pagina openstond? Dan opnieuw laden, anders draait hier oude code.
+  // Na het laden kom je met je sleutel vanzelf weer op je eigen plek.
+  if (m.build) {
+    if (ui.build && ui.build !== m.build) { Net.stop(); location.reload(); return; }
+    ui.build = m.build;
+  }
+  const first = !S || S.code !== m.code;
+  S = m;
+  ui.joining = false; ui.error = '';
+  store.set(KEY.table, { code: m.code });
+  Net.want = { t: 'join', code: m.code, name: me.name, token: me.token };
+  if (location.pathname !== `/zuipbord/${m.code}`) history.replaceState(null, '', `/zuipbord/${m.code}`);
+  const seq = m.seq || 0;
+  if (first || m.phase === 'lobby' || seq < ui.seen) {
+    // geen oude gebeurtenissen opnieuw afspelen: de pionnen staan meteen op hun plek
+    ui.seen = seq; ui.queue = []; stopWalk();
+    ui.card = m.log ? [...m.log].reverse().find((e) => e.type === 'vak' || e.type === 'keuze') || null : null;
+  } else for (const ev of m.log || []) if (ev.seq > ui.seen) present(ev);
+  ui.seen = seq;
+  ui.rolling = false;
+  // waar de pionnen staan van wie er niet loopt
+  if (m.players) m.players.forEach((p, i) => { if (!busy(i)) ui.shown[i] = p.pos ?? 0; });
+  ui.shown.length = m.players.length;
+  if (!ui.walking && ui.queue.length) nextWalk();
+  // ben jij nu aan de beurt? Even trillen en een toon
+  const mine = m.phase === 'gooien' && myTurn() >= 0;
+  if (mine && !ui.wasMine && !first) { buzz(60); setTimeout(() => Snd.turn(), ui.walking ? 900 : 0); }
+  ui.wasMine = mine;
+  keepAwake(true);
+  render();
+}
+
+function leaveLocal(reason) {
+  Net.stop();
+  store.del(KEY.table);
+  S = null; ui.banner = null; ui.sheet = null; ui.card = null; ui.queue = []; stopWalk(); ui.code = '';
+  history.replaceState(null, '', '/zuipbord');
+  keepAwake(false);
+  render();
+  if (reason) toast(reason);
+}
+
+function banner(title, sub = '', color = 'var(--v-drink)', ms = 1800) {
+  ui.banner = { title, sub, color };
+  clearTimeout(ui.bannerTimer);
+  ui.bannerTimer = setTimeout(() => { ui.banner = null; render(); }, ms);
+}
+
+/* ---------- pionnen laten lopen ---------- */
+const busy = (p) => (ui.walking && ui.walking.p === p) || ui.queue.some((q) => q.p === p);
+function stopWalk() { if (ui.walking) clearTimeout(ui.walking.timer); ui.walking = null; }
+function nextWalk() {
+  const w = ui.queue.shift();
+  if (!w) { ui.walking = null; if (S) S.players.forEach((p, i) => { ui.shown[i] = p.pos; }); render(); return; }
+  ui.walking = { ...w, i: 0, timer: 0 };
+  stepWalk();
+}
+function stepWalk() {
+  const w = ui.walking;
+  if (!w) return;
+  if (w.i >= w.path.length) { ui.walking = null; if (w.then) w.then(); nextWalk(); return; }
+  ui.shown[w.p] = w.path[w.i++];
+  if (!w.jump) Snd.step();
+  // de eerste stap tekent alles opnieuw (de steen in het dock), daarna alleen de pionnen
+  render(w.i > 1);
+  w.timer = setTimeout(stepWalk, reduce ? 20 : w.jump ? 420 : SHOW_STEP);
+}
+function walk(p, path, opts = {}) { ui.queue.push({ p, path, ...opts }); if (!ui.walking) nextWalk(); }
+
+// een gebeurtenis van de server laten zien en horen
+function present(ev) {
+  switch (ev.type) {
+    case 'worp':
+      ui.lastRoll = { p: ev.player, v: ev.v };
+      Snd.roll();
+      walk(ev.player, ev.path);
+      break;
+    case 'vak': {
+      const show = () => { ui.card = ev; effect(ev); render(); };
+      if (ev.path) walk(ev.player, ev.path, { jump: ev.t === 'brug', then: show });
+      else if (ev.to != null && ev.from != null) walk(ev.player, [ev.to], { jump: true, then: show });
+      else afterWalk(show);
+      break;
+    }
+    case 'keuze': {
+      const show = () => { ui.card = ev; effect(ev); render(); };
+      if (ev.kind === 'ruil') {
+        const a = S.players[ev.player].pos, b = S.players[ev.target].pos;
+        walk(ev.player, [a], { jump: true }); walk(ev.target, [b], { jump: true, then: show });
+      } else show();
+      break;
+    }
+    case 'overslaan':
+      toast(`${S.players[ev.player].name} slaat een beurt over (café)`);
+      break;
+    case 'klaar': {
+      const after = () => {
+        banner(`${S.players[ev.winner].name} wint!`, 'Op de finish', 'var(--v-geef)', 2600);
+        if (ev.winner === S.you) { Snd.win(); celebrate(); } else Snd.honk();
+        render();
+      };
+      afterWalk(after);
+      break;
+    }
+    case 'nieuw':
+      banner('Nieuw potje', 'Iedereen terug naar start', 'var(--v-beweeg)');
+      ui.card = null;
+      break;
+  }
+}
+const chain = (a, b) => () => { if (a) a(); b(); };
+// iets laten zien als de pionnen klaar zijn met lopen (of meteen als er niemand loopt)
+function afterWalk(fn) {
+  const last = ui.queue[ui.queue.length - 1] || ui.walking;
+  if (last) last.then = chain(last.then, fn); else fn();
+}
+
+// geluid en een melding bij wat er op het vakje gebeurt
+function effect(ev) {
+  const drinksMe = (ev.drinks || []).some((d) => d[0] === S.you);
+  if (drinksMe) { buzz([80, 40, 80]); Snd.gulp(); }
+  if (ev.type !== 'vak') return;
+  const k = KIND[ev.t];
+  const big = { gans: 'Gans!', brug: 'Brug!', dood: 'Dood!', put: 'In de put!', cafe: 'Café!', doolhof: 'Doolhof!', ad: 'Ad fundum!', iedereen: 'Iedereen!', dubbel: 'Dubbel of niks', duel: 'Duel!' }[ev.t];
+  if (big) banner(big, `${S.players[ev.player].name} · vakje ${ev.at}`, k.c);
+  if (ev.t === 'gans') Snd.honk();
+  if (ev.t === 'dood') Snd.bad();
+}
+
+/* ================= BOUWSTENEN ================= */
+const nameOf = (i) => esc(S.players[i].name);
+const who = (i) => (i === S.you ? 'Jij' : nameOf(i));
+const whoLow = (i) => (i === S.you ? 'jij' : nameOf(i));
+const initial = (name) => [...name.trim()][0]?.toUpperCase() || '?';
+const isHost = () => S && S.you === S.host;
+const liveCount = () => S.players.filter((p) => p.connected).length;
+const slok = (n) => B.sipsText(n);
+const andList = (xs) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} en ${xs[xs.length - 1]}`);
+// voor wie jij nu mag gooien en kiezen: jezelf, of als host iemand die weg is
+const myTurn = () => {
+  const t = S.turn;
+  if (t == null || t < 0 || S.phase === 'klaar') return -1;
+  return t === S.you ? t : isHost() && !S.players[t].connected ? t : -1;
+};
+
+// Het bord: 7 bij 7 vakjes als een slang, van start linksonder naar de finish rechtsboven.
+function cellOf(i) {
+  const row = Math.floor(i / 7), k = i % 7;
+  return { row: 6 - row, col: row % 2 ? 6 - k : k };
+}
+const tileIcon = (sq) => { const k = KIND[sq.t]; return k.big ? `<span class="big">${k.big}</span>` : ICON[sq.t]; };
+function boardHTML({ pawns = [], over = '', hot = -1 } = {}) {
+  const tiles = Z.BOARD.map((sq, i) => {
+    const k = KIND[sq.t], { row, col } = cellOf(i);
+    const cls = `tile${k.dark ? ' dark' : ''}${sq.t === 'start' || sq.t === 'finish' ? ` ${sq.t}` : ''}${i === hot ? ' hot' : ''}`;
+    return `<div class="${cls}" style="grid-row:${row + 1};grid-column:${col + 1};--tc:${k.c}" title="${i}: ${k.name}"><span class="no">${i}</span>${tileIcon(sq)}<span class="lb">${k.lb(sq)}</span></div>`;
+  }).join('');
+  // pionnen op hetzelfde vakje staan naast elkaar
+  const at = new Map();
+  for (const p of pawns) { if (!at.has(p.pos)) at.set(p.pos, []); at.get(p.pos).push(p); }
+  const OFF = [[0, 0], [-.22, -.2], [.22, -.2], [-.22, .2], [.22, .2], [0, -.32], [0, .32], [-.32, 0], [.32, 0], [0, 0]];
+  const pw = [...at.values()].flatMap((list) => list.map((p, k) => {
+    const { row, col } = cellOf(p.pos), [dx, dy] = list.length > 1 ? OFF[(k + 1) % OFF.length] : [0, 0];
+    const x = ((col + .5 + dx) / 7 * 100).toFixed(2), y = ((row + .5 + dy * .9) / 7 * 100).toFixed(2);
+    return `<span class="pawn${p.cls ? ` ${p.cls}` : ''}" style="--pc:${PC[p.i % PC.length]};--x:${x}%;--y:${y}%" data-p="${p.i}" title="${esc(p.name)}">${esc(initial(p.name))}</span>`;
+  })).join('');
+  const ban = ui.banner ? `<div class="banner" style="--bc:${ui.banner.color}"><p class="banner-t">${esc(ui.banner.title)}</p>${ui.banner.sub ? `<p class="banner-s">${esc(ui.banner.sub)}</p>` : ''}</div>` : '';
+  return `<div class="boardwrap"><div class="board"><div class="paper">${tiles}</div><div class="pawns">${pw}</div>${over ? `<div class="over">${over}</div>` : ''}${ban}</div></div>`;
+}
+
+// de pionnen van alle spelers, waar ze nu op het scherm staan
+const pawnsNow = () => S.players.map((p, i) => ({
+  i, name: p.name, pos: ui.shown[i] ?? p.pos ?? 0,
+  cls: [i === S.turn && S.phase !== 'klaar' && !ui.walking ? 'turn' : '', i === S.you ? 'me' : '', ui.walking && ui.walking.p === i ? 'walk' : '', p.connected === false ? 'off' : ''].filter(Boolean).join(' '),
+}));
+
+// de spelers op een rij: wie, waar, hoeveel slokken
+function stripHTML() {
+  return `<div class="strip" role="list">${S.players.map((p, i) => {
+    const icons = [p.stuck ? 'in de put' : '', p.skip ? 'slaat over' : '', p.buddy >= 0 ? `♥ ${esc(S.players[p.buddy].name)}` : ''].filter(Boolean).join(' · ');
+    return `<div class="pl${i === S.turn && S.phase !== 'klaar' ? ' turn' : ''}${p.connected === false ? ' off' : ''}" role="listitem" style="--pc:${PC[i % PC.length]}">
+      <span class="dot">${esc(initial(p.name))}</span><span><b>${i === S.you ? 'Jij' : esc(p.name)}</b><small>vak ${p.pos} · <i>${p.sips}</i> slok${p.sips === 1 ? '' : 'ken'}${icons ? ` · <span class="ic">${icons}</span>` : ''}</small></span></div>`;
+  }).join('')}</div>`;
+}
+
+const dieHTML = (v, cls = '') => {
+  const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+  if (!v) return `<span class="die q ${cls}">?</span>`;
+  return `<span class="die ${cls}" aria-label="${v} ogen">${Array.from({ length: 9 }, (_, k) => `<i class="${PIPS[v].includes(k) ? 'on' : ''}"></i>`).join('')}</span>`;
+};
+const sheetTop = (title, kick = '', close = true) => `<div class="sheet-top"><div>${kick ? `<p class="kick">${kick}</p>` : ''}<h2 class="sheet-title" id="sheetTitle">${title}</h2></div>${close ? '<button class="xbtn" type="button" data-act="close" aria-label="Sluiten">✕</button>' : ''}</div>`;
+
+// wie er drinkt, in een zin
+function drinkLine(drinks) {
+  if (!drinks || !drinks.length) return '';
+  const by = new Map();
+  for (const [p, n, why] of drinks) { const k = `${n}`; if (!by.has(k)) by.set(k, []); by.get(k).push(why === 'maatje' ? `${whoLow(p)} (maatje)` : whoLow(p)); }
+  return [...by].map(([n, list]) => `${andList(list)} ${list.length === 1 && list[0] !== 'jij' ? 'drinkt' : 'drinken'} <strong>${slok(+n)}</strong>`).join('; ').replace(/^./, (c) => c.toUpperCase());
+}
+
+// wat er op het vakje gebeurde: titel en uitleg
+function cardText(ev) {
+  const p = ev.player, n = ev.n;
+  if (ev.type === 'keuze') {
+    const t = nameOf(ev.target);
+    switch (ev.kind) {
+      case 'geef': return [`${who(p)} geeft ${n} aan ${t}`, drinkLine(ev.drinks)];
+      case 'maatje': return [`${t} is drinkmaatje`, `Als ${whoLow(p)} drinkt, drinkt ${t} mee. Tot het einde van het potje.`];
+      case 'duel': return [`Duel: ${ev.a} tegen ${ev.b}`, `${who(p)} gooide ${ev.a}, ${t} gooide ${ev.b}. ${drinkLine(ev.drinks)}.`];
+      case 'ruil': return ['Van plek geruild', `${who(p)} en ${t} ruilen van plek.`];
+      default: return ['', ''];
+    }
+  }
+  const dl = drinkLine(ev.drinks);
+  switch (ev.t) {
+    case 'drink': return [`Drink ${n}!`, `${dl}.`];
+    case 'iedereen': return [`Iedereen drinkt ${n}!`, 'Proost, jij ook.'];
+    case 'buren': return [`Je buren drinken ${n}`, `${dl}.`];
+    case 'laatste': return [`De laatste drinkt ${n}`, `${dl}.`];
+    case 'gans': return ['Gans!', `Nog eens ${ui.lastRoll && ui.lastRoll.p === p ? ui.lastRoll.v : ''} vakjes verder, naar vakje ${ev.to}.`];
+    case 'brug': return ['Over de brug', `Door naar vakje ${Z.BRIDGE_TO}.`];
+    case 'doolhof': return ['Doolhof', `${Z.MAZE_BACK} vakjes terug naar vakje ${ev.to}.`];
+    case 'dood': return ['Doodskop!', `Terug naar start. ${dl}.`];
+    case 'cafe': return ['Café', `${dl}, en ${whoLow(p)} slaat een beurt over.`];
+    case 'put': return ['In de put', `${who(p)} zit vast tot iemand anders erin valt.${ev.freed && ev.freed.length ? ` ${andList(ev.freed.map(nameOf))} is weer vrij.` : ''}`];
+    case 'vraag': return ['Vraag', esc(Z.VRAGEN[ev.i] || '')];
+    case 'regel': return ['Bedenk een regel', `${who(p)} bedenkt een regel voor de rest van het potje. Bijvoorbeeld: ${esc(Z.REGELS[ev.i] || '')}`];
+    case 'dubbel': return [`Dubbel of niks: ${ev.r}`, ev.r % 2 ? `Oneven. ${dl}.` : `Even! ${dl}.`];
+    case 'ad': return ['Ad fundum!', `${who(p)} drinkt zijn glas leeg (of ${slok(Z.AD_SIPS)}).`];
+    case 'rust': return ['Even rust', 'Niks aan de hand. Proost!'];
+    case 'finish': return ['Finish!', `${who(p)} staat op de finish.`];
+    case 'geef': return [`Geef ${n} weg`, `${who(p)} kiest wie er ${n} drinkt.`];
+    case 'maatje': return ['Drinkmaatje', `${who(p)} kiest een drinkmaatje.`];
+    case 'duel': return ['Duel!', `${who(p)} kiest met wie hij duelleert.`];
+    case 'ruil': return ['Ruil', `${who(p)} kiest met wie hij van plek ruilt.`];
+    default: return [KIND[ev.t] ? KIND[ev.t].name : '', ''];
+  }
+}
+
+function cardHTML(ev) {
+  if (!ev) return '';
+  const sq = ev.type === 'keuze' ? { t: ev.kind, n: ev.n } : { t: ev.t, n: ev.n };
+  const k = KIND[sq.t] || KIND.rust;
+  const [title, text] = cardText(ev);
+  return `<div class="vk"><span class="sq${k.dark ? ' dark' : ''}" style="--tc:${k.c}">${tileIcon(sq)}</span><span><b>${title}</b><span>${ev.type === 'vak' ? `${who(ev.player)} · vakje ${ev.at}. ` : ''}${text}</span></span></div>`;
+}
+
+/* ================= SCHERMEN ================= */
+function vHome() {
+  const busyBtn = ui.joining ? 'disabled' : '';
+  const demo = [{ i: 0, name: 'J', pos: 0 }, { i: 1, name: 'M', pos: 5 }, { i: 2, name: 'S', pos: 12 }, { i: 3, name: 'D', pos: 23 }];
+  return `
+  <div class="homeboard">${boardHTML({ pawns: demo })}</div>
+  <div class="startcard">
+    <div class="chips"><span class="chip">${Z.MIN_PLAYERS} tot ${Z.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
+    <p>Het drankspel als ganzenbord. Gooi de steen, loop met je pion en doe wat er op het vakje staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje. Wie als eerste op de finish staat, wint.</p>
+    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${Z.NAME_MAX}" placeholder="Bijvoorbeeld Jort" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
+    <form class="addrow" id="joinForm" autocomplete="off">
+      <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
+      <button class="addbtn" type="submit" ${busyBtn}>Meedoen</button>
+    </form>
+    <div class="or">of</div>
+    <button class="cta" type="button" data-act="create" ${busyBtn}><span>${ui.joining ? 'Verbinden…' : 'Nieuwe tafel'}</span>${ARR}</button>
+    ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
+    <button class="ghostbtn" type="button" data-act="rules">Spelregels</button>
+  </div>
+  <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
+}
+
+function vLobby() {
+  const n = S.players.length, host = isHost(), short = Z.MIN_PLAYERS - liveCount();
+  const pawns = S.players.map((p, i) => ({ i, name: p.name, pos: 0, cls: i === S.you ? 'me' : '' }));
+  const over = `<div class="card"><p class="kickline">Code van de tafel</p><p class="code felt-logo">${S.code}</p><p class="kickline">${n} van ${Z.MAX_PLAYERS} spelers</p></div>`;
+  const list = `<div class="who">${S.players.map((p, i) => `<button type="button" ${host && i !== S.you ? `data-act="kickask" data-seat="${i}"` : 'disabled'} style="--pc:${PC[i % PC.length]}"><i>${esc(initial(p.name))}</i>${i === S.you ? 'Jij' : esc(p.name)}${i === S.host ? ' (host)' : ''}</button>`).join('')}</div>`;
+  const dock = `<div class="ask-h"><h2>${host ? 'Jij bent de host' : 'Je zit aan tafel'}</h2><button class="sharebtn" type="button" data-act="share">${SHARE}Uitnodigen</button></div>
+    <p class="sub">Vrienden doen mee met code <b>${S.code}</b> of met de link. De host gooit als eerste.</p>
+    ${list}
+    ${host
+      ? `<button class="cta green" type="button" data-act="start" ${short > 0 ? 'disabled' : ''}><span>${short > 0 ? `Wacht op ${short} ${short === 1 ? 'speler' : 'spelers'}` : 'Start het spel'}</span>${ARR}</button>
+        ${n > 1 ? '<p class="fine">Tik op een speler om die van tafel te halen.</p>' : ''}`
+      : `<p class="waitline">Wachten tot ${nameOf(S.host)} het spel start</p>`}
+    <button class="linkbtn" type="button" data-act="leaveask">Verlaat tafel</button>`;
+  return `${boardHTML({ pawns, over })}<div class="dock">${dock}</div>`;
+}
+
+function vSpel() {
+  const walkingNow = !!ui.walking || ui.queue.length > 0;
+  const hot = !walkingNow && ui.card && ui.card.type === 'vak' ? ui.card.at : -1;
+  const board = boardHTML({ pawns: pawnsNow(), hot });
+  let dock;
+  if (S.phase === 'klaar' && !walkingNow) dock = doneDock();
+  else dock = playDock(walkingNow);
+  return `${board}${stripHTML()}<div class="dock${ui.dockPop ? ' pop' : ''}">${dock}</div>`;
+}
+
+function playDock(walkingNow) {
+  const actor = myTurn(), t = S.turn;
+  const card = cardHTML(ui.card);
+  if (walkingNow) {
+    const r = ui.lastRoll;
+    return `<div class="ask-h"><h2>${r ? `${who(r.p)} gooit ${r.v}` : 'Even kijken'}</h2>${r ? dieHTML(r.v) : ''}</div><p class="waitline">De pion loopt</p>`;
+  }
+  const forNote = actor >= 0 && actor !== S.you ? `<p class="fine warn">${nameOf(actor)} is weg. Jij speelt nu voor ${nameOf(actor)}.</p>` : '';
+  if (S.phase === 'kiezen') {
+    const k = S.pending.kind, n = S.pending.n;
+    const q = { geef: `Wie drinkt er ${n}?`, maatje: 'Wie wordt je drinkmaatje?', duel: 'Met wie duel je?', ruil: 'Met wie ruil je van plek?' }[k];
+    if (actor >= 0) {
+      const busyBtn = ui.sent === S.seq ? 'disabled' : '';
+      const opts = S.players.map((p, i) => ({ p, i })).filter(({ p, i }) => i !== actor && p.connected).map(({ p, i }) =>
+        `<button type="button" data-act="choose" data-target="${i}" style="--pc:${PC[i % PC.length]}" ${busyBtn}><i>${esc(initial(p.name))}</i>${esc(p.name)}${k === 'ruil' ? ` <small>· vak ${p.pos}</small>` : ''}</button>`).join('');
+      return `${forNote}${card}<h2>${q}</h2><div class="who">${opts}</div>`;
+    }
+    return `${card}<p class="waitline">${nameOf(t)} kiest</p>`;
+  }
+  if (actor >= 0) {
+    const mine = actor === S.you, busyBtn = ui.sent === S.seq || ui.rolling ? 'disabled' : '';
+    return `${forNote}${card}
+      <button class="throw" type="button" data-act="roll" ${busyBtn}>${dieHTML(ui.rolling ? 0 : null, ui.rolling ? 'roll' : '')}<span><b>${mine ? 'Jij gooit!' : `Gooi voor ${nameOf(actor)}`}</b><small>Tik om de steen te gooien</small></span></button>`;
+  }
+  return `${card}<div class="ask-h"><h2>${nameOf(t)} gooit</h2><span class="pill" style="--pc:${PC[t % PC.length]}"><i></i>vak ${S.players[t].pos}</span></div><p class="waitline">Wachten op ${nameOf(t)}</p>`;
+}
+
+function doneDock() {
+  const ev = [...(S.log || [])].reverse().find((e) => e.type === 'klaar');
+  const rows = S.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.pos - a.p.pos).map(({ p, i }) =>
+    `<div class="${i === S.winner ? 'won' : ''}" style="--pc:${PC[i % PC.length]}"><span><i></i>${who(i)}${i === S.winner ? ' 🏆' : ''}</span><b>vak ${p.pos} · ${slok(p.sips)}</b></div>`).join('');
+  return `<div class="ask-h"><h2>${who(S.winner)} wint!</h2><span class="pill">Potje ${S.round}</span></div>
+    ${ev && ev.drinks && ev.drinks.length ? `<p class="sub">Wie het verst achter staat, drinkt: ${drinkLine(ev.drinks)}.</p>` : ''}
+    <div class="standing">${rows}</div>
+    ${isHost()
+      ? `<button class="cta green" type="button" data-act="next"><span>Nog een potje</span>${ARR}</button>`
+      : `<p class="waitline">Wachten tot ${nameOf(S.host)} een nieuw potje start</p>`}`;
+}
+
+/* ================= VELLEN ================= */
+function menuHTML() {
+  const host = isHost(), game = S && S.phase !== 'lobby';
+  return `${sheetTop('Menu')}
+  <nav class="mlist">
+    <button type="button" data-act="rules">Spelregels <span>›</span></button>
+    ${game ? '<button type="button" data-act="score">Stand <span>›</span></button>' : ''}
+    <button type="button" data-act="mute">Geluid <span>${Snd.muted ? 'uit' : 'aan'}</span></button>
+    ${S ? `<button type="button" data-act="share">Uitnodigen <span>${S.code}</span></button>` : ''}
+    ${game && host ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
+    ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
+    <a href="/">Naar de speelhal <span>›</span></a>
+  </nav>`;
+}
+
+function scoreHTML() {
+  const rows = S.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.sips - a.p.sips);
+  return `${sheetTop('Stand')}
+  <div class="scorecard"><table>
+    <thead><tr><th>Speler</th><th>Vak</th><th>Slokken</th><th>Gewonnen</th></tr></thead>
+    <tbody>${rows.map(({ p, i }) => `<tr style="--pc:${PC[i % PC.length]}"><td><i></i>${esc(p.name)}</td><td>${p.pos}</td><td>${p.sips}</td><td>${p.wins}</td></tr>`).join('')}</tbody>
+  </table></div>
+  <p class="sub">Slokken: wat de telefoon bijhoudt. De vragen en regels houd je zelf bij. Een ad fundum telt als ${Z.AD_SIPS}.</p>`;
+}
+
+function rulesHTML() {
+  const legend = ['drink', 'geef', 'iedereen', 'buren', 'laatste', 'vraag', 'regel', 'duel', 'maatje', 'ruil', 'dubbel', 'gans', 'brug', 'cafe', 'put', 'doolhof', 'dood', 'ad', 'rust', 'finish'].map((t) => {
+    const k = KIND[t], sq = Z.BOARD.find((s) => s.t === t) || { t };
+    return `<div><span class="sq${k.dark ? ' dark' : ''}" style="--tc:${k.c}">${tileIcon(sq)}</span><span><b>${k.name}</b>. ${k.text}</span></div>`;
+  }).join('');
+  return `${sheetTop('Spelregels', 'Zuipbord')}
+  <div class="rules">
+    <p>Het drankspel als ganzenbord. Iedereen speelt op zijn eigen telefoon: maak een tafel en deel de code, of doe mee met de code van een ander.</p>
+    <ol>
+      <li><b>Gooien.</b> Om de beurt gooi je de steen en loopt je pion zoveel vakjes vooruit.</li>
+      <li><b>Het vakje.</b> Doe wat er staat. Moet je iemand kiezen, dan doe je dat op je telefoon.</li>
+      <li><b>De finish.</b> Je moet er precies op komen. Gooi je te veel, dan loop je de rest terug.</li>
+      <li><b>Winnen.</b> Wie als eerste op de finish staat, wint. Wie dan het verst achter staat, drinkt ${slok(Z.LAST_SIPS)}.</li>
+    </ol>
+    <div class="legend">${legend}</div>
+    <p class="small">Een drinkmaatje drinkt mee als jij moet drinken, behalve als iedereen al drinkt. Vragen en regels houd je zelf bij; de telefoon telt de rest. Valt wie aan de beurt is weg, dan is de volgende aan de beurt. Wie later aanschuift, begint op start. Drink met mate: water of karnemelk telt ook.</p>
+  </div>`;
+}
+
+function openSheet(key, html) { ui.sheet = { key, html }; renderSheet(); }
+function closeSheet() { ui.sheet = null; renderSheet(); }
+
+function renderSheet() {
+  const ov = $('#overlay'), sh = $('#sheet');
+  if (!ui.sheet) { if (!ov.hidden) { ov.hidden = true; sh.innerHTML = ''; } ui.sheetHtml = null; return; }
+  const wasHidden = ov.hidden;
+  if (!wasHidden && ui.sheetHtml === ui.sheet.html) return;
+  sh.innerHTML = ui.sheet.html;
+  sh.classList.toggle('anim', wasHidden);
+  ov.hidden = false;
+  ui.sheetHtml = ui.sheet.html;
+  if (wasHidden) { const first = sh.querySelector('button, a'); if (first) first.focus({ preventScroll: true }); }
+}
+
+function toast(msg, cls = '') {
+  const box = $('#toasts'), el = document.createElement('div');
+  // dezelfde melding nog in beeld (bijvoorbeeld na een paar keer tikken)? Dan alleen de nieuwe
+  for (const old of box.querySelectorAll('div:not(.net)')) if (old.textContent === msg) old.remove();
+  el.textContent = msg; if (cls) el.className = cls;
+  box.appendChild(el);
+  while (box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => el.remove(), 2800);
+}
+
+function netPill() {
+  const box = $('#toasts');
+  let el = box.querySelector('.net');
+  const bad = S && Net.status !== 'open';
+  if (bad && !el) { el = document.createElement('div'); el.className = 'net'; el.textContent = 'Verbinding kwijt, opnieuw verbinden…'; box.prepend(el); }
+  if (!bad && el) el.remove();
+}
+
+function celebrate() {
+  if (reduce) return;
+  const box = $('#confetti'), cols = ['#e5483b', '#2eaa57', '#f08c1a', '#3d7fe0', '#8b5bd6', '#f2c230'];
+  box.innerHTML = Array.from({ length: 70 }, () => `<i style="left:${(Math.random() * 100).toFixed(1)}%;background:${cols[Math.floor(Math.random() * cols.length)]};--t:${(2.4 + Math.random() * 2).toFixed(2)}s;--dl:${(Math.random() * .6).toFixed(2)}s;--x:${Math.round((Math.random() - .5) * 160)}px;--r:${Math.round(360 + Math.random() * 720)}deg"></i>`).join('');
+  setTimeout(() => { box.innerHTML = ''; }, 5200);
+}
+
+/* ================= TEKENEN ================= */
+function view() {
+  if (!S) return 'home';
+  if (S.phase === 'lobby') return 'lobby';
+  return S.phase === 'klaar' ? 'klaar' : 'spel';
+}
+
+function render(pawnsOnly = false) {
+  const v = view();
+  // een nieuwe stap: het dock springt even op
+  const step = S ? `${v}:${S.turn}:${S.phase}:${!!ui.walking}:${ui.card ? ui.card.seq : 0}` : v;
+  ui.dockPop = step !== ui.lastStep && !ui.walking;
+  ui.lastStep = step;
+  document.documentElement.dataset.view = v;
+  const scr = $('#screen');
+  const nameIn = $('#nameIn'), codeIn = $('#codeIn');
+  if (nameIn) ui.name = nameIn.value;
+  if (codeIn) ui.code = codeIn.value;
+  // tijdens het lopen alleen de pionnen verzetten, zodat het scherm niet knippert
+  if (pawnsOnly && ui.walking && v === ui.lastView && scr.querySelector('.pawns')) {
+    const html = boardHTML({ pawns: pawnsNow() });
+    const tmp = document.createElement('div'); tmp.innerHTML = html;
+    scr.querySelector('.pawns').replaceWith(tmp.querySelector('.pawns'));
+    const ban = scr.querySelector('.board .banner'), nb = tmp.querySelector('.banner');
+    if (!ban && nb) scr.querySelector('.board').appendChild(nb);
+    return;
+  }
+  const keep = v === ui.lastView ? scr.scrollTop : 0;
+  const stripScroll = scr.querySelector('.strip') ? scr.querySelector('.strip').scrollLeft : 0;
+  const html = { home: vHome, lobby: vLobby, spel: vSpel, klaar: vSpel }[v]();
+  scr.classList.toggle('is-game', v !== 'home');
+  scr.innerHTML = `<div class="view v-${v}${v !== 'home' ? ' game' : ''}">${html}</div>`;
+  scr.scrollTop = keep;
+  const st = scr.querySelector('.strip'); if (st) st.scrollLeft = stripScroll;
+  ui.lastView = v;
+  const own = $('#owe');
+  if (S && S.phase !== 'lobby') {
+    const n = S.players[S.you].sips;
+    own.hidden = false;
+    own.classList.toggle('zero', !n);
+    own.innerHTML = `${GLASS}${n}`;
+    own.setAttribute('aria-label', `Jij dronk ${slok(n)}`);
+  } else own.hidden = true;
+  if (ui.sheet && ui.sheet.key === 'menu') ui.sheet.html = menuHTML();
+  if (ui.sheet && ui.sheet.key === 'score' && S) ui.sheet.html = scoreHTML();
+  renderSheet();
+  netPill();
+}
+
+/* ================= BEDIENING ================= */
+function myName() {
+  const input = $('#nameIn');
+  const name = Z.cleanNames([input ? input.value : ui.name])[0] || '';
+  if (!name) { ui.error = 'Vul eerst je naam in.'; render(); const n = $('#nameIn'); if (n) n.focus(); return null; }
+  me.name = name; ui.name = name; store.set(KEY.me, me);
+  return name;
+}
+
+function joinWith(code) {
+  const name = myName();
+  if (!name) return;
+  code = String(code || '').toUpperCase().replace(/[^A-Z]/g, '');
+  if (code.length !== 4) { ui.error = 'Vul de code van 4 letters in.'; render(); return; }
+  ui.joining = true; ui.error = ''; ui.code = code;
+  Snd.ac();
+  Net.go({ t: 'join', code, name, token: me.token });
+  render();
+}
+
+// na een tik even wachten op de server, zodat een dubbele tik niet twee keer telt
+function sendOnce(msg) {
+  Snd.ac();
+  const seq = S.seq;
+  ui.sent = seq;
+  Net.send(msg);
+  setTimeout(() => { if (ui.sent === seq) { ui.sent = -1; ui.rolling = false; render(); } }, 2500);
+  render();
+}
+
+const actions = {
+  create() {
+    const name = myName();
+    if (!name) return;
+    ui.joining = true; ui.error = '';
+    Snd.ac();
+    Net.go({ t: 'create', name, token: me.token });
+    render();
+  },
+  start() { Snd.ac(); Net.send({ t: 'start' }); },
+  share() {
+    const url = `${location.origin}/zuipbord/${S.code}`, text = `Doe mee met Zuipbord aan tafel ${S.code}`;
+    closeSheet();
+    if (navigator.share) navigator.share({ title: 'Zuipbord', text, url }).catch(() => {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast('Link gekopieerd'), () => toast(url));
+    else toast(url);
+  },
+  kickask(el) {
+    const i = +el.dataset.seat;
+    openSheet('kick', `${sheetTop(`${nameOf(i)} van tafel halen?`)}
+      <p>${nameOf(i)} kan daarna opnieuw meedoen met de code.</p>
+      <button class="cta" type="button" data-act="kick" data-seat="${i}"><span>Ja, van tafel halen</span>${ARR}</button>
+      <button class="ghostbtn" type="button" data-act="close">Nee</button>`);
+  },
+  kick(el) { Net.send({ t: 'kick', seat: +el.dataset.seat }); closeSheet(); },
+  roll() { ui.rolling = true; Snd.ac(); Snd.roll(); sendOnce({ t: 'roll' }); },
+  choose(el) { Snd.chip(); sendOnce({ t: 'choose', target: +el.dataset.target }); },
+  next() { Snd.ac(); Net.send({ t: 'next' }); },
+  mine() {
+    const n = S.players[S.you].sips;
+    toast(n ? `Jij dronk al ${slok(n)}` : 'Jij hebt nog niks hoeven drinken');
+  },
+  menu() { openSheet('menu', menuHTML()); },
+  rules() { openSheet('rules', rulesHTML()); },
+  score() { openSheet('score', scoreHTML()); },
+  mute() { Snd.muted = !Snd.muted; store.set(KEY.mute, Snd.muted); if (!Snd.muted) Snd.chip(); openSheet('menu', menuHTML()); },
+  againask() {
+    openSheet('again', `${sheetTop('Terug naar de lobby?')}
+      <p>De stand begint dan opnieuw. In de lobby kunnen nieuwe spelers aanschuiven en kun je spelers van tafel halen.</p>
+      <button class="cta" type="button" data-act="again"><span>Ja, terug naar de lobby</span>${ARR}</button>
+      <button class="ghostbtn" type="button" data-act="close">Nee, verder spelen</button>`);
+  },
+  again() { Net.send({ t: 'again' }); closeSheet(); },
+  leaveask() {
+    openSheet('leave', `${sheetTop('Tafel verlaten?')}
+      <p>${S && S.phase !== 'lobby' ? 'Met de code kom je terug op je eigen plek, met je eigen stand.' : 'Met de code kun je later weer aanschuiven.'}</p>
+      <button class="cta" type="button" data-act="leave"><span>Ja, verlaten</span>${ARR}</button>
+      <button class="ghostbtn" type="button" data-act="close">Nee, blijven</button>`);
+  },
+  leave() { Net.send({ t: 'leave' }); leaveLocal(); },
+  close: closeSheet,
+};
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-act]');
+  if (el && !el.disabled && actions[el.dataset.act]) { actions[el.dataset.act](el); return; }
+  const tile = e.target.closest('.tile');
+  if (tile && tile.title) toast(tile.title.replace(/^(\d+): /, 'Vakje $1: ') + '. ' + (KIND[Z.BOARD[+tile.title.split(':')[0]].t].text));
+  if (e.target === $('#overlay')) closeSheet();
+});
+document.addEventListener('submit', (e) => { if (e.target.id === 'joinForm') { e.preventDefault(); joinWith($('#codeIn').value); } });
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'codeIn') { const v = e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4); if (v !== e.target.value) e.target.value = v; }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !$('#overlay').hidden) closeSheet();
+  if (e.key === 'Enter' && e.target.id === 'nameIn') { e.preventDefault(); const c = $('#codeIn'); if (c && c.value.length === 4) joinWith(c.value); else if (c) c.focus(); }
+});
+
+/* ================= START ================= */
+// zat je net nog aan een tafel (en open je niet een andere link)? Dan meteen terug op je plek.
+const lastTable = store.get(KEY.table, null);
+if (lastTable && typeof lastTable.code === 'string' && (!urlCode || urlCode === lastTable.code)) {
+  ui.joining = true;
+  Net.go({ t: 'join', code: lastTable.code, name: me.name, token: me.token });
+}
+render();
+if (urlCode && !ui.joining) { const n = $('#nameIn'); if (n && !n.value) n.focus(); }
+</script>
+</body>
+</html>

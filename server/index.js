@@ -17,6 +17,7 @@ import { PaardHub } from '../public/shared/paardhub.js';
 import { RotondeHub } from '../public/shared/rotondehub.js';
 import { MijnenveldHub } from '../public/shared/mijnenveldhub.js';
 import { WeerwolvenHub } from '../public/shared/weerwolvenhub.js';
+import { ZuipbordHub } from '../public/shared/zuipbordhub.js';
 import { createStore, randomString, loadSecret, makeSigner, makeSecretCheck } from './store.js';
 import { isDeviceToken } from '../public/shared/profiles.js';
 
@@ -95,6 +96,7 @@ const paardHub = new PaardHub({ log, build: buildOf('/paardenrace.html') });
 const rotondeHub = new RotondeHub({ log, build: buildOf('/rotonde.html') });
 const mijnHub = new MijnenveldHub({ log, build: buildOf('/mijnenveld.html') });
 const wolfHub = new WeerwolvenHub({ log, build: buildOf('/weerwolven.html') });
+const bordHub = new ZuipbordHub({ log, build: buildOf('/zuipbord.html') });
 
 // Verhuisd naar een nieuw adres? Zet REDIRECT_TO (bijvoorbeeld https://speelhal.onrender.com) op de oude server,
 // dan stuurt die iedereen door, met de rest van de link erbij. Alleen /health blijft, zodat Render de server ziet.
@@ -105,7 +107,7 @@ const server = http.createServer((req, res) => {
   let path = decodeURIComponent(url.pathname);
   if (path === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ ok: true, ...hub.stats(), bussen: busHub.stats(), boer: boerHub.stats(), mexen: mexHub.stats(), dealer: dealerHub.stats(), paardenrace: paardHub.stats(), rotonde: rotondeHub.stats(), mijnenveld: mijnHub.stats(), weerwolven: wolfHub.stats() }));
+    return res.end(JSON.stringify({ ok: true, ...hub.stats(), bussen: busHub.stats(), boer: boerHub.stats(), mexen: mexHub.stats(), dealer: dealerHub.stats(), paardenrace: paardHub.stats(), rotonde: rotondeHub.stats(), mijnenveld: mijnHub.stats(), weerwolven: wolfHub.stats(), zuipbord: bordHub.stats() }));
   }
   if (MOVED_TO) {
     res.writeHead(301, { Location: MOVED_TO + req.url, 'Cache-Control': 'no-cache' });
@@ -126,6 +128,7 @@ const server = http.createServer((req, res) => {
   else if (path === '/rotonde' || path === '/rotonde/' || /^\/rotonde\/[A-Za-z]{4}$/.test(path)) path = '/rotonde.html';
   else if (path === '/mijnenveld' || path === '/mijnenveld/' || /^\/mijnenveld\/[A-Za-z]{4}$/.test(path)) path = '/mijnenveld.html';
   else if (path === '/weerwolven' || path === '/weerwolven/' || /^\/weerwolven\/[A-Za-z]{4}$/.test(path)) path = '/weerwolven.html';
+  else if (path === '/zuipbord' || path === '/zuipbord/' || /^\/zuipbord\/[A-Za-z]{4}$/.test(path)) path = '/zuipbord.html';
   if (path.includes('..') || path.includes(sep + sep)) { res.writeHead(400); return res.end(); }
   const f = files.get(path);
   if (!f) {
@@ -154,9 +157,10 @@ const paardWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 const rotondeWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 const mijnWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 const wolfWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
+const bordWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 server.on('upgrade', (req, socket, head) => {
   const { pathname } = new URL(req.url, 'http://x');
-  const target = { '/ws': wss, '/ws/bussen': busWss, '/ws/boer': boerWss, '/ws/mexen': mexWss, '/ws/dealer': dealerWss, '/ws/paardenrace': paardWss, '/ws/rotonde': rotondeWss, '/ws/mijnenveld': mijnWss, '/ws/weerwolven': wolfWss }[pathname];
+  const target = { '/ws': wss, '/ws/bussen': busWss, '/ws/boer': boerWss, '/ws/mexen': mexWss, '/ws/dealer': dealerWss, '/ws/paardenrace': paardWss, '/ws/rotonde': rotondeWss, '/ws/mijnenveld': mijnWss, '/ws/weerwolven': wolfWss, '/ws/zuipbord': bordWss }[pathname];
   if (!target) { socket.destroy(); return; }
   target.handleUpgrade(req, socket, head, (ws) => target.emit('connection', ws, req));
 });
@@ -208,6 +212,7 @@ tableChannel(paardWss, paardHub);
 tableChannel(rotondeWss, rotondeHub);
 tableChannel(mijnWss, mijnHub);
 tableChannel(wolfWss, wolfHub);
+tableChannel(bordWss, bordHub);
 
 // dode verbindingen opruimen: wie twee keer op rij niet antwoordt, valt weg (en komt vanzelf terug zodra hij weer
 // verbinding heeft). Bij de tafelspellen gaat dat sneller, zodat de rest niet lang hoeft te wachten als wie aan de
@@ -219,12 +224,12 @@ function sweep(clients) {
     ws.ping();
   }
 }
-const tableChannels = [busWss, boerWss, mexWss, dealerWss, paardWss, rotondeWss, mijnWss, wolfWss];
+const tableChannels = [busWss, boerWss, mexWss, dealerWss, paardWss, rotondeWss, mijnWss, wolfWss, bordWss];
 const heartbeat = setInterval(() => sweep(wss.clients), 15000);
 const tableBeat = setInterval(() => { for (const channel of tableChannels) sweep(channel.clients); }, 4000);
 
 const tickTimer = setInterval(() => hub.tick(), 1000 / 60);
-const busTimer = setInterval(() => { busHub.tick(); boerHub.tick(); mexHub.tick(); dealerHub.tick(); paardHub.tick(); rotondeHub.tick(); mijnHub.tick(); wolfHub.tick(); }, 5000);
+const busTimer = setInterval(() => { busHub.tick(); boerHub.tick(); mexHub.tick(); dealerHub.tick(); paardHub.tick(); rotondeHub.tick(); mijnHub.tick(); wolfHub.tick(); bordHub.tick(); }, 5000);
 
 server.listen(PORT, HOST, () => {
   log(`Speelhal draait op http://localhost:${PORT}`);
