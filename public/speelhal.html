@@ -26,7 +26,7 @@
 <link rel="apple-touch-icon" href="/img/speelhal-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@400;500;700&family=Sofia+Sans+Extra+Condensed:wght@500;700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@400;500;700&family=Sofia+Sans+Extra+Condensed:wght@500;700;800;900&family=Grenze+Gotisch:wght@800&display=swap">
 <style>
 :root{
   /* Layout: vaste nachtlucht met een draaiende spiraal van lila blokken; elk spel is een halte op de scroll,
@@ -651,13 +651,37 @@ const PREV = {
     if (cur && cur.boom && e > .62) T(c, 'BOEM!', x0 + gw / 2, h * .5, Math.min(w * .11, h * .2), '#ff5a1f', { w: 900 });
   },
   weerwolven(c, w, h, t){
-    // een nacht en een dag aan tafel: de wolven (rode ogen) kiezen iemand, overdag stemt het dorp een wolf weg
+    // een nacht en een dag bij het kampvuur in het bos: de wolven (rode ogen) kiezen iemand, overdag stemt het dorp
     const L = 9000, k = reduce ? 7600 : t % L, day = clamp((k - 4000) / 500, 0, 1) * (1 - clamp((k - 8500) / 500, 0, 1));
-    c.fillStyle = '#0b1433'; c.fillRect(0, 0, w, h);
-    const cx = w / 2, cy = h / 2, rx = Math.min(w * .4, h * .78), ry = h * .4, ar = Math.min(w, h) * .075;
-    // het vilt: 's nachts donkerblauw, overdag groen
-    const felt = (a, c0, c1) => { c.globalAlpha = a; const g = c.createRadialGradient(cx, cy * .8, 4, cx, cy, rx * 1.1); g.addColorStop(0, c0); g.addColorStop(1, c1); c.fillStyle = g; c.beginPath(); c.ellipse(cx, cy, rx * .86, ry * .82, 0, 0, TAU); c.fill(); c.globalAlpha = 1; };
-    felt(1, '#33498a', '#0b1433'); felt(day, '#35a862', '#125a2e');
+    const mix = (a, b) => { const A = hex2rgb(a), Z = hex2rgb(b); return `rgb(${A.map((v, i) => Math.round(v + (Z[i] - v) * day)).join(',')})`; };
+    const sky = c.createLinearGradient(0, 0, 0, h); sky.addColorStop(0, mix('#1b2550', '#6b5634')); sky.addColorStop(1, mix('#05070f', '#120d07'));
+    c.fillStyle = sky; c.fillRect(0, 0, w, h);
+    if (day < 1) { c.fillStyle = `rgba(255,255,255,${.7 * (1 - day)})`; for (let i = 0; i < 26; i++) { const x = (i * 97) % w, y = (i * 53) % (h * .3); c.fillRect(x, y, 1.4, 1.4); } }
+    const cx = w / 2, cy = h * .56, rx = Math.min(w * .4, h * .78), ry = h * .38, ar = Math.min(w, h) * .072;
+    // de maan of de zon
+    const ox = w * .86, oy = h * .13, orr = Math.min(w, h) * .085;
+    c.save(); c.shadowColor = day > .5 ? 'rgba(255,200,90,.7)' : 'rgba(207,217,255,.7)'; c.shadowBlur = 24;
+    c.beginPath(); c.arc(ox, oy, orr, 0, TAU); c.fillStyle = day > .5 ? '#ffd76a' : '#e6ecff'; c.fill(); c.restore();
+    // de open plek
+    const gr = c.createRadialGradient(cx, cy, 4, cx, cy, rx);
+    gr.addColorStop(0, mix('#3a3a22', '#7a5b3a')); gr.addColorStop(.25, mix('#1d3528', '#6f9a3e')); gr.addColorStop(1, mix('#08120d', '#2e4b1b'));
+    c.fillStyle = gr; c.beginPath(); c.ellipse(cx, cy, rx * .9, ry * .86, 0, 0, TAU); c.fill();
+    // de bomen erachter: een rand van dennen
+    const th = h * .36, sc = th / 100;
+    c.save(); c.fillStyle = mix('#04060d', '#16200f');
+    for (let x = -((t / 90) % 1); x < w; x += 240 * sc) { c.save(); c.translate(x, h * .02); c.scale(sc, sc); c.fill(TREES); c.restore(); }
+    c.restore();
+    // het kampvuur: 's nachts brandt het, overdag rookt het na
+    const fs = Math.min(w, h) * .2, fx = cx - fs / 2, fy = cy - fs * .95;
+    if (day < .5) { const gl = c.createRadialGradient(cx, cy - fs * .3, 2, cx, cy - fs * .3, fs * 1.3); gl.addColorStop(0, 'rgba(255,138,43,.45)'); gl.addColorStop(1, 'rgba(255,138,43,0)'); c.fillStyle = gl; c.fillRect(cx - fs * 1.4, cy - fs * 1.6, fs * 2.8, fs * 2.6); }
+    c.save(); c.translate(fx, fy); c.scale(fs / 100, fs / 100);
+    for (const [ang, col] of [[-15, '#6b4226'], [15, '#57341d']]) { c.save(); c.translate(50, 79); c.rotate(ang * Math.PI / 180); rr(c, -31, -5, 62, 10, 5); c.fillStyle = col; c.fill(); c.restore(); }
+    if (day < .5) {
+      FLAMES.forEach(([path, col], i) => { const f = 1 + Math.sin(t / (110 + i * 40) + i) * .06; c.save(); c.translate(50, 79); c.scale(2 - f, f); c.translate(-50, -79); c.fillStyle = col; c.fill(path); c.restore(); });
+    } else {
+      for (let i = 0; i < 3; i++) { const p = ((t / 1600) + i / 3) % 1; c.beginPath(); c.arc(50 + Math.sin(p * 6 + i) * 4, 64 - p * 40, 5 + p * 8, 0, TAU); c.fillStyle = `rgba(210,205,195,${.5 * (1 - p)})`; c.fill(); }
+    }
+    c.restore();
     const COLS = ['#4f8dff', '#d690c9', '#ff7a00', '#2fbf71', '#f7c548', '#ff4a24', '#a28fe3'], INI = 'JMSSDMM';
     const pos = COLS.map((_, i) => { const a = Math.PI / 2 + i * TAU / 7; return [cx + rx * Math.cos(a), cy + ry * Math.sin(a)]; });
     const WOLVES = [2, 5], VICTIM = 4, HANGED = 5;
@@ -665,35 +689,35 @@ const PREV = {
     // 's nachts: de wolven kiezen; overdag: de stemmen
     const line = (from, to, p, col) => { const [x0, y0] = pos[from], [x1, y1] = pos[to]; c.strokeStyle = col; c.lineWidth = 2.5; c.setLineDash([6, 5]); c.beginPath(); c.moveTo(x0, y0); c.lineTo(x0 + (x1 - x0) * p, y0 + (y1 - y0) * p); c.stroke(); c.setLineDash([]); };
     if (k > 1500 && k < 4000) for (const wv of WOLVES) line(wv, VICTIM, clamp((k - 1500) / 900, 0, 1), 'rgba(229,56,59,.85)');
-    if (k > 4800 && k < 8500) [0, 1, 3, 6, 2].forEach((v, j) => line(v, HANGED, clamp((k - 4800 - j * 300) / 600, 0, 1), 'rgba(247,197,72,.8)'));
+    if (k > 4800 && k < 8500) [0, 1, 3, 6, 2].forEach((v, j) => line(v, HANGED, clamp((k - 4800 - j * 300) / 600, 0, 1), 'rgba(242,193,78,.85)'));
     pos.forEach(([x, y], i) => {
       const dead = (i === VICTIM && deadV) || (i === HANGED && deadH);
-      c.beginPath(); c.arc(x, y, ar, 0, TAU); c.fillStyle = dead ? '#3a3340' : COLS[i]; c.fill();
-      c.lineWidth = 3; c.strokeStyle = '#140d17'; c.stroke();
-      if (dead) { rr(c, x - ar * .38, y - ar * .45, ar * .76, ar * .95, ar * .38); c.fillStyle = 'rgba(255,255,255,.7)'; c.fill(); }
-      else T(c, INI[i], x, y + 1, ar * 1.05, '#fff', { w: 900 });
+      c.beginPath(); c.arc(x, y, ar, 0, TAU); c.fillStyle = dead ? '#39332f' : COLS[i]; c.fill();
+      c.lineWidth = 3; c.strokeStyle = '#1a120b'; c.stroke();
+      if (dead) { rr(c, x - ar * .38, y - ar * .45, ar * .76, ar * .95, ar * .38); c.fillStyle = 'rgba(239,227,196,.75)'; c.fill(); }
+      else T(c, INI[i], x, y + 1, ar * 1.1, '#fff', { w: 800, f: GF });
       // rode ogen bij de wolven, alleen 's nachts
       if (WOLVES.includes(i) && !dead && k > 700 && k < 4000) {
         c.fillStyle = '#ff3b3f'; c.shadowColor = 'rgba(255,59,63,.9)'; c.shadowBlur = 10;
-        for (const s of [-1, 1]) { c.beginPath(); c.ellipse(x + s * ar * .55, y - ar * 1.15, ar * .16, ar * .09, s * .4, 0, TAU); c.fill(); }
+        for (const sx of [-1, 1]) { c.beginPath(); c.ellipse(x + sx * ar * .55, y - ar * 1.15, ar * .16, ar * .09, sx * .4, 0, TAU); c.fill(); }
         c.shadowBlur = 0; c.shadowColor = 'transparent';
       }
     });
-    // het midden: maan of zon, en wat er gebeurt
-    const big = Math.min(w * .09, h * .17), small = Math.min(w * .032, h * .06);
+    // onder het vuur: wat er gebeurt
+    const big = Math.min(w * .085, h * .15), small = Math.min(w * .03, h * .055), ty = cy + big * .55;
     if (day < .5) {
-      // de maan, dezelfde als op de tafel van het spel
-      c.save(); c.translate(cx - big * .6, cy - big * 1.7); c.scale(big / 20, big / 20); c.fillStyle = '#cfd9ff'; c.fill(MOON_PATH); c.restore();
-      T(c, 'NACHT 1', cx, cy + big * .15, big, '#fff', { w: 900 });
-      T(c, deadV ? 'MEKE IS OPGEGETEN' : 'DE WOLVEN KIEZEN', cx, cy + big * .95, small, deadV ? '#ff5a64' : 'rgba(243,239,219,.8)', { f: MF });
+      T(c, 'Nacht 1', cx, ty, big, '#fff', { w: 800, f: GF });
+      T(c, deadV ? 'MEKE IS OPGEGETEN' : 'DE WOLVEN KIEZEN', cx, ty + big * .8, small, deadV ? '#ff6a6e' : 'rgba(239,227,196,.85)', { f: MF });
     } else {
-      c.beginPath(); c.arc(cx, cy - big * 1.1, big * .45, 0, TAU); c.fillStyle = '#f7c548'; c.fill();
-      T(c, deadH ? 'WEERWOLF!' : 'DAG 1', cx, cy + big * .15, big, deadH ? '#ff5a64' : '#fff', { w: 900 });
-      T(c, deadH ? 'HET DORP HING EEN WOLF OP' : 'STEM WIE ER HANGT', cx, cy + big * .95, small, 'rgba(243,239,219,.85)', { f: MF });
+      T(c, deadH ? 'Weerwolf!' : 'Dag 1', cx, ty, big, deadH ? '#ff6a6e' : '#fff', { w: 800, f: GF });
+      T(c, deadH ? 'HET DORP HING EEN WOLF OP' : 'STEM WIE ER HANGT', cx, ty + big * .8, small, 'rgba(239,227,196,.9)', { f: MF });
     }
   }
 };
-const MOON_PATH = new Path2D('M20.6 14.8A9 9 0 0 1 9.2 3.4a9 9 0 1 0 11.4 11.4z');
+// voor het voorproefje van Weerwolven: de dennen en de vlammen van het kampvuur (zoals op weerwolven.html)
+const TREES = new Path2D('M-6.0 31.1 3.0 53.1 -0.9 53.1 6.0 72.4 1.5 72.4 9.0 93.1 -21.0 93.1 -13.5 72.4 -18.0 72.4 -11.1 53.1 -15.0 53.1ZM15.4 41.9 23.6 60.5 20.1 60.5 26.4 76.8 22.3 76.8 29.1 94.2 1.6 94.2 8.5 76.8 4.4 76.8 10.7 60.5 7.1 60.5ZM33.0 42.5 41.1 60.9 37.6 60.9 43.9 77.0 39.8 77.0 46.6 94.3 19.5 94.3 26.3 77.0 22.2 77.0 28.4 60.9 24.9 60.9ZM48.2 26.4 57.6 49.9 53.5 49.9 60.7 70.5 56.0 70.5 63.9 92.6 32.4 92.6 40.3 70.5 35.6 70.5 42.8 49.9 38.7 49.9ZM66.2 26.7 77.2 50.2 72.4 50.2 80.9 70.7 75.4 70.7 84.6 92.7 47.8 92.7 57.0 70.7 51.4 70.7 59.9 50.2 55.1 50.2ZM87.6 35.4 96.9 56.1 92.9 56.1 100.0 74.2 95.4 74.2 103.2 93.5 72.0 93.5 79.8 74.2 75.1 74.2 82.3 56.1 78.2 56.1ZM112.1 20.2 123.1 45.7 118.3 45.7 126.8 68.1 121.3 68.1 130.5 92.0 93.8 92.0 102.9 68.1 97.4 68.1 105.9 45.7 101.1 45.7ZM141.2 43.0 149.9 61.2 146.1 61.2 152.8 77.2 148.4 77.2 155.7 94.3 126.8 94.3 134.0 77.2 129.7 77.2 136.3 61.2 132.6 61.2ZM159.2 38.8 167.1 58.4 163.7 58.4 169.8 75.5 165.8 75.5 172.4 93.9 146.0 93.9 152.6 75.5 148.6 75.5 154.7 58.4 151.3 58.4ZM175.8 9.9 187.6 38.7 182.5 38.7 191.5 64.0 185.6 64.0 195.5 91.0 156.0 91.0 165.9 64.0 160.0 64.0 169.1 38.7 163.9 38.7ZM203.2 17.5 214.5 43.9 209.6 43.9 218.3 67.0 212.6 67.0 222.1 91.8 184.4 91.8 193.8 67.0 188.1 67.0 196.8 43.9 191.9 43.9ZM229.1 42.3 236.5 60.8 233.3 60.8 238.9 76.9 235.3 76.9 241.4 94.2 216.8 94.2 223.0 76.9 219.3 76.9 224.9 60.8 221.7 60.8ZM243.9 15.7 255.6 42.7 250.5 42.7 259.5 66.3 253.6 66.3 263.4 91.6 224.4 91.6 234.1 66.3 228.3 66.3 237.3 42.7 232.2 42.7ZM0 88H240V100H0Z');
+const FLAMES = [['M50 14C59 31 73 40 71 58C70 71 61 79 50 79C39 79 30 71 29 60C28 49 37 45 39 35C43 43 45 45 47 45C46 35 45 25 50 14Z', '#e2491a'], ['M50 33C56 44 64 50 62 63C61 72 56 78 50 78C44 78 39 72 38 64C37 56 43 53 45 47C47 52 49 53 50 53C50 46 49 40 50 33Z', '#ff9327'], ['M50 50C54 57 57 61 56 67C55 73 53 77 50 77C47 77 45 73 44 68C44 63 47 61 48 57C49 60 50 60 50 60C50 57 50 54 50 50Z', '#ffe48c']].map(([d, col]) => [new Path2D(d), col]);
+const GF = '"Grenze Gotisch","Times New Roman",serif';
 let prevs = [];
 function sizePrevs(){
   const dpr = Math.min(2, devicePixelRatio || 1);
