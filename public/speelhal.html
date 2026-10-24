@@ -294,7 +294,7 @@ const GAMES = [
   { id: 'zuipbord', name: 'Zuip', name2: 'bord', short: 'Zuipbord', acc: '#f2c230', tint: '#2a2208', bg: '#3a200d',
     url: '/zuipbord',
     chips: ['Bordspel', 'Online met vrienden'],
-    text: 'Het drankspel als ganzenbord. Gooi de steen op je telefoon, loop met je pion over 48 vakjes en doe wat er staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje kiezen. Met de gans, de brug, het café, de put en de doodskop. Wie als eerste precies op de finish staat, wint en mag een bak uitdelen.',
+    text: 'Het drankspel als ganzenbord. Gooi de steen op je telefoon, loop met je pion over 48 vakjes en doe wat er staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje kiezen. Met de gans, de brug, het café, de put en de doodskop. Wie als eerste op de finish staat, wint en mag een bak uitdelen.',
     facts: [['Spelers', '2 tot 10'], ['Vakjes', '48'], ['Meedoen', 'met een code']],
     cta: 'Speel Zuipbord' }
 ];
@@ -760,7 +760,7 @@ const TREES = new Path2D('M-6.0 31.1 3.0 53.1 -0.9 53.1 6.0 72.4 1.5 72.4 9.0 93
 const FLAMES = [['M50 14C59 31 73 40 71 58C70 71 61 79 50 79C39 79 30 71 29 60C28 49 37 45 39 35C43 43 45 45 47 45C46 35 45 25 50 14Z', '#e2491a'], ['M50 33C56 44 64 50 62 63C61 72 56 78 50 78C44 78 39 72 38 64C37 56 43 53 45 47C47 52 49 53 50 53C50 46 49 40 50 33Z', '#ff9327'], ['M50 50C54 57 57 61 56 67C55 73 53 77 50 77C47 77 45 73 44 68C44 63 47 61 48 57C49 60 50 60 50 60C50 57 50 54 50 50Z', '#ffe48c']].map(([d, col]) => [new Path2D(d), col]);
 const GF = '"Grenze Gotisch","Times New Roman",serif';
 // voor het voorproefje van Zuipbord: de soort van elk vakje (zie zuipbord.js) en een vaste reeks worpen voor drie pionnen
-const BORDJE = 'SDGVIBBDXVXIGVBDVIXBGVIBDXVIRGXBBIVDXVXVGBBIVDKDF';
+const BORDJE = 'SDGVRBBDXVXIGVBDVIXBGVIBDXVIRGXBBVVDXRVDGBBIVDKDF';
 const LF = '"Lilita One","Arial Rounded MT Bold",sans-serif';
 const ZB = (() => { const pos = [0, 0, 0], rolls = [4, 3, 6, 2, 5, 3, 6, 4, 1, 5, 2, 6, 3, 4, 5], out = []; rolls.forEach((v, j) => { const p = j % 3; pos[p] = Math.min(48, pos[p] + v); out.push({ v, to: pos[p] }); }); return out; })();
 let prevs = [];
