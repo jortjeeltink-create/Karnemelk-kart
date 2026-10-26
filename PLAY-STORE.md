@@ -27,7 +27,7 @@ Hieronder staat wat jij zelf moet doen, in deze volgorde.
 - **Kies je webadres nu, voordat je publiceert.** De app zit vast aan dat adres. Een ander adres betekent later een nieuwe app-versie en een nieuwe koppeling.
   - Gebruik `spelkeet.onrender.com` (zie hieronder hoe je daar komt), niet meer `karnemelk-kart.onrender.com`.
   - Een eigen domein (bijvoorbeeld iets met "spelkeet") is netter. Koppelen kan in Render bij *Settings → Custom Domains*.
-- **Van `karnemelk-kart` naar `spelkeet.onrender.com`.** Een adres op Render kun je niet hernoemen. Maak daarom een nieuwe service:
+- **Van `karnemelk-kart` naar `spelkeet.onrender.com`.** Een adres op Render kun je niet hernoemen. Gebruik je de Blueprint (`render.yaml`), dan maakt Render de service `spelkeet` vanzelf aan; dan hoef je alleen nog stap 3 (de instellingen die je zelf invult) en stap 5. Anders maak je hem zo:
   1. Ga in Render naar **New → Web Service** en kies de repository *Karnemelk-kart* (branch `main`).
   2. Vul in:
      - **Name**: `spelkeet`;
