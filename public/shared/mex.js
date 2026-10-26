@@ -1,7 +1,7 @@
 // Mexen: het dobbelspel, online met iedereen op zijn eigen telefoon.
 // Om de beurt gooi je met twee stenen; je laatste worp telt. De eerste van de ronde mag tot drie keer gooien,
 // en hoe vaak hij gooit, zo vaak mag de rest ook. 21 is Mex en het hoogst, dan de dubbels (600 tot 100), dan
-// 65 tot en met 31. Wie de laagste worp heeft, drinkt; elke Mex in de ronde verdubbelt de slokken (hooguit 6). Bij gelijk
+// 65 tot en met 31. Wie de laagste worp heeft, drinkt; elke Mex in de ronde verdubbelt de slokken. Bij gelijk
 // gooien de laagsten nog één keer (afgooien). Wie verloor, begint de volgende ronde.
 // Een potje is een gewoon object (JSON) met de seed van de random-generator erin, net als bij Bussen.
 import { rand, cleanNames, NAME_MAX } from './bussen.js';
@@ -11,7 +11,6 @@ export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 10;
 export const MAX_THROWS = 3;
 export const STAKES = [1, 2, 3];     // slokken voor wie verliest, vóór het verdubbelen
-export const MAX_SIPS = 6;           // meer dan dit in één ronde wordt het nooit, hoeveel Mexen er ook vallen
 export const STAKE_DEFAULT = 1;
 const LOG_SIZE = 16;
 
@@ -137,7 +136,7 @@ function settle(g, who, dice) {
   }
   const loser = lowest[0];
   g.loser = loser;
-  g.sips = Math.min(MAX_SIPS, g.stake * 2 ** g.mexes);
+  g.sips = g.stake * 2 ** g.mexes;
   g.players[loser].sips += g.sips;
   g.players[loser].lost++;
   g.phase = 'uitslag';

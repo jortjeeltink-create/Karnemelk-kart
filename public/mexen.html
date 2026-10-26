@@ -667,7 +667,7 @@ function vHome() {
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${M.MIN_PLAYERS} tot ${M.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>Gooi om de beurt met twee stenen. Wie het laagst gooit, drinkt. Gooit iemand Mex, dan verdubbelen de slokken (hooguit ${M.MAX_SIPS}).</p>
+    <p>Gooi om de beurt met twee stenen. Wie het laagst gooit, drinkt. Gooit iemand Mex, dan verdubbelen de slokken.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${M.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -763,8 +763,7 @@ function spelDock() {
 
 function resultDock() {
   const l = S.loser, mine = l === S.you, d = diceOf(l);
-  const capped = S.stake * 2 ** S.mexes > M.MAX_SIPS ? ` Meer dan ${M.MAX_SIPS} wordt het nooit.` : '';
-  const mex = S.mexes ? ` ${S.mexes === 1 ? 'Er viel een Mex, dus dubbel' : `Er vielen ${S.mexes} Mexen, dus ${2 ** S.mexes} keer de inzet`}.${capped}` : '';
+  const mex = S.mexes ? ` ${S.mexes === 1 ? 'Er viel een Mex, dus dubbel' : `Er vielen ${S.mexes} Mexen, dus ${2 ** S.mexes} keer de inzet`}.` : '';
   const enough = liveCount() >= M.MIN_PLAYERS;
   const next = canNext()
     ? `<button class="cta" type="button" data-act="next" ${enough ? '' : 'disabled'}><span>${!enough ? `Minstens ${M.MIN_PLAYERS} spelers nodig` : mine ? 'Gedronken? Jij begint' : 'Volgende ronde'}</span>${ARR}</button>`
@@ -809,7 +808,7 @@ function rulesHTML() {
       <li><b>Gooien.</b> Om de beurt gooi je met twee stenen. Je laatste worp telt, dus nog een keer gooien is een gok.</li>
       <li><b>Hoe vaak.</b> De eerste van de ronde mag tot ${M.MAX_THROWS} keer gooien. Hoe vaak hij gooit, zo vaak mag de rest ook.</li>
       <li><b>Wat telt.</b> De hoogste steen eerst: een 6 en een 4 is 64. Dubbels zijn honderden: twee vijven is 500 en gaat boven elke gewone worp. Het hoogst is <b>Mex</b>: een 2 en een 1. Het laagst is 31.</li>
-      <li><b>Drinken.</b> Wie de laagste worp heeft, drinkt de inzet (${sipsText(stake)}). Elke Mex in de ronde verdubbelt de slokken, tot hooguit ${sipsText(M.MAX_SIPS)}.</li>
+      <li><b>Drinken.</b> Wie de laagste worp heeft, drinkt de inzet (${sipsText(stake)}). Elke Mex in de ronde verdubbelt de slokken.</li>
       <li><b>Gelijk.</b> Staan er meer spelers even laag, dan gooien die nog één keer (afgooien).</li>
       <li><b>Volgende ronde.</b> Wie verloor, begint.</li>
     </ol>

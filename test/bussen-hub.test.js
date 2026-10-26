@@ -137,7 +137,7 @@ test('slokken uitdelen via de telefoon van de uitdeler, en nu doen of sparen', (
   assert.equal(g.players[2].drank, 0, 'gespaarde slokken komen pas aan het eind van de ronde terug');
 });
 
-test('disco via de telefoon: de rest krijgt 3 slokken (nu doen of sparen)', () => {
+test('disco via de telefoon: iedereen ziet een bak staan en tikt op gedaan', () => {
   const { hub, phones, code } = table(['Jort', 'Meke']);
   phones[0].say({ t: 'start' });
   const g = hub.tables.get(code).g;
@@ -148,10 +148,13 @@ test('disco via de telefoon: de rest krijgt 3 slokken (nu doen of sparen)', () =
   phones[1].say({ t: 'answer', o: 'disco' });
   assert.equal(g.players[0].hand.length, 3, 'Meke is niet aan de beurt');
   phones[0].say({ t: 'answer', o: 'disco' });
-  assert.equal(phones[1].state().me.pending, 3);
-  assert.deepEqual(phones[1].state().me.from, [{ p: 0, n: 3 }]);
-  assert.equal(phones[0].state().me.pending, 0, 'wie disco gooit, drinkt niet mee');
-  assert.equal(phones[1].state().me.bak, undefined, 'geen bakken meer');
+  assert.equal(phones[1].state().me.bak, 1);
+  assert.deepEqual(phones[1].state().me.bakFrom, [{ p: 0, n: 1, disco: true }]);
+  assert.equal(phones[0].state().players[1].bak, 1);
+  phones[1].say({ t: 'bak' });
+  assert.equal(phones[0].state().players[1].bak, 0);
+  assert.equal(phones[0].state().players[1].bakken, 1);
+  assert.equal(phones[0].state().log[phones[0].state().log.length - 1].type, 'bak');
 });
 
 test('opnieuw verbinden: zelfde plek, en de host valt in voor wie weg is', () => {

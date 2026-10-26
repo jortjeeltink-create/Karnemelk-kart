@@ -590,7 +590,7 @@ function present(ev) {
       ui.disp = { pos: [0, 0, 0, 0], track: Array(P.TRACK).fill(null), last: null };
       ui.head = 'Daar gaan ze!';
       const mine = ev.racers.find((r) => r.player === S.you);
-      banner('De race begint', mine ? `${B.sipsText(mine.bet)} op ${HORSE[mine.horse]}` : `Race ${ev.race}`, STEP_MS.start + 200);
+      banner(mine ? 'Drink je inzet!' : 'De race begint', mine ? `${B.sipsText(mine.bet)} op ${HORSE[mine.horse]}` : `Race ${ev.race}`, STEP_MS.start + 200);
       ui.note = 'De paarden staan klaar. Trek om de beurt een kaart.';
       Snd.bugle(); buzz(mine ? [80, 50, 80] : 40);
       return STEP_MS.start;
@@ -816,7 +816,7 @@ function betDock() {
     ? `<button class="ghostbtn" type="button" data-act="go">Nu starten met ${ready} ${ready === 1 ? 'speler' : 'spelers'}</button>` : '';
   if (p.ready) {
     return `<div class="ask-h"><h2>Jij zet ${p.bet} op ${HORSE[p.horse]}</h2><span class="racechip">${title}</span></div>
-      <p class="sub">Wint een ander paard, dan drink je je inzet plus de hoogste inzet op de winnaar (samen hooguit ${P.LOSE_MAX}).</p>
+      <p class="sub">Als de race begint, drink je eerst je inzet: ${B.sipsText(p.bet)}.</p>
       ${waiting.length ? `<p class="waitline">Wachten op ${list(waiting)}</p>` : '<p class="waitline">De race begint</p>'}
       ${go}
       <button class="linkbtn" type="button" data-act="unready">Paard of inzet wijzigen</button>`;
@@ -873,10 +873,9 @@ function resultDock() {
   const winners = S.racers.filter((i) => S.drinks[i] && !S.drinks[i].total);
   const head = `${HORSE[h]} wint!`;
   const explain = winners.length ? `${list(winners.map(who))} ${winners.length === 1 ? 'zette' : 'zetten'} op ${HORSE[h]}.` : `Niemand zette op ${HORSE[h]}: iedereen drinkt alleen zijn eigen inzet.`;
-  const capped = mine && mine.total && mine.total < mine.own + Math.max(0, ...winners.map((i) => S.players[i].bet)) ? `, samen hooguit ${P.LOSE_MAX}` : '';
   const myLine = !mine ? '' : mine.total
-    ? `<div class="action">${GLASS}<span>Jij drinkt ${B.sipsText(mine.total)}<small>Je eigen inzet ${mine.own}${mine.winner ? ` + ${mine.winner} van de winnaar${capped}` : ''}</small></span></div>`
-    : `<div class="action">${GLASS}<span>Jij wint!<small>De anderen drinken hun inzet en die van de winnaar.</small></span></div>`;
+    ? `<div class="action">${GLASS}<span>Jij drinkt ${B.sipsText(mine.total)}<small>Je eigen inzet ${mine.own}${mine.winner ? ` + ${mine.winner} van de winnaar${winners.length > 1 ? 's' : ''}` : ''}</small></span></div>`
+    : `<div class="action">${GLASS}<span>Jij wint!<small>De anderen drinken jouw inzet.</small></span></div>`;
   const rows = S.racers.filter((i) => i !== S.you).map((i) => {
     const dr = S.drinks[i];
     return `<div class="${dr.total ? '' : 'won'}" style="--pc:${PC[i % PC.length]}"><span><i></i>${nameOf(i)} <small>${sym(S.players[i].horse)}</small></span><b>${dr.total ? `drinkt ${dr.total}` : 'wint'}</b></div>`;
@@ -911,7 +910,7 @@ function scoreHTML() {
     <thead><tr><th>Speler</th><th>Slokken</th><th>Gewonnen</th><th>Races</th></tr></thead>
     <tbody>${rows.map(({ p, i }) => `<tr style="--pc:${PC[i % PC.length]}"><td><i></i>${esc(p.name)}</td><td>${p.sips}</td><td>${p.wins}</td><td>${p.races}</td></tr>`).join('')}</tbody>
   </table></div>
-  <p class="sub">Slokken: hoeveel iemand moest drinken. Gewonnen: hoe vaak iemands paard als eerste over de finish kwam.</p>`;
+  <p class="sub">Slokken: hoeveel iemand moest drinken, ook de inzet vooraf. Gewonnen: hoe vaak iemands paard als eerste over de finish kwam.</p>`;
 }
 
 function rulesHTML() {
@@ -920,9 +919,10 @@ function rulesHTML() {
     <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander. De vier azen zijn de paarden: harten, ruiten, klaveren en schoppen.</p>
     <ol>
       <li><b>Inzetten.</b> Kies een aas als paard en zet ${P.BET_MIN} tot ${P.BET_MAX} slokken in. Meer spelers mogen op hetzelfde paard. Is iedereen klaar, dan begint de race.</li>
+      <li><b>Drink je inzet.</b> Bij de start drinkt iedereen eerst de slokken die hij inzette.</li>
       <li><b>De baan.</b> Naast de baan liggen ${P.TRACK} dichte kaarten, de azen staan op de start. Om de beurt trek je een kaart van de stapel: het paard met die vorm doet een stap vooruit.</li>
       <li><b>Een stap terug.</b> Zijn alle vier de paarden langs een dichte kaart, dan gaat die open. Het paard met dezelfde vorm moet een stap terug.</li>
-      <li><b>Finish.</b> Het eerste paard voorbij de ${P.TRACK}e kaart wint. Wie op een ander paard zette, drinkt zijn eigen inzet plus de hoogste inzet op het winnende paard, samen hooguit ${P.LOSE_MAX}. Wie op de winnaar zette, hoeft niks.</li>
+      <li><b>Finish.</b> Het eerste paard voorbij de ${P.TRACK}e kaart wint. Wie op een ander paard zette, drinkt zijn eigen inzet nog een keer, plus de inzet van de winnaar. Zetten er meer spelers op het winnende paard, dan tellen hun inzetten bij elkaar op.</li>
     </ol>
     <p class="small">Wint er een paard waar niemand op zette, dan drinkt iedereen alleen zijn eigen inzet. Wie later aanschuift, zet in voor de volgende race. Valt wie aan de beurt is weg, dan trekt de volgende. Drink met mate: water of karnemelk telt ook.</p>
   </div>`;

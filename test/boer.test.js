@@ -63,7 +63,7 @@ test('alleen de boer begint met tellen, en raden kan pas als de tijd om is', () 
   assert.equal(V.timeLeft(g, 9000), 0);
 });
 
-test('goed geraden: de bruid drinkt er nog 3; fout: de boer drinkt 3 (nooit een glas leeg)', () => {
+test('goed geraden: de vrouw drinkt ook het tweede glas; fout: de boer drinkt het', () => {
   const g = V.newGame(names(4), { seed: 5 });
   V.deal(g, seats(4));
   const { boer, vrouw } = g;
@@ -71,23 +71,22 @@ test('goed geraden: de bruid drinkt er nog 3; fout: de boer drinkt 3 (nooit een 
   const ev = V.guess(g, boer, vrouw, 8000);
   assert.deepEqual([ev.type, ev.ok, ev.vrouw, ev.target], ['raden', true, vrouw, vrouw]);
   assert.equal(g.phase, 'uitslag');
-  assert.equal(g.players[vrouw].sips, V.SNEAK_SIPS + V.CAUGHT_SIPS, 'stiekem 2, en betrapt nog 3');
-  assert.deepEqual([V.SNEAK_SIPS, V.CAUGHT_SIPS], [2, 3]);
-  assert.equal(g.players[boer].sips, 0);
+  assert.equal(g.players[vrouw].atjes, 2, 'twee glazen voor de vrouw');
+  assert.equal(g.players[boer].atjes, 0);
   assert.equal(g.players[boer].raak, 1);
 
   // volgende ronde: de boer wijst iemand anders aan
   V.deal(g, seats(4));
   assert.equal(g.round, 2);
   assert.equal(g.phase, 'rollen');
-  const b2 = g.boer, v2 = g.vrouw, before = g.players.map((p) => p.sips);
+  const b2 = g.boer, v2 = g.vrouw, before = g.players.map((p) => p.atjes);
   const wrong = [0, 1, 2, 3].find((p) => p !== b2 && p !== v2);
   V.startCount(g, b2, 0);
   const ev2 = V.guess(g, b2, wrong, 8000);
   assert.equal(ev2.ok, false);
-  assert.equal(g.players[v2].sips, before[v2] + V.SNEAK_SIPS, 'de bruid drinkt alleen haar stiekeme slokken');
-  assert.equal(g.players[b2].sips, before[b2] + V.CAUGHT_SIPS, 'de boer drinkt 3');
-  assert.equal(g.players[wrong].sips, before[wrong]);
+  assert.equal(g.players[v2].atjes, before[v2] + 1, 'de vrouw drinkt alleen het eerste glas');
+  assert.equal(g.players[b2].atjes, before[b2] + 1, 'de boer drinkt het tweede glas');
+  assert.equal(g.players[wrong].atjes, before[wrong]);
   assert.equal(g.players.reduce((n, p) => n + p.boer, 0), 2);
   // na de uitslag mag de tijd weer anders
   assert.equal(V.setCount(g, 10), true);

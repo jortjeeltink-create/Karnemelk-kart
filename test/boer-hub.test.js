@@ -78,7 +78,7 @@ test('niemand ziet de rol van een ander; de boer wordt pas bekend als hij telt, 
   assert.equal(u.vrouw, g.vrouw);
   assert.equal(u.guess, target);
   assert.deepEqual(u.roles, g.roles, 'na de uitslag ziet iedereen alle rollen');
-  assert.equal(u.players[g.vrouw].sips >= 2, true);
+  assert.equal(u.players[g.vrouw].atjes >= 1, true);
   assert.equal(u.log[u.log.length - 1].type, 'raden');
 });
 

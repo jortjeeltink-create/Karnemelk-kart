@@ -48,7 +48,7 @@
   --v2:#f78a1d;
   --v3:#4a5ae8;
   --v4:#34c25a;
-  --v6:#d63bb5;
+  --v12:#d63bb5;
   --display:"Sofia Sans Extra Condensed","Arial Narrow","Helvetica Neue",sans-serif;
   --mono:"Martian Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
   --s1:11px; --s2:13px; --s3:15px;
@@ -320,7 +320,7 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // vaste kleur per stoel aan tafel
 const PC = ['#4f8dff', '#d690c9', '#ff7a00', '#2fbf71', '#f7c548', '#ff4a24', '#a28fe3', '#36c5d6', '#e86aa0', '#9ccf3c'];
 const SUITNAME = { harten: 'Harten', ruiten: 'Ruiten', klaveren: 'Klaveren', schoppen: 'Schoppen' };
-const VALNAME = { 1: 'rood', 2: 'oranje', 3: 'blauw', 4: 'groen', [R.CENTER]: 'paars' };
+const VALNAME = { 1: 'rood', 2: 'oranje', 3: 'blauw', 4: 'groen', 12: 'paars' };
 const ARR = '<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>';
 const GLASS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l-1.6 16.2a2 2 0 0 1-2 1.8H9.6a2 2 0 0 1-2-1.8z"/><path d="M6.6 9h10.8"/></svg>';
 const SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
@@ -646,7 +646,7 @@ function tableHTML({ order: seatsOrder, people, center = '', seat = () => ({}), 
 // tijdens het spel zonder het H-rondje van de host: dat zou over de zon vallen
 const gameTable = (center, seat) => tableHTML({ order: order(), people: S.players, center, seat });
 const sheetTop = (title, kick = '', close = true) => `<div class="sheet-top"><div>${kick ? `<p class="kick">${kick}</p>` : ''}<h2 class="sheet-title" id="sheetTitle">${title}</h2></div>${close ? '<button class="xbtn" type="button" data-act="close" aria-label="Sluiten">✕</button>' : ''}</div>`;
-const legend = () => `<div class="legend">${[1, 2, 3, 4, R.CENTER].map((v) => `<span style="--rc:var(--v${v})"><i></i>${VALNAME[v]} ${slok(v)}</span>`).join('')}</div>`;
+const legend = () => `<div class="legend">${[1, 2, 3, 4, 12].map((v) => `<span style="--rc:var(--v${v})"><i></i>${VALNAME[v]} ${slok(v)}</span>`).join('')}</div>`;
 // een dichte zon voor op het startscherm en in de lobby
 const closedSun = () => R.LAYOUT.map((s) => ({ v: s.v }));
 
@@ -659,7 +659,7 @@ function vHome() {
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${R.MIN_PLAYERS} tot ${R.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>37 kaarten liggen als een zon op tafel. Kies een kaart en gok rood of zwart. Goed? De kaart gaat in de pot. Fout? Dan drink jij de kaart plus de hele pot (hooguit ${R.MAX_SIPS}).</p>
+    <p>37 kaarten liggen als een zon op tafel. Kies een kaart en gok rood of zwart. Goed? De kaart gaat in de pot. Fout? Dan drink jij de kaart plus de hele pot.</p>
     ${legend()}
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${R.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
@@ -710,7 +710,7 @@ function vSpel() {
 function resultLine(ev) {
   return ev.ok
     ? `${who(ev.player)} gokte ${ev.color} en het was ${label(ev.card)}. Er ${ev.v === 1 ? 'gaat' : 'gaan'} ${ev.v} in de pot.`
-    : `${who(ev.player)} gokte ${ev.color}, maar het was ${label(ev.card)}: ${ev.v} van de kaart${ev.pot ? ` + ${ev.pot} uit de pot` : ''}${ev.v + ev.pot > ev.sips ? `, maar meer dan ${R.MAX_SIPS} wordt het nooit` : ''}.`;
+    : `${who(ev.player)} gokte ${ev.color}, maar het was ${label(ev.card)}: ${ev.v} van de kaart${ev.pot ? ` + ${ev.pot} uit de pot` : ''}.`;
 }
 
 // Jij bent aan de beurt (of je speelt als host voor iemand die weg is).
@@ -730,12 +730,12 @@ function myDock(actor, ev) {
   }
   const v = S.cards[S.sel].v, busy = ui.sent === S.seq ? 'disabled' : '';
   return `${forNote}<div class="ask-h"><h2>Rood of zwart?</h2>${potChip()}</div>
-    <div class="pickinfo"><span class="swatch" style="--rc:var(--v${v})">${v}</span><p class="sub">Deze kaart is <b>${slok(v)}</b> waard. Goed: ${v} in de pot. Fout: jij drinkt <b>${Math.min(R.MAX_SIPS, v + S.pot)}</b>${S.pot ? ` (${v} + de pot${v + S.pot > R.MAX_SIPS ? `, hooguit ${R.MAX_SIPS}` : ''})` : ''}.</p></div>
+    <div class="pickinfo"><span class="swatch" style="--rc:var(--v${v})">${v}</span><p class="sub">Deze kaart is <b>${slok(v)}</b> waard. Goed: ${v} in de pot. Fout: jij drinkt <b>${v + S.pot}</b>${S.pot ? ` (${v} + de pot)` : ''}.</p></div>
     <div class="rz"><button class="red" type="button" data-act="guess" data-c="rood" ${busy}>Rood<small>♥♦</small></button><button class="black" type="button" data-act="guess" data-c="zwart" ${busy}>Zwart<small>♣♠</small></button></div>
     <p class="fine">Tik op een andere kaart om van kaart te wisselen.</p>`;
 }
 
-const legendDark = () => `<p class="fine">Rood 1 · oranje 2 · blauw 3 · groen 4 · paars ${R.CENTER}. Nog ${closedLeft()} kaarten dicht.</p>`;
+const legendDark = () => `<p class="fine">Rood 1 · oranje 2 · blauw 3 · groen 4 · paars 12. Nog ${closedLeft()} kaarten dicht.</p>`;
 
 function waitDock() {
   const t = S.turn;
@@ -797,7 +797,7 @@ function rulesHTML() {
       <li><b>De zon.</b> ${R.SIZE} kaarten liggen dicht op tafel: 16 rode in de buitenste ring, daarbinnen 8 oranje en 4 blauwe, 8 groene rond het midden en een paarse in het midden. De kleur zegt hoeveel slokken een kaart waard is.</li>
       <li><b>Kiezen en gokken.</b> Wie aan de beurt is, kiest een dichte kaart en gokt rood (harten, ruiten) of zwart (klaveren, schoppen). De kaart gaat open.</li>
       <li><b>Goed?</b> Dan gaat de waarde van de kaart in de pot. Je mag nog één keer gokken om de pot groter te maken, of doorgeven aan de volgende.</li>
-      <li><b>Fout?</b> Dan drink jij de waarde van de kaart plus de hele pot, maar nooit meer dan ${slok(R.MAX_SIPS)}. De pot is weer leeg en je probeert het opnieuw met een andere kaart.</li>
+      <li><b>Fout?</b> Dan drink jij de waarde van de kaart plus de hele pot. De pot is weer leeg en je probeert het opnieuw met een andere kaart.</li>
       <li><b>Klaar.</b> Liggen alle kaarten open, dan is de rotonde leeg. De host kan een nieuwe leggen; de stand blijft staan.</li>
     </ol>
     <p class="small">Een kaart die open ligt, blijft open. Valt wie aan de beurt is weg, dan is de volgende aan de beurt. Wie later aanschuift, gokt mee als hij aan de beurt komt. Hetzelfde spel heet ook wel Atoombommen, Spinnenwebben of Kernreactor; alleen de vorm verschilt. Drink met mate: water of karnemelk telt ook.</p>
