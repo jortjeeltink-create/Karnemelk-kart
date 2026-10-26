@@ -60,7 +60,12 @@ a{color:var(--acc)}
 .bar{display:flex;align-items:center;justify-content:space-around;height:52px;padding:0 8px;background:#2c2c2e}
 .bar span{display:grid;place-items:center;width:40px;height:40px;color:var(--ios)}
 .bar .on{border-radius:50%;box-shadow:0 0 0 3px var(--gold);background:rgba(247,197,72,.14)}
-.url{margin:10px 10px 0;padding:9px 12px;border-radius:12px;background:#3a3a3c;color:#ebebf5;font-size:14px;text-align:center}
+.bar26{display:flex;align-items:center;gap:8px;padding:10px;background:#2c2c2e}
+.bar26 .b{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:50%;background:#3a3a3c;color:#ebebf5;font-weight:900;letter-spacing:.05em}
+.bar26 .b.on{box-shadow:0 0 0 3px var(--gold);background:rgba(247,197,72,.2);color:#fff}
+.bar26 .addr{flex:1;min-width:0;padding:10px 12px;border-radius:999px;background:#3a3a3c;color:#ebebf5;font-size:13px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu26{margin:10px 10px 4px auto;width:min(78%,250px);padding:4px 0;border-radius:16px;background:#2c2c2e}
+.older{margin-top:14px}
 .sheet{padding:6px 0}
 .row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.08)}
 .row:first-child{border-top:0}
@@ -122,10 +127,22 @@ footer a{color:var(--soft)}
     <p>In Chrome op de iPhone kan het ook: daar zit de deelknop rechts in de adresbalk.</p>
   </li>
   <li>
-    <b>Tik op de deelknop.</b>
-    <p>Het vierkantje met de pijl omhoog, onderin. Zie je hem niet? Tik dan eerst op de drie puntjes (•••) rechtsonder, en daarna op <b>Deel</b>.</p>
+    <b>Tik op Deel.</b>
+    <p><b>Nieuwe iPhone (iOS 26):</b> de adresbalk staat onderin. Tik rechts naast de adresbalk op de drie puntjes <b>•••</b>, en dan op <b>Deel</b>.</p>
     <div class="mock" aria-hidden="true">
-      <div class="url" data-host>karnemelk-kart.onrender.com</div>
+      <div class="menu26">
+        <div class="row on"><span>Deel</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9H6v11h12V9h-2M12 3v12M8 7l4-4 4 4"/></svg></div>
+        <div class="row"><span>Voeg bladwijzer toe</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V4.5C17 4 14 4.5 12 6zM12 6v14.5"/></svg></div>
+        <div class="row"><span>Nieuw tabblad</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+      </div>
+      <div class="bar26">
+        <span class="b"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span>
+        <span class="addr" data-host>karnemelk-kart.onrender.com</span>
+        <span class="b on">•••</span>
+      </div>
+    </div>
+    <p class="older"><b>Oudere iPhone:</b> tik onderin op de deelknop, het vierkantje met de pijl omhoog.</p>
+    <div class="mock" aria-hidden="true">
       <div class="bar">
         <span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span>
         <span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".4"><path d="M9 5l7 7-7 7"/></svg></span>
@@ -137,7 +154,7 @@ footer a{color:var(--soft)}
   </li>
   <li>
     <b>Kies Zet op beginscherm.</b>
-    <p>Staat hij er niet meteen tussen, scroll dan een stukje naar beneden in de lijst.</p>
+    <p>Hij staat in de lijst onder de rij met apps en contacten. Zie je hem niet? Veeg de lijst omhoog, of tik eerst op <b>Meer</b>.</p>
     <div class="mock sheet" aria-hidden="true">
       <div class="row"><span>Kopieer</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></div>
       <div class="row"><span>Voeg toe aan leeslijst</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="12" r="5"/><circle cx="18" cy="12" r="3"/></svg></div>
@@ -147,7 +164,7 @@ footer a{color:var(--soft)}
   </li>
   <li>
     <b>Tik rechtsboven op Voeg toe.</b>
-    <p>De naam is al ATJE. Staat er een schakelaar <b>Open als webapp</b>, laat die dan aan.</p>
+    <p>Op een nieuwe iPhone is dat soms een blauw vinkje. De naam is al ATJE. Staat er een schakelaar <b>Open als webapp</b>, laat die dan aan.</p>
     <div class="mock" aria-hidden="true">
       <div class="dlg-top"><span class="cancel">Annuleer</span><b>Zet op beginscherm</b><span class="add">Voeg toe</span></div>
       <div class="dlg-body"><img src="/img/speelhal-180.png" alt=""><div class="f"><div>ATJE</div><small data-host>karnemelk-kart.onrender.com</small></div></div>
