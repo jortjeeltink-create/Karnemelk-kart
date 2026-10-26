@@ -1,4 +1,4 @@
-// Zuipbord online: tafels met een groepscode (zie tafels.js), de spelregels in zuipbord.js.
+// Borrelbord (eerst Zuipbord) online: tafels met een groepscode (zie tafels.js), de spelregels in zuipbord.js.
 // Er is niks geheim: iedereen ziet het bord, alle pionnen en wat er op elk vakje gebeurt.
 import * as Z from './zuipbord.js';
 import { TableHub } from './tafels.js';
@@ -36,7 +36,12 @@ const zuipbord = {
     // wie aan de beurt is gooit en kiest; is die weg, dan doet de host het voor hem
     const actor = t.actorFor(s, g.turn);
     switch (msg.t) {
-      case 'roll': return Z.roll(g, actor, live(t));
+      case 'roll': {
+        // bij een duel gooit ieder van de twee zelf (of de host voor wie er weg is)
+        if (g.phase !== 'duel') return Z.roll(g, actor, live(t));
+        const who = Z.duelWaiting(g).map((d) => t.actorFor(s, d)).find((d) => d >= 0);
+        return who == null ? null : Z.roll(g, who, live(t));
+      }
       case 'choose': return Z.choose(g, actor, Number.isInteger(msg.target) ? msg.target : -1, live(t));
       // nog een potje als er een winnaar is
       case 'next': return me === t.host ? Z.next(g, live(t)) : null;
@@ -55,6 +60,7 @@ const zuipbord = {
     out.round = g.round;
     out.turn = g.turn;
     out.pending = g.pending;
+    out.duel = g.duel;
     out.winner = g.winner;
     out.seq = g.seq;
     out.log = g.log;

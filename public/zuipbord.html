@@ -163,6 +163,33 @@ button.pl{cursor:pointer}
 .die i.on{background:var(--ink)}
 .die.q{display:grid;place-items:center;grid-template-columns:1fr;grid-template-rows:1fr;font-family:var(--display);font-size:34px;color:var(--v-drink)}
 .die.roll{animation:dieroll .5s linear infinite}
+/* houd de knop vast: de steen rammelt in je hand; laat los om te gooien */
+.throw:active .die{animation:shake .09s linear infinite}
+@keyframes shake{25%{transform:translate(2px,-2px) rotate(8deg)}50%{transform:translate(-2px,1px) rotate(-6deg)}75%{transform:translate(1px,2px) rotate(5deg)}}
+/* de dobbelsteen die over het bord rolt (iedereen ziet hem) */
+.dice{position:absolute;inset:0;z-index:5;pointer-events:none}
+.dice .d{position:absolute;left:0;top:0;width:12cqw;height:12cqw;margin:-6cqw 0 0 -6cqw;transition:opacity .45s}
+.dice .d.fade{opacity:0}
+.dice .sh{position:absolute;inset:10% 6% -4% 10%;border-radius:24%;background:rgba(40,18,4,.5);filter:blur(1.1cqw)}
+.dice .cube{position:absolute;inset:0;transform-style:preserve-3d}
+.dice .f{position:absolute;inset:0;border-radius:17%;background:linear-gradient(145deg,#fff,#f1e6cf);box-shadow:inset 0 0 0 .35cqw rgba(0,0,0,.07),inset 0 -.9cqw 1.4cqw rgba(0,0,0,.08);display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:1.9cqw;gap:.35cqw;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.dice .f i{border-radius:50%}
+.dice .f i.on{background:radial-gradient(circle at 40% 35%,#4a3a2c,var(--ink))}
+.dice .f1 i.on{background:radial-gradient(circle at 40% 35%,#ff7a6b,var(--v-drink))}
+.dice .f1{transform:translateZ(6cqw)}
+.dice .f6{transform:rotateY(180deg) translateZ(6cqw)}
+.dice .f2{transform:rotateY(90deg) translateZ(6cqw)}
+.dice .f5{transform:rotateY(-90deg) translateZ(6cqw)}
+.dice .f3{transform:rotateX(90deg) translateZ(6cqw)}
+.dice .f4{transform:rotateX(-90deg) translateZ(6cqw)}
+.dice .tag{position:absolute;left:50%;top:-5.5cqw;transform:translateX(-50%);white-space:nowrap;padding:.4cqw 1.6cqw;border-radius:99px;background:var(--pc,#333);color:#fff;font-weight:900;font-size:max(9px,2.6cqw);box-shadow:0 .4cqw 1cqw rgba(0,0,0,.35);opacity:0;transition:opacity .25s}
+.dice .d.landed .tag{opacity:1}
+/* het duel in het dock: twee stenen naast elkaar */
+.duelrow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin:2px 0 4px}
+.duelrow .side{display:grid;justify-items:center;gap:6px;padding:10px 6px;border-radius:16px;background:rgba(0,0,0,.05);box-shadow:inset 0 0 0 2px var(--pc,transparent)}
+.duelrow .side b{font-weight:900;font-size:var(--s2);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.duelrow .side.lost{background:rgba(229,72,59,.12)}
+.duelrow .vs{font-family:var(--display);font-size:24px;color:var(--ink-2)}
 @keyframes dieroll{25%{transform:rotate(14deg) translateY(-4px)}50%{transform:rotate(-8deg)}75%{transform:rotate(10deg) translateY(-2px)}}
 /* wat er op het vakje gebeurde */
 .vk{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:center;padding:10px 12px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 2px rgba(58,36,18,.12),0 4px 10px rgba(58,36,18,.12)}
@@ -311,7 +338,7 @@ const ICON = {
   dubbel: svg(`<rect x="1.5" y="6" width="11" height="11" rx="2.5" ${F}/><rect x="11.5" y="3" width="11" height="11" rx="2.5" ${F} opacity=".8"/><circle cx="4.5" cy="9" r="1.1" fill="rgba(0,0,0,.5)"/><circle cx="9.5" cy="14" r="1.1" fill="rgba(0,0,0,.5)"/><circle cx="17" cy="8.5" r="1.1" fill="rgba(0,0,0,.5)"/>`),
   rust: svg(`<circle cx="12" cy="12" r="9.5" ${F}/><path fill="none" stroke="rgba(0,0,0,.5)" stroke-width="1.9" stroke-linecap="round" d="M7.5 10.5c.6-.8 1.6-.8 2.2 0M14.3 10.5c.6-.8 1.6-.8 2.2 0M8 14.5c2.2 2 5.8 2 8 0"/>`),
   start: svg(`<path ${ST} d="M5 21V3M5 4h12l-2.5 4L17 12H5"/>`),
-  bak: svg(`<path ${F} d="M4 5h12v13a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/><path ${ST} d="M16 8h2.5a2.5 2.5 0 0 1 0 5H16"/><path fill="rgba(255,255,255,.8)" d="M3.5 4.5c0-1.6 1.6-2.6 3.1-2 1-1.3 3.1-1.3 4.1 0 1.6-.6 3.8.3 3.8 2.3V8h-11z"/><path fill="rgba(0,0,0,.25)" d="M7 10h1.6v8H7zM11.4 10H13v8h-1.6z"/>`),
+  winst: svg(`<path ${F} d="M6 3h12v4a6 6 0 0 1-12 0z"/><path ${ST} d="M6 5H3.5a3 3 0 0 0 3 4M18 5h2.5a3 3 0 0 1-3 4M12 13v4M8 21h8M9.5 17h5"/>`),
   finish: svg(`<path ${ST} d="M5 21V3"/><path fill="currentColor" d="M5 3h4v3H5zM13 3h4v3h-4zM9 6h4v3H9zM5 9h4v3H5zM13 9h4v3h-4zM17 6h3v3h-3zM9 3h4v0zM17 3h3v0z"/>`),
 };
 // soort vakje -> kleur, plaatje, korte naam en uitleg
@@ -331,16 +358,17 @@ const KIND = {
   put: { c: 'var(--v-beweeg)', name: 'Put', lb: () => 'Put', text: 'Je zit vast tot iemand anders erin valt.' },
   vraag: { c: 'var(--v-vraag)', name: 'Vraag', lb: () => 'Vraag', big: '?', text: 'Een vraag of opdracht voor de groep.' },
   regel: { c: 'var(--v-vraag)', name: 'Regel', lb: () => 'Regel', big: '!', text: 'Bedenk een regel voor de rest van het potje.' },
-  dubbel: { c: 'var(--v-speciaal)', name: 'Dubbel of niks', lb: () => 'Dubbel', dark: true, text: `Gooi nog eens: even, dan drinkt de rest 1; oneven, dan drink jij ${nOf('dubbel')}.` },
-  duel: { c: 'var(--v-speciaal)', name: 'Duel', lb: () => 'Duel', dark: true, text: `Kies iemand: jullie gooien allebei, de laagste drinkt ${nOf('duel')}.` },
+  dubbel: { c: 'var(--v-speciaal)', name: 'Dubbel of niks', lb: () => 'Dubbel', dark: true, text: `Gooi zelf nog een keer: even, dan drinkt de rest 1; oneven, dan drink jij ${nOf('dubbel')}.` },
+  duel: { c: 'var(--v-speciaal)', name: 'Duel', lb: () => 'Duel', dark: true, text: `Kies iemand: jullie gooien allebei op je eigen telefoon, de laagste drinkt ${nOf('duel')}. Gelijk? Nog een keer.` },
   maatje: { c: 'var(--v-speciaal)', name: 'Drinkmaatje', lb: () => 'Maatje', dark: true, text: 'Kies een maatje: als jij drinkt, drinkt die mee.' },
   ruil: { c: 'var(--v-speciaal)', name: 'Ruil', lb: () => 'Ruil', dark: true, text: 'Kies iemand en ruil van plek.' },
   rust: { c: 'var(--v-rust)', name: 'Rust', lb: () => 'Rust', dark: true, text: 'Even niks. Proost!' },
-  ad: { c: 'var(--v-drink)', name: 'Ad fundum', lb: () => 'Ad!', big: 'AD', text: 'Ad fundum (of 5 slokken).' },
-  finish: { c: '#222', name: 'Finish', lb: () => 'Finish', text: 'Wie hier als eerste komt, wint en mag een bak uitdelen.' },
-  bak: { c: 'var(--v-drink)', name: 'Bak', lb: () => 'Bak', text: 'De winnaar kiest wie er een bak trekt.' },
+  finish: { c: '#222', name: 'Finish', lb: () => 'Finish', text: `Wie hier als eerste komt, wint en deelt ${Z.WIN_SIPS} slokken uit.` },
+  winst: { c: 'var(--v-geef)', name: 'Winst', lb: () => 'Winst', text: `De winnaar kiest wie er ${Z.WIN_SIPS} drinkt.` },
 };
 const SHOW_STEP = 210;   // zo snel loopt een pion van vakje naar vakje
+const THROW_MS = 1300;   // zo lang rolt de steen over het bord
+const SETTLE_MS = 380;   // en zo lang ligt hij stil voor de pion gaat lopen
 
 /* ================= OPSLAG (alleen gemak, per telefoon) ================= */
 const KEY = { me: 'bord-ik', table: 'bord-tafel', mute: 'bord-stil' };
@@ -403,6 +431,8 @@ const Snd = {
   // de steen rolt over tafel
   roll() { for (let i = 0; i < 5; i++) this.noise(.05, { vol: .3, freq: 1400 + Math.random() * 1200, at: i * .07 + Math.random() * .02 }); },
   step() { this.tone(660 + Math.random() * 80, .05, { type: 'triangle', vol: .06 }); },
+  // de steen tikt op het bord
+  clack(vol = .2) { this.noise(.035, { vol, freq: 2200 + Math.random() * 900 }); this.tone(1700 + Math.random() * 300, .03, { type: 'triangle', vol: vol * .25 }); },
   chip() { this.tone(2400, .04, { type: 'triangle', vol: .08 }); this.tone(1800, .05, { type: 'triangle', vol: .06, at: .03 }); },
   gulp() { this.tone(300, .12, { type: 'sine', vol: .12, slide: .6 }); this.tone(240, .14, { type: 'sine', vol: .1, slide: .6, at: .14 }); },
   honk() { this.tone(330, .16, { type: 'square', vol: .06, lp: 1200 }); this.tone(294, .2, { type: 'square', vol: .06, lp: 1200, at: .17 }); },
@@ -461,7 +491,7 @@ const ui = {
   walking: null,    // { p, path, i, timer }
   card: null,       // wat er het laatst op een vakje gebeurde
   rolling: false,   // de steen rolt (na een tik, tot de server antwoordt)
-  lastRoll: null,   // { p, v }
+  lastRoll: null,   // { p, v }: de laatste steen die op het bord ligt
   sent: -1,
   wasMine: false,
 };
@@ -494,7 +524,8 @@ function onState(m) {
   if (first || m.phase === 'lobby' || seq < ui.seen) {
     // geen oude gebeurtenissen opnieuw afspelen: de pionnen staan meteen op hun plek
     ui.seen = seq; ui.queue = []; stopWalk();
-    ui.card = m.log ? [...m.log].reverse().find((e) => e.type === 'vak' || e.type === 'keuze') || null : null;
+    ui.card = m.log ? [...m.log].reverse().find((e) => CARD_TYPES.includes(e.type)) || null : null;
+    Dice.clear(true);
   } else for (const ev of m.log || []) if (ev.seq > ui.seen) present(ev);
   ui.seen = seq;
   ui.rolling = false;
@@ -503,7 +534,8 @@ function onState(m) {
   ui.shown.length = m.players.length;
   if (!ui.walking && ui.queue.length) nextWalk();
   // ben jij nu aan de beurt? Even trillen en een toon
-  const mine = m.phase === 'gooien' && myTurn() >= 0;
+  const d = m.duel, myDuel = m.phase === 'duel' && d && ((d.a === m.you && d.ra == null) || (d.b === m.you && d.rb == null));
+  const mine = ((m.phase === 'gooien' || m.phase === 'dubbel') && myTurn() >= 0) || myDuel;
   if (mine && !ui.wasMine && !first) { buzz(60); setTimeout(() => Snd.turn(), ui.walking ? 900 : 0); }
   ui.wasMine = mine;
   keepAwake(true);
@@ -513,26 +545,40 @@ function onState(m) {
 function leaveLocal(reason) {
   Net.stop();
   store.del(KEY.table);
-  S = null; ui.banner = null; ui.sheet = null; ui.card = null; ui.queue = []; stopWalk(); ui.code = '';
+  S = null; ui.banner = null; ui.sheet = null; ui.card = null; ui.queue = []; stopWalk(); Dice.clear(true); ui.code = '';
   history.replaceState(null, '', '/zuipbord');
   keepAwake(false);
   render();
   if (reason) toast(reason);
 }
 
-function banner(title, sub = '', color = 'var(--v-drink)', ms = 1800) {
-  ui.banner = { title, sub, color };
+function banner(title, sub = '', color = 'var(--v-drink)', ms = 1800, kind = '') {
+  ui.banner = { title, sub, color, kind };
   clearTimeout(ui.bannerTimer);
   ui.bannerTimer = setTimeout(() => { ui.banner = null; render(); }, ms);
 }
 
-/* ---------- pionnen laten lopen ---------- */
+/* ---------- de steen gooien en pionnen laten lopen ---------- */
+// In de rij staan stenen ({ dice }) en stukken lopen ({ p, path }); ze gaan om de beurt.
 const busy = (p) => (ui.walking && ui.walking.p === p) || ui.queue.some((q) => q.p === p);
 function stopWalk() { if (ui.walking) clearTimeout(ui.walking.timer); ui.walking = null; }
 function nextWalk() {
   const w = ui.queue.shift();
   if (!w) { ui.walking = null; if (S) S.players.forEach((p, i) => { ui.shown[i] = p.pos; }); render(); return; }
-  ui.walking = { ...w, i: 0, timer: 0 };
+  ui.walking = { p: -1, ...w, i: 0, timer: 0 };
+  if (w.dice) {
+    const d = w.dice;
+    Dice.toss(d.v, { seed: d.seq, side: d.side, who: d.who, fresh: d.fresh, done: () => {
+      if (ui.walking && ui.walking.dice !== d) return;
+      ui.lastRoll = { p: d.who, v: d.v };
+      if (d.who === S?.you) buzz(30);
+      const cur = ui.walking; ui.walking = null;
+      if (cur && cur.then) cur.then();
+      nextWalk();
+    } });
+    render();
+    return;
+  }
   stepWalk();
 }
 function stepWalk() {
@@ -546,14 +592,34 @@ function stepWalk() {
   w.timer = setTimeout(stepWalk, reduce ? 20 : w.jump ? 420 : SHOW_STEP);
 }
 function walk(p, path, opts = {}) { ui.queue.push({ p, path, ...opts }); if (!ui.walking) nextWalk(); }
+// een steen over het bord laten rollen (die ligt er nog even als de pion loopt)
+function toss(who, v, seq, opts = {}) { ui.queue.push({ dice: { who, v, seq, side: 0, fresh: true, ...opts } }); if (!ui.walking) nextWalk(); }
+// de stenen van tafel als alles gelopen is
+function clearDiceLater(ms) { afterWalk(() => setTimeout(() => { if (!ui.walking && !ui.queue.length) Dice.clear(); }, ms)); }
 
 // een gebeurtenis van de server laten zien en horen
 function present(ev) {
   switch (ev.type) {
     case 'worp':
-      ui.lastRoll = { p: ev.player, v: ev.v };
-      Snd.roll();
+      toss(ev.player, ev.v, ev.seq);
       walk(ev.player, ev.path);
+      break;
+    case 'dubbel': {
+      toss(ev.player, ev.v ?? ev.r, ev.seq);
+      afterWalk(() => { ui.card = ev; effect(ev); render(); });
+      clearDiceLater(1600);
+      break;
+    }
+    case 'duelworp': {
+      // de uitdager gooit links, de ander rechts; de eerste steen blijft liggen tot het duel klaar is
+      const k = [...S.log].reverse().find((e) => e.type === 'keuze' && e.kind === 'duel' && e.seq < ev.seq);
+      const side = k && ev.player === k.target ? 1 : -1;
+      toss(ev.player, ev.v, ev.seq, { side, fresh: !Dice.list.some((d) => d.side && !d.gone) || Dice.list.some((d) => d.side === side && !d.gone) });
+      break;
+    }
+    case 'duel':
+      afterWalk(() => { ui.card = ev; effect(ev); render(); });
+      clearDiceLater(ev.tie ? 1300 : 2200);
       break;
     case 'vak': {
       const show = () => { ui.card = ev; effect(ev); render(); };
@@ -564,6 +630,7 @@ function present(ev) {
     }
     case 'keuze': {
       const show = () => { ui.card = ev; effect(ev); render(); };
+      if (ev.kind === 'duel') afterWalk(() => Dice.clear());
       if (ev.kind === 'ruil') {
         const a = S.players[ev.player].pos, b = S.players[ev.target].pos;
         walk(ev.player, [a], { jump: true }); walk(ev.target, [b], { jump: true, then: show });
@@ -580,9 +647,10 @@ function present(ev) {
         if (ev.winner === S.you) { Snd.win(); celebrate(); } else Snd.honk();
         render();
       };
-      // na een bak eerst die laten zien, dan pas wie er wint
-      if (ui.banner && ui.banner.title === 'Bak!') setTimeout(after, 1900);
+      // eerst laten zien wie de winnaar laat drinken, dan pas wie er wint
+      if (ui.banner && ui.banner.kind === 'winst') setTimeout(after, 1900);
       else afterWalk(after);
+      clearDiceLater(600);
       break;
     }
     case 'nieuw':
@@ -602,11 +670,17 @@ function afterWalk(fn) {
 function effect(ev) {
   const drinksMe = (ev.drinks || []).some((d) => d[0] === S.you);
   if (drinksMe) { buzz([80, 40, 80]); Snd.gulp(); }
-  if (ev.type === 'keuze' && ev.kind === 'bak') banner('Bak!', ev.target === S.you ? 'Jij trekt een bak' : `${S.players[ev.target].name} trekt een bak`, 'var(--v-drink)', 2200);
+  const nm = (i) => (i === S.you ? 'Jij' : S.players[i].name);
+  if (ev.type === 'keuze' && ev.kind === 'winst') banner(`${ev.n} slokken`, `${nm(ev.target)} drinkt ze`, 'var(--v-geef)', 2200, 'winst');
+  if (ev.type === 'duel') {
+    if (ev.tie) banner('Gelijk!', 'Nog een keer gooien', 'var(--v-speciaal)', 1500);
+    else { const lo = ev.a < ev.b ? ev.player : ev.target; banner(`${nm(lo === ev.player ? ev.target : ev.player)} wint`, `${nm(lo)} drinkt ${ev.n}`, 'var(--v-speciaal)', 2000); }
+  }
+  if (ev.type === 'dubbel') banner(ev.r % 2 ? 'Oneven' : 'Even!', ev.r % 2 ? `${nm(ev.player)} drinkt ${ev.n}` : 'De rest drinkt 1', 'var(--v-speciaal)', 1700);
   if (ev.type !== 'vak') return;
   const k = KIND[ev.t];
-  const big = { gans: 'Gans!', brug: 'Brug!', dood: 'Dood!', put: 'In de put!', cafe: 'Café!', doolhof: 'Doolhof!', ad: 'Ad fundum!', iedereen: 'Iedereen!', dubbel: 'Dubbel of niks', duel: 'Duel!', finish: 'Finish!' }[ev.t];
-  if (big) banner(big, ev.t === 'finish' ? `${S.players[ev.player].name} mag een bak uitdelen` : `${S.players[ev.player].name} · vakje ${ev.at}`, ev.t === 'finish' ? 'var(--v-geef)' : k.c);
+  const big = { gans: 'Gans!', brug: 'Brug!', dood: 'Dood!', put: 'In de put!', cafe: 'Café!', doolhof: 'Doolhof!', iedereen: 'Iedereen!', dubbel: 'Dubbel of niks', duel: 'Duel!', finish: 'Finish!' }[ev.t];
+  if (big) banner(big, ev.t === 'finish' ? `${S.players[ev.player].name} deelt ${Z.WIN_SIPS} slokken uit` : `${S.players[ev.player].name} · vakje ${ev.at}`, ev.t === 'finish' ? 'var(--v-geef)' : k.c);
   if (ev.t === 'gans') Snd.honk();
   if (ev.t === 'dood') Snd.bad();
 }
@@ -673,6 +747,84 @@ const dieHTML = (v, cls = '') => {
   if (!v) return `<span class="die q ${cls}">?</span>`;
   return `<span class="die ${cls}" aria-label="${v} ogen">${Array.from({ length: 9 }, (_, k) => `<i class="${PIPS[v].includes(k) ? 'on' : ''}"></i>`).join('')}</span>`;
 };
+// De dobbelsteen die over het bord rolt: een kubus met zes vlakken, gegooid vanaf de onderkant van het bord. Hij stuitert
+// een paar keer, tolt steeds langzamer en valt op het goede vlak. Hij hangt los van het tekenen (render), zodat hij
+// gewoon doorrolt als het scherm ondertussen opnieuw wordt getekend.
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+const FACE = { 1: [0, 0], 2: [0, -90], 3: [-90, 0], 4: [90, 0], 5: [0, 90], 6: [0, 180] };   // [rotateX, rotateY]: dit vlak boven
+const ARCS = [[0, .42, 1], [.42, .7, .42], [.7, .88, .17], [.88, 1, .06]];   // de sprongen: [van, tot, hoogte]
+const Dice = {
+  box: null, list: [], raf: 0,
+  // het laagje met stenen hoort in het bord; na elke keer tekenen hangt het er weer in
+  attach() {
+    const board = $('#screen .board');
+    if (!board || !this.list.length) return;
+    if (!this.box) { this.box = document.createElement('div'); this.box.className = 'dice'; this.box.setAttribute('aria-hidden', 'true'); }
+    if (this.box.parentNode !== board) board.appendChild(this.box);
+  },
+  toss(v, { seed = 1, side = 0, who = -1, fresh = true, done = null } = {}) {
+    if (fresh) this.clear(true);
+    let r = (seed * 2654435761) >>> 0 || 1;
+    const rnd = () => { r = (r * 1664525 + 1013904223) >>> 0; return r / 4294967296; };
+    const el = document.createElement('div');
+    el.className = 'd';
+    if (who >= 0 && S && S.players[who]) el.style.setProperty('--pc', PC[who % PC.length]);
+    el.innerHTML = `<i class="sh"></i><span class="cube">${[1, 2, 3, 4, 5, 6].map((f) => `<span class="f f${f}">${Array.from({ length: 9 }, (_, k) => `<i class="${PIPS[f].includes(k) ? 'on' : ''}"></i>`).join('')}</span>`).join('')}</span>${who >= 0 && S && S.players[who] ? `<span class="tag">${who === S.you ? 'Jij' : esc(S.players[who].name)}: ${v}</span>` : ''}`;
+    const cx = .5 + side * .24;
+    const d = {
+      el, cube: el.querySelector('.cube'), sh: el.querySelector('.sh'), v, side, done,
+      t0: performance.now(), dur: reduce ? 1 : THROW_MS, hit: 0, landed: 0,
+      x0: cx + (rnd() - .5) * .3, y0: 1.06, x1: cx + (rnd() - .5) * (side ? .14 : .36), y1: .34 + rnd() * .26,
+      kx: (rnd() < .5 ? -1 : 1) * (2 + Math.floor(rnd() * 2)), ky: (rnd() < .5 ? -1 : 1) * (1 + Math.floor(rnd() * 2)),
+      z: (rnd() - .5) * 50, zs: (rnd() < .5 ? -1 : 1) * (180 + rnd() * 200),
+    };
+    this.list.push(d);
+    this.attach();
+    if (this.box && el.parentNode !== this.box) this.box.appendChild(el);
+    this.paint(d, 0);
+    Snd.roll();
+    if (!this.raf) this.raf = requestAnimationFrame((now) => this.frame(now));
+    return d;
+  },
+  paint(d, t) {
+    const q = 1 - (1 - t) ** 2.2, e = 1 - (1 - t) ** 3;
+    const arc = ARCS.find((a) => t <= a[1]) || ARCS[ARCS.length - 1];
+    const u = Math.min(1, Math.max(0, (t - arc[0]) / (arc[1] - arc[0])));
+    const h = t >= 1 ? 0 : arc[2] * 4 * u * (1 - u);
+    const [fx, fy] = FACE[d.v];
+    const x = fx + 360 * d.kx * (1 - e), y = fy + 360 * d.ky * (1 - e), z = d.z + d.zs * (1 - e);
+    d.el.style.left = `${((d.x0 + (d.x1 - d.x0) * q) * 100).toFixed(2)}%`;
+    d.el.style.top = `${((d.y0 + (d.y1 - d.y0) * q) * 100).toFixed(2)}%`;
+    d.cube.style.transform = `perspective(70cqw) translateY(${(-h * 9).toFixed(2)}cqw) scale(${(1 + h * .5).toFixed(3)}) rotateZ(${z.toFixed(1)}deg) rotateX(${x.toFixed(1)}deg) rotateY(${y.toFixed(1)}deg)`;
+    d.sh.style.transform = `translate(${(h * 3).toFixed(2)}cqw,${(h * 2).toFixed(2)}cqw) scale(${(1 - h * .35).toFixed(3)})`;
+    d.sh.style.opacity = (1 - h * .6).toFixed(2);
+  },
+  frame(now) {
+    this.raf = 0;
+    this.attach();
+    for (const d of this.list) {
+      if (d.landed && !d.done) continue;
+      const t = Math.min(1, (now - d.t0) / d.dur);
+      if (!d.landed) this.paint(d, t);
+      // elke keer dat hij neerkomt: een tik op het bord
+      const hits = ARCS.filter((a) => t >= a[1]).length;
+      while (d.hit < hits) { d.hit++; Snd.clack(.26 / d.hit); }
+      if (t >= 1 && !d.landed) { d.landed = now; d.el.classList.add('landed'); }
+      if (d.landed && d.done && now - d.landed >= (reduce ? 0 : SETTLE_MS)) { const f = d.done; d.done = null; f(); }
+    }
+    if (this.list.some((d) => !d.landed || d.done)) this.raf = requestAnimationFrame((n) => this.frame(n));
+  },
+  // de stenen van het bord halen (fast: meteen, anders even vervagen)
+  clear(fast = false) {
+    for (const d of this.list) {
+      d.gone = true;
+      if (d.done) { const f = d.done; d.done = null; f(); }
+      if (fast) d.el.remove();
+      else { d.el.classList.add('fade'); setTimeout(() => d.el.remove(), 500); }
+    }
+    this.list = [];
+  },
+};
 const sheetTop = (title, kick = '', close = true) => `<div class="sheet-top"><div>${kick ? `<p class="kick">${kick}</p>` : ''}<h2 class="sheet-title" id="sheetTitle">${title}</h2></div>${close ? '<button class="xbtn" type="button" data-act="close" aria-label="Sluiten">✕</button>' : ''}</div>`;
 
 // wie er drinkt, in een zin
@@ -691,13 +843,19 @@ function cardText(ev) {
     switch (ev.kind) {
       case 'geef': return [`${who(p)} geeft ${n} aan ${t}`, drinkLine(ev.drinks)];
       case 'maatje': return [`${t} is drinkmaatje`, `Als ${whoLow(p)} drinkt, drinkt ${t} mee. Tot het einde van het potje.`];
-      case 'duel': return [`Duel: ${ev.a} tegen ${ev.b}`, `${who(p)} gooide ${ev.a}, ${t} gooide ${ev.b}. ${drinkLine(ev.drinks)}.`];
+      case 'duel': return [`Duel: ${who(p)} tegen ${whom(ev.target)}`, `Jullie gooien allebei op je eigen telefoon. De laagste drinkt ${slok(n)}.`];
       case 'ruil': return ['Van plek geruild', `${who(p)} en ${t} ruilen van plek.`];
-      case 'bak': return [`${who(p)} deelt een bak uit`, `${t} trekt een bak: glas leeg in één keer.${(ev.drinks || []).some((d) => d[2] === 'maatje') ? ` ${drinkLine(ev.drinks.filter((d) => d[2] === 'maatje'))} mee.` : ''}`];
+      case 'winst': return [`${who(p)} deelt ${n} uit`, `${drinkLine(ev.drinks)}.`];
       default: return ['', ''];
     }
   }
   const dl = drinkLine(ev.drinks);
+  if (ev.type === 'duel') {
+    const t = nameOf(ev.target);
+    if (ev.tie) return [`Gelijk: ${ev.a} tegen ${ev.b}`, `${who(p)} en ${t} gooien allebei nog een keer.`];
+    return [`Duel: ${ev.a} tegen ${ev.b}`, `${who(p)} gooide ${ev.a}, ${t} gooide ${ev.b}. ${dl}.`];
+  }
+  if (ev.type === 'dubbel') return [`Dubbel of niks: ${ev.r}`, ev.r % 2 ? `Oneven. ${dl}.` : `Even! ${dl}.`];
   switch (ev.t) {
     case 'drink': return [`Drink ${n}!`, `${dl}.`];
     case 'iedereen': return [`Iedereen drinkt ${n}!`, 'Proost, jij ook.'];
@@ -711,21 +869,22 @@ function cardText(ev) {
     case 'put': return ['In de put', `${who(p)} zit vast tot iemand anders erin valt.${ev.freed && ev.freed.length ? ` ${andList(ev.freed.map(nameOf))} is weer vrij.` : ''}`];
     case 'vraag': return ['Vraag', esc(Z.VRAGEN[ev.i] || '')];
     case 'regel': return ['Bedenk een regel', `${who(p)} bedenkt een regel voor de rest van het potje. Bijvoorbeeld: ${esc(Z.REGELS[ev.i] || '')}`];
-    case 'dubbel': return [`Dubbel of niks: ${ev.r}`, ev.r % 2 ? `Oneven. ${dl}.` : `Even! ${dl}.`];
-    case 'ad': return ['Ad fundum!', `${who(p)} drinkt zijn glas leeg (of ${slok(Z.AD_SIPS)}).`];
+    case 'dubbel': return ['Dubbel of niks', `${who(p)} gooit nog een keer. Even: de rest drinkt 1. Oneven: ${whoLow(p)} drinkt ${n}.`];
     case 'rust': return ['Even rust', 'Niks aan de hand. Proost!'];
-    case 'finish': return ['Finish!', `${who(p)} staat op de finish en mag een bak uitdelen.`];
+    case 'finish': return ['Finish!', `${who(p)} staat op de finish en deelt ${slok(Z.WIN_SIPS)} uit.`];
     case 'geef': return [`Geef ${n} weg`, `${who(p)} kiest wie er ${n} drinkt.`];
     case 'maatje': return ['Drinkmaatje', `${who(p)} kiest een drinkmaatje.`];
-    case 'duel': return ['Duel!', `${who(p)} kiest met wie hij duelleert.`];
-    case 'ruil': return ['Ruil', `${who(p)} kiest met wie hij van plek ruilt.`];
+    case 'duel': return ['Duel!', `${who(p)} kiest een tegenstander.`];
+    case 'ruil': return ['Ruil', `${who(p)} kiest iemand om mee van plek te ruilen.`];
     default: return [KIND[ev.t] ? KIND[ev.t].name : '', ''];
   }
 }
 
+// welke gebeurtenissen een kaartje in het dock krijgen
+const CARD_TYPES = ['vak', 'keuze', 'duel', 'dubbel'];
 function cardHTML(ev) {
   if (!ev) return '';
-  const sq = ev.type === 'keuze' ? { t: ev.kind, n: ev.n } : { t: ev.t, n: ev.n };
+  const sq = ev.type === 'keuze' ? { t: ev.kind, n: ev.n } : ev.type === 'vak' ? { t: ev.t, n: ev.n } : { t: ev.type, n: ev.n };
   const k = KIND[sq.t] || KIND.rust;
   const [title, text] = cardText(ev);
   return `<div class="vk"><span class="sq${k.dark ? ' dark' : ''}" style="--tc:${k.c}">${tileIcon(sq)}</span><span><b>${title}</b><span>${ev.type === 'vak' ? `${who(ev.player)} · vakje ${ev.at}. ` : ''}${text}</span></span></div>`;
@@ -739,7 +898,7 @@ function vHome() {
   <div class="homeboard">${boardHTML({ pawns: demo })}</div>
   <div class="startcard">
     <div class="chips"><span class="chip">${Z.MIN_PLAYERS} tot ${Z.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>Het drankspel als ganzenbord. Gooi de steen, loop met je pion en doe wat er op het vakje staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje. Wie als eerste op de finish staat, wint en mag een bak uitdelen.</p>
+    <p>Het drankspel als ganzenbord. Gooi de steen over het bord, loop met je pion en doe wat er op het vakje staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje. Wie als eerste op de finish staat, wint.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${Z.NAME_MAX}" placeholder="Bijvoorbeeld Jort" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -782,15 +941,36 @@ function vSpel() {
 function playDock(walkingNow) {
   const actor = myTurn(), t = S.turn;
   const card = cardHTML(ui.card);
+  const busyThrow = ui.sent === S.seq || ui.rolling ? 'disabled' : '';
+  const throwBtn = (title, small) => `<button class="throw" type="button" data-act="roll" ${busyThrow}>${dieHTML(ui.rolling ? 0 : null, ui.rolling ? 'roll' : '')}<span><b>${title}</b><small>${small}</small></span></button>`;
   if (walkingNow) {
+    const w = ui.walking;
+    // de steen rolt nog: nog niet verklappen wat het wordt
+    if (w && w.dice) return `<div class="ask-h"><h2>${who(w.dice.who)} gooit…</h2>${dieHTML(0, 'roll')}</div><p class="waitline">De steen rolt</p>`;
     const r = ui.lastRoll;
     return `<div class="ask-h"><h2>${r ? `${who(r.p)} gooit ${r.v}` : 'Even kijken'}</h2>${r ? dieHTML(r.v) : ''}</div><p class="waitline">De pion loopt</p>`;
   }
   const forNote = actor >= 0 && actor !== S.you ? `<p class="fine warn">${nameOf(actor)} is weg. Jij speelt nu voor ${nameOf(actor)}.</p>` : '';
+  if (S.phase === 'duel' && S.duel) {
+    // allebei gooien, ieder op zijn eigen telefoon
+    const d = S.duel, waiting = [d.ra == null ? d.a : -1, d.rb == null ? d.b : -1].filter((x) => x >= 0);
+    const mine = waiting.find((x) => x === S.you) ?? waiting.find((x) => isHost() && !S.players[x].connected);
+    const side = (i, r) => `<div class="side" style="--pc:${PC[i % PC.length]}"><b>${who(i)}</b>${dieHTML(r)}</div>`;
+    const head = `<div class="ask-h"><h2>Duel!</h2><span class="pill">de laagste drinkt ${d.n}</span></div>`;
+    const tie = ui.card && ui.card.type === 'duel' && ui.card.tie ? card : '';
+    const row = `${tie}<div class="duelrow">${side(d.a, d.ra)}<span class="vs">vs</span>${side(d.b, d.rb)}</div>`;
+    if (mine != null) return `${head}${row}${throwBtn(mine === S.you ? 'Gooi!' : `Gooi voor ${nameOf(mine)}`, 'Houd vast en laat los om te gooien')}`;
+    return `${head}${row}<p class="waitline">Wachten op ${andList(waiting.map(nameOf))}</p>`;
+  }
+  if (S.phase === 'dubbel') {
+    const n = S.pending ? S.pending.n : 2;
+    if (actor >= 0) return `${forNote}${card}${throwBtn(actor === S.you ? 'Dubbel of niks!' : `Gooi voor ${nameOf(actor)}`, `Even: de rest drinkt 1. Oneven: ${actor === S.you ? 'jij drinkt' : `${nameOf(actor)} drinkt`} ${n}.`)}`;
+    return `${card}<p class="waitline">${nameOf(t)} gooit voor dubbel of niks</p>`;
+  }
   if (S.phase === 'kiezen') {
     const k = S.pending.kind, n = S.pending.n;
-    const q = { geef: `Wie drinkt er ${n}?`, maatje: 'Wie wordt je drinkmaatje?', duel: 'Met wie duel je?', ruil: 'Met wie ruil je van plek?', bak: 'Wie trekt er een bak?' }[k];
-    const doing = { geef: `kiest wie er ${n} drinkt`, maatje: 'kiest een drinkmaatje', duel: 'kiest met wie hij duelleert', ruil: 'kiest met wie hij van plek ruilt', bak: 'kiest wie er een bak trekt' }[k];
+    const q = { geef: `Wie drinkt er ${n}?`, maatje: 'Wie wordt je drinkmaatje?', duel: 'Met wie duel je?', ruil: 'Met wie ruil je van plek?', winst: `Wie drinkt er ${n}?` }[k];
+    const doing = { geef: `kiest wie er ${n} drinkt`, maatje: 'kiest een drinkmaatje', duel: 'kiest een tegenstander', ruil: 'kiest iemand om mee te ruilen', winst: `kiest wie er ${n} drinkt` }[k];
     if (actor >= 0) {
       const busyBtn = ui.sent === S.seq ? 'disabled' : '';
       const opts = S.players.map((p, i) => ({ p, i })).filter(({ p, i }) => i !== actor && p.connected).map(({ p, i }) =>
@@ -799,21 +979,17 @@ function playDock(walkingNow) {
     }
     return `${card}<p class="waitline">${nameOf(t)} ${doing}</p>`;
   }
-  if (actor >= 0) {
-    const mine = actor === S.you, busyBtn = ui.sent === S.seq || ui.rolling ? 'disabled' : '';
-    return `${forNote}${card}
-      <button class="throw" type="button" data-act="roll" ${busyBtn}>${dieHTML(ui.rolling ? 0 : null, ui.rolling ? 'roll' : '')}<span><b>${mine ? 'Jij gooit!' : `Gooi voor ${nameOf(actor)}`}</b><small>Tik om de steen te gooien</small></span></button>`;
-  }
+  if (actor >= 0) return `${forNote}${card}${throwBtn(actor === S.you ? 'Jij gooit!' : `Gooi voor ${nameOf(actor)}`, 'Houd vast en laat los om te gooien')}`;
   return `${card}<div class="ask-h"><h2>${nameOf(t)} gooit</h2><span class="pill" style="--pc:${PC[t % PC.length]}"><i></i>vak ${S.players[t].pos}</span></div><p class="waitline">Wachten op ${nameOf(t)}</p>`;
 }
 
 function doneDock() {
   const ev = [...(S.log || [])].reverse().find((e) => e.type === 'klaar');
-  const bak = [...(S.log || [])].reverse().find((e) => e.type === 'keuze' && e.kind === 'bak' && (!ev || e.seq < ev.seq));
+  const win = [...(S.log || [])].reverse().find((e) => e.type === 'keuze' && e.kind === 'winst' && (!ev || e.seq < ev.seq));
   const rows = S.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.pos - a.p.pos).map(({ p, i }) =>
     `<div class="${i === S.winner ? 'won' : ''}" style="--pc:${PC[i % PC.length]}"><span><i></i>${who(i)}${i === S.winner ? ' 🏆' : ''}</span><b>vak ${p.pos} · ${slok(p.sips)}</b></div>`).join('');
   return `<div class="ask-h"><h2>${who(S.winner)} wint!</h2><span class="pill">Potje ${S.round}</span></div>
-    ${bak ? `<p class="sub">${who(bak.player)} liet ${whom(bak.target)} een bak trekken.</p>` : ''}
+    ${win ? `<p class="sub">${who(win.player)} liet ${whom(win.target)} ${slok(win.n)} drinken.</p>` : ''}
     ${ev && ev.drinks && ev.drinks.length ? `<p class="sub">Wie het verst achter staat, drinkt: ${drinkLine(ev.drinks)}.</p>` : ''}
     <div class="standing">${rows}</div>
     ${isHost()
@@ -843,11 +1019,11 @@ function scoreHTML() {
     <thead><tr><th>Speler</th><th>Vak</th><th>Slokken</th><th>Gewonnen</th></tr></thead>
     <tbody>${rows.map(({ p, i }) => `<tr style="--pc:${PC[i % PC.length]}"><td><i></i>${esc(p.name)}</td><td>${p.pos}</td><td>${p.sips}</td><td>${p.wins}</td></tr>`).join('')}</tbody>
   </table></div>
-  <p class="sub">Slokken: wat de telefoon bijhoudt. De vragen en regels houd je zelf bij. Een ad fundum of een bak telt als ${Z.AD_SIPS}.</p>`;
+  <p class="sub">Slokken: wat de telefoon bijhoudt. De vragen en regels houd je zelf bij.</p>`;
 }
 
 function rulesHTML() {
-  const legend = ['drink', 'geef', 'iedereen', 'buren', 'laatste', 'vraag', 'regel', 'duel', 'maatje', 'ruil', 'dubbel', 'gans', 'brug', 'cafe', 'put', 'doolhof', 'dood', 'ad', 'rust', 'finish'].map((t) => {
+  const legend = ['drink', 'geef', 'iedereen', 'buren', 'laatste', 'vraag', 'regel', 'duel', 'maatje', 'ruil', 'dubbel', 'gans', 'brug', 'cafe', 'put', 'doolhof', 'dood', 'rust', 'finish'].map((t) => {
     const k = KIND[t], sq = Z.BOARD.find((s) => s.t === t) || { t };
     return `<div><span class="sq${k.dark ? ' dark' : ''}" style="--tc:${k.c}">${tileIcon(sq)}</span><span><b>${k.name}</b>. ${k.text}</span></div>`;
   }).join('');
@@ -855,10 +1031,11 @@ function rulesHTML() {
   <div class="rules">
     <p>Het drankspel als ganzenbord. Iedereen speelt op zijn eigen telefoon: maak een tafel en deel de code, of doe mee met de code van een ander.</p>
     <ol>
-      <li><b>Gooien.</b> Om de beurt gooi je de steen en loopt je pion zoveel vakjes vooruit.</li>
+      <li><b>Gooien.</b> Om de beurt gooi je de steen: houd de knop vast en laat los. De steen rolt over het bord, bij iedereen, en je pion loopt zoveel vakjes vooruit.</li>
       <li><b>Het vakje.</b> Doe wat er staat. Moet je iemand kiezen, dan doe je dat op je telefoon.</li>
       <li><b>De finish.</b> Gooi je verder dan de finish, dan sta je er ook op.</li>
-      <li><b>Winnen.</b> Wie als eerste op de finish staat, wint en mag een bak uitdelen: kies wie er zijn glas in één keer leeg drinkt. Wie dan het verst achter staat, drinkt ${slok(Z.LAST_SIPS)}.</li>
+      <li><b>Duel en dubbel of niks.</b> Bij een duel gooien jullie allebei op je eigen telefoon; de laagste drinkt, bij gelijk gooien jullie nog een keer. Bij dubbel of niks gooi je zelf nog een keer.</li>
+      <li><b>Winnen.</b> Wie als eerste op de finish staat, wint en kiest wie er ${slok(Z.WIN_SIPS)} drinkt. Wie dan het verst achter staat, drinkt ${slok(Z.LAST_SIPS)}.</li>
     </ol>
     <div class="legend">${legend}</div>
     <p class="small">Een drinkmaatje drinkt mee als jij moet drinken, behalve als iedereen al drinkt. Vragen en regels houd je zelf bij; de telefoon telt de rest. Valt wie aan de beurt is weg, dan is de volgende aan de beurt. Wie later aanschuift, begint op start. Drink met mate: water of karnemelk telt ook.</p>
@@ -937,6 +1114,7 @@ function render(pawnsOnly = false) {
   const html = { home: vHome, lobby: vLobby, spel: vSpel, klaar: vSpel }[v]();
   scr.classList.toggle('is-game', v !== 'home');
   scr.innerHTML = `<div class="view v-${v}${v !== 'home' ? ' game' : ''}">${html}</div>`;
+  Dice.attach();
   scr.scrollTop = keep;
   const st = scr.querySelector('.strip'); if (st) st.scrollLeft = stripScroll;
   ui.lastView = v;
@@ -1009,7 +1187,7 @@ const actions = {
       <button class="ghostbtn" type="button" data-act="close">Nee</button>`);
   },
   kick(el) { Net.send({ t: 'kick', seat: +el.dataset.seat }); closeSheet(); },
-  roll() { ui.rolling = true; Snd.ac(); Snd.roll(); sendOnce({ t: 'roll' }); },
+  roll() { ui.rolling = true; Snd.ac(); sendOnce({ t: 'roll' }); },
   choose(el) { Snd.chip(); sendOnce({ t: 'choose', target: +el.dataset.target }); },
   next() { Snd.ac(); Net.send({ t: 'next' }); },
   mine() {
@@ -1037,6 +1215,8 @@ const actions = {
   close: closeSheet,
 };
 
+// zonder touchstart-luisteraar doet :active het niet op een iPhone (en rammelt de steen niet als je de knop vasthoudt)
+document.addEventListener('touchstart', () => {}, { passive: true });
 document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-act]');
   if (el && !el.disabled && actions[el.dataset.act]) { actions[el.dataset.act](el); return; }
