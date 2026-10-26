@@ -101,6 +101,9 @@ p{margin:0}
 .dock .cta.hot{background:linear-gradient(90deg,#4a1d0a 0%,#a8461a 46%,#ffb020 100%)}
 .dock .cta:disabled{background:rgba(255,255,255,.08);color:var(--ink-soft);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 .ghostbtn{display:block;width:100%;border-radius:999px;padding:14px 20px;font-size:var(--s2);font-weight:700;color:var(--plum);box-shadow:inset 0 0 0 1px rgba(43,21,49,.3);text-decoration:none;text-align:center}
+.howrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.howrow .ghostbtn{padding-left:10px;padding-right:10px;white-space:nowrap}
+.rules-how{margin:0 0 14px}
 .ghostbtn:hover{background:var(--cream-2)}
 .dock .ghostbtn{padding:11px 18px;color:var(--cream);box-shadow:inset 0 0 0 1px rgba(255,255,255,.28)}
 .dock .ghostbtn:hover{background:rgba(255,255,255,.08)}
@@ -308,6 +311,8 @@ button.seat:active .ava{transform:scale(.94)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 <script src="/js/poort.js" defer></script>
+<script src="/js/slok.js" defer></script>
+<script src="/js/uitleg.js" defer></script>
 </head>
 <body>
 <div class="glow" aria-hidden="true"></div>
@@ -560,6 +565,7 @@ function present(ev) {
         if (!S) return;
         Snd.boom(); buzz(ev.player === S.you ? [200, 60, 200] : [120]);
         banner('Boem!', `${ev.player === S.you ? 'Jij drinkt' : `${S.players[ev.player].name} drinkt`} ${B.sipsText(ev.sips)}${ev.count > 1 ? ` (${ev.count} mijnen)` : ''}`, 2200);
+        if (ev.player === S.you) window.Slok?.drink(ev.sips, ev.count > 1 ? `Je landde op ${ev.count} mijnen: ${ev.count} × ${ev.sips / ev.count}. Daarna leg jij ze ergens anders neer.` : `Je landde op een mijn. Daarna leg jij hem ergens anders neer.`, { title: `Boem! Drink ${B.sipsText(ev.sips)}`, delay: 1300 });
         ui.boom = true;
         clearTimeout(ui.boomTimer);
         ui.boomTimer = setTimeout(() => { ui.boom = false; }, 700);
@@ -576,6 +582,7 @@ function present(ev) {
         if (ev.ok) Snd.good(); else Snd.bad();
         if (!ev.ok && ev.player === S.you) buzz([90, 50, 90]);
       }, 350);
+      if (!ev.ok && ev.player === S.you) window.Slok?.drink(ev.sips, `Je gokte ${ev.color}, maar het was ${B.isRed(ev.card) ? 'rood' : 'zwart'}. Je gooit opnieuw.`, { delay: 1000 });
       break;
     case 'klaar':
       banner('Veld leeg!', 'Alle kaarten liggen open', 2400);
@@ -765,7 +772,7 @@ function vHome() {
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${M.MIN_PLAYERS} tot ${M.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>36 kaarten in een veld van 6 bij 6, met ${M.MINES} verstopte mijnen. Gooi de steen twee keer: eerst voor de kolom, dan voor de rij. Land je op een mijn, dan drink je en leg je hem ergens anders neer. Daarna gok je rood of zwart.</p>
+    <p>36 kaarten in een veld van 6 bij 6, met ${M.MINES} verstopte mijnen. Gooi de steen twee keer: eerst voor de kolom, dan voor de rij. Land je op een mijn, dan drink je 3, 5 of 10 slokken (de host kiest) en leg je hem ergens anders neer. Daarna gok je rood of zwart: fout is ${slok(M.WRONG_SIPS)}.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${M.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -774,7 +781,7 @@ function vHome() {
     <div class="or">of</div>
     <button class="cta" type="button" data-act="create" ${busy}><span>${ui.joining ? 'Verbinden…' : 'Nieuwe tafel'}</span>${ARR}</button>
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
-    <button class="ghostbtn" type="button" data-act="rules">Spelregels</button>
+    <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="mijnenveld"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
   <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
 }
@@ -878,6 +885,7 @@ function menuHTML() {
   const host = isHost(), game = S && S.phase !== 'lobby';
   return `${sheetTop('Menu')}
   <nav class="mlist">
+    <button type="button" data-act="uitleg">Uitleg met plaatjes <span>›</span></button>
     <button type="button" data-act="rules">Spelregels <span>›</span></button>
     ${game ? '<button type="button" data-act="score">Stand <span>›</span></button>' : ''}
     <button type="button" data-act="mute">Geluid <span>${Snd.muted ? 'uit' : 'aan'}</span></button>
@@ -902,6 +910,7 @@ function scoreHTML() {
 function rulesHTML() {
   const mine = S ? S.mineSips : M.MINE_DEFAULT;
   return `${sheetTop('Spelregels', 'Mijnenveld')}
+  <button class="ghostbtn rules-how" type="button" data-act="uitleg"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Bekijk de uitleg met plaatjes</button>
   <div class="rules">
     <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander.</p>
     <ol>
@@ -1065,6 +1074,7 @@ const actions = {
     toast(n ? `Jij dronk al ${slok(n)}` : 'Jij hebt nog niks hoeven drinken');
   },
   menu() { openSheet('menu', menuHTML()); },
+  uitleg() { closeSheet(); window.Uitleg?.open('mijnenveld'); },
   rules() { openSheet('rules', rulesHTML()); },
   score() { openSheet('score', scoreHTML()); },
   mute() { Snd.muted = !Snd.muted; store.set(KEY.mute, Snd.muted); if (!Snd.muted) Snd.chip(); openSheet('menu', menuHTML()); },

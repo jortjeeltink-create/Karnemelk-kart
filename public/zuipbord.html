@@ -147,6 +147,9 @@ button.pl{cursor:pointer}
 .cta:disabled{background:rgba(58,36,18,.12);color:var(--ink-2);box-shadow:none;text-shadow:none}
 .cta:disabled .arr{background:rgba(58,36,18,.08)}
 .ghostbtn{display:block;width:100%;border-radius:999px;padding:12px 20px;font-size:var(--s2);font-weight:900;color:var(--ink);box-shadow:inset 0 0 0 2px rgba(58,36,18,.3);text-decoration:none;text-align:center}
+.howrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.howrow .ghostbtn{padding-left:10px;padding-right:10px;white-space:nowrap}
+.rules-how{margin:0 0 14px}
 .linkbtn{justify-self:start;padding:4px 0;font-size:var(--s1);font-weight:800;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
 .sharebtn{display:inline-flex;align-items:center;gap:7px;flex:none;padding:8px 14px;border-radius:999px;background:var(--ink);font-size:var(--s1);font-weight:900;color:var(--cream)}
 .sharebtn svg{width:14px;height:14px}
@@ -285,6 +288,8 @@ button.pl{cursor:pointer}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 <script src="/js/poort.js" defer></script>
+<script src="/js/slok.js" defer></script>
+<script src="/js/uitleg.js" defer></script>
 </head>
 <body>
 <div class="app">
@@ -652,6 +657,7 @@ function present(ev) {
       // eerst laten zien wie de winnaar laat drinken, dan pas wie er wint
       if (ui.banner && ui.banner.kind === 'bak') setTimeout(after, 1900);
       else afterWalk(after);
+      slokFor(ev, 2600);
       clearDiceLater(600);
       break;
     }
@@ -669,9 +675,39 @@ function afterWalk(fn) {
 }
 
 // geluid en een melding bij wat er op het vakje gebeurt
+// Moet jij drinken? Dan groot op je eigen telefoon: hoeveel, en waarom.
+function slokFor(ev, delay = 0) {
+  const list = ev.drinks || [];
+  const mine = list.filter((d) => d[0] === S.you);
+  if (!mine.length || !window.Slok) return;
+  const n = mine.reduce((t, d) => t + d[1], 0), nm = (i) => S.players[i].name;
+  const k = list.findIndex((d) => d[0] === S.you);
+  if (mine.every((d) => d[2] === 'maatje')) {
+    const of = list[k - 1] ? nm(list[k - 1][0]) : 'je maatje';
+    return Slok.drink(n, `Jij bent drinkmaatje van ${of}: als die drinkt, drink jij mee.`, { delay });
+  }
+  if (ev.type === 'keuze' && ev.kind === 'bak') return Slok.bak(`${nm(ev.player)} ${ev.player === S.winner ? 'won en ' : ''}deelt jou een bak uit.`, { delay });
+  if (ev.type === 'vak' && ev.t === 'ad') return Slok.bak(`Vakje ${ev.at}: ad fundum.`, { title: 'Ad fundum!', delay });
+  let why = '';
+  if (ev.type === 'keuze' && ev.kind === 'geef') why = `${nm(ev.player)} geeft jou ${slok(ev.n)}.`;
+  else if (ev.type === 'duel') { const me = ev.player === S.you ? ev.a : ev.b, them = ev.player === S.you ? ev.b : ev.a; why = `Duel: jij gooide ${me}, ${nm(ev.player === S.you ? ev.target : ev.player)} gooide ${them}.`; }
+  else if (ev.type === 'dubbel') why = ev.r % 2 ? `Dubbel of niks: je gooide ${ev.r}, oneven.` : `Dubbel of niks: ${nm(ev.player)} gooide ${ev.r}, even. De rest drinkt 1.`;
+  else if (ev.type === 'klaar') why = `${nm(ev.winner)} won, en jij stond het verst achter.`;
+  else if (ev.type === 'vak') why = {
+    drink: `Vakje ${ev.at}: drink ${ev.n}.`,
+    iedereen: `Vakje ${ev.at}: iedereen drinkt ${ev.n}.`,
+    buren: `${nm(ev.player)} kwam op vakje ${ev.at}: de buren drinken ${ev.n}, en jij zit naast ${nm(ev.player)} aan tafel.`,
+    laatste: `${nm(ev.player)} kwam op vakje ${ev.at}: wie het verst achter staat, drinkt ${ev.n}. Dat ben jij.`,
+    dood: 'Doodskop: terug naar start, en drinken.',
+    cafe: 'Café: drinken, en je slaat een beurt over.',
+  }[ev.t] || '';
+  Slok.drink(n, why, { delay });
+}
+
 function effect(ev) {
   const drinksMe = (ev.drinks || []).some((d) => d[0] === S.you);
   if (drinksMe) { buzz([80, 40, 80]); Snd.gulp(); }
+  slokFor(ev, 700);
   const nm = (i) => (i === S.you ? 'Jij' : S.players[i].name);
   if (ev.type === 'keuze' && ev.kind === 'bak') banner('Bak!', ev.target === S.you ? 'Jij trekt een bak' : `${nm(ev.target)} trekt een bak`, 'var(--v-drink)', 2200, 'bak');
   if (ev.type === 'duel') {
@@ -910,7 +946,7 @@ function vHome() {
     <div class="or">of</div>
     <button class="cta" type="button" data-act="create" ${busyBtn}><span>${ui.joining ? 'Verbinden…' : 'Nieuwe tafel'}</span>${ARR}</button>
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
-    <button class="ghostbtn" type="button" data-act="rules">Spelregels</button>
+    <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="borrelbord"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
   <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
 }
@@ -1005,6 +1041,7 @@ function menuHTML() {
   const host = isHost(), game = S && S.phase !== 'lobby';
   return `${sheetTop('Menu')}
   <nav class="mlist">
+    <button type="button" data-act="uitleg">Uitleg met plaatjes <span>›</span></button>
     <button type="button" data-act="rules">Spelregels <span>›</span></button>
     ${game ? '<button type="button" data-act="score">Stand <span>›</span></button>' : ''}
     <button type="button" data-act="mute">Geluid <span>${Snd.muted ? 'uit' : 'aan'}</span></button>
@@ -1032,6 +1069,7 @@ function rulesHTML() {
     return `<div><span class="sq${k.dark ? ' dark' : ''}" style="--tc:${k.c}">${tileIcon(sq)}</span><span><b>${k.name}</b>. ${k.text}</span></div>`;
   }).join('');
   return `${sheetTop('Spelregels', 'Borrelbord')}
+  <button class="ghostbtn rules-how" type="button" data-act="uitleg"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Bekijk de uitleg met plaatjes</button>
   <div class="rules">
     <p>Het drankspel als ganzenbord. Iedereen speelt op zijn eigen telefoon: maak een tafel en deel de code, of doe mee met de code van een ander.</p>
     <ol>
@@ -1199,6 +1237,7 @@ const actions = {
     toast(n ? `Jij dronk al ${slok(n)}` : 'Jij hebt nog niks hoeven drinken');
   },
   menu() { openSheet('menu', menuHTML()); },
+  uitleg() { closeSheet(); window.Uitleg?.open('borrelbord'); },
   rules() { openSheet('rules', rulesHTML()); },
   score() { openSheet('score', scoreHTML()); },
   mute() { Snd.muted = !Snd.muted; store.set(KEY.mute, Snd.muted); if (!Snd.muted) Snd.chip(); openSheet('menu', menuHTML()); },

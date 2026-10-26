@@ -100,6 +100,9 @@ p{margin:0}
 .dock .cta.hot{background:linear-gradient(90deg,#33246b 0%,#6a52c4 46%,#b9a8ff 100%)}
 .dock .cta:disabled{background:rgba(255,255,255,.08);color:var(--ink-soft);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 .ghostbtn{display:block;width:100%;border-radius:999px;padding:14px 20px;font-size:var(--s2);font-weight:700;color:var(--plum);box-shadow:inset 0 0 0 1px rgba(43,21,49,.3);text-decoration:none;text-align:center}
+.howrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.howrow .ghostbtn{padding-left:10px;padding-right:10px;white-space:nowrap}
+.rules-how{margin:0 0 14px}
 .ghostbtn:hover{background:var(--cream-2)}
 .linkbtn{justify-self:start;padding:4px 0;font-size:var(--s1);font-weight:700;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px}
 
@@ -323,6 +326,8 @@ button.seat:active .ava{transform:scale(.94)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 <script src="/js/poort.js" defer></script>
+<script src="/js/slok.js" defer></script>
+<script src="/js/uitleg.js" defer></script>
 </head>
 <body>
 <div class="glow" aria-hidden="true"></div>
@@ -563,6 +568,13 @@ function present(ev) {
         if (!S) return;
         if (ev.ok) Snd.good(); else Snd.bad();
         if (ev.drinker === S.you) buzz([90, 50, 90]);
+        if (ev.drinker === S.you) {
+          const card = B.cardName(ev.card), nm = S.players[ev.player].name;
+          const why = ev.ok === 1 ? `${nm} raadde ${card} in één keer.`
+            : ev.ok === 2 ? `${nm} raadde ${card} in twee keer.`
+              : `Je zei ${B.RANK_NAME[ev.guesses[1]] || ev.guesses[1]}, maar het was ${card}. Het verschil is ${ev.sips}.`;
+          window.Slok?.drink(ev.sips, why, { delay: 900 });
+        }
         if (ev.ok === 1) celebrate();
       }, 450);
       break;
@@ -702,7 +714,7 @@ function vHome() {
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${F.MIN_PLAYERS} tot ${F.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>De dealer ziet de bovenste kaart, de rest raadt. Goed geraden? Dan drinkt de dealer. Fout? Dan drink jij het verschil.</p>
+    <p>De dealer ziet de bovenste kaart, de rest raadt. In één keer goed? Dan drinkt de dealer ${F.SIPS_FIRST}, in twee keer ${F.SIPS_SECOND}. Fout? Dan drink jij het verschil.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${F.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -711,7 +723,7 @@ function vHome() {
     <div class="or">of</div>
     <button class="cta" type="button" data-act="create" ${busy}><span>${ui.joining ? 'Verbinden…' : 'Nieuwe tafel'}</span>${ARR}</button>
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
-    <button class="ghostbtn" type="button" data-act="rules">Spelregels</button>
+    <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="dealer"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
   <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
 }
@@ -798,6 +810,7 @@ function menuHTML() {
   const host = isHost(), game = S && S.phase !== 'lobby';
   return `${sheetTop('Menu')}
   <nav class="mlist">
+    <button type="button" data-act="uitleg">Uitleg met plaatjes <span>›</span></button>
     <button type="button" data-act="rules">Spelregels <span>›</span></button>
     ${game ? '<button type="button" data-act="score">Stand <span>›</span></button>' : ''}
     <button type="button" data-act="mute">Geluid <span>${Snd.muted ? 'uit' : 'aan'}</span></button>
@@ -821,6 +834,7 @@ function scoreHTML() {
 
 function rulesHTML() {
   return `${sheetTop('Spelregels', 'Pak de dealer')}
+  <button class="ghostbtn rules-how" type="button" data-act="uitleg"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Bekijk de uitleg met plaatjes</button>
   <div class="rules">
     <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander. Bij de start wordt er een willekeurige dealer gekozen.</p>
     <ol>
@@ -973,6 +987,7 @@ const actions = {
     toast(n ? `Jij dronk al ${B.sipsText(n)}` : 'Jij hebt nog niks hoeven drinken');
   },
   menu() { openSheet('menu', menuHTML()); },
+  uitleg() { closeSheet(); window.Uitleg?.open('dealer'); },
   rules() { openSheet('rules', rulesHTML()); },
   score() { openSheet('score', scoreHTML()); },
   mute() { Snd.muted = !Snd.muted; store.set(KEY.mute, Snd.muted); if (!Snd.muted) Snd.chip(); openSheet('menu', menuHTML()); },

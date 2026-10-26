@@ -72,6 +72,20 @@ p{margin:0}
 .cta .arr{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.14);flex:none}
 .cta.off{background:var(--cream-2);color:var(--plum-2);box-shadow:inset 0 0 0 1.5px rgba(43,21,49,.25);cursor:default;transform:none;filter:none}
 .cta.off .arr{background:rgba(43,21,49,.08)}
+.howbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:50px;margin-top:-6px;border:0;border-radius:999px;background:var(--cream-2);color:var(--plum);font-family:var(--mono);font-weight:700;font-size:var(--s2);cursor:pointer;box-shadow:inset 0 0 0 1.5px rgba(43,21,49,.18)}
+.howbtn:hover{background:var(--cream-3)}
+.howbtn svg{color:var(--acc);filter:brightness(.85)}
+.iphone{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--plum);color:var(--cream);text-decoration:none;font-size:var(--s1);line-height:1.35}
+.iphone b{font-weight:700}
+.iphone svg{flex:none}
+.iphone span:last-child{margin-left:auto;font-size:18px}
+.ipcard{width:min(520px,100%);padding:22px;display:grid;gap:12px;text-align:left;margin:4vh 0 2vh}
+.ipcard h2{margin:0;font-family:var(--display);font-weight:800;font-size:34px;line-height:1}
+.ipcard p{margin:0;font-size:var(--s2);line-height:1.5}
+.ipbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ipbtns a,.ipbtns button{display:flex;align-items:center;justify-content:center;min-height:48px;padding:0 12px;border:0;border-radius:999px;font-family:var(--mono);font-weight:700;font-size:var(--s1);text-decoration:none;cursor:pointer;text-align:center}
+.ipbtns button{background:var(--plum);color:var(--cream)}
+.ipbtns a{background:var(--cream-2);color:var(--plum);box-shadow:inset 0 0 0 1.5px rgba(43,21,49,.18)}
 
 .topbar{position:fixed;top:0;left:0;right:0;z-index:6;display:flex;justify-content:space-between;align-items:center;padding:calc(24px + env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) 0 max(24px,env(safe-area-inset-left,0px));pointer-events:none}
 .topbar>*{pointer-events:auto}
@@ -174,6 +188,7 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
 }
 </style>
 <script src="/js/poort.js" defer></script>
+<script src="/js/uitleg.js" defer></script>
 </head>
 <body>
 
@@ -196,6 +211,7 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
       <div class="chips"><span class="chip">Negen spellen</span><span class="chip line">Eén pagina</span></div>
       <p>Spellen voor een avond met vrienden, ieder op zijn eigen telefoon. Scroll naar beneden om ze te bekijken, of spring er direct in.</p>
       <div class="hero-list" id="heroList"></div>
+      <a class="iphone" href="/iphone"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/></svg><span><b>Vrienden met een iPhone?</b> Zo spelen ze mee</span><span aria-hidden="true">›</span></a>
     </div>
     <div class="scrollcue" aria-hidden="true"><span></span>Scroll</div>
   </section>
@@ -204,6 +220,11 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
 </main>
 
 <footer>
+  <section class="ipcard cream" aria-labelledby="ipTitle">
+    <h2 id="ipTitle">Speel je met iemand met een iPhone?</h2>
+    <p>ATJE werkt ook op een iPhone, gewoon in Safari. Stuur je vrienden de iPhone-link: daar staat hoe ze ATJE als app op hun beginscherm zetten.</p>
+    <div class="ipbtns"><button type="button" id="ipShare">Stuur de link</button><a href="/iphone">Bekijk de uitleg</a></div>
+  </section>
   <div class="big">Game over?</div>
   <p>Nog lang niet. Scroll terug naar boven en kies een ander spel.</p>
   <a class="pill glass" href="#top" data-nav>↑ Terug naar boven</a>
@@ -215,6 +236,7 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
 
 <div class="menu" id="menu" hidden>
   <nav id="menuNav"></nav>
+  <p class="note"><a href="/iphone">Spelen op een iPhone ›</a></p>
   <p class="note">Vanuit elk spel kom je via het menu weer terug in ATJE. <a href="/voorwaarden">Voorwaarden</a> · <a href="/privacy">Privacy</a> · <a href="/melden">Iets melden</a></p>
 </div>
 
@@ -265,19 +287,19 @@ const GAMES = [
   { id: 'mexen', name: 'Mexen', name2: '', short: 'Mexen', acc: '#36c5d6', tint: '#0d2a30', bg: '#0b1d22',
     url: '/mexen',
     chips: ['Dobbelspel', 'Online met vrienden'],
-    text: 'Het dobbelspel, online. Gooi om de beurt met twee stenen op je eigen telefoon en zie iedereen live gooien. De eerste bepaalt hoe vaak je mag gooien, de laagste worp drinkt, en elke Mex verdubbelt de slokken.',
+    text: 'Het dobbelspel, online. Gooi om de beurt met twee stenen op je eigen telefoon en zie iedereen live gooien. De eerste bepaalt hoe vaak je mag gooien, de laagste worp drinkt de inzet (1 tot 3 slokken), en elke Mex verdubbelt dat.',
     facts: [['Spelers', '2 tot 10'], ['Hoogst', 'Mex (2 en 1)'], ['Meedoen', 'met een code']],
     cta: 'Speel Mexen' },
   { id: 'dealer', name: 'Pak de', name2: 'dealer', short: 'Pak de dealer', acc: '#a28fe3', tint: '#1d1532', bg: '#130d22',
     url: '/dealer',
     chips: ['Kaartspel', 'Online met vrienden'],
-    text: 'De dealer ziet de bovenste kaart op zijn telefoon, de rest raadt. In één keer goed: de dealer drinkt 5. Fout? Dan hoor je hoger of lager. Weer fout: jij drinkt het verschil. Speelt de dealer er drie achter elkaar uit, dan gaat de stapel door.',
+    text: 'De dealer ziet de bovenste kaart op zijn telefoon, de rest raadt. In één keer goed: de dealer drinkt 5. Fout? Dan hoor je hoger of lager. Nu goed: de dealer drinkt 3. Weer fout: jij drinkt het verschil. Speelt de dealer er drie achter elkaar uit, dan gaat de stapel door.',
     facts: [['Spelers', '2 tot 10'], ['Dealer af', 'na 3 keer'], ['Meedoen', 'met een code']],
     cta: 'Speel Pak de dealer' },
   { id: 'paard', name: 'Paarden', name2: 'race', short: 'Paardenrace', acc: '#a6d83c', tint: '#1c2a0e', bg: '#121c08',
     url: '/paardenrace',
     chips: ['Kaartspel', 'Online met vrienden'],
-    text: 'De vier azen zijn de paarden. Kies er een, zet slokken in en trek om de beurt een kaart: het paard met die vorm galoppeert een stap vooruit. Zijn alle paarden langs een dichte kaart, dan gaat die open en moet dat paard terug. Zette je op het verkeerde paard? Dan drink je je inzet en die van de winnaar.',
+    text: 'De vier azen zijn de paarden. Kies er een, zet 1 tot 10 slokken in (die drink je vooraf) en trek om de beurt een kaart: het paard met die vorm galoppeert een stap vooruit. Zijn alle paarden langs een dichte kaart, dan gaat die open en moet dat paard terug. Zette je op het verkeerde paard? Dan drink je je inzet en die van de winnaar.',
     facts: [['Spelers', '2 tot 10'], ['Paarden', 'de vier azen'], ['Meedoen', 'met een code']],
     cta: 'Speel Paardenrace' },
   { id: 'rotonde', name: 'Rotonde', name2: '', short: 'Rotonde', acc: '#d63bb5', tint: '#2a0f26', bg: '#1a0b18',
@@ -289,7 +311,7 @@ const GAMES = [
   { id: 'mijnenveld', name: 'Mijnen', name2: 'veld', short: 'Mijnenveld', acc: '#c9803a', tint: '#2a1a08', bg: '#1a1006',
     url: '/mijnenveld',
     chips: ['Dobbel- en kaartspel', 'Online met vrienden'],
-    text: '36 kaarten in een veld van 6 bij 6, met 8 verstopte mijnen. Gooi de steen twee keer: eerst voor de kolom, dan voor de rij. Land je op een mijn? Boem: drinken, en dan leg jij hem ergens anders neer, op een kaart of tussen twee kaarten. Daarna gok je rood of zwart.',
+    text: '36 kaarten in een veld van 6 bij 6, met 8 verstopte mijnen. Gooi de steen twee keer: eerst voor de kolom, dan voor de rij. Land je op een mijn? Boem: 3, 5 of 10 slokken, en dan leg jij hem ergens anders neer, op een kaart of tussen twee kaarten. Daarna gok je rood of zwart; fout is 2 slokken.',
     facts: [['Spelers', '2 tot 10'], ['Mijnen', '8 verstopt'], ['Meedoen', 'met een code']],
     cta: 'Speel Mijnenveld' },
   { id: 'borrelbord', name: 'Borrel', name2: 'bord', short: 'Borrelbord', acc: '#f2c230', tint: '#2a2208', bg: '#3a200d',
@@ -313,6 +335,7 @@ function build(){
         ${g.url
           ? `<a class="cta" href="${g.url}"><span>${g.cta}</span><span class="arr">${arrow}</span></a>`
           : `<span class="cta off" aria-disabled="true"><span>${g.cta}</span><span class="arr">…</span></span>`}
+        <button class="howbtn" type="button" data-uitleg="${g.id}" data-play="${g.url}"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Hoe werkt het? Uitleg</button>
       </div>
     </article>
   </section>`).join('');
@@ -819,6 +842,14 @@ document.addEventListener('click', e => {
 });
 $('#menuBtn').addEventListener('click', () => { const m = $('#menu'); if (!m.hidden) { closeMenu(); return; } m.hidden = false; $('#menuBtn').setAttribute('aria-expanded', 'true'); $('#menuIco').innerHTML = '<path d="M6 6l12 12M18 6L6 18"/>'; $('#menuBtn').setAttribute('aria-label', 'Menu sluiten'); });
 addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+// de iPhone-link delen met vrienden (vanuit de app op Android gaat dat via het deelmenu)
+$('#ipShare').addEventListener('click', () => {
+  const url = `${location.origin}/iphone`, b = $('#ipShare');
+  const done = (t) => { b.textContent = t; setTimeout(() => { b.textContent = 'Stuur de link'; }, 2200); };
+  if (navigator.share) navigator.share({ title: 'ATJE op je iPhone', text: 'Speel ATJE mee op je iPhone: open deze link in Safari en zet ATJE op je beginscherm.', url }).catch(() => {});
+  else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => done('Link gekopieerd'), () => done(url));
+  else done(url);
+});
 
 let active = -1;
 function updateActive(){

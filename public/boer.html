@@ -98,6 +98,9 @@ p{margin:0}
 .dock .cta.hot{background:linear-gradient(90deg,#7a1f3a 0%,#c23a62 46%,#ff8aa5 100%)}
 .dock .cta:disabled{background:rgba(255,255,255,.08);color:var(--ink-soft);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 .ghostbtn{display:block;width:100%;border-radius:999px;padding:14px 20px;font-size:var(--s2);font-weight:700;color:var(--plum);box-shadow:inset 0 0 0 1px rgba(43,21,49,.3);text-decoration:none;text-align:center}
+.howrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.howrow .ghostbtn{padding-left:10px;padding-right:10px;white-space:nowrap}
+.rules-how{margin:0 0 14px}
 .ghostbtn:hover{background:var(--cream-2)}
 .linkbtn{justify-self:start;padding:4px 0;font-size:var(--s1);font-weight:700;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px}
 
@@ -298,6 +301,8 @@ button.seat:active .ava{transform:scale(.94)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 <script src="/js/poort.js" defer></script>
+<script src="/js/slok.js" defer></script>
+<script src="/js/uitleg.js" defer></script>
 </head>
 <body>
 <div class="glow" aria-hidden="true"></div>
@@ -607,6 +612,9 @@ function present(ev) {
       if (ev.ok) { Snd.win(); celebrate(); } else Snd.bad();
       buzz(ev.ok ? [60, 40, 60] : [120, 60, 120]);
       banner(ev.ok ? 'Raak!' : 'Mis!', `${S.players[ev.vrouw].name} was de vrouw`);
+      // het tweede glas: groot op de telefoon van wie hem moet drinken
+      if (ev.ok && ev.vrouw === S.you) window.Slok?.bak('De boer raadde dat jij de vrouw was. Jij drinkt ook het tweede glas.', { title: 'Tweede glas!', delay: 1500 });
+      if (!ev.ok && ev.boer === S.you) window.Slok?.bak(`Mis: ${S.players[ev.vrouw].name} was de vrouw. Jij drinkt het tweede glas.`, { title: 'Tweede glas!', delay: 1500 });
       break;
   }
 }
@@ -791,7 +799,7 @@ function vHome() {
     <div class="or">of</div>
     <button class="cta" type="button" data-act="create" ${busy}><span>${ui.joining ? 'Verbinden…' : 'Nieuwe tafel'}</span>${ARR}</button>
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
-    <button class="ghostbtn" type="button" data-act="rules">Spelregels</button>
+    <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="boer"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
   <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
 }
@@ -909,6 +917,7 @@ function menuHTML() {
   const host = isHost(), game = S && S.phase !== 'lobby';
   return `${sheetTop('Menu')}
   <nav class="mlist">
+    <button type="button" data-act="uitleg">Uitleg met plaatjes <span>›</span></button>
     <button type="button" data-act="rules">Spelregels <span>›</span></button>
     ${game ? '<button type="button" data-act="stand">Stand <span>›</span></button>' : ''}
     <button type="button" data-act="mute">Geluid <span>${Snd.muted ? 'uit' : 'aan'}</span></button>
@@ -934,6 +943,7 @@ function standHTML() {
 function rulesHTML() {
   const n = S ? S.count : V.COUNT_DEFAULT;
   return `${sheetTop('Spelregels', 'Boer zoekt vrouw')}
+  <button class="ghostbtn rules-how" type="button" data-act="uitleg"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Bekijk de uitleg met plaatjes</button>
   <div class="rules">
     <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander. Zet twee volle glazen op tafel.</p>
     <ol>
@@ -1095,6 +1105,7 @@ const actions = {
     toast(n ? `Jij dronk al ${n} ${n === 1 ? 'glas' : 'glazen'} leeg` : 'Jij hebt nog geen glas leeggedronken');
   },
   menu() { openSheet('menu', menuHTML()); },
+  uitleg() { closeSheet(); window.Uitleg?.open('boer'); },
   rules() { openSheet('rules', rulesHTML()); },
   stand() { openSheet('stand', standHTML()); },
   mute() { Snd.muted = !Snd.muted; store.set(KEY.mute, Snd.muted); if (!Snd.muted) Snd.chip(); openSheet('menu', menuHTML()); },

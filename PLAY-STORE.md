@@ -11,6 +11,8 @@ Op de site staat al klaar:
   - `/melden` (spelers of namen melden).
 - **Gegevens wissen.** In Karnemelk Kart: *Instellingen → Mijn gegevens wissen*.
 - **Een namenfilter.** Grove namen en uitdagingen worden geweigerd. De host kan spelers van tafel halen.
+- **Uitleg met plaatjes** bij elk spel, en een **slokkenkaart** die op je eigen telefoon groot laat zien hoeveel jij moet drinken.
+- **Spelen op een iPhone** (`/iphone`). ATJE staat niet in de App Store. Vrienden met een iPhone spelen gewoon mee in Safari, en op deze pagina zien ze hoe ze ATJE op hun beginscherm zetten. In de app (en op de hoofdpagina) staat een knop om die link te delen.
 - **Een offline-pagina** (service worker `/sw.js`).
 - **Het app-manifest** (`/speelhal.webmanifest`), met iconen voor Android.
 - **De koppeling met de app** (`/.well-known/assetlinks.json`). Die zet je aan met twee instellingen, zie stap 4.
@@ -144,4 +146,5 @@ Zonder deze koppeling toont de app bovenin een adresbalk.
 ## Na het publiceren
 
 - **Elke update van de site is meteen live in de app.** Een nieuwe app-versie is alleen nodig als je het adres, de naam of het icoon van de app verandert.
+- **Vrienden met een iPhone**: stuur ze `https://jouw-adres/iphone` (of tik in ATJE onderaan op *Stuur de link*).
 - **Kijk af en toe naar de meldingen** (`/api/meldingen?sleutel=…`) en naar de beoordelingen in de Play Console.

@@ -115,7 +115,8 @@ export function menuScreen(app) {
       app.profile.dailyReady ? h('div', { class: 'daily' }, `Dagbonus: +${DAILY_BONUS} MP bij je eerste race van vandaag`) : null,
       h('p', { class: 'muted small center-text' },
         `Races: ${app.profile.stats.races || 0} • Gewonnen: ${app.profile.stats.wins || 0} • Podium: ${app.profile.stats.podiums || 0} • `,
-        h('button', { class: 'linkbtn inline', onclick: () => { app.click(); app.show('help'); } }, 'Hoe speel je?'))));
+        h('button', { class: 'linkbtn inline', onclick: () => { app.click(); app.show('help'); } }, 'Hoe speel je?'), ' • ',
+        h('button', { class: 'linkbtn inline', onclick: () => { app.click(); window.Uitleg?.open('kart'); } }, 'Uitleg met plaatjes'))));
 }
 
 // ---------------- meedoen ----------------

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ATJE op je iPhone</title>
+<meta name="description" content="Speel ATJE op je iPhone: zonder App Store, in Safari. Zo zet je ATJE als app op je beginscherm.">
+<meta name="theme-color" content="#150b18">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ATJE">
+<meta name="format-detection" content="telephone=no">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ATJE">
+<meta property="og:title" content="ATJE op je iPhone">
+<meta property="og:description" content="Speel mee op je iPhone: open de link in Safari en zet ATJE op je beginscherm.">
+<meta property="og:image" content="https://karnemelk-kart.onrender.com/img/speelhal-deel.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="/speelhal.webmanifest">
+<link rel="icon" href="/img/speelhal.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/speelhal-180.png">
+<script>
+// Als app geopend (vanaf het beginscherm)? Dan meteen naar de spellen.
+try { if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) location.replace('/'); } catch (e) { /* oude browser */ }
+</script>
+<style>
+:root{color-scheme:dark;--ink:#f3efdb;--soft:#cfc4d2;--acc:#ff8a7d;--gold:#f7c548;--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.14);--ios:#0a84ff}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{min-height:100svh;padding:0 16px calc(40px + env(safe-area-inset-bottom,0px));background:#150b18 radial-gradient(120% 60% at 50% 0%,#3a1c45 0%,#211026 55%,#150b18 100%) no-repeat;color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+main{width:min(100%,600px);margin:0 auto}
+header{padding:calc(20px + env(safe-area-inset-top,0px)) 0 4px}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--soft);text-decoration:none;font-weight:700}
+.hero{display:flex;align-items:center;gap:16px;margin:8px 0 6px}
+.hero img{width:72px;height:72px;border-radius:17px;flex:none;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+h1{margin:0;font-size:clamp(28px,7.5vw,40px);line-height:1.05;letter-spacing:-.01em}
+.lead{margin:12px 0 0;color:#e8e1ea;font-size:17px}
+h2{margin:30px 0 10px;font-size:21px;line-height:1.25}
+p{margin:8px 0}
+a{color:var(--acc)}
+.card{padding:16px;border-radius:18px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;margin:10px 0 0;padding:0 18px;border:0;border-radius:16px;font:inherit;font-size:18px;font-weight:800;text-decoration:none;cursor:pointer}
+.btn.main{background:var(--gold);color:#241026}
+.btn.alt{background:rgba(255,255,255,.1);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.btn.wa{background:#25d366;color:#06301a}
+.btn svg{flex:none}
+.note{margin:12px 0 0;color:var(--soft);font-size:14.5px}
+.only{display:none}
+.is-ios .only.ios,.is-other .only.other,.is-ios-other .only.ios-other{display:block}
+.steps{counter-reset:s;margin:0;padding:0;list-style:none;display:grid;gap:14px}
+.steps>li{position:relative;padding:16px 16px 16px 60px;border-radius:18px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.steps>li::before{counter-increment:s;content:counter(s);position:absolute;left:14px;top:14px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#241026;font-weight:900;font-size:18px}
+.steps b{color:#fff}
+.steps p{margin:4px 0 0;color:#e8e1ea}
+/* de plaatjes: nagebouwde stukjes van Safari */
+.mock{margin:12px 0 2px;border-radius:14px;background:#1c1c1e;color:#fff;font-size:15px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.12)}
+.bar{display:flex;align-items:center;justify-content:space-around;height:52px;padding:0 8px;background:#2c2c2e}
+.bar span{display:grid;place-items:center;width:40px;height:40px;color:var(--ios)}
+.bar .on{border-radius:50%;box-shadow:0 0 0 3px var(--gold);background:rgba(247,197,72,.14)}
+.url{margin:10px 10px 0;padding:9px 12px;border-radius:12px;background:#3a3a3c;color:#ebebf5;font-size:14px;text-align:center}
+.sheet{padding:6px 0}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-top:1px solid rgba(255,255,255,.08)}
+.row:first-child{border-top:0}
+.row svg{color:#ebebf5;flex:none}
+.row.on{background:rgba(247,197,72,.16);box-shadow:inset 0 0 0 2px var(--gold);border-radius:10px;margin:0 6px}
+.dlg-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 10px;background:#2c2c2e;font-size:13.5px}
+.dlg-top>*{white-space:nowrap}
+.dlg-top b{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.dlg-top .add{color:var(--ios);font-weight:700;padding:4px 8px;border-radius:999px;box-shadow:0 0 0 3px var(--gold);background:rgba(247,197,72,.14)}
+.dlg-top .cancel{color:var(--ios)}
+.dlg-body{display:flex;align-items:center;gap:12px;padding:14px}
+.dlg-body img{width:52px;height:52px;border-radius:12px}
+.dlg-body .f{flex:1;min-width:0}
+.dlg-body .f div{padding:6px 0;border-bottom:1px solid rgba(255,255,255,.12)}
+.dlg-body .f small{display:block;padding-top:6px;color:#8e8e93;font-size:13px}
+.toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid rgba(255,255,255,.08)}
+.toggle i{width:46px;height:28px;border-radius:999px;background:#30d158;position:relative}
+.toggle i::after{content:"";position:absolute;right:2px;top:2px;width:24px;height:24px;border-radius:50%;background:#fff}
+.home{display:grid;grid-template-columns:repeat(4,1fr);gap:16px 10px;padding:18px 16px;background:linear-gradient(160deg,#3b2a6b,#1d3557)}
+.home div{display:grid;justify-items:center;gap:5px;font-size:11.5px;color:#fff}
+.home i{width:52px;height:52px;border-radius:13px;background:rgba(255,255,255,.22)}
+.home img{width:52px;height:52px;border-radius:13px;box-shadow:0 0 0 3px var(--gold)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);padding:12px 18px;border-radius:999px;background:#fff;color:#241026;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.toast[hidden]{display:none}
+footer{margin-top:34px;color:var(--soft);font-size:14px;text-align:center}
+footer a{color:var(--soft)}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <a class="back" href="/">← ATJE</a>
+  <div class="hero"><img src="/img/speelhal-180.png" alt="" width="72" height="72"><h1>ATJE op je iPhone</h1></div>
+  <p class="lead">ATJE werkt gewoon op een iPhone, zonder App Store. Zet het op je beginscherm: dan opent het als een app, schermvullend en met een eigen icoon.</p>
+</header>
+
+<!-- op een Android-telefoon of computer: de link delen met vrienden die een iPhone hebben -->
+<section class="only other">
+  <h2>Vrienden met een iPhone?</h2>
+  <div class="card">
+    <p>Stuur ze deze pagina. Ze openen hem in Safari en zien precies hoe ze ATJE op hun iPhone zetten. Daarna spelen jullie gewoon samen aan tafel.</p>
+    <button class="btn main" type="button" data-share><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Stuur de iPhone-link</button>
+    <a class="btn wa" id="wa" href="#" target="_blank" rel="noopener"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.5-.3z"/></svg>Stuur via WhatsApp</a>
+    <button class="btn alt" type="button" data-copy>Link kopiëren</button>
+    <p class="note">Het adres is <b id="addr">/iphone</b>. Hieronder staat wat je vrienden op hun iPhone zien.</p>
+  </div>
+</section>
+
+<!-- op een iPhone, maar niet in Safari (bijvoorbeeld in WhatsApp of Instagram) -->
+<section class="only ios-other">
+  <div class="card"><p><b>Eerst naar Safari.</b> Je opent deze pagina nu in een andere app. Tik rechtsonder of rechtsboven op het kompas of op de drie puntjes en kies <b>Open in Safari</b>. Of kopieer de link en plak hem in Safari.</p>
+  <button class="btn alt" type="button" data-copy>Link kopiëren</button></div>
+</section>
+
+<h2>Zo zet je ATJE op je iPhone</h2>
+<ol class="steps">
+  <li>
+    <b>Open deze pagina in Safari.</b>
+    <p>In Chrome op de iPhone kan het ook: daar zit de deelknop rechts in de adresbalk.</p>
+  </li>
+  <li>
+    <b>Tik op de deelknop.</b>
+    <p>Het vierkantje met de pijl omhoog, onderin. Zie je hem niet? Tik dan eerst op de drie puntjes (•••) rechtsonder, en daarna op <b>Deel</b>.</p>
+    <div class="mock" aria-hidden="true">
+      <div class="url" data-host>karnemelk-kart.onrender.com</div>
+      <div class="bar">
+        <span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></span>
+        <span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".4"><path d="M9 5l7 7-7 7"/></svg></span>
+        <span class="on"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9H6v11h12V9h-2M12 3v12M8 7l4-4 4 4"/></svg></span>
+        <span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 6c-2-1.5-5-2-8-1.5V19c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5V4.5C17 4 14 4.5 12 6zM12 6v14.5"/></svg></span>
+        <span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="7" width="13" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-3"/></svg></span>
+      </div>
+    </div>
+  </li>
+  <li>
+    <b>Kies Zet op beginscherm.</b>
+    <p>Staat hij er niet meteen tussen, scroll dan een stukje naar beneden in de lijst.</p>
+    <div class="mock sheet" aria-hidden="true">
+      <div class="row"><span>Kopieer</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></div>
+      <div class="row"><span>Voeg toe aan leeslijst</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="12" r="5"/><circle cx="18" cy="12" r="3"/></svg></div>
+      <div class="row on"><span>Zet op beginscherm</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg></div>
+      <div class="row"><span>Zoek op pagina</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg></div>
+    </div>
+  </li>
+  <li>
+    <b>Tik rechtsboven op Voeg toe.</b>
+    <p>De naam is al ATJE. Staat er een schakelaar <b>Open als webapp</b>, laat die dan aan.</p>
+    <div class="mock" aria-hidden="true">
+      <div class="dlg-top"><span class="cancel">Annuleer</span><b>Zet op beginscherm</b><span class="add">Voeg toe</span></div>
+      <div class="dlg-body"><img src="/img/speelhal-180.png" alt=""><div class="f"><div>ATJE</div><small data-host>karnemelk-kart.onrender.com</small></div></div>
+      <div class="toggle"><span>Open als webapp</span><i></i></div>
+    </div>
+  </li>
+  <li>
+    <b>Klaar!</b>
+    <p>ATJE staat nu tussen je apps. Tik erop, kies een spel en doe mee met de code van je vrienden.</p>
+    <div class="mock home" aria-hidden="true">
+      <div><i></i>Foto's</div><div><i></i>Kaarten</div><div><img src="/img/speelhal-180.png" alt="">ATJE</div><div><i></i>Klok</div>
+    </div>
+  </li>
+</ol>
+
+<a class="btn main" href="/" style="margin-top:22px">Open ATJE</a>
+<p class="note">ATJE is voor 18 jaar en ouder. Je hebt internet nodig: je speelt live met je vrienden aan tafel. Een uitnodiging voor een tafel (een link met een code) werkt ook meteen in Safari, ook zonder ATJE op je beginscherm.</p>
+
+<footer><a href="/">ATJE</a> · <a href="/voorwaarden">Voorwaarden</a> · <a href="/privacy">Privacy</a></footer>
+</main>
+<div class="toast" id="toast" role="status" hidden></div>
+<script>
+(() => {
+  'use strict';
+  const ua = navigator.userAgent || '';
+  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // in de ingebouwde browser van een app (WhatsApp, Instagram, Facebook, Snapchat) kan zetten op het beginscherm niet
+  const inApp = /FBAN|FBAV|Instagram|WhatsApp|Snapchat|Line\/|GSA\//.test(ua);
+  document.documentElement.classList.add(ios ? (inApp ? 'is-ios-other' : 'is-ios') : 'is-other');
+  const url = `${location.origin}/iphone`;
+  const text = 'Speel ATJE mee op je iPhone: open deze link in Safari en zet ATJE op je beginscherm.';
+  document.getElementById('addr').textContent = url.replace(/^https?:\/\//, '');
+  for (const el of document.querySelectorAll('[data-host]')) el.textContent = location.host;
+  document.getElementById('wa').href = `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
+  const toast = (msg) => { const t = document.getElementById('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 2400); };
+  const copy = () => {
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast('Link gekopieerd'), () => toast(url));
+    else toast(url);
+  };
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-copy]')) copy();
+    if (e.target.closest('[data-share]')) {
+      if (navigator.share) navigator.share({ title: 'ATJE op je iPhone', text, url }).catch(() => {});
+      else copy();
+    }
+  });
+})();
+</script>
+</body>
+</html>
