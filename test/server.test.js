@@ -486,7 +486,7 @@ test('Rotonde online: twee telefoons, de host kiest een kaart en gokt, de ander 
     a.send({ t: 'pick', i: 0 });
     a.send({ t: 'guess', color: 'rood' });
     const after = await opened;
-    assert.ok(after.pot === 12 || after.players[0].sips === 12, 'goed in de pot, of fout gedronken');
+    assert.ok(after.pot === 6 || after.players[0].sips === 6, 'goed in de pot, of fout gedronken (de paarse is 6)');
     const health = await (await fetch(srv.url + '/health')).json();
     assert.deepEqual(health.rotonde, { tables: 1, players: 2 });
     [a, b].forEach((c) => c.close());
@@ -501,7 +501,7 @@ test('Mijnenveld online: twee telefoons, de host gooit twee keer en de ander zie
     const url = srv.ws + '/mijnenveld';
     const [a, b] = await Promise.all([new Client(url).open(), new Client(url).open()]);
     const sa = await a.request({ t: 'create', name: 'Jort', token: 'mijn-telefoon-a-0123456789' }, 'state');
-    assert.equal(sa.mineSips, 5);
+    assert.equal(sa.mineSips, 3);
     assert.match(sa.build, /^[\w-]{12}$/);
     await b.request({ t: 'join', code: sa.code, name: 'Meke', token: 'mijn-telefoon-b-0123456789' }, (m) => m.t === 'state' && m.players.length === 2);
     const started = b.wait((m) => m.t === 'state' && m.phase === 'gooien');

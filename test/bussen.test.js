@@ -154,7 +154,7 @@ test('aan het eind van het spel kan sparen niet meer', () => {
   assert.equal(g.players[r].settle, null);
 });
 
-test('disco: met drie verschillende vormen, en de vierde vorm betekent een bak voor iedereen', () => {
+test('disco: met drie verschillende vormen, en bij de vierde vorm drinkt de rest', () => {
   const setup = (hand0, next) => {
     // meteen naar vraag 4, met zelfgekozen kaarten
     const h = B.newGame(['Jort', 'Meke', 'Sim'], { seed: 4 });
@@ -167,32 +167,28 @@ test('disco: met drie verschillende vormen, en de vierde vorm betekent een bak v
   // geen drie verschillende vormen: disco mag niet
   const g0 = setup([c(2, 0), c(5, 1), c(9, 1)], c(13, 3));
   assert.equal(B.answer(g0, 0, 'disco'), null);
-  // disco goed: iedereen een bak, niets uitdelen
+  // disco goed: de rest drinkt DISCO_SIPS (gewone slokken: nu doen of sparen), niets uitdelen
   const g = setup([c(2, 0), c(5, 1), c(9, 2)], c(13, 3));
   const ev = B.answer(g, 0, 'disco');
   assert.equal(ev.ok, true);
   assert.equal(ev.disco, true);
   assert.equal(g.deals.length, 0);
-  assert.deepEqual(g.players.map((p) => p.bak), [1, 1, 1]);
-  assert.deepEqual(g.players[1].bakFrom, [{ p: 0, n: 1, disco: true }]);
+  assert.deepEqual(g.players.map((p) => p.pending), [0, B.DISCO_SIPS, B.DISCO_SIPS]);
+  assert.deepEqual(g.players[1].from, [{ p: 0, n: B.DISCO_SIPS }]);
   assert.equal(g.players[0].disco, 1);
-  assert.equal(B.bak(g, 1).type, 'bak');
-  assert.equal(g.players[1].bak, 0);
-  assert.equal(g.players[1].bakken, 1);
-  assert.equal(B.bak(g, 1), null, 'geen bak meer te doen');
+  assert.equal(B.DISCO_SIPS, 3, 'geen glas leeg meer, maar 3 slokken');
   assert.ok(B.titles(g).some((t) => t.id === 'disco' && t.names[0] === 'Jort'));
   // disco mis: de vorm had je al, dat is 4 slokken
   const g2 = setup([c(2, 0), c(5, 1), c(9, 2)], c(13, 1));
   const ev2 = B.answer(g2, 0, 'disco');
   assert.equal(ev2.ok, false);
   assert.equal(ev2.right, 'ja');
-  assert.equal(g2.players[0].pending, 4);
-  assert.deepEqual(g2.players.map((p) => p.bak), [0, 0, 0]);
+  assert.deepEqual(g2.players.map((p) => p.pending), [4, 0, 0]);
   // gewoon nee zeggen bij de vierde vorm: goed, en verder niks
   const g3 = setup([c(2, 0), c(5, 1), c(9, 2)], c(13, 3));
   assert.equal(B.answer(g3, 0, 'nee').ok, true);
   assert.equal(g3.deals.length, 0);
-  assert.deepEqual(g3.players.map((p) => p.bak), [0, 0, 0]);
+  assert.deepEqual(g3.players.map((p) => p.pending), [0, 0, 0]);
 });
 
 test('paal telt als fout en kost de slokken van die vraag', () => {
@@ -215,9 +211,9 @@ test('paal telt als fout en kost de slokken van die vraag', () => {
   assert.fail('geen paal gevonden');
 });
 
-test('piramide zoals op tafel: 1-4-3-2-1 kaarten, dwars telt dubbel, onderin 2 en bovenin 10', () => {
+test('piramide zoals op tafel: 1-4-3-2-1 kaarten, dwars telt dubbel, onderin 2 en bovenin 6', () => {
   assert.equal(B.PYRAMID_SIZE, 11);
-  assert.deepEqual(B.PYRAMID_SLOTS.map((x) => x.sips), [2, 2, 4, 2, 4, 6, 3, 6, 4, 8, 10]);
+  assert.deepEqual(B.PYRAMID_SLOTS.map((x) => x.sips), [2, 1, 2, 1, 2, 4, 2, 4, 2, 4, 6]);
   assert.equal(B.PYRAMID_SLOTS.filter((x) => x.dwars).length, 7);
   assert.deepEqual(B.pyramidRows(), [[10], [8, 9], [5, 6, 7], [1, 2, 3, 4], [0]]);
   const g = B.newGame(['Jort', 'Meke'], { seed: 11 });
@@ -227,9 +223,9 @@ test('piramide zoals op tafel: 1-4-3-2-1 kaarten, dwars telt dubbel, onderin 2 e
   g.players[1].hand = [c(7, 2), c(13, 0), c(3, 0), c(4, 0)];
   g.pyramid.forEach((s, i) => { s.card = c(5, i % 4); });
   g.pyramid[0].card = c(7, 3);    // onderin, dwars: 2 slokken
-  g.pyramid[1].card = c(13, 1);   // tweede rij, recht: 2 slokken
-  g.pyramid[2].card = c(9, 1);    // tweede rij, dwars: 4 slokken, maar Jort tikt te laat
-  g.pyramid[10].card = c(12, 2);  // bovenin: 10 slokken
+  g.pyramid[1].card = c(13, 1);   // tweede rij, recht: 1 slok
+  g.pyramid[2].card = c(9, 1);    // tweede rij, dwars: 2 slokken, maar Jort tikt te laat
+  g.pyramid[10].card = c(12, 2);  // bovenin: 6 slokken
   assert.equal(B.lay(g, 0, c(7, 0)), null, 'er ligt nog niks open');
   const ev = B.flip(g);
   assert.equal(ev.row, 1);
@@ -252,22 +248,22 @@ test('piramide zoals op tafel: 1-4-3-2-1 kaarten, dwars telt dubbel, onderin 2 e
   assert.equal(B.skipDeal(g, 0).hardop, true);
   assert.equal(g.players[0].dealt, dealtBefore + 4);
   assert.equal(B.flip(g).row, 2);
-  assert.equal(B.lay(g, 1, c(13, 0)).n, 2, 'recht in de tweede rij');
+  assert.equal(B.lay(g, 1, c(13, 0)).n, 1, 'recht in de tweede rij');
   dealAll(g);
   B.flip(g);   // de 9, dwars: Jort let niet op
   B.flip(g);
   assert.equal(B.lay(g, 0, c(9, 0)), null, 'te laat: de volgende kaart ligt al open');
   while (g.next < 10) { B.flip(g); dealAll(g); }
-  // bovenin: Jort legt zijn vrouw weg en deelt 10 slokken uit
+  // bovenin: Jort legt zijn vrouw weg en deelt 6 slokken uit
   assert.equal(B.endPyramid(g), null, 'er ligt nog een kaart dicht');
   const ev3 = B.flip(g);
   assert.equal(ev3.row, 5);
   assert.equal(ev3.last, true);
-  assert.equal(B.lay(g, 0, c(12, 0)).n, 10);
+  assert.equal(B.lay(g, 0, c(12, 0)).n, 6);
   const before = g.players[1].pending;
   assert.equal(B.endPyramid(g), null, 'eerst uitdelen');
-  B.deal(g, 0, { 1: 10 });
-  assert.equal(g.players[1].pending, before + 10);
+  B.deal(g, 0, { 1: 6 });
+  assert.equal(g.players[1].pending, before + 6);
   assert.equal(B.flip(g), null, 'alles ligt open');
   assert.equal(B.endPyramid(g).type, 'piramideklaar');
   assert.equal(g.phase, 'bus');
@@ -352,6 +348,36 @@ test('de bus: alleen de passagier gokt, fout kost de hoeveelste gok en dan opnie
   const t = B.titles(g);
   assert.equal(t[0].id, 'chauffeur');
   assert.match(t[0].text, /2 ritten, 3 slokken in de bus/);
+});
+
+test('de bus: wie er 10 slokken in heeft gedronken, mag eruit', () => {
+  const g = B.newGame(['A', 'B'], { seed: 9, busLength: 7 });
+  answerAll(g);
+  g.players[0].hand = [c(2), c(3)]; g.players[1].hand = [];
+  g.pyramid.forEach((s, i) => { s.card = c(5, i % 4); });
+  pyramidAll(g);
+  const b = g.bus;
+  // steeds bij de vijfde gok fout: 5 slokken, nog eens 5, en dan is het genoeg
+  for (let ride = 1; ride <= 2; ride++) {
+    b.cards = [c(2), c(4), c(6), c(8), c(10), c(3), c(12)];
+    for (let k = 0; k < 4; k++) assert.equal(B.guess(g, 0, 'hoger').ok, true);
+    const ev = B.guess(g, 0, 'hoger');
+    assert.deepEqual([ev.ok, ev.sips], [false, 5]);
+    if (ride === 1) { assert.equal(ev.done, false); B.retry(g, 0); }
+    else assert.deepEqual([ev.done, ev.max, g.phase], [true, true, 'klaar']);
+  }
+  assert.equal(b.drank, B.BUS_MAX_SIPS);
+  // nooit meer dan het maximum: was het de zesde gok bij 8 slokken, dan nog maar 2
+  const h = B.newGame(['A', 'B'], { seed: 9, busLength: 7 });
+  answerAll(h);
+  h.players[0].hand = [c(2), c(3)]; h.players[1].hand = [];
+  h.pyramid.forEach((s, i) => { s.card = c(5, i % 4); });
+  pyramidAll(h);
+  h.bus.drank = 8;
+  h.bus.cards = [c(2), c(4), c(6), c(8), c(10), c(12), c(3)];
+  for (let k = 0; k < 5; k++) B.guess(h, 0, 'hoger');
+  const last = B.guess(h, 0, 'hoger');
+  assert.deepEqual([last.ok, last.sips, last.done, h.bus.drank], [false, 2, true, 10]);
 });
 
 test('een heel potje met 9 spelers loopt van begin tot eind', () => {

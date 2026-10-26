@@ -46,10 +46,10 @@ test('de host begint; kiezen en gokken via de telefoon, en de dichte kaarten bli
   phones[0].say({ t: 'more', more: false });
   assert.equal(phones[1].state().turn, 1);
   phones[1].say({ t: 'pick', i: 0 });
-  const twelve = t.g.cards[0].card;
-  phones[1].say({ t: 'guess', color: twelve.s < 2 ? 'zwart' : 'rood' });
+  const middle = t.g.cards[0].card;
+  phones[1].say({ t: 'guess', color: middle.s < 2 ? 'zwart' : 'rood' });
   const st = phones[0].state();
-  assert.equal(st.players[1].sips, 16, '12 + 4 uit de pot');
+  assert.equal(st.players[1].sips, 8, '6 + 4 uit de pot, maar hooguit 8');
   assert.equal(st.pot, 0);
   assert.equal(st.turn, 1, 'Meke probeert het opnieuw');
 });

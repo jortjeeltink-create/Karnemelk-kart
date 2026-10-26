@@ -18,21 +18,24 @@ export const MAX_PLAYERS = 9;      // 9 × 4 kaarten + 11 in de piramide = 47, p
 export const NAME_MAX = 14;
 // De piramide zoals hij op tafel ligt, van onder naar boven: één kaart, dan rijen van 4, 3 en 2, en bovenin één.
 // Elke rij is een aantal slokken waard. Een kaart die dwars ligt (d) telt dubbel, een rechte kaart (r) enkel:
-// onderin dus 1 × 2 = 2 en bovenin 5 × 2 = 10. Zoveel deel je uit per kaart die je erop weglegt.
+// onderin dus 1 × 2 = 2 en bovenin 3 × 2 = 6. Zoveel deel je uit per kaart die je erop weglegt.
+// (Vroeger 1 tot 5 per rij, bovenin dus 10: te veel in één keer.)
 export const PYRAMID = [
   { sips: 1, lay: 'd' },
-  { sips: 2, lay: 'rdrd' },
-  { sips: 3, lay: 'drd' },
-  { sips: 4, lay: 'rd' },
-  { sips: 5, lay: 'd' },
+  { sips: 1, lay: 'rdrd' },
+  { sips: 2, lay: 'drd' },
+  { sips: 2, lay: 'rd' },
+  { sips: 3, lay: 'd' },
 ];
 // alle plekken in de volgorde waarin ze omgaan (onder naar boven, links naar rechts)
 export const PYRAMID_SLOTS = PYRAMID.flatMap((r, i) => [...r.lay].map((x) => ({ row: i + 1, dwars: x === 'd', sips: r.sips * (x === 'd' ? 2 : 1) })));
 export const PYRAMID_SIZE = PYRAMID_SLOTS.length;
 // na het omdraaien van een piramidekaart wacht de volgende even, zodat iedereen zijn kaart kan wegleggen
 export const FLIP_PAUSE_MS = 3000;
-export const BUS_LENGTHS = [5, 7, 10];
-export const BUS_DEFAULT = 7;
+export const BUS_LENGTHS = [4, 5, 7];
+export const BUS_DEFAULT = 5;
+export const BUS_MAX_SIPS = 10;     // wie in de bus zoveel slokken heeft gedronken, mag eruit
+export const DISCO_SIPS = 3;        // disco: de rest drinkt er zoveel
 export const PICK_EXTRA = 2;       // bij gelijkspel liggen er zoveel kaarten meer dan kiezers
 const LOG_SIZE = 16;
 
@@ -41,6 +44,7 @@ export const QUESTIONS = [
   { id: 'hogerlager', q: 'Hoger of lager?', sips: 2, options: ['hoger', 'lager'] },
   { id: 'binnenbuiten', q: 'Binnen of buiten?', sips: 3, options: ['binnen', 'buiten'] },
   // heb je de vorm (harten, ruiten, klaveren of schoppen) van je vierde kaart al? Met 3 verschillende vormen mag ook disco
+  // (wordt je vierde kaart de ontbrekende vorm, dan drinkt de rest DISCO_SIPS)
   { id: 'vorm', q: 'Heb je het vormpje al?', sips: 4, options: ['ja', 'nee', 'disco'] },
 ];
 
@@ -129,9 +133,6 @@ export function newGame(names, { busLength = BUS_DEFAULT, seed = Math.floor(Math
       saved: 0,        // gespaarde slokken
       savedTotal: 0,
       settle: null,    // 'ronde' of 'eind': je gespaarde slokken komen terug
-      bak: 0,          // bakken die je nog moet doen (disco), die kun je niet sparen
-      bakFrom: [],     // van wie die bakken komen: { p, n, disco }
-      bakken: 0,
       disco: 0,
     })),
     deck: [],
@@ -166,13 +167,6 @@ function addSips(g, to, n, from) {
   if (f) f.n += n; else p.from.push({ p: from, n });
 }
 
-function addBak(g, to, n, from, disco = false) {
-  const p = g.players[to];
-  p.bak += n;
-  const f = p.bakFrom.find((x) => x.p === from && x.disco === disco);
-  if (f) f.n += n; else p.bakFrom.push({ p: from, n, disco });
-}
-
 // slokken om uit te delen; legt iemand meer kaarten weg, dan komen ze bij elkaar
 function queueDeal(g, from, n) {
   const open = g.deals.find((d) => d.from === from);
@@ -193,13 +187,13 @@ export function answer(g, player, option) {
   if (!Q.options.includes(option) || (option === 'disco' && !canDisco(p.hand))) return null;
   const card = g.deck.pop();
   const right = truth(g.round, p.hand, card);
-  // disco is goed als de vierde kaart de ontbrekende vorm is: dan moet iedereen een bak
+  // disco is goed als de vierde kaart de ontbrekende vorm is: dan drinkt de rest
   const disco = option === 'disco';
   const ok = disco ? right === 'nee' : right === option;
   p.hand.push(card);
   if (ok && disco) {
     p.goed++; p.disco++;
-    g.players.forEach((_, i) => addBak(g, i, 1, player, true));
+    g.players.forEach((_, i) => { if (i !== player) addSips(g, i, DISCO_SIPS, player); });
   } else if (ok) p.goed++;     // goed geraden: niks te drinken (uitdelen doe je pas in de piramide)
   else { p.fout++; addSips(g, player, Q.sips, -1); }
   const ev = emit(g, { type: 'vraag', player, round: g.round, hand: p.hand.slice(), card, option, right, ok, paal: right === null, sips: Q.sips, disco });
@@ -258,16 +252,6 @@ export function sips(g, player, act) {
     return emit(g, { type: 'slok', player, act, n, kind });
   }
   return null;
-}
-
-// Een bak gedaan (na een disco). Een bak kun je niet sparen.
-export function bak(g, player) {
-  const p = g.players[player];
-  if (!p || p.bak <= 0) return null;
-  p.bak--;
-  p.bakken++;
-  if (!p.bak) p.bakFrom = [];
-  return emit(g, { type: 'bak', player });
 }
 
 function startPyramid(g) {
@@ -365,17 +349,23 @@ export function guess(g, player, option) {
   const right = busTruth(prev, card);
   const ok = right === option;
   const step = b.open++;   // de hoeveelste gok dit is
-  let done = false;
+  let done = false, sips = 0;
   if (!ok) {
-    b.fail = { step, sips: step };
-    b.drank += step;
-    addSips(g, g.rider, step, -1);
-  } else if (b.open >= b.cards.length) {
+    // je drinkt zoveel als de hoeveelste gok het was, maar in de hele bus samen hooguit BUS_MAX_SIPS
+    sips = Math.min(step, BUS_MAX_SIPS - b.drank);
+    b.fail = { step, sips };
+    b.drank += sips;
+    addSips(g, g.rider, sips, -1);
+  }
+  // het eind gehaald, of genoeg gedronken: uit de bus
+  const max = !ok && b.drank >= BUS_MAX_SIPS;
+  if ((ok && b.open >= b.cards.length) || max) {
     done = true;
+    b.fail = null;
     g.phase = 'klaar';
     roundEnd(g, 'eind');
   }
-  return emit(g, { type: 'bus', player, step, prev, card, option, right, ok, paal: right === null, sips: ok ? 0 : step, done, tries: b.tries });
+  return emit(g, { type: 'bus', player, step, prev, card, option, right, ok, paal: right === null, sips, done, max, tries: b.tries });
 }
 
 // Na een foute gok: nieuwe kaarten en opnieuw vooraan beginnen.
@@ -420,7 +410,7 @@ export function titles(g) {
   const saved = topOf(g, 'savedTotal');
   if (saved) out.push({ id: 'spaarpot', title: 'Spaarpot', names: saved.names, text: `${sipsText(saved.value)} gespaard` });
   const disco = topOf(g, 'disco');
-  if (disco) out.push({ id: 'disco', title: 'Discokoning', names: disco.names, text: `${disco.value} keer disco: iedereen een bak` });
+  if (disco) out.push({ id: 'disco', title: 'Discokoning', names: disco.names, text: `${disco.value} keer disco: de rest drinkt ${DISCO_SIPS}` });
   const laid = Math.max(...g.players.map((p) => p.laid.length));
   if (laid > 0) out.push({ id: 'piramide', title: 'Piramidekoning', names: g.players.filter((p) => p.laid.length === laid).map((p) => p.name), text: `${laid} ${laid === 1 ? 'kaart' : 'kaarten'} in de piramide gelegd` });
   return out;

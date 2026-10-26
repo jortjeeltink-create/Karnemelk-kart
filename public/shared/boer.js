@@ -1,7 +1,8 @@
 // Boerenbruiloft (eerst Boer zoekt vrouw): het partyspel, online met iedereen op zijn eigen telefoon.
-// Iedereen krijgt een rol: één boer, één vrouw en de rest burgers. De boer begint wanneer hij wil met tellen,
-// met zijn ogen dicht. De vrouw drinkt intussen zo snel mogelijk een glas leeg. Daarna raadt de boer wie de
-// vrouw was: goed geraden, dan drinkt de vrouw ook het tweede glas; fout, dan drinkt de boer het.
+// Iedereen krijgt een rol: één boer, één bruid en de rest gasten (in de code: 'vrouw' en 'burger'). De boer begint
+// wanneer hij wil met tellen, met zijn ogen dicht. De bruid neemt intussen stiekem 2 slokken en de gasten doen alsof.
+// Daarna raadt de boer wie zijn bruid was: goed geraden, dan drinkt de bruid er nog 3; fout, dan drinkt de boer 3.
+// (Vroeger dronk de vrouw zo snel mogelijk een glas leeg: wedstrijddrinken, en dat mag niet in de Play Store.)
 // Een potje is een gewoon object (JSON) met de seed van de random-generator erin, net als bij Bussen.
 import { shuffle, rand, cleanNames, NAME_MAX } from './bussen.js';
 
@@ -11,11 +12,13 @@ export const MAX_PLAYERS = 10;
 export const COUNTS = [6, 7, 8, 10];   // zoveel seconden telt de boer; de host kan het aanpassen
 export const COUNT_DEFAULT = 8;
 export const ROLES = ['boer', 'vrouw', 'burger'];
+export const SNEAK_SIPS = 2;           // zoveel neemt de bruid stiekem tijdens het tellen
+export const CAUGHT_SIPS = 3;          // goed geraden: de bruid drinkt er zoveel; fout: de boer
 // een gok mag zoveel eerder binnenkomen dan de tijd om is: de klok van een telefoon loopt nooit precies gelijk
 export const GUESS_EARLY_MS = 600;
 const LOG_SIZE = 12;
 
-const newPlayer = (name) => ({ name, atjes: 0, boer: 0, vrouw: 0, raak: 0 });
+const newPlayer = (name) => ({ name, sips: 0, boer: 0, vrouw: 0, raak: 0 });
 
 function emit(g, ev) {
   ev.seq = ++g.seq;
@@ -65,7 +68,7 @@ export function deal(g, seats) {
   return emit(g, { type: 'delen', round: g.round });
 }
 
-// De boer begint te tellen; vanaf nu moet de vrouw drinken.
+// De boer begint te tellen; vanaf nu neemt de bruid stiekem haar slokken.
 export function startCount(g, player, now) {
   if (g.phase !== 'rollen' || player !== g.boer) return null;
   g.phase = 'tellen';
@@ -83,8 +86,8 @@ export function guess(g, player, target, now) {
   const b = g.players[g.boer], v = g.players[g.vrouw];
   b.boer++;
   v.vrouw++;
-  v.atjes++;                                   // het eerste glas, tijdens het tellen
-  if (ok) { v.atjes++; b.raak++; } else b.atjes++;   // het tweede glas
+  v.sips += SNEAK_SIPS;                                   // stiekem, tijdens het tellen
+  if (ok) { v.sips += CAUGHT_SIPS; b.raak++; } else b.sips += CAUGHT_SIPS;
   g.guess = target;
   g.phase = 'uitslag';
   return emit(g, { type: 'raden', boer: g.boer, target, vrouw: g.vrouw, ok });

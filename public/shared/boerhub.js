@@ -53,7 +53,7 @@ const boer = {
     out.phase = g.phase;
     out.players = out.players.map((base, i) => {
       const gp = g.players[i];
-      return { ...base, atjes: gp.atjes, raak: gp.raak, boer: gp.boer };
+      return { ...base, sips: gp.sips, raak: gp.raak, boer: gp.boer };
     });
     out.round = g.round;
     out.in = g.in;

@@ -42,7 +42,7 @@ test('inzetten via de telefoon; als iedereen klaar is begint de race en blijft d
   const s = phones[1].state();
   assert.equal(s.phase, 'race', 'iedereen klaar: de race begint vanzelf');
   assert.deepEqual(s.racers, [0, 1, 2]);
-  assert.deepEqual(s.players.map((p) => p.sips), [3, 2, 1], 'de inzet drink je vooraf');
+  assert.deepEqual(s.players.map((p) => p.sips), [0, 0, 0], 'vooraf drinkt niemand');
   assert.deepEqual(s.track, Array(7).fill(null), 'de kaarten naast de baan liggen dicht');
   assert.equal(s.pileLeft, 41);
   assert.equal(JSON.stringify(s).includes('"pile"'), false, 'de stapel blijft op de server');
