@@ -82,6 +82,9 @@ p{margin:0}
 .ipcard{width:min(520px,100%);padding:22px;display:grid;gap:12px;text-align:left;margin:4vh 0 2vh}
 .ipcard h2{margin:0;font-family:var(--display);font-weight:800;font-size:34px;line-height:1}
 .ipcard p{margin:0;font-size:var(--s2);line-height:1.5}
+.ipsteps{margin:0;padding-left:22px;display:grid;gap:8px;font-size:var(--s2);line-height:1.45}
+.ipsteps li::marker{font-weight:700;color:var(--plum-2)}
+.ipsteps b{font-weight:700}
 .ipbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .ipbtns a,.ipbtns button{display:flex;align-items:center;justify-content:center;min-height:48px;padding:0 12px;border:0;border-radius:999px;font-family:var(--mono);font-weight:700;font-size:var(--s1);text-decoration:none;cursor:pointer;text-align:center}
 .ipbtns button{background:var(--plum);color:var(--cream)}
@@ -216,9 +219,15 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
 
 <footer>
   <section class="ipcard cream" aria-labelledby="ipTitle">
-    <h2 id="ipTitle">Speel je met iemand met een iPhone?</h2>
-    <p>ATJE werkt ook op een iPhone, gewoon in Safari. Stuur je vrienden de iPhone-link: daar staat hoe ze ATJE als app op hun beginscherm zetten.</p>
-    <div class="ipbtns"><button type="button" id="ipShare">Stuur de link</button><a href="/iphone">Bekijk de uitleg</a></div>
+    <h2 id="ipTitle">ATJE op een iPhone</h2>
+    <p>ATJE staat niet in de App Store, maar werkt gewoon in Safari. Zo zet je ATJE als app op het beginscherm van een iPhone:</p>
+    <ol class="ipsteps">
+      <li>Open ATJE in <b>Safari</b> (stuur de link hieronder).</li>
+      <li>Tik op <b>•••</b> naast de adresbalk onderin en dan op <b>Deel</b>. Op een oudere iPhone: de <b>deelknop</b> onderin (vierkantje met een pijl omhoog).</li>
+      <li>Kies <b>Zet op beginscherm</b>. Staat hij er niet tussen? Veeg de lijst omhoog of tik op <b>Meer</b>.</li>
+      <li>Tik rechtsboven op <b>Voeg toe</b>. Klaar: ATJE staat tussen de apps.</li>
+    </ol>
+    <div class="ipbtns"><button type="button" id="ipShare">Stuur link + uitleg</button><a href="/iphone">Uitleg met plaatjes</a></div>
   </section>
   <div class="big">Game over?</div>
   <p>Nog lang niet. Scroll terug naar boven en kies een ander spel.</p>
@@ -840,9 +849,11 @@ addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
 // de iPhone-link delen met vrienden (vanuit de app op Android gaat dat via het deelmenu)
 $('#ipShare').addEventListener('click', () => {
   const url = `${location.origin}/iphone`, b = $('#ipShare');
-  const done = (t) => { b.textContent = t; setTimeout(() => { b.textContent = 'Stuur de link'; }, 2200); };
-  if (navigator.share) navigator.share({ title: 'ATJE op je iPhone', text: 'Speel ATJE mee op je iPhone: open deze link in Safari en zet ATJE op je beginscherm.', url }).catch(() => {});
-  else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => done('Link gekopieerd'), () => done(url));
+  const done = (t) => { b.textContent = t; setTimeout(() => { b.textContent = 'Stuur link + uitleg'; }, 2200); };
+  // de stappen staan ook in het bericht zelf, zodat je vrienden ze meteen lezen
+  const text = 'Speel ATJE mee op je iPhone! Zo zet je ATJE op je beginscherm:\n1. Open de link hieronder in Safari.\n2. Tik op ••• naast de adresbalk (oudere iPhone: de deelknop onderin) en dan op Deel.\n3. Kies Zet op beginscherm.\n4. Tik op Voeg toe.';
+  if (navigator.share) navigator.share({ title: 'ATJE op je iPhone', text, url }).catch(() => {});
+  else if (navigator.clipboard) navigator.clipboard.writeText(`${text}\n${url}`).then(() => done('Gekopieerd'), () => done(url));
   else done(url);
 });
 
