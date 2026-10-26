@@ -87,8 +87,6 @@ p{margin:0}
 .ipbtns button{background:var(--plum);color:var(--cream)}
 .ipbtns a{background:var(--cream-2);color:var(--plum);box-shadow:inset 0 0 0 1.5px rgba(43,21,49,.18)}
 
-.topbar{position:fixed;top:0;left:0;right:0;z-index:6;display:flex;justify-content:space-between;align-items:center;padding:calc(24px + env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) 0 max(24px,env(safe-area-inset-left,0px));pointer-events:none}
-.topbar>*{pointer-events:auto}
 .legal{position:fixed;left:max(28px,env(safe-area-inset-left,0px));bottom:calc(30px + env(safe-area-inset-bottom,0px));z-index:5;font-size:var(--s1);color:rgba(243,239,219,.72);display:flex;gap:12px}
 .meter{position:fixed;right:max(30px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);height:44vh;width:12px;z-index:5;pointer-events:none}
 .meter .track{position:absolute;inset:0;background:radial-gradient(circle,rgba(214,144,201,.6) 1.3px,transparent 1.8px) 50% 0/12px 9px repeat-y}
@@ -194,9 +192,6 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
 
 <canvas id="sky" aria-hidden="true"></canvas>
 
-<header class="topbar">
-  <a class="pill glass" href="#spellen" data-nav>Naar de spellen</a>
-</header>
 
 <aside class="meter" aria-hidden="true">
   <div class="track"></div>
