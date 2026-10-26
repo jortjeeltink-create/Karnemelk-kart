@@ -31,6 +31,9 @@ test('uitleg en slokkenkaart: op elke speelpagina een knop en het script', () =>
   const hal = read('speelhal.html');
   assert.equal((hal.match(/data-uitleg="\$\{g\.id\}"/g) || []).length, 1, 'uitleg-knop bij elk spel in de hoofdpagina');
   assert.ok(hal.includes('href="/iphone"'));
+  assert.match(hal, /<ol class="ipsteps">[\s\S]*Zet op beginscherm[\s\S]*Voeg toe/, 'de stappen voor een iPhone staan ook op de hoofdpagina');
+  // op Android (ook als ATJE daar als app staat) mag /iphone niet terugsturen naar de hoofdpagina
+  assert.match(read('iphone.html'), /navigator\.standalone === true && !document\.referrer/);
 });
 
 test('de server: de iPhone-pagina en de plaatjes van de uitleg', async () => {
