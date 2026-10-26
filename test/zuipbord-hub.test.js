@@ -1,4 +1,4 @@
-// Zuipbord online: gooien en kiezen via de telefoon, en wie weg is slaat over.
+// Borrelbord online: gooien en kiezen via de telefoon, een duel met twee telefoons, en wie weg is slaat over.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ZuipbordHub } from '../public/shared/zuipbordhub.js';
@@ -44,6 +44,9 @@ test('de host gooit als eerste; iedereen ziet de pion lopen en wat er op het vak
     assert.equal(phones[2].state().phase, 'kiezen', 'niet jezelf');
     phones[0].say({ t: 'choose', target: 1 });
   }
+  // een duel of dubbel of niks: nog even gooien
+  if (t.g.phase === 'duel') { phones[0].say({ t: 'roll' }); phones[1].say({ t: 'roll' }); }
+  if (t.g.phase === 'dubbel') phones[0].say({ t: 'roll' });
   assert.equal(phones[2].state().phase, 'gooien');
   assert.notEqual(phones[2].state().turn, 0);
 });
@@ -63,9 +66,10 @@ test('wie weg is slaat over, nieuwe spelers beginnen op start, en na de finish s
   assert.equal(late.state().players[3].pos, 0);
   t.g.players[0].pos = 45; t.g.turn = 0; t.g.phase = 'gooien';
   for (let n = 0; t.g.phase !== 'klaar' && n < 400; n++) {
-    const p = t.g.turn, ph = [phones[0], null, phones[2], late][p];
-    if (t.g.phase === 'kiezen') ph.say({ t: 'choose', target: p === 0 ? 2 : 0 });
-    else ph.say({ t: 'roll' });
+    const p = t.g.turn, by = (i) => [phones[0], null, phones[2], late][i];
+    if (t.g.phase === 'kiezen') by(p).say({ t: 'choose', target: p === 0 ? 2 : 0 });
+    else if (t.g.phase === 'duel') by(t.g.duel.ra == null ? t.g.duel.a : t.g.duel.b).say({ t: 'roll' });
+    else by(p).say({ t: 'roll' });
   }
   assert.equal(t.g.phase, 'klaar');
   phones[2].say({ t: 'next' });
@@ -73,4 +77,29 @@ test('wie weg is slaat over, nieuwe spelers beginnen op start, en na de finish s
   phones[0].say({ t: 'next' });
   assert.equal(late.state().phase, 'gooien');
   assert.ok(late.state().players.every((p) => p.pos === 0));
+});
+
+test('een duel: allebei gooien op je eigen telefoon; wie weggaat, daarvoor gooit de telefoon', () => {
+  const { hub, phones, t } = table(['Jort', 'Meke', 'Sim']);
+  phones[0].say({ t: 'start' });
+  // Jort staat op een duel en kiest Meke
+  Object.assign(t.g, { phase: 'kiezen', turn: 0, pending: { kind: 'duel', n: 2 } });
+  phones[0].say({ t: 'choose', target: 1 });
+  let s = phones[2].state();
+  assert.equal(s.phase, 'duel');
+  assert.deepEqual([s.duel.a, s.duel.b, s.duel.ra, s.duel.rb], [0, 1, null, null]);
+  phones[2].say({ t: 'roll' });
+  assert.equal(phones[2].state().duel.ra, null, 'Sim doet niet mee');
+  phones[0].say({ t: 'roll' });
+  phones[0].say({ t: 'roll' });
+  s = phones[2].state();
+  assert.ok(s.duel.ra >= 1);
+  assert.equal(s.duel.rb, null, 'Jort gooit niet voor Meke');
+  assert.equal(s.log.filter((e) => e.type === 'duelworp').length, 1);
+  // Meke gaat weg: de telefoon gooit voor Meke (bij gelijk gooit Jort zelf nog een keer)
+  hub.disconnect(phones[1].conn);
+  if (t.g.phase === 'duel') phones[0].say({ t: 'roll' });
+  for (let n = 0; t.g.phase === 'duel' && n < 20; n++) phones[0].say({ t: 'roll' });
+  assert.equal(t.g.phase, 'gooien');
+  assert.ok(phones[2].state().log.some((e) => e.type === 'duel' && e.drinks));
 });
