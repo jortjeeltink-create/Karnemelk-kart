@@ -1,4 +1,4 @@
-// De server van ATJE: levert de bestanden en regelt de live multiplayer van Karnemelk Kart en de tafelspellen.
+// De server van De Spelkeet: levert de bestanden en regelt de live multiplayer van Karnemelk Kart en de tafelspellen.
 // Start met:  npm start   (standaard op http://localhost:3000)
 import http from 'node:http';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -56,7 +56,7 @@ addDir(join(ROOT, 'public'), '/');
 
 // Op de pagina's met het privacybeleid, de voorwaarden en het meldformulier staat het e-mailadres voor contact.
 // Zet het in CONTACT_EMAIL (bijvoorbeeld op Render bij Environment); dan staat het er vanzelf in.
-const CONTACT_EMAIL = (process.env.CONTACT_EMAIL || '').trim() || 'het e-mailadres bij ATJE in de Google Play Store';
+const CONTACT_EMAIL = (process.env.CONTACT_EMAIL || '').trim() || 'het e-mailadres bij De Spelkeet in de Google Play Store';
 for (const page of ['/privacy.html', '/voorwaarden.html', '/melden.html']) {
   const f = files.get(page);
   if (!f) continue;
@@ -196,7 +196,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(301, { Location: path.replace(moved[0], moved[1]) + url.search, 'Cache-Control': 'no-cache' });
     return res.end();
   }
-  // ATJE is de hoofdpagina; uitnodigingen (/?room=, /join/) gaan nog steeds naar de kartgame
+  // De Spelkeet is de hoofdpagina; uitnodigingen (/?room=, /join/) gaan nog steeds naar de kartgame
   if (path === '/kart' || path === '/kart/' || path.startsWith('/join/') || (path === '/' && url.searchParams.has('room'))) path = '/index.html';
   else if (path === '/') path = '/speelhal.html';
   else if (path === '/privacy' || path === '/voorwaarden' || path === '/melden' || path === '/iphone') path += '.html';
@@ -309,7 +309,7 @@ const tickTimer = setInterval(() => hub.tick(), 1000 / 60);
 const busTimer = setInterval(() => { busHub.tick(); boerHub.tick(); mexHub.tick(); dealerHub.tick(); paardHub.tick(); rotondeHub.tick(); mijnHub.tick(); bordHub.tick(); }, 5000);
 
 server.listen(PORT, HOST, () => {
-  log(`ATJE draait op http://localhost:${PORT}`);
+  log(`De Spelkeet draait op http://localhost:${PORT}`);
   for (const ifs of Object.values(os.networkInterfaces())) {
     for (const i of ifs || []) {
       if (i.family === 'IPv4' && !i.internal) log(`Op je wifi (telefoon): http://${i.address}:${PORT}`);

@@ -1,4 +1,4 @@
-# De server van ATJE (met Karnemelk Kart)
+# De server van De Spelkeet (met Karnemelk Kart)
 FROM node:22-alpine
 WORKDIR /app
 COPY package*.json ./

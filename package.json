@@ -1,7 +1,7 @@
 {
   "name": "karnemelk-kart",
   "version": "1.0.0",
-  "description": "ATJE: spellen voor een avond met vrienden, ieder op zijn eigen telefoon: Karnemelk Kart (een multiplayer kartgame), kaartspellen, dobbelspellen en meer.",
+  "description": "De Spelkeet: spellen voor een avond met vrienden, ieder op zijn eigen telefoon: Karnemelk Kart (een multiplayer kartgame), kaartspellen, dobbelspellen en meer.",
   "private": true,
   "type": "module",
   "main": "server/index.js",

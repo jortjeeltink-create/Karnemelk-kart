@@ -2,9 +2,10 @@
 // of Kernreactor; alleen de vorm verschilt).
 // 37 dichte kaarten liggen als een zon op tafel. De kleur van de achterkant zegt hoeveel slokken een kaart waard
 // is: 16 rode in de buitenste ring (1), daarbinnen 8 oranje (2) en 4 blauwe (3), 8 groene rond het midden (4) en
-// de paarse in het midden (12). Om de beurt kies je een dichte kaart en gok je rood of zwart. Goed: de waarde gaat
+// de paarse in het midden (6). Om de beurt kies je een dichte kaart en gok je rood of zwart. Goed: de waarde gaat
 // in de pot, en je mag één keer extra gokken om de pot groter te maken of doorgeven. Fout: je drinkt de waarde plus
-// de hele pot, de pot is weer leeg en je probeert het opnieuw. Liggen alle kaarten open, dan is de rotonde klaar.
+// de hele pot (samen hooguit 8), de pot is weer leeg en je probeert het opnieuw. Liggen alle kaarten open, dan is de
+// rotonde klaar. (Vroeger was de paarse 12 waard en was er geen maximum.)
 // Een potje is een gewoon object (JSON) met de seed van de random-generator erin, net als bij Bussen.
 import { SUITS, newDeck, shuffle, rand, cleanNames, NAME_MAX } from './bussen.js';
 
@@ -12,12 +13,14 @@ export { cleanNames, NAME_MAX };
 export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 10;
 export const COLORS = ['rood', 'zwart'];
+export const CENTER = 6;            // de paarse in het midden
+export const MAX_SIPS = 8;          // fout: de kaart plus de pot, maar nooit meer dan dit
 const LOG_SIZE = 16;
 
 // De vorm, van het midden naar buiten. ring: 0 tot en met 3, angle: graden met de klok mee vanaf boven,
 // v: zoveel slokken is de kaart waard. In de ring van 12 liggen de blauwe recht boven, onder, links en rechts.
 export const LAYOUT = [
-  { ring: 0, angle: 0, v: 12 },
+  { ring: 0, angle: 0, v: CENTER },
   ...Array.from({ length: 8 }, (_, k) => ({ ring: 1, angle: k * 45, v: 4 })),
   ...Array.from({ length: 12 }, (_, k) => ({ ring: 2, angle: k * 30, v: k % 3 ? 2 : 3 })),
   ...Array.from({ length: 16 }, (_, k) => ({ ring: 3, angle: k * 22.5, v: 1 })),
@@ -123,8 +126,8 @@ export function guess(g, player, color, live) {
     else if (g.extra) passTurn(g, player, live);
     else g.phase = 'keuze';
   } else {
-    // fout: de kaart plus de hele pot, en je probeert het opnieuw
-    const sips = c.v + g.pot;
+    // fout: de kaart plus de hele pot (hooguit MAX_SIPS), en je probeert het opnieuw
+    const sips = Math.min(MAX_SIPS, c.v + g.pot);
     p.sips += sips;
     p.wrong++;
     p.max = Math.max(p.max, sips);

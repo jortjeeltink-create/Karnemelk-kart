@@ -5,7 +5,7 @@ Kopieer deze teksten in de Play Console bij **Groei → Store-presence → Hoofd
 ## App-naam (max. 30 tekens)
 
 ```
-ATJE: spellen met vrienden
+De Spelkeet: partyspellen
 ```
 
 ## Korte beschrijving (max. 80 tekens)
@@ -17,12 +17,12 @@ Kaart-, dobbel- en drankspellen met vrienden, ieder op zijn eigen telefoon. 18+
 ## Volledige beschrijving (max. 4000 tekens)
 
 ```
-ATJE is voor een avond met vrienden. Iedereen speelt op zijn eigen telefoon: één iemand maakt een tafel en deelt de code van vier letters, de rest doet mee. Geen account nodig, geen reclame.
+De Spelkeet is voor een avond met vrienden. Iedereen speelt op zijn eigen telefoon: één iemand maakt een tafel en deelt de code van vier letters, de rest doet mee. Geen account nodig, geen reclame.
 
 NEGEN SPELLEN
 
 • Karnemelk Kart: race live tegen tot 10 vrienden over 13 banen door een vrolijk Nederland. Drift door de bochten, spring over sloten, pak een stroopwafel-turbo en schiet met klompen. Spaar punten voor nieuwe karts, hoeden en capes.
-• Borrelbord: het drankspel als ganzenbord. Gooi de dobbelsteen over het bord en doe wat er op het vakje staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje. De winnaar deelt een bak uit.
+• Borrelbord: het drankspel als ganzenbord. Gooi de dobbelsteen over het bord en doe wat er op het vakje staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje.
 • Bussen: rood of zwart, hoger of lager, de piramide, en wie de meeste kaarten overhoudt moet de bus in.
 • Boer zoekt vrouw: de boer telt met zijn ogen dicht en de vrouw drinkt stiekem een glas leeg. Raadt de boer wie het was?
 • Mexen: het dobbelspel. De laagste worp drinkt, elke Mex verdubbelt.
@@ -35,12 +35,13 @@ ZO WERKT HET
 • Maak een tafel en deel de code of de link. Iedereen ziet live wat er gebeurt.
 • Je kaarten en geheime rollen zie je alleen op je eigen telefoon.
 • Bij elk spel staat een uitleg met plaatjes, en je ziet altijd hoeveel slokken je moet drinken.
+• Elk spel heeft een maximum aantal slokken per keer: het gaat om de lol, niet om veel drinken.
 • Vrienden met een iPhone spelen gewoon mee via de link.
 
 ALLEEN VOOR 18+
-ATJE bevat drankspellen en is alleen voor 18 jaar en ouder. Drinken is nooit verplicht: een slok mag ook water, fris of karnemelk zijn. Drink nooit als je nog moet rijden.
+De Spelkeet bevat drankspellen en is alleen voor 18 jaar en ouder. Drinken is nooit verplicht: een slok mag ook water, fris of karnemelk zijn. Drink nooit als je nog moet rijden.
 
-ATJE heeft internet nodig: je speelt live met je vrienden aan tafel.
+De Spelkeet heeft internet nodig: je speelt live met je vrienden aan tafel.
 ```
 
 ## Categorie en tags
@@ -55,4 +56,4 @@ ATJE heeft internet nodig: je speelt live met je vrienden aan tafel.
 |---|---|
 | `icoon-512.png` | App-icoon (512 × 512) |
 | `banner-1024x500.png` | Feature graphic (1024 × 500) |
-| `screenshot-1-atje.png` t/m `screenshot-6-paardenrace.png` | Screenshots voor telefoons (1080 × 1920, minstens 2) |
+| `screenshot-1-spelkeet.png` t/m `screenshot-6-paardenrace.png` | Screenshots voor telefoons (1080 × 1920, minstens 2) |

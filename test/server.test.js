@@ -201,23 +201,23 @@ test('10 spelers racen live samen, met herverbinden, punten en winkel', { timeou
 test('de server levert de game en een gezondheidscheck', async () => {
   const srv = await startServer();
   try {
-    // de hoofdpagina is ATJE met al de spellen
+    // de hoofdpagina is De Spelkeet met al de spellen
     const hall = await fetch(srv.url + '/');
     assert.equal(hall.status, 200);
     const hallHtml = await hall.text();
-    assert.match(hallHtml, /<title>ATJE<\/title>/);
-    for (const href of ['/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld', '/borrelbord']) assert.ok(hallHtml.includes(`'${href}'`), `ATJE linkt naar ${href}`);
-    for (const href of ['/megaball', '/stockmarket', '/rodezone', '/weerwolven', '/wolvennacht', '/zuipbord']) assert.ok(!hallHtml.includes(`'${href}'`), `${href} staat niet in ATJE`);
+    assert.match(hallHtml, /<title>De Spelkeet<\/title>/);
+    for (const href of ['/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld', '/borrelbord']) assert.ok(hallHtml.includes(`'${href}'`), `De Spelkeet linkt naar ${href}`);
+    for (const href of ['/megaball', '/stockmarket', '/rodezone', '/weerwolven', '/wolvennacht', '/zuipbord']) assert.ok(!hallHtml.includes(`'${href}'`), `${href} staat niet in De Spelkeet`);
     assert.match(hallHtml, /'Karnemelk Kart'/, 'de kartgame heet Karnemelk Kart');
     // namen van merken of grove namen staan nergens meer in
     assert.doesNotMatch(hallHtml, /Mario|Fuck|Wakkerdam|Zuipbord|Weerwolven van/);
     assert.match(hallHtml, /rel="manifest" href="\/speelhal\.webmanifest"/);
-    // op het beginscherm en bij het delen heet het ATJE, met een eigen logo
+    // op het beginscherm en bij het delen heet het De Spelkeet, met een eigen logo
     const hallManifest = await (await fetch(srv.url + '/speelhal.webmanifest')).json();
-    assert.equal(hallManifest.name, 'ATJE');
+    assert.equal(hallManifest.name, 'De Spelkeet');
     assert.equal(hallManifest.start_url, '/');
     for (const icon of hallManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
-    assert.match(hallHtml, /property="og:title" content="ATJE"/);
+    assert.match(hallHtml, /property="og:title" content="De Spelkeet"/);
     assert.equal((await fetch(srv.url + '/img/speelhal-deel.png')).status, 200);
     assert.equal((await fetch(srv.url + '/img/speelhal-180.png')).status, 200);
     assert.equal((await (await fetch(srv.url + '/manifest.webmanifest')).json()).start_url, '/kart', 'de kartgame opent de race');
@@ -483,7 +483,7 @@ test('Rotonde online: twee telefoons, de host kiest een kaart en gokt, de ander 
     a.send({ t: 'pick', i: 0 });
     a.send({ t: 'guess', color: 'rood' });
     const after = await opened;
-    assert.ok(after.pot === 12 || after.players[0].sips === 12, 'goed in de pot, of fout gedronken');
+    assert.ok(after.pot === 6 || after.players[0].sips === 6, 'goed in de pot, of fout gedronken (de paarse is 6)');
     const health = await (await fetch(srv.url + '/health')).json();
     assert.deepEqual(health.rotonde, { tables: 1, players: 2 });
     [a, b].forEach((c) => c.close());
@@ -498,7 +498,7 @@ test('Mijnenveld online: twee telefoons, de host gooit twee keer en de ander zie
     const url = srv.ws + '/mijnenveld';
     const [a, b] = await Promise.all([new Client(url).open(), new Client(url).open()]);
     const sa = await a.request({ t: 'create', name: 'Jort', token: 'mijn-telefoon-a-0123456789' }, 'state');
-    assert.equal(sa.mineSips, 5);
+    assert.equal(sa.mineSips, 3);
     assert.match(sa.build, /^[\w-]{12}$/);
     await b.request({ t: 'join', code: sa.code, name: 'Meke', token: 'mijn-telefoon-b-0123456789' }, (m) => m.t === 'state' && m.players.length === 2);
     const started = b.wait((m) => m.t === 'state' && m.phase === 'gooien');

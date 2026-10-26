@@ -375,7 +375,7 @@ const store = {
 };
 
 // wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
-// Je naam neemt hij over van een ander spel in ATJE als je die daar al eens hebt ingevuld.
+// Je naam neemt hij over van een ander spel in De Spelkeet als je die daar al eens hebt ingevuld.
 const me = (() => {
   const v = store.get(KEY.me, {}) || {};
   let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
@@ -565,7 +565,7 @@ function present(ev) {
         if (!S) return;
         Snd.boom(); buzz(ev.player === S.you ? [200, 60, 200] : [120]);
         banner('Boem!', `${ev.player === S.you ? 'Jij drinkt' : `${S.players[ev.player].name} drinkt`} ${B.sipsText(ev.sips)}${ev.count > 1 ? ` (${ev.count} mijnen)` : ''}`, 2200);
-        if (ev.player === S.you) window.Slok?.drink(ev.sips, ev.count > 1 ? `Je landde op ${ev.count} mijnen: ${ev.count} × ${ev.sips / ev.count}. Daarna leg jij ze ergens anders neer.` : `Je landde op een mijn. Daarna leg jij hem ergens anders neer.`, { title: `Boem! Drink ${B.sipsText(ev.sips)}`, delay: 1300 });
+        if (ev.player === S.you) window.Slok?.drink(ev.sips, ev.count > 1 ? `Je landde op ${ev.count} mijnen: ${ev.count} × ${S.mineSips}${ev.count * S.mineSips > ev.sips ? `, maar meer dan ${M.MAX_SIPS} wordt het nooit` : ''}. Daarna leg jij ze ergens anders neer.` : `Je landde op een mijn. Daarna leg jij hem ergens anders neer.`, { title: `Boem! Drink ${B.sipsText(ev.sips)}`, delay: 1300 });
         ui.boom = true;
         clearTimeout(ui.boomTimer);
         ui.boomTimer = setTimeout(() => { ui.boom = false; }, 700);
@@ -772,7 +772,7 @@ function vHome() {
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${M.MIN_PLAYERS} tot ${M.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>36 kaarten in een veld van 6 bij 6, met ${M.MINES} verstopte mijnen. Gooi de steen twee keer: eerst voor de kolom, dan voor de rij. Land je op een mijn, dan drink je 3, 5 of 10 slokken (de host kiest) en leg je hem ergens anders neer. Daarna gok je rood of zwart: fout is ${slok(M.WRONG_SIPS)}.</p>
+    <p>36 kaarten in een veld van 6 bij 6, met ${M.MINES} verstopte mijnen. Gooi de steen twee keer: eerst voor de kolom, dan voor de rij. Land je op een mijn, dan drink je ${M.MINE_SIPS.join(', ').replace(/, (?=[^,]*$)/, ' of ')} slokken (de host kiest, hooguit ${M.MAX_SIPS} in één keer) en leg je hem ergens anders neer. Daarna gok je rood of zwart: fout is ${slok(M.WRONG_SIPS)}.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${M.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -893,7 +893,7 @@ function menuHTML() {
     ${game && host ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
     ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
     <a href="/melden?spel=mijnenveld${S ? `&code=${S.code}` : ''}">Iets melden <span>›</span></a>
-    <a href="/">Naar ATJE <span>›</span></a>
+    <a href="/">Naar De Spelkeet <span>›</span></a>
   </nav>`;
 }
 
@@ -920,7 +920,7 @@ function rulesHTML() {
       <li><b>Gokken.</b> Daarna gok je of de kaart rood of zwart is, en de kaart gaat open. Goed: de volgende is aan de beurt. Fout: je drinkt ${slok(M.WRONG_SIPS)} en gooit opnieuw.</li>
       <li><b>Klaar.</b> Liggen alle kaarten open, dan is het veld leeg. De host kan een nieuw veld leggen; de stand blijft staan.</li>
     </ol>
-    <p class="small">De host kiest in de lobby hoeveel slokken een mijn is: 3, 5 of 10. Zo speelt ook de online versie van dark-mark.com. Valt wie aan de beurt is weg, dan is de volgende aan de beurt; moest hij nog een mijn leggen, dan legt de server die. Drink met mate: water of karnemelk telt ook.</p>
+    <p class="small">De host kiest in de lobby hoeveel slokken een mijn is: ${M.MINE_SIPS.join(', ').replace(/, (?=[^,]*$)/, ' of ')}. Twee mijnen tegelijk zijn samen hooguit ${slok(M.MAX_SIPS)}. Valt wie aan de beurt is weg, dan is de volgende aan de beurt; moest hij nog een mijn leggen, dan legt de server die. Drink met mate: water of karnemelk telt ook.</p>
   </div>`;
 }
 
