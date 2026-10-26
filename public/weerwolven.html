@@ -359,6 +359,7 @@ html[data-phase="dag"] .dock,html[data-phase="jager"] .dock,html[data-view="klaa
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
+<script src="/js/poort.js" defer></script>
 </head>
 <body>
 <div class="glow" aria-hidden="true"></div>
@@ -1120,6 +1121,7 @@ function menuHTML() {
     ${S ? `<button type="button" data-act="share">Uitnodigen <span>${S.code}</span></button>` : ''}
     ${game && host ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
     ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
+    <a href="/melden?spel=wolvennacht${S ? `&code=${S.code}` : ''}">Iets melden <span>›</span></a>
     <a href="/">Naar Rondje <span>›</span></a>
   </nav>`;
 }

@@ -137,6 +137,13 @@ class App {
     });
     n.on('renameFailed', (m) => { toast(m.msg, 'error'); this.sound.play('error'); });
     n.on('secretFailed', (m) => { toast(m.msg, 'error'); this.sound.play('error'); });
+    // je gegevens zijn gewist: ook alles op deze telefoon weg, en opnieuw beginnen
+    n.on('erased', () => {
+      for (const k of [DEVICE_KEY, BACKUP_KEY, NAME_KEY, ROOM_KEY]) store.del(k);
+      this.profile = null;
+      toast('Je gegevens zijn gewist.', 'good', 3000);
+      setTimeout(() => location.reload(), 1200);
+    });
     n.on('transferCode', (m) => {
       this.transfer = { code: m.code, until: Date.now() + m.minutes * 60000 };
       if (this.screenName === 'settings') this.show('settings');

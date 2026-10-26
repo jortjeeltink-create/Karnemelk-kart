@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Iets melden · Rondje</title>
+<meta name="description" content="Meld een speler, een naam of iets anders wat niet klopt in Rondje.">
+<meta name="theme-color" content="#150b18">
+<link rel="icon" href="/img/speelhal.svg" type="image/svg+xml">
+<style>
+:root{color-scheme:dark;--ink:#f3efdb;--soft:#cfc4d2;--acc:#ff8a7d;--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.14)}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{min-height:100svh;padding:0 16px calc(40px + env(safe-area-inset-bottom,0px));background:#150b18 radial-gradient(120% 60% at 50% 0%,#3a1c45 0%,#211026 55%,#150b18 100%) no-repeat;color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{width:min(100%,680px);margin:0 auto}
+header{padding:28px 0 8px}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:44px;color:var(--soft);text-decoration:none;font-weight:700}
+h1{margin:6px 0 4px;font-size:clamp(28px,7vw,38px);line-height:1.1;letter-spacing:-.01em}
+.date{margin:0 0 20px;color:var(--soft);font-size:14px}
+h2{margin:28px 0 8px;font-size:20px;line-height:1.25}
+p,li{color:#e8e1ea}
+ul{padding-left:22px}
+li{margin:6px 0}
+a{color:var(--acc)}
+.card{padding:14px 16px;border-radius:16px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{padding:10px 8px;text-align:left;vertical-align:top;border-top:1px solid var(--line)}
+th{color:var(--soft);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.06em;border-top:0}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+form{display:grid;gap:14px;margin:8px 0 0}
+label{display:grid;gap:6px;font-weight:700}
+label small{font-weight:400;color:var(--soft)}
+input,select,textarea{width:100%;min-height:48px;padding:12px 14px;border:0;border-radius:14px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);font:16px/1.4 system-ui,sans-serif}
+textarea{min-height:130px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:3px solid #f2c230;outline-offset:1px}
+select option{color:#1b1220}
+button{min-height:52px;border:0;border-radius:16px;background:#e5483b;color:#fff;font:800 17px/1 system-ui,sans-serif;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18);cursor:pointer}
+button:disabled{opacity:.6}
+button:focus-visible{outline:3px solid #f2c230;outline-offset:3px}
+.msg{margin:0;padding:12px 14px;border-radius:14px;font-weight:700}
+.msg.ok{background:rgba(46,170,87,.18);box-shadow:inset 0 0 0 1px rgba(46,170,87,.6)}
+.msg.bad{background:rgba(229,72,59,.18);box-shadow:inset 0 0 0 1px rgba(229,72,59,.6)}
+</style>
+</head>
+<body>
+<main>
+<header>
+  <a class="back" href="/">← Rondje</a>
+  <h1>Iets melden</h1>
+</header>
+<p>Zag je een grove of beledigende naam, een speler die zich misdraagt, of iets anders wat niet klopt? Laat het ons weten. We kijken naar elke melding en kunnen namen, teksten of spelers weren.</p>
+<p class="card">Is het aan tafel? De host kan iemand meteen van tafel halen: tik in de lobby op de naam van die speler.</p>
+<form id="f" novalidate>
+  <label>Welk spel
+    <select id="spel" name="spel">
+      <option value="">Kies een spel</option>
+      <option value="kart">Karnemelk Kart</option>
+      <option value="bussen">Bussen</option>
+      <option value="boer">Boerenbruiloft</option>
+      <option value="mexen">Mexen</option>
+      <option value="dealer">Pak de dealer</option>
+      <option value="paardenrace">Paardenrace</option>
+      <option value="rotonde">Rotonde</option>
+      <option value="mijnenveld">Mijnenveld</option>
+      <option value="wolvennacht">Wolvennacht</option>
+      <option value="borrelbord">Borrelbord</option>
+      <option value="anders">Iets anders</option>
+    </select>
+  </label>
+  <label>Code van de tafel <small>(als je die weet)</small>
+    <input id="code" name="code" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD">
+  </label>
+  <label>Naam van de speler <small>(als het om iemand gaat)</small>
+    <input id="naam" name="naam" maxlength="40" autocomplete="off">
+  </label>
+  <label>Wat is er aan de hand?
+    <textarea id="wat" name="wat" maxlength="1000" required placeholder="Beschrijf kort wat er gebeurde."></textarea>
+  </label>
+  <p id="msg" class="msg" role="status" hidden></p>
+  <button id="go" type="submit">Melding versturen</button>
+</form>
+<p class="date">Je melding wordt bewaard tot hij is afgehandeld (zie het <a href="/privacy">privacybeleid</a>). Liever mailen? <strong>{{CONTACT_EMAIL}}</strong>.</p>
+</main>
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  // vanuit een spel komt de link met het spel en de tafel erbij
+  const q = new URLSearchParams(location.search);
+  if (q.get('spel') && $('spel').querySelector(`option[value="${CSS.escape(q.get('spel'))}"]`)) $('spel').value = q.get('spel');
+  if (q.get('code')) $('code').value = q.get('code').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6);
+  const say = (text, ok) => { const m = $('msg'); m.textContent = text; m.className = `msg ${ok ? 'ok' : 'bad'}`; m.hidden = false; };
+  $('f').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = { spel: $('spel').value, code: $('code').value.trim(), naam: $('naam').value.trim(), wat: $('wat').value.trim() };
+    if (body.wat.length < 5) { say('Schrijf kort wat er aan de hand is.', false); $('wat').focus(); return; }
+    $('go').disabled = true;
+    try {
+      const r = await fetch('/api/melden', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.msg || 'Versturen lukte niet. Probeer het later nog eens.');
+      say('Bedankt! Je melding is verstuurd.', true);
+      $('f').reset();
+    } catch (err) {
+      say(err.message || 'Versturen lukte niet. Probeer het later nog eens.', false);
+    } finally {
+      $('go').disabled = false;
+    }
+  });
+})();
+</script>
+</body>
+</html>

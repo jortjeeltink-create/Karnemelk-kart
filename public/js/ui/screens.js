@@ -585,7 +585,14 @@ function profileSettings(app) {
         h('div', { class: 'muted small' }, 'Overzetcode voor je nieuwe telefoon:'),
         h('div', { class: 'code-big code6' }, tr.code.split('').map((c) => h('span', {}, c))),
         h('p', { class: 'muted small' }, `Open de game op je nieuwe telefoon, tik op "Al MP-punten op een andere telefoon?" en vul deze code in. Geldig tot ${new Date(tr.until).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}.`))
-      : h('button', { class: 'btn btn-small', onclick: () => app.send({ t: 'transferCode' }) }, 'Naar een andere telefoon? Maak overzetcode'));
+      : h('button', { class: 'btn btn-small', onclick: () => app.send({ t: 'transferCode' }) }, 'Naar een andere telefoon? Maak overzetcode'),
+    h('button', {
+      class: 'btn btn-small btn-ghost',
+      onclick: () => {
+        if (confirm('Weet je het zeker? Je naam, MP-punten en spullen worden gewist, ook op de server. Dat kan niet ongedaan worden.')) app.send({ t: 'erase' });
+      },
+    }, 'Mijn gegevens wissen'),
+    h('p', { class: 'muted small' }, h('a', { href: '/privacy' }, 'Privacybeleid'), ' · ', h('a', { href: '/voorwaarden' }, 'Voorwaarden'), ' · ', h('a', { href: '/melden' }, 'Iets melden')));
 }
 
 // ---------------- uitleg ----------------

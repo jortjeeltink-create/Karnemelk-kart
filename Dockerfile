@@ -1,4 +1,4 @@
-# Karnemelk Kart server
+# De server van Rondje (met Karnemelk Kart)
 FROM node:22-alpine
 WORKDIR /app
 COPY package*.json ./

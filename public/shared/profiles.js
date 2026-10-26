@@ -2,6 +2,7 @@
 // apparaatsleutel en daaraan hangen je naam, MP-punten en spullen.
 // Werkt met elke sleutel/waarde-opslag met async get/set/del (bestand, Redis of de browser).
 import { cleanName } from './util.js';
+import { isOffensive, OFFENSIVE_MSG } from './namen.js';
 import { DEFAULT_EQUIP, START_MP, SHOP_BY_ID, ownsItem, refundRetired } from './shop.js';
 import { cleanLook, DEFAULT_LOOK } from './look.js';
 
@@ -71,6 +72,7 @@ export class Profiles {
     if (!isDeviceToken(token)) return { ok: false, error: 'Er ging iets mis met dit apparaat. Herlaad de pagina.' };
     const existing = await this.byDevice(token);
     if (existing) return { ok: true, profile: existing, created: false };
+    if (isOffensive(rawName)) return { ok: false, error: OFFENSIVE_MSG };
     const name = cleanName(rawName);
     if (!name) return { ok: false, error: 'Kies een naam van 2 tot 16 tekens (letters, cijfers, spatie of -).' };
     let key;
@@ -86,6 +88,7 @@ export class Profiles {
   }
 
   async rename(profile, rawName) {
+    if (isOffensive(rawName)) return { ok: false, error: OFFENSIVE_MSG };
     const name = cleanName(rawName);
     if (!name) return { ok: false, error: 'Kies een naam van 2 tot 16 tekens (letters, cijfers, spatie of -).' };
     profile.name = name;
@@ -118,6 +121,17 @@ export class Profiles {
     profile.rev = data.rev;
     await this.save(profile);
     return true;
+  }
+
+  // ---- alles wissen ----
+  // Je naam, MP-punten en spullen weg (de Play Store eist dat dat kan). Een 'gone'-briefje zorgt dat een
+  // reservekopie op een andere telefoon het profiel niet terugzet.
+  async erase(profile, tokens = []) {
+    if (profile.transfer) await this.kv.del('x:' + profile.transfer);
+    await this.kv.del('p:' + profile.key);
+    await this.kv.set('gone:' + profile.key, { at: this.now() });
+    for (const t of tokens) if (isDeviceToken(t)) await this.kv.del('d:' + t);
+    this.cache.delete(profile.key);
   }
 
   // ---- overzetten naar een andere telefoon ----
@@ -158,7 +172,7 @@ export class Profiles {
   async restore(token, raw) {
     if (!isDeviceToken(token)) return null;
     const data = cleanBackup(raw);
-    if (!data) return null;
+    if (!data || await this.kv.get('gone:' + data.key)) return null;
     const existing = (await this.get(data.key)) || this.cache.get(data.key);
     if (existing) {
       // bestaat al (bijvoorbeeld een tweede telefoon met hetzelfde profiel): koppelen,

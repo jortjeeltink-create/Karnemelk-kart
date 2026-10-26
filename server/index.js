@@ -55,6 +55,29 @@ function addDir(dir, urlPrefix) {
 }
 addDir(join(ROOT, 'public'), '/');
 
+// Op de pagina's met het privacybeleid, de voorwaarden en het meldformulier staat het e-mailadres voor contact.
+// Zet het in CONTACT_EMAIL (bijvoorbeeld op Render bij Environment); dan staat het er vanzelf in.
+const CONTACT_EMAIL = (process.env.CONTACT_EMAIL || '').trim() || 'het e-mailadres bij Rondje in de Google Play Store';
+for (const page of ['/privacy.html', '/voorwaarden.html', '/melden.html']) {
+  const f = files.get(page);
+  if (!f) continue;
+  const body = Buffer.from(f.body.toString('utf8').replaceAll('{{CONTACT_EMAIL}}', CONTACT_EMAIL.replace(/[<>&"]/g, '')));
+  files.set(page, {
+    body, type: f.type, etag: '"' + createHash('sha1').update(body).digest('base64url').slice(0, 16) + '"',
+    gz: gzipSync(body, { level: 9 }), br: brotliCompressSync(body, { params: { [zc.BROTLI_PARAM_QUALITY]: 11 } }),
+  });
+}
+
+// De koppeling met de Android-app in de Play Store (Digital Asset Links): zonder dit bestand toont de app een
+// adresbalk. ANDROID_PACKAGE is de pakketnaam van de app, ANDROID_SHA256 de vingerafdruk(ken) van de sleutel
+// waarmee Google de app ondertekent, gescheiden door komma's (Play Console → App-integriteit → App-ondertekening).
+const ASSET_LINKS = (() => {
+  const pkg = (process.env.ANDROID_PACKAGE || '').trim();
+  const prints = (process.env.ANDROID_SHA256 || '').split(/[\s,]+/).map((x) => x.trim().toUpperCase()).filter((x) => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(x));
+  if (!pkg || !prints.length) return null;
+  return JSON.stringify([{ relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: pkg, sha256_cert_fingerprints: prints } }]);
+})();
+
 
 // ---------- apparaatcookie: zo onthoudt de server welke telefoon je bent ----------
 const COOKIE = 'kk_dev';
@@ -110,9 +133,58 @@ const OLD_PATHS = [
 // dan stuurt die iedereen door, met de rest van de link erbij. Alleen /health blijft, zodat Render de server ziet.
 const MOVED_TO = (process.env.REDIRECT_TO || '').replace(/\/+$/, '');
 
+// ---------- meldingen (Iets melden): een speler, een naam of iets anders ----------
+// De laatste 500 staan in de opslag onder 'meldingen'. Lezen kan met MELD_SLEUTEL: /api/meldingen?sleutel=...
+const MELD_MAX = 500;
+const meldTimes = new Map();   // per IP-adres: wanneer er gemeld werd, om spam tegen te gaan
+function meldAllowed(ip, now = Date.now()) {
+  const recent = (meldTimes.get(ip) || []).filter((t) => now - t < 3600_000);
+  if (recent.length >= 10) return false;
+  recent.push(now);
+  meldTimes.set(ip, recent);
+  if (meldTimes.size > 5000) meldTimes.clear();
+  return true;
+}
+const clip = (v, n) => (typeof v === 'string' ? v.replace(/[\u0000-\u001f]+/g, ' ').trim().slice(0, n) : '');
+function readJson(req, max = 4096) {
+  return new Promise((resolve) => {
+    let size = 0;
+    const chunks = [];
+    req.on('data', (c) => { size += c.length; if (size > max) { req.destroy(); resolve(null); } else chunks.push(c); });
+    req.on('end', () => { try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))); } catch { resolve(null); } });
+    req.on('error', () => resolve(null));
+  });
+}
+async function melden(req, res) {
+  const send = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)); };
+  const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+  if (!meldAllowed(ip)) return send(429, { ok: false, msg: 'Je hebt al veel gemeld. Probeer het over een uur nog eens.' });
+  const b = await readJson(req);
+  const wat = clip(b && b.wat, 1000);
+  if (!b || wat.length < 5) return send(400, { ok: false, msg: 'Schrijf kort wat er aan de hand is.' });
+  const melding = { at: new Date().toISOString(), spel: clip(b.spel, 20), code: clip(b.code, 6).toUpperCase(), naam: clip(b.naam, 40), wat };
+  const list = (await store.kv.get('meldingen')) || [];
+  list.unshift(melding);
+  await store.kv.set('meldingen', list.slice(0, MELD_MAX));
+  log(`melding: ${melding.spel || '-'} ${melding.code || ''} ${melding.naam ? `over ${melding.naam}` : ''}: ${wat.slice(0, 80)}`);
+  return send(200, { ok: true });
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://x');
   let path = decodeURIComponent(url.pathname);
+  if (path === '/api/melden' && req.method === 'POST') { melden(req, res); return; }
+  if (path === '/api/meldingen') {
+    const key = process.env.MELD_SLEUTEL;
+    if (!key || url.searchParams.get('sleutel') !== key) { res.writeHead(404); return res.end(); }
+    store.kv.get('meldingen').then((list) => { res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(list || [], null, 2)); });
+    return;
+  }
+  if (path === '/.well-known/assetlinks.json') {
+    if (!ASSET_LINKS) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('Niet ingesteld (ANDROID_PACKAGE en ANDROID_SHA256)'); }
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
+    return res.end(ASSET_LINKS);
+  }
   if (path === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: true, ...hub.stats(), bussen: busHub.stats(), boer: boerHub.stats(), mexen: mexHub.stats(), dealer: dealerHub.stats(), paardenrace: paardHub.stats(), rotonde: rotondeHub.stats(), mijnenveld: mijnHub.stats(), weerwolven: wolfHub.stats(), zuipbord: bordHub.stats() }));
@@ -130,6 +202,7 @@ const server = http.createServer((req, res) => {
   // Rondje is de hoofdpagina; uitnodigingen (/?room=, /join/) gaan nog steeds naar de kartgame
   if (path === '/kart' || path === '/kart/' || path.startsWith('/join/') || (path === '/' && url.searchParams.has('room'))) path = '/index.html';
   else if (path === '/') path = '/speelhal.html';
+  else if (path === '/privacy' || path === '/voorwaarden' || path === '/melden') path += '.html';
   else if (path === '/bussen' || path === '/bussen/' || /^\/bussen\/[A-Za-z]{4}$/.test(path)) path = '/bussen.html';
   else if (path === '/boer' || path === '/boer/' || /^\/boer\/[A-Za-z]{4}$/.test(path)) path = '/boer.html';
   else if (path === '/mexen' || path === '/mexen/' || /^\/mexen\/[A-Za-z]{4}$/.test(path)) path = '/mexen.html';

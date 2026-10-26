@@ -10,7 +10,7 @@ import { encodeFull, decodeFull, encodeVisual, decodeVisual, encodeInput, decode
 import { rollItem, ITEM } from '../public/shared/items.js';
 import { Race } from '../public/shared/race.js';
 import { Hub } from '../public/shared/hub.js';
-import { Profiles, isDeviceToken, cleanBackup } from '../public/shared/profiles.js';
+import { Profiles, isDeviceToken, cleanBackup, backupData } from '../public/shared/profiles.js';
 import { makeSigner, makeSecretCheck } from '../server/store.js';
 import { createHash } from 'node:crypto';
 import { CHARACTER_BY_ID, BOT_CHARACTERS, racerName } from '../public/shared/characters.js';
@@ -537,6 +537,33 @@ test('uit de winkel gehaalde specials: MP terug', async () => {
   assert.equal(b.mp, 260);
   assert.deepEqual(b.owned, []);
   assert.equal(b.lastCharacter, undefined);
+});
+
+test('gegevens wissen: het profiel is weg, en een reservekopie op de telefoon zet het niet terug', async () => {
+  const kv = new MemKV();
+  const store = new Profiles(kv, { randomString, now: () => 0 });
+  const tok = 'apparaat-abcdefghijklmnopqrst', other = 'tweede-telefoon-abcdefghijk';
+  const { profile } = await store.register(tok, 'Sanne');
+  await store.linkDevice(other, profile.key);
+  await store.createTransfer(profile);
+  const backup = backupData(profile), code = profile.transfer;
+  await store.erase(profile, [tok]);
+  assert.equal(await store.byDevice(tok), null);
+  assert.equal(await store.byDevice(other), null, 'ook niet via een andere telefoon');
+  assert.equal(await store.get(profile.key), null);
+  assert.equal(await kv.get('x:' + code), null, 'de overzetcode is weg');
+  assert.equal(await store.restore(other, backup), null, 'de reservekopie zet hem niet terug');
+});
+
+test('gegevens wissen via de server: alle schermen met dat profiel horen het', async () => {
+  const clock = { t: Date.UTC(2026, 9, 6, 12) };
+  const hub = makeHub(clock);
+  const a = await newPlayer(hub, 'Sanne');
+  await hub.message(a, { t: 'create' });
+  await hub.message(a, { t: 'erase' });
+  assert.ok(a.last('erased'));
+  await hub.message(a, { t: 'profile' });
+  assert.equal(a.last('err').code, 'login', 'daarna moet je opnieuw een naam kiezen');
 });
 
 test('alles is betaalbaar: een special heb je binnen 5 races', () => {

@@ -14,3 +14,13 @@ services:
       # geheim waarmee de server de reservekopieën ondertekent (Render maakt dit zelf aan)
       - key: KK_SECRET
         generateValue: true
+      # voor de Play Store (zie PLAY-STORE.md): het contactadres op het privacybeleid, het geheime woord om
+      # meldingen te lezen, en de koppeling met de Android-app (pakketnaam en vingerafdrukken)
+      - key: CONTACT_EMAIL
+        sync: false
+      - key: MELD_SLEUTEL
+        generateValue: true
+      - key: ANDROID_PACKAGE
+        sync: false
+      - key: ANDROID_SHA256
+        sync: false
