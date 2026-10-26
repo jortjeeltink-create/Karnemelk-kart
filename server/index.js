@@ -57,10 +57,16 @@ addDir(join(ROOT, 'public'), '/');
 // Op de pagina's met het privacybeleid, de voorwaarden en het meldformulier staat het e-mailadres voor contact.
 // Zet het in CONTACT_EMAIL (bijvoorbeeld op Render bij Environment); dan staat het er vanzelf in.
 const CONTACT_EMAIL = (process.env.CONTACT_EMAIL || '').trim() || 'het e-mailadres bij De Spelkeet in de Google Play Store';
-for (const page of ['/privacy.html', '/voorwaarden.html', '/melden.html']) {
+// Het eigen webadres, voor het plaatje bij een gedeelde link (og:image moet een volledig adres zijn). Render zet
+// RENDER_EXTERNAL_URL zelf; elders kan het met PUBLIC_URL. Zonder adres wordt het een gewoon pad.
+const SITE_URL = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/+$/, '');
+const FILL = { '{{CONTACT_EMAIL}}': CONTACT_EMAIL, '{{SITE_URL}}': /^https?:\/\/[\w.:-]+$/.test(SITE_URL) ? SITE_URL : '' };
+for (const page of ['/privacy.html', '/voorwaarden.html', '/melden.html', '/speelhal.html', '/iphone.html']) {
   const f = files.get(page);
   if (!f) continue;
-  const body = Buffer.from(f.body.toString('utf8').replaceAll('{{CONTACT_EMAIL}}', CONTACT_EMAIL.replace(/[<>&"]/g, '')));
+  let text = f.body.toString('utf8');
+  for (const [key, value] of Object.entries(FILL)) text = text.replaceAll(key, value.replace(/[<>&"]/g, ''));
+  const body = Buffer.from(text);
   files.set(page, {
     body, type: f.type, etag: '"' + createHash('sha1').update(body).digest('base64url').slice(0, 16) + '"',
     gz: gzipSync(body, { level: 9 }), br: brotliCompressSync(body, { params: { [zc.BROTLI_PARAM_QUALITY]: 11 } }),

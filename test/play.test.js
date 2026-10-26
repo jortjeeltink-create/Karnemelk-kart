@@ -73,6 +73,21 @@ test('de server: privacybeleid, voorwaarden, melden, offline-pagina en de poort 
   }
 });
 
+test('het plaatje bij een gedeelde link gebruikt het eigen webadres (op Render vanzelf)', async () => {
+  for (const [env, want] of [[{ RENDER_EXTERNAL_URL: 'https://spelkeet.onrender.com' }, 'https://spelkeet.onrender.com/img/speelhal-deel.png'], [{ RENDER_EXTERNAL_URL: '' }, '/img/speelhal-deel.png']]) {
+    const srv = await startServer({ env });
+    try {
+      for (const path of ['/', '/iphone']) {
+        const html = await (await fetch(srv.url + path)).text();
+        assert.ok(html.includes(`<meta property="og:image" content="${want}">`), `${path}: ${want}`);
+        assert.ok(!html.includes('{{SITE_URL}}'), path);
+      }
+    } finally {
+      await srv.stop();
+    }
+  }
+});
+
 test('de koppeling met de Android-app (Digital Asset Links)', async () => {
   const print = Array.from({ length: 32 }, (_, i) => (i * 7 % 256).toString(16).padStart(2, '0')).join(':');
   const srv = await startServer({ env: { ANDROID_PACKAGE: 'nl.spelkeet.app', ANDROID_SHA256: `${print.toLowerCase()}, nonsens` } });

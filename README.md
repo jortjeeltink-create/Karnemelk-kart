@@ -120,7 +120,7 @@ Eén serverinstantie is genoeg voor flink wat groepjes vrienden; een race met 10
 
 1. Zet deze map in een GitHub-repository.
 2. Maak een gratis account op [render.com](https://render.com) en kies **New → Blueprint**. Selecteer je repository; Render leest `render.yaml` en maakt een webservice in Frankfurt. Je hoeft niks in te vullen: Render maakt zelf het geheim `KK_SECRET` aan waarmee de reservekopieën worden ondertekend.
-3. Klik op **Deploy Blueprint**. Je link wordt iets als `https://karnemelk-kart.onrender.com`. Deel die, of deel vanuit de lobby de link met groepscode.
+3. Klik op **Deploy Blueprint**. Je link wordt iets als `https://spelkeet.onrender.com`. Deel die, of deel vanuit de lobby de link met groepscode.
 
 Let op: een gratis Render-server slaapt na 15 minuten zonder bezoekers. De eerste speler wacht dan ongeveer een minuut; de game probeert vanzelf opnieuw te verbinden en de telefoons zetten hun profiel terug. Wie op dat moment niet online is, krijgt zijn profiel terug zodra hij de game weer opent.
 
@@ -162,9 +162,10 @@ Je krijgt een adres als `https://iets-willekeurigs.trycloudflare.com` dat werkt 
 | `MELD_SLEUTEL` | – | Geheim woord om de meldingen te lezen op `/api/meldingen?sleutel=…`. Niet ingevuld: niet te lezen (wel in het logboek) |
 | `ANDROID_PACKAGE` | – | Pakketnaam van de app in de Play Store, voor `/.well-known/assetlinks.json` |
 | `ANDROID_SHA256` | – | Vingerafdruk(ken) (SHA-256) van de ondertekeningssleutel van de app, gescheiden door komma's |
+| `PUBLIC_URL` | (op Render: vanzelf) | Het eigen webadres, voor het plaatje bij een gedeelde link. Op Render hoeft het niet: daar komt het uit `RENDER_EXTERNAL_URL` |
 | `REDIRECT_TO` | – | Verhuisd naar een nieuw adres? Zet hier het nieuwe adres (bijvoorbeeld `https://spelkeet.onrender.com`) op de oude server, dan stuurt die iedereen door, met de rest van de link erbij. `/health` blijft gewoon werken |
 
-**Naar een ander webadres verhuizen** (bijvoorbeeld van `karnemelk-kart.onrender.com` naar `spelkeet.onrender.com`): het adres van een bestaande service op Render kun je niet hernoemen. Maak daarom een nieuwe gratis Web Service met dezelfde repository en de nieuwe naam, en neem bij Environment de `KK_SECRET` van de oude service over (anders herkent de nieuwe server de reservekopieën op de telefoons niet en zijn de MP-punten weg). Werkt het nieuwe adres, zet dan `REDIRECT_TO` op de oude service, en pas het adres van het deelplaatje (`og:image` in `public/speelhal.html`) aan.
+**Naar een ander webadres verhuizen** (bijvoorbeeld van `karnemelk-kart.onrender.com` naar `spelkeet.onrender.com`): het adres van een bestaande service op Render kun je niet hernoemen. Maak daarom een nieuwe gratis Web Service met dezelfde repository en de nieuwe naam, en neem bij Environment de `KK_SECRET` van de oude service over (anders herkent de nieuwe server de reservekopieën op de telefoons niet en zijn de MP-punten weg). Werkt het nieuwe adres, zet dan `REDIRECT_TO` op de oude service. Het plaatje bij een gedeelde link volgt vanzelf het nieuwe adres (Render geeft dat door in `RENDER_EXTERNAL_URL`; elders kan het met `PUBLIC_URL`). Let op: MP-punten in Karnemelk Kart horen bij het adres. Wie ze wil meenemen, maakt op het oude adres eerst een overzetcode (Instellingen).
 
 `/health` geeft de status terug (aantal rooms en spelers), handig voor hostingcontroles.
 

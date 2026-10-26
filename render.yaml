@@ -3,7 +3,7 @@
 # en komen vanzelf terug als de gratis server opnieuw opstart.
 services:
   - type: web
-    name: karnemelk-kart
+    name: spelkeet      # het adres wordt https://spelkeet.onrender.com
     runtime: node
     plan: free
     region: frankfurt   # dichtbij Nederland: minder vertraging in de race
