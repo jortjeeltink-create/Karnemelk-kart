@@ -201,23 +201,23 @@ test('10 spelers racen live samen, met herverbinden, punten en winkel', { timeou
 test('de server levert de game en een gezondheidscheck', async () => {
   const srv = await startServer();
   try {
-    // de hoofdpagina is Rondje met al de spellen
+    // de hoofdpagina is ATJE met al de spellen
     const hall = await fetch(srv.url + '/');
     assert.equal(hall.status, 200);
     const hallHtml = await hall.text();
-    assert.match(hallHtml, /<title>Rondje<\/title>/);
-    for (const href of ['/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld', '/borrelbord']) assert.ok(hallHtml.includes(`'${href}'`), `Rondje linkt naar ${href}`);
-    for (const href of ['/megaball', '/stockmarket', '/rodezone', '/weerwolven', '/wolvennacht', '/zuipbord']) assert.ok(!hallHtml.includes(`'${href}'`), `${href} staat niet in Rondje`);
+    assert.match(hallHtml, /<title>ATJE<\/title>/);
+    for (const href of ['/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld', '/borrelbord']) assert.ok(hallHtml.includes(`'${href}'`), `ATJE linkt naar ${href}`);
+    for (const href of ['/megaball', '/stockmarket', '/rodezone', '/weerwolven', '/wolvennacht', '/zuipbord']) assert.ok(!hallHtml.includes(`'${href}'`), `${href} staat niet in ATJE`);
     assert.match(hallHtml, /'Karnemelk Kart'/, 'de kartgame heet Karnemelk Kart');
     // namen van merken of grove namen staan nergens meer in
     assert.doesNotMatch(hallHtml, /Mario|Fuck|Wakkerdam|Zuipbord|Weerwolven van/);
     assert.match(hallHtml, /rel="manifest" href="\/speelhal\.webmanifest"/);
-    // op het beginscherm en bij het delen heet het Rondje, met een eigen logo
+    // op het beginscherm en bij het delen heet het ATJE, met een eigen logo
     const hallManifest = await (await fetch(srv.url + '/speelhal.webmanifest')).json();
-    assert.equal(hallManifest.name, 'Rondje');
+    assert.equal(hallManifest.name, 'ATJE');
     assert.equal(hallManifest.start_url, '/');
     for (const icon of hallManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
-    assert.match(hallHtml, /property="og:title" content="Rondje"/);
+    assert.match(hallHtml, /property="og:title" content="ATJE"/);
     assert.equal((await fetch(srv.url + '/img/speelhal-deel.png')).status, 200);
     assert.equal((await fetch(srv.url + '/img/speelhal-180.png')).status, 200);
     assert.equal((await (await fetch(srv.url + '/manifest.webmanifest')).json()).start_url, '/kart', 'de kartgame opent de race');

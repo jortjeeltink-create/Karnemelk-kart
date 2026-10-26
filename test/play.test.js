@@ -30,7 +30,7 @@ test('de server: privacybeleid, voorwaarden, melden, offline-pagina en de poort 
   try {
     for (const [path, title] of [['/privacy', 'Privacybeleid'], ['/voorwaarden', 'Voorwaarden'], ['/melden', 'Iets melden']]) {
       const html = await (await fetch(srv.url + path)).text();
-      assert.match(html, new RegExp(`<title>${title} · Rondje</title>`), path);
+      assert.match(html, new RegExp(`<title>${title} · ATJE</title>`), path);
       assert.ok(html.includes('hallo@voorbeeld.nl'), `${path}: het contactadres staat erin`);
       assert.ok(!html.includes('{{CONTACT_EMAIL}}'), path);
       assert.ok(!html.includes('/js/poort.js'), `${path} is altijd te lezen, ook zonder de poort`);
@@ -75,14 +75,14 @@ test('de server: privacybeleid, voorwaarden, melden, offline-pagina en de poort 
 
 test('de koppeling met de Android-app (Digital Asset Links)', async () => {
   const print = Array.from({ length: 32 }, (_, i) => (i * 7 % 256).toString(16).padStart(2, '0')).join(':');
-  const srv = await startServer({ env: { ANDROID_PACKAGE: 'nl.rondje.app', ANDROID_SHA256: `${print.toLowerCase()}, nonsens` } });
+  const srv = await startServer({ env: { ANDROID_PACKAGE: 'nl.atje.app', ANDROID_SHA256: `${print.toLowerCase()}, nonsens` } });
   try {
     const r = await fetch(srv.url + '/.well-known/assetlinks.json');
     assert.equal(r.status, 200);
     assert.match(r.headers.get('content-type'), /application\/json/);
     const [link] = await r.json();
     assert.deepEqual(link.relation, ['delegate_permission/common.handle_all_urls']);
-    assert.deepEqual(link.target, { namespace: 'android_app', package_name: 'nl.rondje.app', sha256_cert_fingerprints: [print.toUpperCase()] });
+    assert.deepEqual(link.target, { namespace: 'android_app', package_name: 'nl.atje.app', sha256_cert_fingerprints: [print.toUpperCase()] });
   } finally {
     await srv.stop();
   }

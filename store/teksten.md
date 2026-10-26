@@ -5,7 +5,7 @@ Kopieer deze teksten in de Play Console bij **Groei → Store-presence → Hoofd
 ## App-naam (max. 30 tekens)
 
 ```
-Rondje: spellen met vrienden
+ATJE: spellen met vrienden
 ```
 
 ## Korte beschrijving (max. 80 tekens)
@@ -17,7 +17,7 @@ Kaart-, dobbel- en drankspellen met vrienden, ieder op zijn eigen telefoon. 18+
 ## Volledige beschrijving (max. 4000 tekens)
 
 ```
-Rondje is voor een avond met vrienden. Iedereen speelt op zijn eigen telefoon: één iemand maakt een tafel en deelt de code van vier letters, de rest doet mee. Geen account nodig, geen reclame.
+ATJE is voor een avond met vrienden. Iedereen speelt op zijn eigen telefoon: één iemand maakt een tafel en deelt de code van vier letters, de rest doet mee. Geen account nodig, geen reclame.
 
 TIEN SPELLEN
 
@@ -38,9 +38,9 @@ ZO WERKT HET
 • Valt je verbinding even weg? Je komt vanzelf terug op je eigen plek.
 
 VERANTWOORD SPELEN
-Rondje bevat drankspellen en is alleen voor 18 jaar en ouder. Drinken is nooit verplicht: een slok mag ook water, fris of karnemelk zijn. De spellen tellen slokken, nooit glazen, en houden het aantal per keer beperkt. Drink nooit als je nog moet rijden.
+ATJE bevat drankspellen en is alleen voor 18 jaar en ouder. Drinken is nooit verplicht: een slok mag ook water, fris of karnemelk zijn. De spellen tellen slokken, nooit glazen, en houden het aantal per keer beperkt. Drink nooit als je nog moet rijden.
 
-Rondje heeft internet nodig: je speelt live met je vrienden aan tafel.
+ATJE heeft internet nodig: je speelt live met je vrienden aan tafel.
 ```
 
 ## Categorie en tags
@@ -55,4 +55,4 @@ Rondje heeft internet nodig: je speelt live met je vrienden aan tafel.
 |---|---|
 | `icoon-512.png` | App-icoon (512 × 512) |
 | `banner-1024x500.png` | Feature graphic (1024 × 500) |
-| `screenshot-1-rondje.png` t/m `screenshot-6-paardenrace.png` | Screenshots voor telefoons (1080 × 1920, minstens 2) |
+| `screenshot-1-atje.png` t/m `screenshot-6-paardenrace.png` | Screenshots voor telefoons (1080 × 1920, minstens 2) |

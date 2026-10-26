@@ -1,6 +1,6 @@
-// De service worker van Rondje. Hij bewaart alleen een pagina voor als er geen internet is: de spellen zelf draaien
+// De service worker van ATJE. Hij bewaart alleen een pagina voor als er geen internet is: de spellen zelf draaien
 // live op de server, dus verder gaat alles gewoon over het netwerk (zonder cache, zodat je altijd de nieuwste versie hebt).
-const CACHE = 'rondje-offline-1';
+const CACHE = 'atje-offline-1';
 const OFFLINE = '/offline.html';
 
 self.addEventListener('install', (e) => {

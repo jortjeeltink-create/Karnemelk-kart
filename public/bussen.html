@@ -21,7 +21,7 @@
 :root{
   /* Layout: zoals een pokerapp. Bovenin een glazen balk, in het midden een groene vilten tafel met
      de spelers rondom (jij altijd onderaan) en de kaarten van de fase op het vilt, onderin een donkere
-     actiebalk met wat jij nu kunt doen. Eromheen de nachtlucht van Rondje. */
+     actiebalk met wat jij nu kunt doen. Eromheen de nachtlucht van ATJE. */
   --night:#150b18;
   --night-2:#24112b;
   --night-3:#0b060d;
@@ -446,7 +446,7 @@ const me = (() => {
     crypto.getRandomValues(a);
     token = [...a].map((x) => abc[x & 63]).join('');
   }
-  // je naam neemt hij over van een ander spel in Rondje als je die daar al eens hebt ingevuld
+  // je naam neemt hij over van een ander spel in ATJE als je die daar al eens hebt ingevuld
   const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik', 'bord-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
   const o = { token, name: typeof name === 'string' ? name.slice(0, B.NAME_MAX) : '' };
   store.set(KEY.me, o);
@@ -1140,7 +1140,7 @@ function menuHTML() {
     ${S ? `<button type="button" data-act="share">Uitnodigen <span>${S.code}</span></button>
     <button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>` : ''}
     <a href="/melden?spel=bussen${S ? `&code=${S.code}` : ''}">Iets melden <span>›</span></a>
-    <a href="/">Naar Rondje <span>›</span></a>
+    <a href="/">Naar ATJE <span>›</span></a>
   </nav>`;
 }
 

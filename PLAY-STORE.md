@@ -1,10 +1,10 @@
-# Rondje in de Google Play Store
+# ATJE in de Google Play Store
 
-Rondje is een website (een PWA). In de Play Store komt hij als **Trusted Web Activity**: een kleine Android-app die de site schermvullend opent, zonder adresbalk. De spellen blijven op de server draaien. Een update van de site is dus meteen ook een update van de app.
+ATJE is een website (een PWA). In de Play Store komt hij als **Trusted Web Activity**: een kleine Android-app die de site schermvullend opent, zonder adresbalk. De spellen blijven op de server draaien. Een update van de site is dus meteen ook een update van de app.
 
 Op de site staat al klaar:
 
-- **De poort.** De eerste keer vraagt Rondje of je 18 of ouder bent, met regels over verantwoord spelen en de voorwaarden.
+- **De poort.** De eerste keer vraagt ATJE of je 18 of ouder bent, met regels over verantwoord spelen en de voorwaarden.
 - **De juridische pagina's:**
   - `/privacy` (privacybeleid);
   - `/voorwaarden` (gebruiksvoorwaarden, met de regels voor namen);
@@ -24,15 +24,15 @@ Hieronder staat wat jij zelf moet doen, in deze volgorde.
 
 - **Kies je webadres nu, voordat je publiceert.** De app zit vast aan dat adres. Een ander adres betekent later een nieuwe app-versie en een nieuwe koppeling.
   - `karnemelk-kart.onrender.com` werkt.
-  - Een eigen domein (bijvoorbeeld iets met "rondje") is netter. Koppelen kan in Render bij *Settings → Custom Domains*.
+  - Een eigen domein (bijvoorbeeld iets met "atje") is netter. Koppelen kan in Render bij *Settings → Custom Domains*.
 - **Neem een betaald plan bij Render.** Het gratis plan valt na 15 minuten zonder bezoekers in slaap, en dan wacht de eerste speler bijna een minuut. In een app voelt dat kapot. Het goedkoopste betaalde plan (Starter) is genoeg.
 - **Zet bij Render onder *Environment* deze instellingen:**
 
 | Instelling | Wat | Voorbeeld |
 |---|---|---|
-| `CONTACT_EMAIL` | Het e-mailadres dat op het privacybeleid, de voorwaarden en het meldformulier staat. Gebruik gerust een apart adres; het wordt openbaar | `rondje.app@gmail.com` |
+| `CONTACT_EMAIL` | Het e-mailadres dat op het privacybeleid, de voorwaarden en het meldformulier staat. Gebruik gerust een apart adres; het wordt openbaar | `atje.app@gmail.com` |
 | `MELD_SLEUTEL` | Een geheim woord. Daarmee lees je de meldingen op `/api/meldingen?sleutel=…` | een lange willekeurige tekst |
-| `ANDROID_PACKAGE` | De pakketnaam van de app (stap 3) | `nl.rondje.app` |
+| `ANDROID_PACKAGE` | De pakketnaam van de app (stap 3) | `nl.atje.app` |
 | `ANDROID_SHA256` | De vingerafdruk(ken) van de ondertekeningssleutel (stap 4), gescheiden door komma's | `AB:CD:…` |
 
 Meldingen komen ook in de logboeken van Render ("melding: …"). Op het gratis plan zonder schijf zijn de bewaarde meldingen na een herstart weg; de logboeken niet.
@@ -46,10 +46,10 @@ Meldingen komen ook in de logboeken van Render ("melding: …"). Op het gratis p
 
 ## 3. De Android-app maken (zonder programmeren)
 
-1. Ga naar [pwabuilder.com](https://www.pwabuilder.com) en vul het adres van Rondje in (bijvoorbeeld `https://karnemelk-kart.onrender.com`).
+1. Ga naar [pwabuilder.com](https://www.pwabuilder.com) en vul het adres van ATJE in (bijvoorbeeld `https://karnemelk-kart.onrender.com`).
 2. Kies **Package for stores → Android → Generate package**. Vul in:
-   - **Package ID**: bijvoorbeeld `nl.rondje.app`. Hij moet uniek zijn en kan later **nooit** meer veranderen.
-   - **App name** en **Launcher name**: `Rondje`.
+   - **Package ID**: bijvoorbeeld `nl.atje.app`. Hij moet uniek zijn en kan later **nooit** meer veranderen.
+   - **App name** en **Launcher name**: `ATJE`.
    - **Start URL**: `/`.
    - **Display mode**: Standalone. **Orientation**: Default (de kartgame kan dan ook liggend).
    - **Signing key**: *Create new*.
@@ -67,7 +67,7 @@ Liever op je eigen computer? Met [Bubblewrap](https://github.com/GoogleChromeLab
 Zonder deze koppeling toont de app bovenin een adresbalk.
 
 1. Maak in de Play Console de app aan:
-   - naam *Rondje*;
+   - naam *ATJE*;
    - standaardtaal *Nederlands*;
    - *Game*;
    - *Gratis*.
