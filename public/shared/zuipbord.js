@@ -3,11 +3,12 @@
 // een opdracht: zelf drinken, uitdelen, iedereen drinkt, je buren drinken, een vraag, een regel, een duel, dubbel of
 // niks, een drinkmaatje kiezen of van plek ruilen. Op een gans loop je nog een keer zoveel vakjes verder, de brug brengt
 // je naar 12, in het café sla je een beurt over, in de put zit je vast tot een ander erin valt, het doolhof zet je 5
-// terug en bij de doodskop ga je terug naar start. Gooi je verder dan de finish, dan sta je er ook op.
-// Bij een duel gooien jullie allebei zelf (bij gelijk nog een keer); bij dubbel of niks gooi je zelf nog een keer.
-// Wie als eerste op de finish staat, wint en deelt 3 slokken uit. Wie dan het verst achter staat, drinkt er 2.
-// De slokken zijn zo gekozen dat een potje te doen blijft: gemiddeld zo'n 10 per speler, ongeveer één glas (de
-// vragen niet meegeteld).
+// terug en bij de doodskop ga je terug naar start. Vakje 47 is een ad fundum. Gooi je verder dan de finish, dan sta
+// je er ook op. Bij een duel gooien jullie allebei zelf (bij gelijk nog een keer); bij dubbel of niks gooi je zelf
+// nog een keer. Wie als eerste op de finish staat, wint en mag een bak uitdelen: iemand drinkt zijn glas leeg. Wie
+// dan het verst achter staat, drinkt er 2.
+// De slokken op de vakjes zijn zo gekozen dat een potje te doen blijft: gemiddeld zo'n 11 per speler, de ad fundum
+// en de bak meegeteld als 5 (de vragen niet).
 // Heb je een drinkmaatje, dan drinkt die mee als jij moet drinken (behalve als iedereen drinkt: dan al).
 // Een potje is een gewoon object (JSON) met de seed van de random-generator erin, net als bij Bussen.
 import { rand, cleanNames, NAME_MAX } from './bussen.js';
@@ -18,7 +19,7 @@ export const MAX_PLAYERS = 10;
 export const SIZE = 48;
 export const BRIDGE_TO = 12;
 export const MAZE_BACK = 5;
-export const WIN_SIPS = 3;     // de winnaar deelt dit uit
+export const AD_SIPS = 5;      // een ad fundum of een bak (glas leeg) telt in de stand als 5 slokken
 export const LAST_SIPS = 2;    // wie het verst achter staat als iemand wint
 const LOG_SIZE = 20;
 
@@ -32,10 +33,10 @@ export const BOARD = [
   { t: 'ruil' }, { t: 'vraag' }, { t: 'buren', n: 1 }, { t: 'rust' }, { t: 'regel' }, { t: 'duel', n: 2 },
   { t: 'put' }, { t: 'gans' }, { t: 'regel' }, { t: 'vraag' }, { t: 'drink', n: 1 }, { t: 'ruil' },
   { t: 'rust' }, { t: 'vraag' }, { t: 'drink', n: 1 }, { t: 'geef', n: 1 }, { t: 'gans' }, { t: 'doolhof' },
-  { t: 'rust' }, { t: 'vraag' }, { t: 'rust' }, { t: 'dood', n: 1 }, { t: 'drink', n: 2 }, { t: 'finish' },
+  { t: 'rust' }, { t: 'vraag' }, { t: 'rust' }, { t: 'dood', n: 1 }, { t: 'ad' }, { t: 'finish' },
 ];
-// vakjes waarop je iemand kiest (en wie de winnaar laat drinken)
-export const CHOOSE = ['geef', 'maatje', 'duel', 'ruil', 'winst'];
+// vakjes waarop je iemand kiest (en de bak van de winnaar)
+export const CHOOSE = ['geef', 'maatje', 'duel', 'ruil', 'bak'];
 
 // Vragen: wie het is, drinkt (dat weet de telefoon niet, dus dat doe je zelf).
 export const VRAGEN = [
@@ -306,6 +307,7 @@ function land(g, player, v, live, depth) {
       g.pending = { kind: 'dubbel', n: sq.n };
       return true;
     }
+    case 'ad': return done({ drinks: drink(g, player, AD_SIPS) });
     case 'finish': return finish(g, player, live, base);
     case 'geef': case 'maatje': case 'duel': case 'ruil': {
       if (!others.length) return done();
@@ -319,7 +321,7 @@ function land(g, player, v, live, depth) {
 }
 
 // Wie aan de beurt is kiest iemand: om te laten drinken, als drinkmaatje, voor een duel, om mee te ruilen, of (de
-// winnaar) wie er drinkt.
+// winnaar) wie er een bak trekt.
 export function choose(g, player, target, live) {
   live = uniq(live);
   if (g.phase !== 'kiezen' || player < 0 || player !== g.turn || target === player || !live.includes(target) || !g.players[target]) return null;
@@ -330,26 +332,26 @@ export function choose(g, player, target, live) {
   else if (kind === 'ruil') {
     [p.pos, q.pos] = [q.pos, p.pos];
     [p.stuck, q.stuck] = [q.stuck, p.stuck];
-  } else if (kind === 'winst') ev.drinks = drink(g, target, n);
+  } else if (kind === 'bak') ev.drinks = drink(g, target, AD_SIPS);
   g.pending = null;
   emit(g, ev);
   if (kind === 'duel') {
     // nu gooien jullie allebei (zie duelRoll)
     g.phase = 'duel';
     g.duel = { a: player, b: target, ra: null, rb: null, n };
-  } else if (kind === 'winst') end(g, player, live);
+  } else if (kind === 'bak') end(g, player, live);
   else passTurn(g, live);
   return ev;
 }
 
-// Op de finish: gewonnen. De winnaar kiest eerst wie er drinkt (als er iemand anders is).
+// Op de finish: gewonnen. De winnaar kiest eerst wie er een bak trekt (als er iemand anders is).
 function finish(g, player, live, base) {
   g.players[player].wins++;
   g.winner = player;
   emit(g, { ...base });
   if (!live.some((q) => q !== player)) return end(g, player, live);
   g.phase = 'kiezen';
-  g.pending = { kind: 'winst', n: WIN_SIPS };
+  g.pending = { kind: 'bak', n: AD_SIPS };
   return true;
 }
 

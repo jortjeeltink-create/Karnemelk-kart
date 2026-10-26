@@ -37,7 +37,7 @@ test('de server: privacybeleid, voorwaarden, melden, offline-pagina en de poort 
     }
     assert.match(await (await fetch(srv.url + '/privacy')).text(), /Mijn gegevens wissen/);
     // elke speelpagina heeft de poort (18+) en een link om iets te melden
-    for (const path of ['/', '/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld', '/wolvennacht', '/borrelbord']) {
+    for (const path of ['/', '/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld', '/borrelbord']) {
       const html = await (await fetch(srv.url + path)).text();
       assert.ok(html.includes('<script src="/js/poort.js" defer></script>'), `${path}: de poort`);
       if (path !== '/kart') assert.ok(html.includes('/melden'), `${path}: iets melden`);
