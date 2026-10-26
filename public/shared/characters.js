@@ -3,34 +3,34 @@
 export const CHARACTERS = [
   { id: 'kees', name: 'Kees Karnemelk', desc: 'Een vrolijk melkpak met een snor.', head: 'pak', body: '#2f7de1', skin: '#ffffff', kart: '#3a8ef6', accent: '#ffffff' },
   {
-    id: 'sim', friend: true, special: 'special_sim', name: 'Sim', desc: 'Donker haar, net niet helemaal: lichtdonker. Rijdt altijd de ideale lijn.', head: 'mens', body: '#4aa3ff', skin: '#f6c9a5', kart: '#3b8fe6', accent: '#ffffff',
+    id: 'sim', special: 'special_sim', name: 'Sjors', desc: 'Donker haar, net niet helemaal: lichtdonker. Rijdt altijd de ideale lijn.', head: 'mens', body: '#4aa3ff', skin: '#f6c9a5', kart: '#3b8fe6', accent: '#ffffff',
     look: { skin: '#f6c9a5', hair: 'kort', hairColor: '#5c3b24', shirt: '#4aa3ff', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
   },
   {
-    id: 'ridderkees', friend: true, special: 'special_ridderkees', name: 'Ridder Kees', desc: 'Kees in een glimmend ridderpak. Voor de eer van de karnemelk!', head: 'pak', armor: true, body: '#cfd5dd', skin: '#ffffff', kart: '#9aa3ad', accent: '#e63946',
+    id: 'ridderkees', special: 'special_ridderkees', name: 'Ridder Kees', desc: 'Kees in een glimmend ridderpak. Voor de eer van de karnemelk!', head: 'pak', armor: true, body: '#cfd5dd', skin: '#ffffff', kart: '#9aa3ad', accent: '#e63946',
   },
   {
-    id: 'ridderjort', friend: true, special: 'special_ridderjort', name: 'Ridder Jort', desc: 'Van top tot teen in harnas. Niemand weet wat er onder die helm gebeurt.', head: 'mens', armor: true, body: '#cfd5dd', skin: '#f6c9a5', kart: '#2f5fa8', accent: '#ffd23f',
+    id: 'ridderjort', special: 'special_ridderjort', name: 'Ridder Roest', desc: 'Van top tot teen in harnas. Niemand weet wie er onder die helm zit.', head: 'mens', armor: true, body: '#cfd5dd', skin: '#f6c9a5', kart: '#2f5fa8', accent: '#ffd23f',
     look: { skin: '#f6c9a5', hair: 'kort', hairColor: '#4a2f1d', shirt: '#cfd5dd', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen', helm: true },
   },
   {
-    id: 'stan', friend: true, special: 'special_stan', name: 'Stan', desc: 'Kort, donkerbruin en altijd een beetje warrig. Net als zijn rijstijl.', head: 'mens', body: '#e63946', skin: '#f6c9a5', kart: '#d62f3c', accent: '#ffffff',
+    id: 'stan', special: 'special_stan', name: 'Wim', desc: 'Kort, donkerbruin en altijd een beetje warrig. Net als zijn rijstijl.', head: 'mens', body: '#e63946', skin: '#f6c9a5', kart: '#d62f3c', accent: '#ffffff',
     look: { skin: '#f6c9a5', hair: 'warrig', hairColor: '#3a2418', shirt: '#e63946', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
   },
   {
-    id: 'jullian', friend: true, special: 'special_jullian', name: 'Jullian', desc: 'Kaal geschoren en blond: geen haar die in de weg zit.', head: 'mens', body: '#222831', skin: '#f6c9a5', kart: '#2b3340', accent: '#ffd23f',
+    id: 'jullian', special: 'special_jullian', name: 'Stef', desc: 'Kaal geschoren en blond: geen haar die in de weg zit.', head: 'mens', body: '#222831', skin: '#f6c9a5', kart: '#2b3340', accent: '#ffd23f',
     look: { skin: '#f6c9a5', hair: 'stoppels', hairColor: '#ecc96d', shirt: '#222831', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
   },
   {
-    id: 'melle', friend: true, special: 'special_melle', name: 'Melle', desc: 'Kort lichtblond haar en een snelle stuurhand.', head: 'mens', body: '#3dd6d0', skin: '#f6c9a5', kart: '#2fc4be', accent: '#ffffff',
+    id: 'melle', special: 'special_melle', name: 'Flip', desc: 'Kort lichtblond haar en een snelle stuurhand.', head: 'mens', body: '#3dd6d0', skin: '#f6c9a5', kart: '#2fc4be', accent: '#ffffff',
     look: { skin: '#f6c9a5', hair: 'kort', hairColor: '#f6d987', shirt: '#3dd6d0', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
   },
   {
-    id: 'duuk', friend: true, special: 'special_duuk', name: 'Duuk', desc: 'Kaal en aerodynamisch. Zegt hij zelf.', head: 'mens', body: '#ff7a00', skin: '#e8b48a', kart: '#ff8a1f', accent: '#222831',
+    id: 'duuk', special: 'special_duuk', name: 'Koen', desc: 'Kaal en aerodynamisch. Zegt hij zelf.', head: 'mens', body: '#ff7a00', skin: '#e8b48a', kart: '#ff8a1f', accent: '#222831',
     look: { skin: '#e8b48a', hair: 'kaal', hairColor: '#4a2f1d', shirt: '#ff7a00', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
   },
   {
-    id: 'morris', friend: true, special: 'special_morris', name: 'Morris', desc: 'Blond met een strakke middenscheiding. Elke haar zit goed, ook na een botsing.', head: 'mens', body: '#3fbf6a', skin: '#f6c9a5', kart: '#35a95c', accent: '#ffffff',
+    id: 'morris', special: 'special_morris', name: 'Freek', desc: 'Blond met een strakke middenscheiding. Elke haar zit goed, ook na een botsing.', head: 'mens', body: '#3fbf6a', skin: '#f6c9a5', kart: '#35a95c', accent: '#ffffff',
     look: { skin: '#f6c9a5', hair: 'scheiding', hairColor: '#ecc96d', shirt: '#3fbf6a', height: 'normaal', build: 'normaal', glasses: 'geen', facial: 'geen' },
   },
   { id: 'bella', name: 'Bella Boerin', desc: 'Ruikt de modder al van verre.', head: 'strohoed', body: '#d93a3a', skin: '#f6c9a5', kart: '#e8423f', accent: '#ffd34d' },
@@ -51,7 +51,8 @@ export const DEFAULT_CHARACTER = 'kees';
 // gratis coureurs (specials koop je in de winkel; je eigen coureur maak je zelf)
 export const BOT_CHARACTERS = CHARACTERS.filter((c) => !c.custom && !c.special);
 
-// Racenaam: met een special heet je bijvoorbeeld "Sim (Jort)", zodat je meerdere Sims uit elkaar houdt.
+// Racenaam: met een special heet je bijvoorbeeld "Flip (Sanne)", zodat je meerdere Flips uit elkaar houdt.
+// (De ids van de specials zijn nog de oude; zo houdt iedereen wat hij al gekocht had.)
 export function racerName(playerName, characterId) {
   const ch = CHARACTER_BY_ID[characterId];
   if (!ch || !ch.special) return playerName;

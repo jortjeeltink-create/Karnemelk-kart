@@ -1,4 +1,4 @@
-// Boer zoekt vrouw: het drankspel, online met iedereen op zijn eigen telefoon.
+// Boerenbruiloft (eerst Boer zoekt vrouw): het partyspel, online met iedereen op zijn eigen telefoon.
 // Iedereen krijgt een rol: één boer, één vrouw en de rest burgers. De boer begint wanneer hij wil met tellen,
 // met zijn ogen dicht. De vrouw drinkt intussen zo snel mogelijk een glas leeg. Daarna raadt de boer wie de
 // vrouw was: goed geraden, dan drinkt de vrouw ook het tweede glas; fout, dan drinkt de boer het.

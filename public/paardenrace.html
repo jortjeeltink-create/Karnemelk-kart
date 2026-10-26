@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@400;500;700&family=Sofia+Sans+Extra+Condensed:wght@500;700;800;900&display=swap">
 <style>
 :root{
-  /* Dezelfde tafel als Bussen en Fuck the dealer: bovenin een glazen balk, in het midden de groene vilten tafel
+  /* Dezelfde tafel als Bussen en Pak de dealer: bovenin een glazen balk, in het midden de groene vilten tafel
      met de spelers rondom (jij altijd onderaan) en de renbaan op het vilt, onderin een donkere actiebalk. */
   --night:#150b18;
   --night-3:#0b060d;
@@ -378,7 +378,7 @@ const store = {
 };
 
 // wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
-// Je naam neemt hij over van een ander spel in de speelhal als je die daar al eens hebt ingevuld.
+// Je naam neemt hij over van een ander spel in Rondje als je die daar al eens hebt ingevuld.
 const me = (() => {
   const v = store.get(KEY.me, {}) || {};
   let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
@@ -766,7 +766,7 @@ function vHome() {
   <div class="startcard cream">
     <div class="chips"><span class="chip">${P.MIN_PLAYERS} tot ${P.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
     <p>Kies een aas als paard en zet slokken in. Om de beurt trek je een kaart, en het paard met die vorm galoppeert een stap vooruit. Zette je op het verkeerde paard? Dan drink je.</p>
-    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${P.NAME_MAX}" placeholder="Bijvoorbeeld Jort" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
+    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${P.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
       <button class="addbtn" type="submit" ${busy}>Meedoen</button>
@@ -897,7 +897,7 @@ function menuHTML() {
     ${S ? `<button type="button" data-act="share">Uitnodigen <span>${S.code}</span></button>` : ''}
     ${game && host ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
     ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
-    <a href="/">Naar de speelhal <span>›</span></a>
+    <a href="/">Naar Rondje <span>›</span></a>
   </nav>`;
 }
 

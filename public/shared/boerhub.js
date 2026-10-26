@@ -1,4 +1,4 @@
-// Boer zoekt vrouw online: tafels met een groepscode (zie tafels.js), de spelregels in boer.js.
+// Boerenbruiloft online: tafels met een groepscode (zie tafels.js), de spelregels in boer.js.
 // Niemand ziet de rol van een ander. Wie de boer is, horen de anderen pas als hij begint te tellen,
 // en wie de vrouw was pas als de boer heeft geraden.
 import * as V from './boer.js';

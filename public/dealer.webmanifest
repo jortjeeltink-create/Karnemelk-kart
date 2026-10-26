@@ -1,7 +1,7 @@
 {
-  "name": "Fuck the dealer",
+  "name": "Pak de dealer",
   "short_name": "Dealer",
-  "description": "Het drankspel Fuck the dealer online: de dealer ziet de kaart, de rest raadt.",
+  "description": "Pak de dealer: het kaartspel online. De dealer ziet de kaart, de rest raadt.",
   "lang": "nl",
   "id": "/dealer",
   "start_url": "/dealer",

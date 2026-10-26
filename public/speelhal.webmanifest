@@ -1,7 +1,7 @@
 {
-  "name": "Speelhal",
-  "short_name": "Speelhal",
-  "description": "Al mijn spellen op één plek: kart, kaartspellen, drankspellen en meer.",
+  "name": "Rondje",
+  "short_name": "Rondje",
+  "description": "Spellen voor een avond met vrienden, ieder op zijn eigen telefoon: kart, kaartspellen, dobbelspellen en meer.",
   "lang": "nl",
   "id": "/",
   "start_url": "/",

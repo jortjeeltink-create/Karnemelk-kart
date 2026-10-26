@@ -1,4 +1,4 @@
-// Uiterlijk van mensachtige coureurs (Sim, Stan, Morris, ... en je eigen coureur).
+// Uiterlijk van mensachtige coureurs (Sjors, Wim, Freek, ... en je eigen coureur).
 // Alleen uiterlijk: lengte en bouw veranderen niets aan snelheid of botsingen.
 
 export const SKIN_COLORS = ['#ffe3cc', '#f6c9a5', '#e8b48a', '#c98d5f', '#9b6440', '#6b4229'];

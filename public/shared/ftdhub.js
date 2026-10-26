@@ -1,4 +1,4 @@
-// Fuck the dealer online: tafels met een groepscode (zie tafels.js), de spelregels in ftd.js.
+// Pak de dealer online: tafels met een groepscode (zie tafels.js), de spelregels in ftd.js.
 // Alleen de dealer krijgt de bovenste kaart te zien; de rest ziet de stapel, de gespeelde kaarten en de gokken.
 import * as F from './ftd.js';
 import { TableHub } from './tafels.js';

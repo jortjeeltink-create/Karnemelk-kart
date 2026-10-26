@@ -1,4 +1,4 @@
-// Weerwolven: het spel van Wakkerdam, online met iedereen op zijn eigen telefoon. De server is de spelleider: hij
+// Wolvennacht (eerst Weerwolven): het weerwolvenspel, online met iedereen op zijn eigen telefoon. De server is de spelleider: hij
 // deelt de rollen uit, houdt de nacht bij en telt de stemmen, dus niemand hoeft spelleider te zijn.
 //
 // Iedereen krijgt geheim een rol. 's Nachts kiezen de weerwolven samen wie er wordt opgegeten; overdag stemt het

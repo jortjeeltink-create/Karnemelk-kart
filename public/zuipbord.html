@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Zuipbord</title>
-<meta name="description" content="Zuipbord: het drankspel als ganzenbord, online met iedereen op zijn eigen telefoon. Gooi de steen, loop met je pion en doe wat er op het vakje staat.">
+<title>Borrelbord</title>
+<meta name="description" content="Borrelbord: het partyspel als ganzenbord, online met iedereen op zijn eigen telefoon. Gooi de steen, loop met je pion en doe wat er op het vakje staat.">
 <meta name="theme-color" content="#2e180a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Zuipbord">
+<meta name="apple-mobile-web-app-title" content="Borrelbord">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="/zuipbord.webmanifest">
 <link rel="icon" href="/img/zuipbord.svg" type="image/svg+xml">
@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap">
 <style>
 :root{
-  /* Zuipbord heeft de sfeer van een bordspel: een vrolijk bord met gekleurde vakjes op een houten tafel, pionnen in
+  /* Borrelbord heeft de sfeer van een bordspel: een vrolijk bord met gekleurde vakjes op een houten tafel, pionnen in
      de kleur van elke speler en een grote steen om te gooien. Koppen in Lilita One, tekst in Nunito. */
   --wood:#6b3f1f;
   --wood-2:#4a2a13;
@@ -288,7 +288,7 @@ button.pl{cursor:pointer}
 <body>
 <div class="app">
   <header class="bar">
-    <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="7" fill="#fff" stroke="#3a2412" stroke-width="2"/><circle cx="10" cy="10" r="3" fill="#e5483b"/><circle cx="22" cy="10" r="3" fill="#3a2412"/><circle cx="16" cy="16" r="3" fill="#3a2412"/><circle cx="10" cy="22" r="3" fill="#3a2412"/><circle cx="22" cy="22" r="3" fill="#e5483b"/></svg><span>Zuipbord</span></div>
+    <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="7" fill="#fff" stroke="#3a2412" stroke-width="2"/><circle cx="10" cy="10" r="3" fill="#e5483b"/><circle cx="22" cy="10" r="3" fill="#3a2412"/><circle cx="16" cy="16" r="3" fill="#3a2412"/><circle cx="10" cy="22" r="3" fill="#3a2412"/><circle cx="22" cy="22" r="3" fill="#e5483b"/></svg><span>Borrelbord</span></div>
     <div class="bar-r">
       <button class="owe knob" id="owe" type="button" data-act="mine" hidden></button>
       <button class="round knob" type="button" data-act="menu" aria-label="Menu" aria-haspopup="dialog">
@@ -379,7 +379,7 @@ const store = {
 };
 
 // wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
-// Je naam neemt hij over van een ander spel in de speelhal als je die daar al eens hebt ingevuld.
+// Je naam neemt hij over van een ander spel in Rondje als je die daar al eens hebt ingevuld.
 const me = (() => {
   const v = store.get(KEY.me, {}) || {};
   let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
@@ -393,7 +393,7 @@ const me = (() => {
   store.set(KEY.me, o);
   return o;
 })();
-const urlCode = ((location.pathname.match(/^\/zuipbord\/([A-Za-z]{4})$/) || [])[1] || new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+const urlCode = ((location.pathname.match(/^\/borrelbord\/([A-Za-z]{4})$/) || [])[1] || new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
 
 /* ================= GELUID ================= */
 const Snd = {
@@ -519,7 +519,7 @@ function onState(m) {
   ui.joining = false; ui.error = '';
   store.set(KEY.table, { code: m.code });
   Net.want = { t: 'join', code: m.code, name: me.name, token: me.token };
-  if (location.pathname !== `/zuipbord/${m.code}`) history.replaceState(null, '', `/zuipbord/${m.code}`);
+  if (location.pathname !== `/borrelbord/${m.code}`) history.replaceState(null, '', `/borrelbord/${m.code}`);
   const seq = m.seq || 0;
   if (first || m.phase === 'lobby' || seq < ui.seen) {
     // geen oude gebeurtenissen opnieuw afspelen: de pionnen staan meteen op hun plek
@@ -546,7 +546,7 @@ function leaveLocal(reason) {
   Net.stop();
   store.del(KEY.table);
   S = null; ui.banner = null; ui.sheet = null; ui.card = null; ui.queue = []; stopWalk(); Dice.clear(true); ui.code = '';
-  history.replaceState(null, '', '/zuipbord');
+  history.replaceState(null, '', '/borrelbord');
   keepAwake(false);
   render();
   if (reason) toast(reason);
@@ -899,7 +899,7 @@ function vHome() {
   <div class="startcard">
     <div class="chips"><span class="chip">${Z.MIN_PLAYERS} tot ${Z.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
     <p>Het drankspel als ganzenbord. Gooi de steen over het bord, loop met je pion en doe wat er op het vakje staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje. Wie als eerste op de finish staat, wint.</p>
-    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${Z.NAME_MAX}" placeholder="Bijvoorbeeld Jort" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
+    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${Z.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
       <button class="addbtn" type="submit" ${busyBtn}>Meedoen</button>
@@ -1008,7 +1008,7 @@ function menuHTML() {
     ${S ? `<button type="button" data-act="share">Uitnodigen <span>${S.code}</span></button>` : ''}
     ${game && host ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
     ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
-    <a href="/">Naar de speelhal <span>›</span></a>
+    <a href="/">Naar Rondje <span>›</span></a>
   </nav>`;
 }
 
@@ -1027,7 +1027,7 @@ function rulesHTML() {
     const k = KIND[t], sq = Z.BOARD.find((s) => s.t === t) || { t };
     return `<div><span class="sq${k.dark ? ' dark' : ''}" style="--tc:${k.c}">${tileIcon(sq)}</span><span><b>${k.name}</b>. ${k.text}</span></div>`;
   }).join('');
-  return `${sheetTop('Spelregels', 'Zuipbord')}
+  return `${sheetTop('Spelregels', 'Borrelbord')}
   <div class="rules">
     <p>Het drankspel als ganzenbord. Iedereen speelt op zijn eigen telefoon: maak een tafel en deel de code, of doe mee met de code van een ander.</p>
     <ol>
@@ -1173,9 +1173,9 @@ const actions = {
   },
   start() { Snd.ac(); Net.send({ t: 'start' }); },
   share() {
-    const url = `${location.origin}/zuipbord/${S.code}`, text = `Doe mee met Zuipbord aan tafel ${S.code}`;
+    const url = `${location.origin}/borrelbord/${S.code}`, text = `Doe mee met Borrelbord aan tafel ${S.code}`;
     closeSheet();
-    if (navigator.share) navigator.share({ title: 'Zuipbord', text, url }).catch(() => {});
+    if (navigator.share) navigator.share({ title: 'Borrelbord', text, url }).catch(() => {});
     else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast('Link gekopieerd'), () => toast(url));
     else toast(url);
   },

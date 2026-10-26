@@ -737,7 +737,7 @@ export function buildWorld(track, quality = 'normaal') {
       pole.position.set(sgn * (track.halfW + 1.4), 3.75, 0);
       gate.add(pole);
     }
-    const bc = textCanvas('MARIO BAK', { size: 64, color: '#ffffff', stroke: '#2f7de1', bg: '#ff7a00', pad: 30 });
+    const bc = textCanvas('KARNEMELK KART', { size: 64, color: '#ffffff', stroke: '#2f7de1', bg: '#ff7a00', pad: 30 });
     const bt = new THREE.CanvasTexture(bc); bt.colorSpace = THREE.SRGBColorSpace;
     const banner = new THREE.Mesh(new THREE.PlaneGeometry(track.halfW * 2 + 3.6, 2.2), new THREE.MeshBasicMaterial({ map: bt, side: THREE.DoubleSide }));
     banner.position.y = 6.6;

@@ -1,4 +1,4 @@
-// De server van de speelhal: levert de bestanden en regelt de live multiplayer van Mario Bak en de tafelspellen.
+// De server van Rondje: levert de bestanden en regelt de live multiplayer van Karnemelk Kart en de tafelspellen.
 // Start met:  npm start   (standaard op http://localhost:3000)
 import http from 'node:http';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -98,6 +98,14 @@ const mijnHub = new MijnenveldHub({ log, build: buildOf('/mijnenveld.html') });
 const wolfHub = new WeerwolvenHub({ log, build: buildOf('/weerwolven.html') });
 const bordHub = new ZuipbordHub({ log, build: buildOf('/zuipbord.html') });
 
+// Spellen die een nieuwe naam kregen (Weerwolven heet nu Wolvennacht, Zuipbord heet Borrelbord), en spellen die van
+// de site af zijn: wie nog een oude link heeft, komt op de goede plek.
+const OLD_PATHS = [
+  [/^\/weerwolven(?=\/|$)/, '/wolvennacht'],
+  [/^\/zuipbord(?=\/|$)/, '/borrelbord'],
+  [/^\/(megaball|stockmarket|rodezone)(\/.*)?$/, '/'],
+];
+
 // Verhuisd naar een nieuw adres? Zet REDIRECT_TO (bijvoorbeeld https://speelhal.onrender.com) op de oude server,
 // dan stuurt die iedereen door, met de rest van de link erbij. Alleen /health blijft, zodat Render de server ziet.
 const MOVED_TO = (process.env.REDIRECT_TO || '').replace(/\/+$/, '');
@@ -113,13 +121,15 @@ const server = http.createServer((req, res) => {
     res.writeHead(301, { Location: MOVED_TO + req.url, 'Cache-Control': 'no-cache' });
     return res.end();
   }
-  // de speelhal is de hoofdpagina; uitnodigingen (/?room=, /join/) gaan nog steeds naar de kartgame
+  // oude adressen: een spel met een nieuwe naam, of een spel dat er niet meer is (dan naar de hoofdpagina)
+  const moved = OLD_PATHS.find(([re]) => re.test(path));
+  if (moved) {
+    res.writeHead(301, { Location: path.replace(moved[0], moved[1]) + url.search, 'Cache-Control': 'no-cache' });
+    return res.end();
+  }
+  // Rondje is de hoofdpagina; uitnodigingen (/?room=, /join/) gaan nog steeds naar de kartgame
   if (path === '/kart' || path === '/kart/' || path.startsWith('/join/') || (path === '/' && url.searchParams.has('room'))) path = '/index.html';
   else if (path === '/') path = '/speelhal.html';
-  else if (path === '/rodezone' || path === '/rodezone/') path = '/rodezone.html';
-  else if (path === '/megaball' || path === '/megaball/') path = '/megaball.html';
-  else if (path === '/megaball/storten' || path === '/stockmarket/storten') path = '/megaball-storten.html';
-  else if (path === '/stockmarket' || path === '/stockmarket/') path = '/stockmarket.html';
   else if (path === '/bussen' || path === '/bussen/' || /^\/bussen\/[A-Za-z]{4}$/.test(path)) path = '/bussen.html';
   else if (path === '/boer' || path === '/boer/' || /^\/boer\/[A-Za-z]{4}$/.test(path)) path = '/boer.html';
   else if (path === '/mexen' || path === '/mexen/' || /^\/mexen\/[A-Za-z]{4}$/.test(path)) path = '/mexen.html';
@@ -127,8 +137,8 @@ const server = http.createServer((req, res) => {
   else if (path === '/paardenrace' || path === '/paardenrace/' || /^\/paardenrace\/[A-Za-z]{4}$/.test(path)) path = '/paardenrace.html';
   else if (path === '/rotonde' || path === '/rotonde/' || /^\/rotonde\/[A-Za-z]{4}$/.test(path)) path = '/rotonde.html';
   else if (path === '/mijnenveld' || path === '/mijnenveld/' || /^\/mijnenveld\/[A-Za-z]{4}$/.test(path)) path = '/mijnenveld.html';
-  else if (path === '/weerwolven' || path === '/weerwolven/' || /^\/weerwolven\/[A-Za-z]{4}$/.test(path)) path = '/weerwolven.html';
-  else if (path === '/zuipbord' || path === '/zuipbord/' || /^\/zuipbord\/[A-Za-z]{4}$/.test(path)) path = '/zuipbord.html';
+  else if (path === '/wolvennacht' || path === '/wolvennacht/' || /^\/wolvennacht\/[A-Za-z]{4}$/.test(path)) path = '/weerwolven.html';
+  else if (path === '/borrelbord' || path === '/borrelbord/' || /^\/borrelbord\/[A-Za-z]{4}$/.test(path)) path = '/zuipbord.html';
   if (path.includes('..') || path.includes(sep + sep)) { res.writeHead(400); return res.end(); }
   const f = files.get(path);
   if (!f) {
@@ -232,7 +242,7 @@ const tickTimer = setInterval(() => hub.tick(), 1000 / 60);
 const busTimer = setInterval(() => { busHub.tick(); boerHub.tick(); mexHub.tick(); dealerHub.tick(); paardHub.tick(); rotondeHub.tick(); mijnHub.tick(); wolfHub.tick(); bordHub.tick(); }, 5000);
 
 server.listen(PORT, HOST, () => {
-  log(`Speelhal draait op http://localhost:${PORT}`);
+  log(`Rondje draait op http://localhost:${PORT}`);
   for (const ifs of Object.values(os.networkInterfaces())) {
     for (const i of ifs || []) {
       if (i.family === 'IPv4' && !i.internal) log(`Op je wifi (telefoon): http://${i.address}:${PORT}`);

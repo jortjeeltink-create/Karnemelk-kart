@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Boer zoekt vrouw</title>
-<meta name="description" content="Het drankspel Boer zoekt vrouw online: iedereen een rol op zijn eigen telefoon, de boer telt en raadt wie de vrouw is.">
+<title>Boerenbruiloft</title>
+<meta name="description" content="Boerenbruiloft: het partyspel online. Iedereen krijgt een rol op zijn eigen telefoon, de boer telt en raadt wie zijn bruid is.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Boer zoekt vrouw">
+<meta name="apple-mobile-web-app-title" content="Boerenbruiloft">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="/boer.webmanifest">
 <link rel="icon" href="/img/boer.svg" type="image/svg+xml">
@@ -123,7 +123,7 @@ p{margin:0}
 .rail{position:absolute;inset:5% 6% 10%;border-radius:50%/30%;background:linear-gradient(180deg,#45323a 0%,#1d1418 50%,#110b0e 100%);box-shadow:0 26px 60px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.6),inset 0 2px 0 rgba(255,255,255,.16),inset 0 -4px 10px rgba(0,0,0,.5)}
 .felt{position:absolute;inset:calc(5% + 11px) calc(6% + 11px) calc(10% + 11px);border-radius:50%/30%;overflow:hidden;background:radial-gradient(ellipse 75% 60% at 50% 42%,#35a862 0%,#21823f 46%,#125a2e 100%);box-shadow:inset 0 0 0 2px rgba(247,197,72,.3),inset 0 10px 40px rgba(0,0,0,.35),inset 0 -20px 50px rgba(0,0,0,.3)}
 .felt::before{content:"";position:absolute;inset:8% 10%;border-radius:50%/30%;border:1.5px solid rgba(255,255,255,.09)}
-.felt::after{content:"BOER ZOEKT VROUW";position:absolute;left:50%;bottom:13%;transform:translateX(-50%);font-family:var(--display);font-weight:900;font-size:7cqw;letter-spacing:.12em;color:rgba(255,255,255,.06);white-space:nowrap}
+.felt::after{content:"BOERENBRUILOFT";position:absolute;left:50%;bottom:13%;transform:translateX(-50%);font-family:var(--display);font-weight:900;font-size:7cqw;letter-spacing:.12em;color:rgba(255,255,255,.06);white-space:nowrap}
 .table.lobby .felt::after{display:none}
 .center{position:absolute;left:50%;top:47.5%;z-index:2;transform:translate(-50%,-50%);width:66cqw;display:grid;justify-items:center;gap:2cqh;text-align:center}
 .pot{display:inline-flex;align-items:center;gap:7px;padding:4px 12px;border-radius:999px;background:rgba(0,0,0,.34);border:1px solid rgba(255,255,255,.12);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:rgba(243,239,219,.85);white-space:nowrap}
@@ -304,7 +304,7 @@ button.seat:active .ava{transform:scale(.94)}
 
 <div class="app">
   <header class="bar">
-    <div class="brand"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.9 4.5 6.6 4.5c2.1 0 3.6 1.2 4.4 2.6.8-1.4 2.3-2.6 4.4-2.6 3.7 0 5.7 3.9 4.2 7.3C19.5 16.4 12 21 12 21z"/></svg><span>BOER ZOEKT VROUW</span></div>
+    <div class="brand"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 2.9 4.5 6.6 4.5c2.1 0 3.6 1.2 4.4 2.6.8-1.4 2.3-2.6 4.4-2.6 3.7 0 5.7 3.9 4.2 7.3C19.5 16.4 12 21 12 21z"/></svg><span>BOERENBRUILOFT</span></div>
     <div class="bar-r">
       <button class="owe glass" id="owe" type="button" data-act="mine" hidden></button>
       <button class="round glass" type="button" data-act="menu" aria-label="Menu" aria-haspopup="dialog">
@@ -420,7 +420,7 @@ const store = {
 };
 
 // wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
-// Je naam neemt hij over van een ander spel in de speelhal als je die daar al eens hebt ingevuld.
+// Je naam neemt hij over van een ander spel in Rondje als je die daar al eens hebt ingevuld.
 const me = (() => {
   const v = store.get(KEY.me, {}) || {};
   let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
@@ -775,14 +775,14 @@ const countSeg = () => `<div class="seg" role="group" aria-label="Tellen tot">${
 /* ================= SCHERMEN ================= */
 function vHome() {
   const empty = Array.from({ length: 4 }, () => ({ name: 'Vrije plek', empty: true }));
-  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: `<p class="felt-sub">Drankspel voor op tafel</p><div class="felt-logo small">Boer zoekt<br>vrouw</div><div class="trio">${['boer', 'vrouw', 'burger'].map((r) => tileHTML(r, { cls: 'mini' })).join('')}</div>` });
+  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: `<p class="felt-sub">Drankspel voor op tafel</p><div class="felt-logo small">Boeren<br>bruiloft</div><div class="trio">${['boer', 'vrouw', 'burger'].map((r) => tileHTML(r, { cls: 'mini' })).join('')}</div>` });
   const busy = ui.joining ? 'disabled' : '';
   return `
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${V.MIN_PLAYERS} tot ${V.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
     <p>Iedereen krijgt een rol: boer, vrouw of burger. De boer telt met zijn ogen dicht, de vrouw drinkt stiekem een glas leeg. Raadt de boer wie de vrouw is?</p>
-    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${V.NAME_MAX}" placeholder="Bijvoorbeeld Jort" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
+    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${V.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
       <button class="addbtn" type="submit" ${busy}>Meedoen</button>
@@ -915,7 +915,7 @@ function menuHTML() {
     ${S ? `<button type="button" data-act="share">Uitnodigen <span>${S.code}</span></button>` : ''}
     ${game && host && S.phase !== 'tellen' ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
     ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
-    <a href="/">Naar de speelhal <span>›</span></a>
+    <a href="/">Naar Rondje <span>›</span></a>
   </nav>`;
 }
 
@@ -931,7 +931,7 @@ function standHTML() {
 
 function rulesHTML() {
   const n = S ? S.count : V.COUNT_DEFAULT;
-  return `${sheetTop('Spelregels', 'Boer zoekt vrouw')}
+  return `${sheetTop('Spelregels', 'Boerenbruiloft')}
   <div class="rules">
     <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander. Zet twee volle glazen op tafel.</p>
     <ol>
@@ -1058,9 +1058,9 @@ const actions = {
   'count-set'(el) { Net.send({ t: 'settings', count: +el.dataset.n }); Snd.chip(); },
   start() { Snd.ac(); Net.send({ t: 'start' }); },
   share() {
-    const url = `${location.origin}/boer/${S.code}`, text = `Doe mee met Boer zoekt vrouw aan tafel ${S.code}`;
+    const url = `${location.origin}/boer/${S.code}`, text = `Doe mee met Boerenbruiloft aan tafel ${S.code}`;
     closeSheet();
-    if (navigator.share) navigator.share({ title: 'Boer zoekt vrouw', text, url }).catch(() => {});
+    if (navigator.share) navigator.share({ title: 'Boerenbruiloft', text, url }).catch(() => {});
     else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast('Link gekopieerd'), () => toast(url));
     else toast(url);
   },

@@ -52,14 +52,14 @@ export const SHOP_ITEMS = [
   { id: 'hoed_kroon', slot: 'hoed', name: 'Kroon', rarity: 'episch', price: 400, look: { hat: 'kroon' } },
 
   // --- specials: extra coureurs om mee te racen (alleen uiterlijk) ---
-  { id: 'special_sim', slot: 'special', name: 'Sim', rarity: 'episch', price: 250, look: { character: 'sim' } },
+  { id: 'special_sim', slot: 'special', name: 'Sjors', rarity: 'episch', price: 250, look: { character: 'sim' } },
   { id: 'special_ridderkees', slot: 'special', name: 'Ridder Kees', rarity: 'episch', price: 250, look: { character: 'ridderkees' } },
-  { id: 'special_ridderjort', slot: 'special', name: 'Ridder Jort', rarity: 'episch', price: 250, look: { character: 'ridderjort' } },
-  { id: 'special_stan', slot: 'special', name: 'Stan', rarity: 'episch', price: 250, look: { character: 'stan' } },
-  { id: 'special_jullian', slot: 'special', name: 'Jullian', rarity: 'episch', price: 250, look: { character: 'jullian' } },
-  { id: 'special_melle', slot: 'special', name: 'Melle', rarity: 'episch', price: 250, look: { character: 'melle' } },
-  { id: 'special_duuk', slot: 'special', name: 'Duuk', rarity: 'episch', price: 250, look: { character: 'duuk' } },
-  { id: 'special_morris', slot: 'special', name: 'Morris', rarity: 'episch', price: 250, look: { character: 'morris' } },
+  { id: 'special_ridderjort', slot: 'special', name: 'Ridder Roest', rarity: 'episch', price: 250, look: { character: 'ridderjort' } },
+  { id: 'special_stan', slot: 'special', name: 'Wim', rarity: 'episch', price: 250, look: { character: 'stan' } },
+  { id: 'special_jullian', slot: 'special', name: 'Stef', rarity: 'episch', price: 250, look: { character: 'jullian' } },
+  { id: 'special_melle', slot: 'special', name: 'Flip', rarity: 'episch', price: 250, look: { character: 'melle' } },
+  { id: 'special_duuk', slot: 'special', name: 'Koen', rarity: 'episch', price: 250, look: { character: 'duuk' } },
+  { id: 'special_morris', slot: 'special', name: 'Freek', rarity: 'episch', price: 250, look: { character: 'morris' } },
 
   // --- capes ---
   { id: 'cape_rood', slot: 'cape', name: 'Rode cape', rarity: 'gewoon', price: 50, look: { colors: ['#d62828'] } },

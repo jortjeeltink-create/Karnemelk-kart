@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Speelhal</title>
-<meta name="description" content="Al je spellen op één plek: Mario Bak, Bussen, Boer zoekt vrouw, Mexen, Fuck the dealer, Paardenrace, Rotonde, Mijnenveld, Weerwolven en Zuipbord.">
+<title>Rondje</title>
+<meta name="description" content="Tien spellen voor een avond met vrienden, ieder op zijn eigen telefoon: Karnemelk Kart, Bussen, Boerenbruiloft, Mexen, Pak de dealer, Paardenrace, Rotonde, Mijnenveld, Wolvennacht en Borrelbord.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Speelhal">
+<meta name="apple-mobile-web-app-title" content="Rondje">
 <meta name="format-detection" content="telephone=no">
-<meta name="application-name" content="Speelhal">
+<meta name="application-name" content="Rondje">
 <!-- als je de link deelt: de naam, een zin en een plaatje -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Speelhal">
-<meta property="og:title" content="Speelhal">
-<meta property="og:description" content="Al mijn spellen op één plek. Speel samen, ieder op zijn eigen telefoon.">
+<meta property="og:site_name" content="Rondje">
+<meta property="og:title" content="Rondje">
+<meta property="og:description" content="Spellen voor een avond met vrienden. Speel samen, ieder op zijn eigen telefoon.">
 <meta property="og:image" content="https://karnemelk-kart.onrender.com/img/speelhal-deel.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -185,11 +185,11 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
 
 <main>
   <section class="hero" id="top">
-    <p class="kicker">van Jort</p>
-    <h1>Speelhal</h1>
+    <p class="kicker">Spellen voor samen</p>
+    <h1>Rondje</h1>
     <div class="hero-card cream">
       <div class="chips"><span class="chip">Tien spellen</span><span class="chip line">Eén pagina</span></div>
-      <p>Al mijn spellen op één plek. Scroll naar beneden om ze te bekijken, of spring er direct in.</p>
+      <p>Spellen voor een avond met vrienden, ieder op zijn eigen telefoon. Scroll naar beneden om ze te bekijken, of spring er direct in.</p>
       <div class="hero-list" id="heroList"></div>
     </div>
     <div class="scrollcue" aria-hidden="true"><span></span>Scroll</div>
@@ -204,18 +204,18 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
   <a class="pill glass" href="#top" data-nav>↑ Terug naar boven</a>
 </footer>
 
-<div class="legal" aria-hidden="true"><span>Speelhal</span><span>/</span><span>Drink met mate</span></div>
+<div class="legal" aria-hidden="true"><span>Rondje</span><span>/</span><span>18+</span><span>/</span><span>Drink met mate</span></div>
 
 <div class="menu" id="menu" hidden>
   <nav id="menuNav"></nav>
-  <p class="note">Vanuit elk spel kom je via het menu of Sluit spel weer terug in de speelhal.</p>
+  <p class="note">Vanuit elk spel kom je via het menu weer terug in Rondje.</p>
 </div>
 
 <div class="dock" id="dock">
   <button class="pinkbtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menu openen">
     <svg id="menuIco" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
   </button>
-  <span class="logo">Speelhal</span>
+  <span class="logo">Rondje</span>
   <div class="seg" id="seg" role="group" aria-label="Ga naar spel"></div>
 </div>
 
@@ -237,36 +237,36 @@ const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 
 /* ================= SPELLEN ================= */
 const GAMES = [
-  { id: 'mariobak', name: 'Mario', name2: 'Bak', short: 'Mario Bak', acc: '#ff7a00', tint: '#2c1410', bg: '#9fd8ff',
+  { id: 'kart', name: 'Karnemelk', name2: 'Kart', short: 'Karnemelk Kart', acc: '#ff7a00', tint: '#2c1410', bg: '#9fd8ff',
     url: '/kart',
     chips: ['Racen', 'Online met vrienden'],
     text: 'Kartracen door Nederland: langs de molen, door de grachten en tussen de sterren. Race live tegen je vrienden of tegen bots, pak items en drift door de bochten.',
     facts: [['Banen', '13'], ['Live', 'tot 10 vrienden'], ['Extra', 'items, schansen, winkel']],
-    cta: 'Speel Mario Bak' },
+    cta: 'Speel Karnemelk Kart' },
   { id: 'bussen', name: 'Bussen', name2: '', short: 'Bussen', acc: '#4f8dff', tint: '#101b3f', bg: '#0b1230',
     url: '/bussen',
     chips: ['Kaartspel', 'Online met vrienden'],
     text: 'Het kaartspel bussen, online. Iedereen speelt op zijn eigen telefoon: raad rood of zwart en hoger of lager, deel slokken uit of spaar ze op, en hoop dat jij niet de bus in moet.',
     facts: [['Spelers', '2 tot 9'], ['Fases', 'vragen, piramide, bus'], ['Meedoen', 'met een code']],
     cta: 'Speel Bussen' },
-  { id: 'boer', name: 'Boer zoekt', name2: 'vrouw', short: 'Boer zoekt vrouw', acc: '#ff6b8b', tint: '#2a0f1c', bg: '#1a0b14',
+  { id: 'boer', name: 'Boeren', name2: 'bruiloft', short: 'Boerenbruiloft', acc: '#ff6b8b', tint: '#2a0f1c', bg: '#1a0b14',
     url: '/boer',
     chips: ['Drankspel', 'Online met vrienden'],
     text: 'Iedereen krijgt stiekem een rol op zijn eigen telefoon: boer, vrouw of burger. De boer telt met zijn ogen dicht en de vrouw drinkt stiekem een glas leeg. Bij de pling raadt de boer wie het was: goed is het tweede glas voor de vrouw, fout is het voor de boer.',
     facts: [['Spelers', '3 tot 10'], ['Tellen', '8 seconden'], ['Meedoen', 'met een code']],
-    cta: 'Speel Boer zoekt vrouw' },
+    cta: 'Speel Boerenbruiloft' },
   { id: 'mexen', name: 'Mexen', name2: '', short: 'Mexen', acc: '#36c5d6', tint: '#0d2a30', bg: '#0b1d22',
     url: '/mexen',
     chips: ['Dobbelspel', 'Online met vrienden'],
     text: 'Het dobbelspel, online. Gooi om de beurt met twee stenen op je eigen telefoon en zie iedereen live gooien. De eerste bepaalt hoe vaak je mag gooien, de laagste worp drinkt, en elke Mex verdubbelt de slokken.',
     facts: [['Spelers', '2 tot 10'], ['Hoogst', 'Mex (2 en 1)'], ['Meedoen', 'met een code']],
     cta: 'Speel Mexen' },
-  { id: 'dealer', name: 'Fuck the', name2: 'dealer', short: 'Fuck the dealer', acc: '#a28fe3', tint: '#1d1532', bg: '#130d22',
+  { id: 'dealer', name: 'Pak de', name2: 'dealer', short: 'Pak de dealer', acc: '#a28fe3', tint: '#1d1532', bg: '#130d22',
     url: '/dealer',
     chips: ['Kaartspel', 'Online met vrienden'],
     text: 'De dealer ziet de bovenste kaart op zijn telefoon, de rest raadt. In één keer goed: de dealer drinkt 5. Fout? Dan hoor je hoger of lager. Weer fout: jij drinkt het verschil. Speelt de dealer er drie achter elkaar uit, dan gaat de stapel door.',
     facts: [['Spelers', '2 tot 10'], ['Dealer af', 'na 3 keer'], ['Meedoen', 'met een code']],
-    cta: 'Speel Fuck the dealer' },
+    cta: 'Speel Pak de dealer' },
   { id: 'paard', name: 'Paarden', name2: 'race', short: 'Paardenrace', acc: '#a6d83c', tint: '#1c2a0e', bg: '#121c08',
     url: '/paardenrace',
     chips: ['Kaartspel', 'Online met vrienden'],
@@ -285,18 +285,18 @@ const GAMES = [
     text: '36 kaarten in een veld van 6 bij 6, met 8 verstopte mijnen. Gooi de steen twee keer: eerst voor de kolom, dan voor de rij. Land je op een mijn? Boem: drinken, en dan leg jij hem ergens anders neer, op een kaart of tussen twee kaarten. Daarna gok je rood of zwart.',
     facts: [['Spelers', '2 tot 10'], ['Mijnen', '8 verstopt'], ['Meedoen', 'met een code']],
     cta: 'Speel Mijnenveld' },
-  { id: 'weerwolven', name: 'Weer', name2: 'wolven', short: 'Weerwolven', acc: '#e5383b', tint: '#2a0d10', bg: '#0b1433',
-    url: '/weerwolven',
+  { id: 'wolvennacht', name: 'Wolven', name2: 'nacht', short: 'Wolvennacht', acc: '#e5383b', tint: '#2a0d10', bg: '#0b1433',
+    url: '/wolvennacht',
     chips: ['Rollenspel', 'Online met vrienden'],
-    text: 'Weerwolven van Wakkerdam, zonder spelleider: je telefoon deelt de rollen uit en regelt de nacht. \'s Nachts kiezen de wolven een slachtoffer, overdag stemt het dorp wie er hangt. Met de ziener, de heks, de jager en Cupido. Wie doodgaat drinkt, en de verliezers ook.',
+    text: 'Het weerwolvenspel zonder spelleider: je telefoon deelt de rollen uit en regelt de nacht. \'s Nachts kiezen de wolven een slachtoffer, overdag stemt het dorp wie er hangt. Met de ziener, de heks, de jager en Cupido. Wie doodgaat drinkt, en de verliezers ook.',
     facts: [['Spelers', '4 tot 12'], ['Rollen', '6, door de host te kiezen'], ['Meedoen', 'met een code']],
-    cta: 'Speel Weerwolven' },
-  { id: 'zuipbord', name: 'Zuip', name2: 'bord', short: 'Zuipbord', acc: '#f2c230', tint: '#2a2208', bg: '#3a200d',
-    url: '/zuipbord',
+    cta: 'Speel Wolvennacht' },
+  { id: 'borrelbord', name: 'Borrel', name2: 'bord', short: 'Borrelbord', acc: '#f2c230', tint: '#2a2208', bg: '#3a200d',
+    url: '/borrelbord',
     chips: ['Bordspel', 'Online met vrienden'],
     text: 'Het drankspel als ganzenbord. Gooi de steen op je telefoon, loop met je pion over 48 vakjes en doe wat er staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje kiezen. Met de gans, de brug, het café, de put en de doodskop. Wie als eerste op de finish staat, wint en mag een bak uitdelen.',
     facts: [['Spelers', '2 tot 10'], ['Vakjes', '48'], ['Meedoen', 'met een code']],
-    cta: 'Speel Zuipbord' }
+    cta: 'Speel Borrelbord' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 function build(){
@@ -380,7 +380,7 @@ const RACE = (() => {
   return { track, steps, winner: steps[steps.length - 1].h };
 })();
 const PREV = {
-  mariobak(c, w, h, t){
+  kart(c, w, h, t){
     const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#9fd8ff'); g.addColorStop(1, '#bfe7ff'); c.fillStyle = g; c.fillRect(0, 0, w, h);
     const s = Math.min(w, h) / 330, ox = w / 2 - 22 * s, oy = h / 2 + 8 * s;
     c.save(); c.translate(ox, oy); c.scale(s, s);
@@ -656,7 +656,7 @@ const PREV = {
     });
     if (cur && cur.boom && e > .62) T(c, 'BOEM!', x0 + gw / 2, h * .5, Math.min(w * .11, h * .2), '#ff5a1f', { w: 900 });
   },
-  weerwolven(c, w, h, t){
+  wolvennacht(c, w, h, t){
     // een nacht en een dag bij het kampvuur in het bos: de wolven (rode ogen) kiezen iemand, overdag stemt het dorp
     const L = 9000, k = reduce ? 7600 : t % L, day = clamp((k - 4000) / 500, 0, 1) * (1 - clamp((k - 8500) / 500, 0, 1));
     const mix = (a, b) => { const A = hex2rgb(a), Z = hex2rgb(b); return `rgb(${A.map((v, i) => Math.round(v + (Z[i] - v) * day)).join(',')})`; };
@@ -719,7 +719,7 @@ const PREV = {
       T(c, deadH ? 'HET DORP HING EEN WOLF OP' : 'STEM WIE ER HANGT', cx, ty + big * .8, small, 'rgba(239,227,196,.9)', { f: MF });
     }
   },
-  zuipbord(c, w, h, t){
+  borrelbord(c, w, h, t){
     // een houten tafel met het bord van 7 bij 7; om de beurt gooit een pion en springt hij vakje voor vakje verder
     const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#7a4825'); g.addColorStop(1, '#3a200d'); c.fillStyle = g; c.fillRect(0, 0, w, h);
     const COL = { S: '#2eaa57', D: '#e5483b', G: '#2eaa57', I: '#f08c1a', B: '#3d7fe0', V: '#8b5bd6', X: '#f2c230', R: '#e9dcbc', K: '#2a2422', F: '#ffffff' };
@@ -755,11 +755,11 @@ const PREV = {
     if (cur && e > .78) { const ch = BORDJE[cur.to]; const word = { D: 'DRINK!', G: 'GEEF!', I: 'IEDEREEN!', B: 'GANS!', V: 'VRAAG', X: 'DUEL!', R: 'RUST', K: 'DOOD!', F: 'FINISH!', S: '' }[ch]; T(c, word, dx, h * .8, Math.min(w * .07, h * .13), COL[ch] === '#ffffff' ? '#f2c230' : COL[ch], { w: 400, f: LF }); }
   }
 };
-// voor het voorproefje van Weerwolven: de dennen en de vlammen van het kampvuur (zoals op weerwolven.html)
+// voor het voorproefje van Wolvennacht: de dennen en de vlammen van het kampvuur (zoals op weerwolven.html)
 const TREES = new Path2D('M-6.0 31.1 3.0 53.1 -0.9 53.1 6.0 72.4 1.5 72.4 9.0 93.1 -21.0 93.1 -13.5 72.4 -18.0 72.4 -11.1 53.1 -15.0 53.1ZM15.4 41.9 23.6 60.5 20.1 60.5 26.4 76.8 22.3 76.8 29.1 94.2 1.6 94.2 8.5 76.8 4.4 76.8 10.7 60.5 7.1 60.5ZM33.0 42.5 41.1 60.9 37.6 60.9 43.9 77.0 39.8 77.0 46.6 94.3 19.5 94.3 26.3 77.0 22.2 77.0 28.4 60.9 24.9 60.9ZM48.2 26.4 57.6 49.9 53.5 49.9 60.7 70.5 56.0 70.5 63.9 92.6 32.4 92.6 40.3 70.5 35.6 70.5 42.8 49.9 38.7 49.9ZM66.2 26.7 77.2 50.2 72.4 50.2 80.9 70.7 75.4 70.7 84.6 92.7 47.8 92.7 57.0 70.7 51.4 70.7 59.9 50.2 55.1 50.2ZM87.6 35.4 96.9 56.1 92.9 56.1 100.0 74.2 95.4 74.2 103.2 93.5 72.0 93.5 79.8 74.2 75.1 74.2 82.3 56.1 78.2 56.1ZM112.1 20.2 123.1 45.7 118.3 45.7 126.8 68.1 121.3 68.1 130.5 92.0 93.8 92.0 102.9 68.1 97.4 68.1 105.9 45.7 101.1 45.7ZM141.2 43.0 149.9 61.2 146.1 61.2 152.8 77.2 148.4 77.2 155.7 94.3 126.8 94.3 134.0 77.2 129.7 77.2 136.3 61.2 132.6 61.2ZM159.2 38.8 167.1 58.4 163.7 58.4 169.8 75.5 165.8 75.5 172.4 93.9 146.0 93.9 152.6 75.5 148.6 75.5 154.7 58.4 151.3 58.4ZM175.8 9.9 187.6 38.7 182.5 38.7 191.5 64.0 185.6 64.0 195.5 91.0 156.0 91.0 165.9 64.0 160.0 64.0 169.1 38.7 163.9 38.7ZM203.2 17.5 214.5 43.9 209.6 43.9 218.3 67.0 212.6 67.0 222.1 91.8 184.4 91.8 193.8 67.0 188.1 67.0 196.8 43.9 191.9 43.9ZM229.1 42.3 236.5 60.8 233.3 60.8 238.9 76.9 235.3 76.9 241.4 94.2 216.8 94.2 223.0 76.9 219.3 76.9 224.9 60.8 221.7 60.8ZM243.9 15.7 255.6 42.7 250.5 42.7 259.5 66.3 253.6 66.3 263.4 91.6 224.4 91.6 234.1 66.3 228.3 66.3 237.3 42.7 232.2 42.7ZM0 88H240V100H0Z');
 const FLAMES = [['M50 14C59 31 73 40 71 58C70 71 61 79 50 79C39 79 30 71 29 60C28 49 37 45 39 35C43 43 45 45 47 45C46 35 45 25 50 14Z', '#e2491a'], ['M50 33C56 44 64 50 62 63C61 72 56 78 50 78C44 78 39 72 38 64C37 56 43 53 45 47C47 52 49 53 50 53C50 46 49 40 50 33Z', '#ff9327'], ['M50 50C54 57 57 61 56 67C55 73 53 77 50 77C47 77 45 73 44 68C44 63 47 61 48 57C49 60 50 60 50 60C50 57 50 54 50 50Z', '#ffe48c']].map(([d, col]) => [new Path2D(d), col]);
 const GF = '"Grenze Gotisch","Times New Roman",serif';
-// voor het voorproefje van Zuipbord: de soort van elk vakje (zie zuipbord.js) en een vaste reeks worpen voor drie pionnen
+// voor het voorproefje van Borrelbord: de soort van elk vakje (zie zuipbord.js) en een vaste reeks worpen voor drie pionnen
 const BORDJE = 'SDGVRBBDXVXIGVBDVIXBGVIBDXVIRGXBBVVDXRVDGBBIVDKDF';
 const LF = '"Lilita One","Arial Rounded MT Bold",sans-serif';
 const ZB = (() => { const pos = [0, 0, 0], rolls = [4, 3, 6, 2, 5, 3, 6, 4, 1, 5, 2, 6, 3, 4, 5], out = []; rolls.forEach((v, j) => { const p = j % 3; pos[p] = Math.min(48, pos[p] + v); out.push({ v, to: pos[p] }); }); return out; })();

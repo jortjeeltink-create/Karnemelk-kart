@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Fuck the dealer</title>
-<meta name="description" content="Het drankspel Fuck the dealer online: de dealer ziet de kaart op zijn telefoon, de rest raadt. Goed is drinken voor de dealer, fout is het verschil voor jou.">
+<title>Pak de dealer</title>
+<meta name="description" content="Pak de dealer: het kaartspel online. De dealer ziet de kaart op zijn telefoon, de rest raadt. Goed is drinken voor de dealer, fout is drinken voor jou.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Fuck the dealer">
+<meta name="apple-mobile-web-app-title" content="Pak de dealer">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="/dealer.webmanifest">
 <link rel="icon" href="/img/dealer.svg" type="image/svg+xml">
@@ -329,7 +329,7 @@ button.seat:active .ava{transform:scale(.94)}
 
 <div class="app">
   <header class="bar">
-    <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="7.5" y="3" width="12" height="17" rx="2.2" transform="rotate(12 13.5 11.5)"/><rect x="4" y="4" width="12" height="17" rx="2.2" fill="currentColor" fill-opacity=".25"/><path d="M10 10.5l-2 2.5 2 2.5 2-2.5z" fill="currentColor" stroke="none"/></svg><span>FUCK THE DEALER</span></div>
+    <div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="7.5" y="3" width="12" height="17" rx="2.2" transform="rotate(12 13.5 11.5)"/><rect x="4" y="4" width="12" height="17" rx="2.2" fill="currentColor" fill-opacity=".25"/><path d="M10 10.5l-2 2.5 2 2.5 2-2.5z" fill="currentColor" stroke="none"/></svg><span>PAK DE DEALER</span></div>
     <div class="bar-r">
       <button class="owe glass" id="owe" type="button" data-act="mine" hidden></button>
       <button class="round glass" type="button" data-act="menu" aria-label="Menu" aria-haspopup="dialog">
@@ -370,7 +370,7 @@ const store = {
 };
 
 // wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
-// Je naam neemt hij over van een ander spel in de speelhal als je die daar al eens hebt ingevuld.
+// Je naam neemt hij over van een ander spel in Rondje als je die daar al eens hebt ingevuld.
 const me = (() => {
   const v = store.get(KEY.me, {}) || {};
   let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
@@ -695,14 +695,14 @@ const sheetTop = (title, kick = '', close = true) => `<div class="sheet-top"><di
 function vHome() {
   const empty = Array.from({ length: 4 }, () => ({ name: 'Vrije plek', empty: true }));
   const fan = `<div class="duo"><div class="stack">${cardHTML(null)}${cardHTML(null)}${cardHTML(null)}</div>${cardHTML({ r: 14, s: 3 })}</div>`;
-  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: `<p class="felt-sub">Drankspel voor op tafel</p><div class="felt-logo small">Fuck the<br>dealer</div>${fan}` });
+  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: `<p class="felt-sub">Drankspel voor op tafel</p><div class="felt-logo small">Pak de<br>dealer</div>${fan}` });
   const busy = ui.joining ? 'disabled' : '';
   return `
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${F.MIN_PLAYERS} tot ${F.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
     <p>De dealer ziet de bovenste kaart, de rest raadt. Goed geraden? Dan drinkt de dealer. Fout? Dan drink jij het verschil.</p>
-    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${F.NAME_MAX}" placeholder="Bijvoorbeeld Jort" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
+    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${F.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
       <button class="addbtn" type="submit" ${busy}>Meedoen</button>
@@ -803,7 +803,7 @@ function menuHTML() {
     ${S ? `<button type="button" data-act="share">Uitnodigen <span>${S.code}</span></button>` : ''}
     ${game && host ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
     ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
-    <a href="/">Naar de speelhal <span>›</span></a>
+    <a href="/">Naar Rondje <span>›</span></a>
   </nav>`;
 }
 
@@ -818,7 +818,7 @@ function scoreHTML() {
 }
 
 function rulesHTML() {
-  return `${sheetTop('Spelregels', 'Fuck the dealer')}
+  return `${sheetTop('Spelregels', 'Pak de dealer')}
   <div class="rules">
     <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander. Bij de start wordt er een willekeurige dealer gekozen.</p>
     <ol>
@@ -943,9 +943,9 @@ const actions = {
   },
   start() { Snd.ac(); Net.send({ t: 'start' }); },
   share() {
-    const url = `${location.origin}/dealer/${S.code}`, text = `Doe mee met Fuck the dealer aan tafel ${S.code}`;
+    const url = `${location.origin}/dealer/${S.code}`, text = `Doe mee met Pak de dealer aan tafel ${S.code}`;
     closeSheet();
-    if (navigator.share) navigator.share({ title: 'Fuck the dealer', text, url }).catch(() => {});
+    if (navigator.share) navigator.share({ title: 'Pak de dealer', text, url }).catch(() => {});
     else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast('Link gekopieerd'), () => toast(url));
     else toast(url);
   },

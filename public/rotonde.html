@@ -340,7 +340,7 @@ const store = {
 };
 
 // wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
-// Je naam neemt hij over van een ander spel in de speelhal als je die daar al eens hebt ingevuld.
+// Je naam neemt hij over van een ander spel in Rondje als je die daar al eens hebt ingevuld.
 const me = (() => {
   const v = store.get(KEY.me, {}) || {};
   let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
@@ -660,7 +660,7 @@ function vHome() {
     <div class="chips"><span class="chip">${R.MIN_PLAYERS} tot ${R.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
     <p>37 kaarten liggen als een zon op tafel. Kies een kaart en gok rood of zwart. Goed? De kaart gaat in de pot. Fout? Dan drink jij de kaart plus de hele pot.</p>
     ${legend()}
-    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${R.NAME_MAX}" placeholder="Bijvoorbeeld Jort" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
+    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${R.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
       <button class="addbtn" type="submit" ${busy}>Meedoen</button>
@@ -772,7 +772,7 @@ function menuHTML() {
     ${S ? `<button type="button" data-act="share">Uitnodigen <span>${S.code}</span></button>` : ''}
     ${game && host ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
     ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
-    <a href="/">Naar de speelhal <span>›</span></a>
+    <a href="/">Naar Rondje <span>›</span></a>
   </nav>`;
 }
 

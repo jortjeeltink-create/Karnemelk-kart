@@ -1,7 +1,7 @@
 {
   "name": "karnemelk-kart",
   "version": "1.0.0",
-  "description": "Speelhal: Mario Bak (een multiplayer arcade-kartgame) en drankspellen voor de browser, ieder op zijn eigen telefoon.",
+  "description": "Rondje: spellen voor een avond met vrienden, ieder op zijn eigen telefoon: Karnemelk Kart (een multiplayer kartgame), kaartspellen, dobbelspellen en meer.",
   "private": true,
   "type": "module",
   "main": "server/index.js",
@@ -13,7 +13,7 @@
     "dev": "node --watch-path=server --watch-path=public server/index.js",
     "test": "node --test",
     "build:demo": "node tools/build-demo.mjs",
-    "test:snel": "node --test test/unit.test.js test/store.test.js test/stockmarket.test.js test/bussen.test.js test/bussen-hub.test.js test/boer.test.js test/boer-hub.test.js test/mex.test.js test/mex-hub.test.js test/ftd.test.js test/ftd-hub.test.js test/paard.test.js test/paard-hub.test.js test/rotonde.test.js test/rotonde-hub.test.js test/mijnenveld.test.js test/mijnenveld-hub.test.js"
+    "test:snel": "node --test test/unit.test.js test/store.test.js test/bussen.test.js test/bussen-hub.test.js test/boer.test.js test/boer-hub.test.js test/mex.test.js test/mex-hub.test.js test/ftd.test.js test/ftd-hub.test.js test/paard.test.js test/paard-hub.test.js test/rotonde.test.js test/rotonde-hub.test.js test/mijnenveld.test.js test/mijnenveld-hub.test.js"
   },
   "dependencies": {
     "ws": "^8.18.0"
