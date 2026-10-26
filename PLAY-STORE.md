@@ -100,7 +100,7 @@ Zonder deze koppeling toont de app bovenin een adresbalk.
 
 **Contentclassificatie**: categorie *Game*. Beantwoord eerlijk:
 - **Alcohol: ja.** Er zijn drankspellen; drinken wordt genoemd en geteld in slokken.
-- **Geweld: alleen fantasie, zonder bloed.** Karts die met klompen schieten, en in Wolvennacht weerwolven die dorpelingen "opeten" en een dorp dat iemand "ophangt", alleen in tekst.
+- **Geweld: alleen fantasie, zonder bloed.** Karts die met klompen schieten (tekenfilmachtig).
 - **Gokken: nee.**
   - Er is geen echt geld en geen casino.
   - Bij Paardenrace zet je slokken in, geen geld.
@@ -134,11 +134,10 @@ Zonder deze koppeling toont de app bovenin een adresbalk.
 
 - **Lees de reden in de e-mail.** Meestal gaat het over het beleid voor *alcohol* of *inhoud van gebruikers*.
 - **Wat er al gedaan is tegen afwijzing om de drankspellen:**
-  - nergens een glas leeg (ad fundum of bak);
-  - een maximum aantal slokken per keer in elk spel;
   - een 18+-poort;
   - tips voor verantwoord spelen;
   - "een slok mag ook water zijn".
+- **Waar Google over kan vallen.** De spellen houden bewust de echte regels: een bak of ad fundum (glas in één keer leeg) bij Boer zoekt vrouw, Borrelbord en de disco van Bussen, en grote aantallen slokken in sommige spellen. Ook de naam ATJE en "Boer zoekt vrouw" (een tv-programma) kunnen een reden zijn. Wordt de app daarom afgewezen, dan kunnen die dingen alsnog worden aangepast.
 - **Je kunt bezwaar maken** via de link in de e-mail. Leg daarin uit dat het een spel voor volwassenen is dat verantwoord drinken stimuleert.
 - **Nog een stap verder?** Laat de app standaard "punten" tellen in plaats van slokken. Dat is te bouwen als het nodig blijkt.
 
