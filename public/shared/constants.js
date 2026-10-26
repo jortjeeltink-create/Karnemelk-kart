@@ -1,5 +1,5 @@
 // Gedeelde instellingen voor server én browser.
-export const GAME_NAME = 'Mario Bak';
+export const GAME_NAME = 'Karnemelk Kart';
 
 export const TICK_RATE = 60;            // fysica-stappen per seconde
 export const DT = 1 / TICK_RATE;

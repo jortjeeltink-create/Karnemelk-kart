@@ -153,7 +153,7 @@ function buildMascotHead(ch) {
   return { head, hat, top };
 }
 
-// ---------- mensen (Sim, Stan, Melle, je eigen coureur, ...) ----------
+// ---------- mensen (Sjors, Wim, Flip, je eigen coureur, ...) ----------
 function buildHumanHead(look) {
   const head = new THREE.Group();
   const hat = new THREE.Group(); // mensen hebben geen eigen hoed, alleen winkelhoeden

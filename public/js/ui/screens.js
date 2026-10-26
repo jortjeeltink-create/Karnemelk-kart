@@ -49,7 +49,7 @@ export function loginScreen(app) {
   const invite = app.inviteCode ? h('div', { class: 'invite' }, 'Je bent uitgenodigd voor room ', h('b', {}, app.inviteCode), '!') : null;
   let form;
   if (!transferMode) {
-    const name = h('input', { id: 'naam', type: 'text', maxlength: '16', autocomplete: 'nickname', autocapitalize: 'words', placeholder: 'Bijv. Jort', enterkeyhint: 'go' });
+    const name = h('input', { id: 'naam', type: 'text', maxlength: '16', autocomplete: 'nickname', autocapitalize: 'words', placeholder: 'Bijv. Sanne', enterkeyhint: 'go' });
     const last = app.lastName();
     if (last) name.value = last;
     const btn = h('button', { class: 'btn btn-primary btn-big', type: 'submit' }, 'Start!');
@@ -111,7 +111,7 @@ export function menuScreen(app) {
         h('button', { class: 'btn btn-pink btn-small', onclick: () => { app.click(); app.show('creator', { back: 'menu' }); } }, 'Mijn coureur'),
         h('button', { class: 'btn btn-small', onclick: () => { app.click(); app.show('settings'); } }, 'Instellingen')),
       off ? null : h('div', { class: 'row menu-row' },
-        h('button', { class: 'btn btn-small', onclick: () => { app.click(); location.href = '/'; } }, 'Speelhal: al je spellen')),
+        h('button', { class: 'btn btn-small', onclick: () => { app.click(); location.href = '/'; } }, 'Rondje: alle spellen')),
       app.profile.dailyReady ? h('div', { class: 'daily' }, `Dagbonus: +${DAILY_BONUS} MP bij je eerste race van vandaag`) : null,
       h('p', { class: 'muted small center-text' },
         `Races: ${app.profile.stats.races || 0} • Gewonnen: ${app.profile.stats.wins || 0} • Podium: ${app.profile.stats.podiums || 0} • `,
@@ -396,7 +396,7 @@ export function shopScreen(app, opts = {}) {
       h('div', { class: 'row space' }, backBtn(app, back), mp(p.mp)),
       h('h2', {}, 'Winkel'),
       h('p', { class: 'muted small' }, 'Alles is alleen uiterlijk: je wordt er niet sneller van, ook niet van een andere kart. Andere spelers zien jouw spullen tijdens de race. Tik op een item om het te bekijken.'),
-      tab === 'special' ? h('p', { class: 'muted small' }, 'Specials zijn extra coureurs. In de race heet je dan bijvoorbeeld "Sim (jouw naam)", zodat iedereen ziet wie wie is.') : null,
+      tab === 'special' ? h('p', { class: 'muted small' }, 'Specials zijn extra coureurs. In de race heet je dan bijvoorbeeld "Flip (jouw naam)", zodat iedereen ziet wie wie is.') : null,
       h('div', { class: 'tabs' }, Object.entries(SHOP_TABS).map(([k, v]) => h('button', { class: tab === k ? 'on' : '', onclick: () => { app.shopTab = k; app.shopPreview = null; app.show('shop'); } }, v))),
       grid,
       h('div', { class: 'legend' }, Object.values(RARITIES).map((r) => h('span', { style: { '--rar': r.color } }, r.name)))));
@@ -617,7 +617,7 @@ export function helpScreen(app) {
       h('h3', {}, 'Winkel'),
       h('p', {}, 'Koop andere karts (zoals de Roze droomkart, de Tractorkart of de Monstertruck), hoeden, capes, kartkleuren, bandeneffecten, lichtsporen en overwinningsposes. Zeldzaamheid: Gewoon, Ongewoon, Zeldzaam, Episch en Legendarisch. De Gouden cape is het enige Legendarische item en het duurste.'),
       h('h3', {}, 'Specials'),
-      h('p', {}, 'Sim, Stan, Jullian, Melle, Duuk, Morris, Ridder Kees en Ridder Jort zijn specials: extra coureurs die je met MP-punten koopt. In de race heet je dan bijvoorbeeld "Sim (Jort)".'),
+      h('p', {}, 'Sjors, Wim, Stef, Flip, Koen, Freek, Ridder Kees en Ridder Roest zijn specials: extra coureurs die je met MP-punten koopt. In de race heet je dan bijvoorbeeld "Flip (Sanne)".'),
       h('h3', {}, 'Mijn coureur'),
       h('p', {}, 'Maak je eigen coureur: huidskleur, haar, shirt, lengte, bouw, bril en snor of baard. Kies hem in de lobby bij "Mijn coureur".'),
       h('h3', {}, 'De verliezer'),

@@ -1,4 +1,4 @@
-// Fuck the dealer: het kaartspel, online met iedereen op zijn eigen telefoon.
+// Pak de dealer (eerst Fuck the dealer): het kaartspel, online met iedereen op zijn eigen telefoon.
 // De dealer houdt de stapel vast en ziet als enige de bovenste kaart. Om de beurt raden de anderen welke kaart
 // het is. Goed in één keer: de dealer drinkt 5 slokken. Fout: de dealer zegt hoger of lager, en je raadt nog één
 // keer. Nu goed: de dealer drinkt 3. Weer fout: jij drinkt het verschil tussen je gok en de kaart. Speelt de

@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Weerwolven</title>
-<meta name="description" content="Weerwolven van Wakkerdam online: iedereen krijgt geheim een rol op zijn telefoon en de server is de spelleider. 's Nachts kiezen de wolven een slachtoffer, overdag stemt het dorp.">
+<title>Wolvennacht</title>
+<meta name="description" content="Wolvennacht: het weerwolvenspel online. iedereen krijgt geheim een rol op zijn telefoon en de server is de spelleider. 's Nachts kiezen de wolven een slachtoffer, overdag stemt het dorp.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Weerwolven">
+<meta name="apple-mobile-web-app-title" content="Wolvennacht">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="/weerwolven.webmanifest">
 <link rel="icon" href="/img/weerwolven.svg" type="image/svg+xml">
@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700;800;900&family=Grenze+Gotisch:wght@600;700;800&display=swap">
 <style>
 :root{
-  /* Weerwolven heeft een eigen sfeer: een open plek in het bos bij Wakkerdam. 's Nachts brandt er een kampvuur onder
+  /* Wolvennacht heeft een eigen sfeer: een open plek in het bos bij het dorp Nevelveen. 's Nachts brandt er een kampvuur onder
      de maan met de bomen eromheen, overdag is het het dorpsplein. Koppen in een gotische letter; kaarten en vellen van
      perkament met bruine inkt. De spelers zitten in een kring rond het vuur (jij altijd onderaan). */
   --night:#070a16;
@@ -366,7 +366,7 @@ html[data-phase="dag"] .dock,html[data-phase="jager"] .dock,html[data-view="klaa
 
 <div class="app">
   <header class="bar">
-    <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3.2 2.2l4.6 4.7c1.3-.5 2.7-.7 4.2-.7s2.9.2 4.2.7l4.6-4.7.5 8.4c.9 1.4 1.4 3 1.4 4.7 0 1.4-.8 2.6-2 3.2l-3.5 1.8-1.9 2H8.7l-1.9-2-3.5-1.8c-1.2-.6-2-1.8-2-3.2 0-1.7.5-3.3 1.4-4.7z"/><path fill="#150b18" d="M7 12.2l3.6 1.3-.5 1.3zM17 12.2l-3.6 1.3.5 1.3zM10.4 18.3h3.2L12 20z"/></svg><span>Weerwolven</span></div>
+    <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3.2 2.2l4.6 4.7c1.3-.5 2.7-.7 4.2-.7s2.9.2 4.2.7l4.6-4.7.5 8.4c.9 1.4 1.4 3 1.4 4.7 0 1.4-.8 2.6-2 3.2l-3.5 1.8-1.9 2H8.7l-1.9-2-3.5-1.8c-1.2-.6-2-1.8-2-3.2 0-1.7.5-3.3 1.4-4.7z"/><path fill="#150b18" d="M7 12.2l3.6 1.3-.5 1.3zM17 12.2l-3.6 1.3.5 1.3zM10.4 18.3h3.2L12 20z"/></svg><span>Wolvennacht</span></div>
     <div class="bar-r">
       <button class="owe glass" id="owe" type="button" data-act="mine" hidden></button>
       <button class="round glass" type="button" data-act="menu" aria-label="Menu" aria-haspopup="dialog">
@@ -451,7 +451,7 @@ const store = {
 };
 
 // wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
-// Je naam neemt hij over van een ander spel in de speelhal als je die daar al eens hebt ingevuld.
+// Je naam neemt hij over van een ander spel in Rondje als je die daar al eens hebt ingevuld.
 const me = (() => {
   const v = store.get(KEY.me, {}) || {};
   let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
@@ -465,7 +465,7 @@ const me = (() => {
   store.set(KEY.me, o);
   return o;
 })();
-const urlCode = ((location.pathname.match(/^\/weerwolven\/([A-Za-z]{4})$/) || [])[1] || new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+const urlCode = ((location.pathname.match(/^\/wolvennacht\/([A-Za-z]{4})$/) || [])[1] || new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
 
 /* ================= GELUID ================= */
 const Snd = {
@@ -589,7 +589,7 @@ function onState(m) {
   ui.joining = false; ui.error = '';
   store.set(KEY.table, { code: m.code });
   Net.want = { t: 'join', code: m.code, name: me.name, token: me.token };
-  if (location.pathname !== `/weerwolven/${m.code}`) history.replaceState(null, '', `/weerwolven/${m.code}`);
+  if (location.pathname !== `/wolvennacht/${m.code}`) history.replaceState(null, '', `/wolvennacht/${m.code}`);
   const step = `${m.round}:${m.phase}:${m.day}`;
   if (step !== ui.step) { ui.step = step; ui.sel = -1; ui.pair = []; ui.save = false; if (m.phase !== 'rollen') ui.reveal = false; }
   const seq = m.seq || 0;
@@ -608,7 +608,7 @@ function leaveLocal(reason) {
   Net.stop();
   store.del(KEY.table);
   S = null; ui.banner = null; ui.sheet = null; ui.show = null; ui.code = '';
-  history.replaceState(null, '', '/weerwolven');
+  history.replaceState(null, '', '/wolvennacht');
   keepAwake(false);
   render();
   if (reason) toast(reason);
@@ -818,7 +818,7 @@ const forceLink = (label) => (isHost() ? `<button class="linkbtn" type="button" 
 /* ================= SCHERMEN ================= */
 function vHome() {
   const empty = Array.from({ length: 5 }, () => ({ name: 'Vrije plek', empty: true }));
-  const center = `<div class="center">${fire(true)}<div class="ph-t">Wakkerdam</div><p class="ph-sub">De nacht valt</p></div>`;
+  const center = `<div class="center">${fire(true)}<div class="ph-t">Nevelveen</div><p class="ph-sub">De nacht valt</p></div>`;
   const table = tableHTML({ order: [0, 1, 2, 3, 4], people: empty, cls: 'lobby home', center });
   const busy = ui.joining ? 'disabled' : '';
   return `
@@ -827,7 +827,7 @@ function vHome() {
     <div class="chips"><span class="chip">${W.MIN_PLAYERS} tot ${W.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span><span class="chip line">Geen spelleider nodig</span></div>
     <p>Iedereen krijgt geheim een rol op zijn telefoon. 's Nachts kiezen de weerwolven een slachtoffer, overdag stemt het dorp wie er wordt opgehangen. Wie doodgaat drinkt, en de verliezers ook.</p>
     ${legend()}
-    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${W.NAME_MAX}" placeholder="Bijvoorbeeld Jort" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
+    <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${W.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
       <button class="addbtn" type="submit" ${busy}>Meedoen</button>
@@ -1068,7 +1068,7 @@ const deathLines = (deaths) => deaths.map((d) => `<div><span><i style="--pc:${PC
 // de uitslag van de nacht, de stemming of het schot
 function resultDock(ev) {
   const dismiss = '<button class="ghostbtn" type="button" data-act="dismiss">Verder</button>';
-  const drink = (list, n) => (list.length ? `<div class="action">${GLASS}<span>${andList(list.map(who))} ${list.length === 1 && list[0] !== S.you ? 'drinkt' : 'drinken'} ${slok(n)}</span></div>` : '');
+  const drink = (list, n) => (list.length ? `<div class="action">${GLASS}<span>${andList(list.map(who))} ${list.length === 1 ? 'drinkt' : 'drinken'} ${slok(n)}</span></div>` : '');
   const dead = ev.deaths || [];
   if (ev.type === 'ochtend') {
     return `<div class="res-h ${dead.length ? 'bad' : 'moon'}"><span class="verdict">${dead.length ? 'Ochtend' : 'Iedereen leeft'}</span></div>
@@ -1120,7 +1120,7 @@ function menuHTML() {
     ${S ? `<button type="button" data-act="share">Uitnodigen <span>${S.code}</span></button>` : ''}
     ${game && host ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
     ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
-    <a href="/">Naar de speelhal <span>›</span></a>
+    <a href="/">Naar Rondje <span>›</span></a>
   </nav>`;
 }
 
@@ -1129,9 +1129,9 @@ function rolesHTML() {
   const n = Math.max(W.MIN_PLAYERS, S.phase === 'lobby' ? liveCount() : S.players.filter((p) => p.connected).length);
   const toggles = W.SPECIALS.map((r) => `<button class="tgl${s[r] ? ' on' : ''}" type="button" data-act="role" data-r="${r}" style="${rc(r)}" ${can ? '' : 'disabled'}>
       <span class="nm">${ICON[r]}<span>${roleName(r)}<small>${ROLE[r].text}</small></span></span><span class="sw"></span></button>`).join('');
-  return `${sheetTop('Rollen', 'Weerwolven')}
+  return `${sheetTop('Rollen', 'Wolvennacht')}
     <p>Met ${n} spelers: <b>${deckText(W.deckOf(W.roleList(n, s)))}</b>.</p>
-    <p class="kick">Weerwolven</p>
+    <p class="kick">Wolvennacht</p>
     <div class="seg">${W.WOLF_CHOICES.map((w) => `<button type="button" data-act="wolves" data-n="${w}" aria-pressed="${s.wolves === w}" ${can && (!w || w <= W.maxWolves(n)) ? '' : 'disabled'}>${w || 'Auto'}</button>`).join('')}</div>
     ${toggles}
     <div class="rules"><p class="small">Automatisch: 1 wolf tot en met 5 spelers, 2 tot en met 8, daarboven 3. Er is altijd minder dan de helft wolf. Zijn er te weinig spelers voor alle rollen, dan vallen de onderste af. De rest is burger.${can ? '' : host ? ' Je kunt de rollen aanpassen als het potje klaar is.' : ' Alleen de host kan de rollen kiezen.'}</p></div>`;
@@ -1168,9 +1168,9 @@ function scoreHTML() {
 
 function rulesHTML() {
   const r = (x) => `<span class="rr" style="${rc(x)}">${ICON[x]}${roleName(x)}</span>`;
-  return `${sheetTop('Spelregels', 'Weerwolven')}
+  return `${sheetTop('Spelregels', 'Wolvennacht')}
   <div class="rules">
-    <p>Het dorp Wakkerdam wordt geteisterd door weerwolven. Iedereen speelt op zijn eigen telefoon en de telefoon is de spelleider: die deelt de rollen uit, regelt de nacht en telt de stemmen.</p>
+    <p>Het dorp Nevelveen wordt geteisterd door weerwolven. Iedereen speelt op zijn eigen telefoon en de telefoon is de spelleider: die deelt de rollen uit, regelt de nacht en telt de stemmen.</p>
     <ol>
       <li><b>Je rol.</b> Iedereen krijgt geheim een rol. Hou je scherm voor jezelf. Wolven zien wie de andere wolven zijn.</li>
       <li><b>De nacht.</b> Iedereen tikt iets aan, zodat niemand ziet wie er een rol heeft. De wolven kiezen samen een slachtoffer en moeten het eens worden.</li>
@@ -1313,9 +1313,9 @@ const actions = {
   },
   start() { Snd.ac(); Net.send({ t: 'start' }); },
   share() {
-    const url = `${location.origin}/weerwolven/${S.code}`, text = `Doe mee met Weerwolven aan tafel ${S.code}`;
+    const url = `${location.origin}/wolvennacht/${S.code}`, text = `Doe mee met Wolvennacht aan tafel ${S.code}`;
     closeSheet();
-    if (navigator.share) navigator.share({ title: 'Weerwolven', text, url }).catch(() => {});
+    if (navigator.share) navigator.share({ title: 'Wolvennacht', text, url }).catch(() => {});
     else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast('Link gekopieerd'), () => toast(url));
     else toast(url);
   },

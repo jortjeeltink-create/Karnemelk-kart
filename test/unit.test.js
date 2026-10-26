@@ -495,8 +495,8 @@ test('server vergeten (gratis hosting herstart): de telefoon zet naam, MP en spu
   assert.equal(off.profile.backup, undefined);
 });
 
-test('coureurs: de vrienden en de ridders als specials', () => {
-  // de vrienden met hun kapsels
+test('coureurs: de specials (verzonnen namen) en de ridders', () => {
+  // de specials met hun kapsels (de ids zijn nog de oude, zodat wie er een kocht hem houdt)
   assert.equal(CHARACTER_BY_ID.stan.look.hair, 'warrig');
   assert.equal(CHARACTER_BY_ID.jullian.look.hair, 'stoppels');
   assert.equal(CHARACTER_BY_ID.melle.look.hairColor, '#f6d987');
@@ -511,10 +511,11 @@ test('coureurs: de vrienden en de ridders als specials', () => {
   // bots gebruiken geen zelfgemaakte coureur en geen specials
   assert.ok(!BOT_CHARACTERS.some((c) => c.custom || c.special));
   for (const id of ['sim', 'stan', 'jullian', 'melle', 'duuk', 'morris', 'ridderkees', 'ridderjort']) assert.ok(CHARACTER_BY_ID[id].special, `${id} is een special`);
-  assert.equal(racerName('Jort', 'sim'), 'Sim (Jort)');
-  assert.equal(racerName('Jort', 'ridderjort'), 'Ridder Jort (Jort)');
-  assert.equal(racerName('Sim', 'sim'), 'Sim');
-  assert.equal(racerName('Jort', 'kees'), 'Jort');
+  assert.deepEqual(['sim', 'stan', 'jullian', 'melle', 'duuk', 'morris', 'ridderjort'].map((id) => CHARACTER_BY_ID[id].name), ['Sjors', 'Wim', 'Stef', 'Flip', 'Koen', 'Freek', 'Ridder Roest']);
+  assert.equal(racerName('Sanne', 'melle'), 'Flip (Sanne)');
+  assert.equal(racerName('Sanne', 'ridderjort'), 'Ridder Roest (Sanne)');
+  assert.equal(racerName('Flip', 'melle'), 'Flip');
+  assert.equal(racerName('Sanne', 'kees'), 'Sanne');
 });
 
 test('uit de winkel gehaalde specials: MP terug', async () => {
@@ -555,7 +556,7 @@ test('alles is betaalbaar: een special heb je binnen 5 races', () => {
   for (const it of SHOP_ITEMS) if (it.id !== 'cape_goud') assert.ok(it.price <= 450);
 });
 
-test('specials: eerst kopen, dan racen als "Sim (jouw naam)"', async () => {
+test('specials: eerst kopen, dan racen als "Sjors (jouw naam)"', async () => {
   const clock = { t: Date.UTC(2026, 9, 6, 12) };
   const hub = makeHub(clock);
   const a = await newPlayer(hub, 'Jort');
@@ -573,7 +574,7 @@ test('specials: eerst kopen, dan racen als "Sim (jouw naam)"', async () => {
   await hub.message(a, { t: 'start' });
   const race = a.last('race');
   const mine = race.entrants.find((e) => e.kid === race.you);
-  assert.equal(mine.name, 'Sim (Jort)');
+  assert.equal(mine.name, 'Sjors (Jort)');
   assert.ok(race.entrants.filter((e) => e.isBot).every((e) => !CHARACTER_BY_ID[e.character].special));
 });
 

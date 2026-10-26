@@ -1,7 +1,7 @@
 {
-  "name": "Boer zoekt vrouw",
-  "short_name": "Boer zoekt",
-  "description": "Het drankspel Boer zoekt vrouw online: iedereen een rol op zijn eigen telefoon.",
+  "name": "Boerenbruiloft",
+  "short_name": "Bruiloft",
+  "description": "Boerenbruiloft: het partyspel online. Iedereen een rol op zijn eigen telefoon.",
   "lang": "nl",
   "id": "/boer",
   "start_url": "/boer",

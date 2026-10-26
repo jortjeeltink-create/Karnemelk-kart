@@ -1,4 +1,4 @@
-// Alle banen van Mario Bak. Posities langs de baan (t) zijn een fractie
+// Alle banen van Karnemelk Kart. Posities langs de baan (t) zijn een fractie
 // van de rondelengte (0 = startlijn), d is de afstand opzij (rechts = positief).
 export const TRACKS = [
   {

@@ -19,15 +19,15 @@ export const ITEM_ICONS = {
 };
 
 export const LOGO = `
-<svg class="logo-svg" viewBox="0 0 360 150" role="img" aria-label="Mario Bak">
+<svg class="logo-svg" viewBox="0 0 360 150" role="img" aria-label="Karnemelk Kart">
   <defs>
     <linearGradient id="lg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e6f0ff"/></linearGradient>
   </defs>
   <path d="M20 40 Q60 6 120 22 Q180 0 240 20 Q300 4 340 38 L338 98 Q330 112 318 100 Q312 128 296 104 Q280 112 270 100 L84 100 Q70 132 58 102 Q46 116 38 100 Q24 104 22 92 Z" fill="url(#lg1)" stroke="#2f7de1" stroke-width="5" stroke-linejoin="round"/>
-  <text x="180" y="66" text-anchor="middle" font-family="ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif" font-weight="900" font-size="50" textLength="190" lengthAdjust="spacingAndGlyphs" fill="#2f7de1" stroke="#ffffff" stroke-width="2" paint-order="stroke">MARIO</text>
+  <text x="180" y="66" text-anchor="middle" font-family="ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif" font-weight="900" font-size="42" textLength="244" lengthAdjust="spacingAndGlyphs" fill="#2f7de1" stroke="#ffffff" stroke-width="2" paint-order="stroke">KARNEMELK</text>
   <g transform="translate(180 120) rotate(-4)">
     <rect x="-74" y="-26" width="148" height="46" rx="14" fill="#ff7a00" stroke="#ffffff" stroke-width="4"/>
-    <text x="0" y="10" text-anchor="middle" font-family="ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif" font-weight="900" font-size="34" textLength="86" lengthAdjust="spacingAndGlyphs" fill="#ffffff">BAK</text>
+    <text x="0" y="10" text-anchor="middle" font-family="ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif" font-weight="900" font-size="34" textLength="100" lengthAdjust="spacingAndGlyphs" fill="#ffffff">KART</text>
   </g>
   <circle cx="44" cy="58" r="8" fill="#151515"/><circle cx="318" cy="56" r="9" fill="#151515"/><circle cx="300" cy="82" r="5" fill="#151515"/>
 </svg>`;
