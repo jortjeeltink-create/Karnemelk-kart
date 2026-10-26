@@ -36,14 +36,14 @@ test('inzetten: een paard kiezen, een inzet tussen 1 en 10, en klaar kan pas met
   assert.equal(P.bet(g, 2, 0, 2, true), null, 'tijdens de race zet je niet in');
 });
 
-test('de race begint: zeven dichte kaarten, een stapel zonder azen, en iedereen drinkt vooraf zijn inzet', () => {
+test('de race begint: zeven dichte kaarten, een stapel zonder azen, en niemand drinkt vooraf', () => {
   const g = race([0, 1, 1], [3, 2, 5]);
   assert.equal(g.track.length, P.TRACK);
   assert.ok(g.track.every((t) => !t.open));
   assert.equal(g.track.length + g.pile.length, 48);
   assert.ok([...g.pile, ...g.track.map((t) => t.card)].every((x) => x.r !== 14), 'de azen zijn de paarden');
   assert.deepEqual(g.pos, [0, 0, 0, 0]);
-  assert.deepEqual(g.players.map((p) => p.sips), [3, 2, 5]);
+  assert.deepEqual(g.players.map((p) => p.sips), [0, 0, 0]);
   assert.equal(g.log.at(-1).type, 'start');
   assert.equal(g.turn, 0, 'de eerste race begint bij de eerste speler');
 });
@@ -91,7 +91,7 @@ test('na een open kaart kan de volgende meteen ook open gaan', () => {
   assert.deepEqual(g.log.slice(-2).map((e) => [e.type, e.index, e.horse, e.to]), [['terug', 0, 0, 2], ['terug', 1, 0, 1]]);
 });
 
-test('over de finish: de rest drinkt zijn eigen inzet en die van de winnaar(s)', () => {
+test('over de finish: de rest drinkt zijn eigen inzet en de hoogste inzet op de winnaar, samen hooguit 8', () => {
   const g = race([0, 1, 0, 2], [3, 2, 4, 1]);
   const before = g.players.map((p) => p.sips);
   g.pos = [P.FINISH - 1, 2, 2, 2];
@@ -103,11 +103,17 @@ test('over de finish: de rest drinkt zijn eigen inzet en die van de winnaar(s)',
   assert.equal(g.winner, 0);
   assert.equal(g.turn, -1);
   const fin = g.log.at(-1);
-  assert.deepEqual([fin.type, fin.horse, fin.winners, fin.pot], ['finish', 0, [0, 2], 7]);
-  assert.deepEqual(g.drinks, [{ own: 0, winner: 0, total: 0 }, { own: 2, winner: 7, total: 9 }, { own: 0, winner: 0, total: 0 }, { own: 1, winner: 7, total: 8 }]);
-  assert.deepEqual(g.players.map((p, i) => p.sips - before[i]), [0, 9, 0, 8]);
+  assert.deepEqual([fin.type, fin.horse, fin.winners, fin.pot], ['finish', 0, [0, 2], 4], 'de hoogste inzet op de winnaar');
+  assert.deepEqual(g.drinks, [{ own: 0, winner: 0, total: 0 }, { own: 2, winner: 4, total: 6 }, { own: 0, winner: 0, total: 0 }, { own: 1, winner: 4, total: 5 }]);
+  assert.deepEqual(g.players.map((p, i) => p.sips - before[i]), [0, 6, 0, 5]);
   assert.deepEqual(g.players.map((p) => p.wins), [1, 0, 1, 0]);
   assert.equal(P.draw(g, 1, seats(4)), null, 'de race is voorbij');
+  // nooit meer dan 8, en nooit meer dan 5 inzetten
+  const h = race([0, 1], [5, 5]);
+  h.pos = [P.FINISH - 1, 2, 2, 2];
+  P.draw(h, 0, [0, 1], c(0));
+  assert.deepEqual(h.drinks[1], { own: 5, winner: 3, total: P.LOSE_MAX });
+  assert.equal(P.BET_MAX, 5);
 });
 
 test('wint een paard waar niemand op zette, dan drinkt iedereen alleen zijn eigen inzet', () => {

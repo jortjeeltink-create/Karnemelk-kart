@@ -61,7 +61,6 @@ const bussen = {
       case 'guess': return B.guess(g, t.actorFor(s, g.rider), msg.o);
       case 'retry': return B.retry(g, t.actorFor(s, g.rider));
       case 'sips': return B.sips(g, me, msg.act);
-      case 'bak': return B.bak(g, me);
       default: return null;
     }
   },
@@ -73,13 +72,13 @@ const bussen = {
     out.phase = g.phase;
     out.players = out.players.map((base, i) => {
       const gp = g.players[i];
-      return { ...base, cards: gp.hand.length, laid: gp.laid.length, got: gp.got, drank: gp.drank, owe: gp.pending + gp.saved, saved: gp.saved, dealt: gp.dealt, goed: gp.goed, bak: gp.bak, bakken: gp.bakken };
+      return { ...base, cards: gp.hand.length, laid: gp.laid.length, got: gp.got, drank: gp.drank, owe: gp.pending + gp.saved, saved: gp.saved, dealt: gp.dealt, goed: gp.goed };
     });
     const p = g.players[me];
     // tijdens de vragenronde liggen alle kaarten open, daarna houdt iedereen zijn kaarten voor zich
     out.hands = g.phase === 'vragen' ? g.players.map((x) => x.hand) : null;
     out.hand = p.hand;
-    out.me = { pending: p.pending, from: p.from, saved: p.saved, settle: p.settle, bak: p.bak, bakFrom: p.bakFrom };
+    out.me = { pending: p.pending, from: p.from, saved: p.saved, settle: p.settle };
     out.round = g.round;
     out.turn = g.turn;
     out.deals = g.deals.map((d) => ({ from: d.from, n: d.n }));

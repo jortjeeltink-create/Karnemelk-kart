@@ -26,7 +26,7 @@ test('een veld van 6 bij 6 met 8 verstopte mijnen op 8 verschillende kaarten', (
   assert.ok(g.mines.every((m) => m.hidden && m.cells.length === 1 && m.count === 1));
   assert.equal(new Set(g.mines.map((m) => m.cells[0])).size, M.MINES);
   assert.equal(g.mineSips, M.MINE_DEFAULT);
-  assert.equal(M.newGame(names(2), { mineSips: 7 }).mineSips, M.MINE_DEFAULT, 'alleen 3, 5 of 10');
+  assert.equal(M.newGame(names(2), { mineSips: 10 }).mineSips, M.MINE_DEFAULT, 'alleen 2, 3 of 5');
 });
 
 test('een mijn mag op een kaart of tussen twee kaarten', () => {
@@ -85,8 +85,8 @@ test('boem: de slokken per mijn drinken, de mijn ergens anders neerleggen en dan
   g.mines = [{ cells: [at(2, 2)], hidden: true, count: 1 }, { cells: [at(2, 2), at(3, 2)], hidden: false, count: 2 }];
   throwAt(g, 0, 2, 2);
   const boom = g.log.at(-1);
-  assert.deepEqual([boom.type, boom.count, boom.sips, boom.hidden], ['mijn', 3, 15, true]);
-  assert.equal(g.players[0].sips, 15);
+  assert.deepEqual([boom.type, boom.count, boom.sips, boom.hidden], ['mijn', 3, M.MAX_SIPS, true], '3 × 5 is 15, maar hooguit 6');
+  assert.equal(g.players[0].sips, 6);
   assert.equal(g.players[0].mines, 3);
   assert.equal(g.mines.length, 0, 'de mijnen zijn van het veld');
   assert.deepEqual([g.phase, g.hit], ['plaatsen', 3]);
@@ -126,16 +126,16 @@ test('ligt alleen de kaart van de worp nog dicht, dan verdwijnt de mijn', () => 
 
 test('een nieuw veld houdt de stand; de slokken per mijn wijzigen kan alleen tussen twee velden', () => {
   const g = game(2);
-  assert.equal(M.setMineSips(g, 10), false);
+  assert.equal(M.setMineSips(g, 2), false);
   g.cards.forEach((c, i) => { if (i) c.open = true; });
   throwAt(g, 0, 1, 1);
   M.guess(g, 0, 'rood', [0, 1]);
   assert.equal(g.phase, 'klaar');
   const sips = g.players.map((p) => p.sips);
   assert.equal(M.setMineSips(g, 4), false);
-  assert.equal(M.setMineSips(g, 10), true);
+  assert.equal(M.setMineSips(g, 2), true);
   assert.ok(M.next(g, [0, 1]));
-  assert.deepEqual([g.round, M.closed(g), g.mines.length, g.mineSips], [2, 36, M.MINES, 10]);
+  assert.deepEqual([g.round, M.closed(g), g.mines.length, g.mineSips], [2, 36, M.MINES, 2]);
   assert.equal(g.turn, 1);
   assert.deepEqual(g.players.map((p) => p.sips), sips);
 });

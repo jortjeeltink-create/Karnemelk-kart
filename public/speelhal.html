@@ -252,31 +252,31 @@ const GAMES = [
   { id: 'boer', name: 'Boeren', name2: 'bruiloft', short: 'Boerenbruiloft', acc: '#ff6b8b', tint: '#2a0f1c', bg: '#1a0b14',
     url: '/boer',
     chips: ['Drankspel', 'Online met vrienden'],
-    text: 'Iedereen krijgt stiekem een rol op zijn eigen telefoon: boer, vrouw of burger. De boer telt met zijn ogen dicht en de vrouw drinkt stiekem een glas leeg. Bij de pling raadt de boer wie het was: goed is het tweede glas voor de vrouw, fout is het voor de boer.',
+    text: 'Iedereen krijgt stiekem een rol op zijn eigen telefoon: boer, bruid of gast. De boer telt met zijn ogen dicht en de bruid neemt stiekem twee slokken; de gasten doen alsof. Bij de pling raadt de boer wie zijn bruid is: goed geraden, dan drinkt zij er nog drie, fout, dan drinkt de boer.',
     facts: [['Spelers', '3 tot 10'], ['Tellen', '8 seconden'], ['Meedoen', 'met een code']],
     cta: 'Speel Boerenbruiloft' },
   { id: 'mexen', name: 'Mexen', name2: '', short: 'Mexen', acc: '#36c5d6', tint: '#0d2a30', bg: '#0b1d22',
     url: '/mexen',
     chips: ['Dobbelspel', 'Online met vrienden'],
-    text: 'Het dobbelspel, online. Gooi om de beurt met twee stenen op je eigen telefoon en zie iedereen live gooien. De eerste bepaalt hoe vaak je mag gooien, de laagste worp drinkt, en elke Mex verdubbelt de slokken.',
+    text: 'Het dobbelspel, online. Gooi om de beurt met twee stenen op je eigen telefoon en zie iedereen live gooien. De eerste bepaalt hoe vaak je mag gooien, de laagste worp drinkt, en elke Mex verdubbelt de slokken, tot hooguit 6.',
     facts: [['Spelers', '2 tot 10'], ['Hoogst', 'Mex (2 en 1)'], ['Meedoen', 'met een code']],
     cta: 'Speel Mexen' },
   { id: 'dealer', name: 'Pak de', name2: 'dealer', short: 'Pak de dealer', acc: '#a28fe3', tint: '#1d1532', bg: '#130d22',
     url: '/dealer',
     chips: ['Kaartspel', 'Online met vrienden'],
-    text: 'De dealer ziet de bovenste kaart op zijn telefoon, de rest raadt. In één keer goed: de dealer drinkt 5. Fout? Dan hoor je hoger of lager. Weer fout: jij drinkt het verschil. Speelt de dealer er drie achter elkaar uit, dan gaat de stapel door.',
+    text: 'De dealer ziet de bovenste kaart op zijn telefoon, de rest raadt. In één keer goed: de dealer drinkt 5. Fout? Dan hoor je hoger of lager. Weer fout: jij drinkt het verschil, hooguit 5. Speelt de dealer er drie achter elkaar uit, dan gaat de stapel door.',
     facts: [['Spelers', '2 tot 10'], ['Dealer af', 'na 3 keer'], ['Meedoen', 'met een code']],
     cta: 'Speel Pak de dealer' },
   { id: 'paard', name: 'Paarden', name2: 'race', short: 'Paardenrace', acc: '#a6d83c', tint: '#1c2a0e', bg: '#121c08',
     url: '/paardenrace',
     chips: ['Kaartspel', 'Online met vrienden'],
-    text: 'De vier azen zijn de paarden. Kies er een, zet slokken in en trek om de beurt een kaart: het paard met die vorm galoppeert een stap vooruit. Zijn alle paarden langs een dichte kaart, dan gaat die open en moet dat paard terug. Zette je op het verkeerde paard? Dan drink je je inzet en die van de winnaar.',
+    text: 'De vier azen zijn de paarden. Kies er een, zet slokken in en trek om de beurt een kaart: het paard met die vorm galoppeert een stap vooruit. Zijn alle paarden langs een dichte kaart, dan gaat die open en moet dat paard terug. Zette je op het verkeerde paard? Dan drink je je inzet en die van de winnaar, samen hooguit 8.',
     facts: [['Spelers', '2 tot 10'], ['Paarden', 'de vier azen'], ['Meedoen', 'met een code']],
     cta: 'Speel Paardenrace' },
   { id: 'rotonde', name: 'Rotonde', name2: '', short: 'Rotonde', acc: '#d63bb5', tint: '#2a0f26', bg: '#1a0b18',
     url: '/rotonde',
     chips: ['Kaartspel', 'Online met vrienden'],
-    text: '37 kaarten liggen als een zon op tafel, en de kleur zegt hoeveel slokken een kaart waard is: van 1 aan de buitenkant tot 12 in het midden. Kies een kaart en gok rood of zwart. Goed? Dan gaat hij in de pot. Fout? Dan drink je de kaart plus de hele pot.',
+    text: '37 kaarten liggen als een zon op tafel, en de kleur zegt hoeveel slokken een kaart waard is: van 1 aan de buitenkant tot 6 in het midden. Kies een kaart en gok rood of zwart. Goed? Dan gaat hij in de pot. Fout? Dan drink je de kaart plus de hele pot, hooguit 8.',
     facts: [['Spelers', '2 tot 10'], ['Kaarten', '37, van 1 tot 12'], ['Meedoen', 'met een code']],
     cta: 'Speel Rotonde' },
   { id: 'mijnenveld', name: 'Mijnen', name2: 'veld', short: 'Mijnenveld', acc: '#c9803a', tint: '#2a1a08', bg: '#1a1006',
@@ -294,7 +294,7 @@ const GAMES = [
   { id: 'borrelbord', name: 'Borrel', name2: 'bord', short: 'Borrelbord', acc: '#f2c230', tint: '#2a2208', bg: '#3a200d',
     url: '/borrelbord',
     chips: ['Bordspel', 'Online met vrienden'],
-    text: 'Het drankspel als ganzenbord. Gooi de steen op je telefoon, loop met je pion over 48 vakjes en doe wat er staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje kiezen. Met de gans, de brug, het café, de put en de doodskop. Wie als eerste op de finish staat, wint en mag een bak uitdelen.',
+    text: 'Het drankspel als ganzenbord. Gooi de steen over het bord, loop met je pion over 48 vakjes en doe wat er staat: drinken, uitdelen, een vraag, een duel (allebei gooien) of een drinkmaatje kiezen. Met de gans, de brug, het café, de put en de doodskop. Wie als eerste op de finish staat, wint en deelt slokken uit.',
     facts: [['Spelers', '2 tot 10'], ['Vakjes', '48'], ['Meedoen', 'met een code']],
     cta: 'Speel Borrelbord' }
 ];
@@ -471,11 +471,11 @@ const PREV = {
       rr(c, -cw / 2, -ch / 2, cw, ch, cw * .14); c.fillStyle = open ? '#ff6b8b' : '#3a1d43'; c.fill();
       c.shadowColor = 'transparent';
       if (open) {
-        // een kroontje en het woord VROUW
+        // een kroontje en het woord BRUID
         const k = cw * .3;
         c.beginPath(); c.moveTo(-k, -ch * .05); c.lineTo(-k, -ch * .28); c.lineTo(-k / 2, -ch * .16); c.lineTo(0, -ch * .32); c.lineTo(k / 2, -ch * .16); c.lineTo(k, -ch * .28); c.lineTo(k, -ch * .05); c.closePath();
         c.fillStyle = '#ffd36b'; c.fill();
-        T(c, 'VROUW', 0, ch * .22, cw * .26, '#fff', { w: 900 });
+        T(c, 'BRUID', 0, ch * .22, cw * .26, '#fff', { w: 900 });
         c.lineWidth = Math.max(1.5, cw * .05); c.strokeStyle = '#f3efdb'; rr(c, -cw / 2, -ch / 2, cw, ch, cw * .14); c.stroke();
       }
       else { c.lineWidth = Math.max(1.5, cw * .06); c.strokeStyle = '#f3efdb'; rr(c, -cw / 2 + cw * .07, -ch / 2 + cw * .07, cw * .86, ch - cw * .14, cw * .09); c.stroke(); T(c, '?', 0, 1, cw * .4, 'rgba(214,144,201,.85)', { w: 900 }); }

@@ -58,7 +58,7 @@ test('elke Mex verdubbelt; wie verloor begint de volgende ronde', () => {
   M.roll(g, 3, [6, 6]);
   assert.equal(g.phase, 'uitslag');
   assert.equal(g.loser, 2);
-  assert.equal(g.sips, 3 * 4, 'twee keer Mex: vier keer de inzet');
+  assert.equal(g.sips, M.MAX_SIPS, 'twee keer Mex: vier keer de inzet (12), maar hooguit 6');
   assert.equal(M.setStake(g, 2), true, 'tussen twee rondes mag de inzet anders');
   const ev = M.next(g, seats(4));
   assert.equal(ev.starter, 2);
