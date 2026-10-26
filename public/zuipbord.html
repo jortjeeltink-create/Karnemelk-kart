@@ -344,7 +344,7 @@ const ICON = {
   dubbel: svg(`<rect x="1.5" y="6" width="11" height="11" rx="2.5" ${F}/><rect x="11.5" y="3" width="11" height="11" rx="2.5" ${F} opacity=".8"/><circle cx="4.5" cy="9" r="1.1" fill="rgba(0,0,0,.5)"/><circle cx="9.5" cy="14" r="1.1" fill="rgba(0,0,0,.5)"/><circle cx="17" cy="8.5" r="1.1" fill="rgba(0,0,0,.5)"/>`),
   rust: svg(`<circle cx="12" cy="12" r="9.5" ${F}/><path fill="none" stroke="rgba(0,0,0,.5)" stroke-width="1.9" stroke-linecap="round" d="M7.5 10.5c.6-.8 1.6-.8 2.2 0M14.3 10.5c.6-.8 1.6-.8 2.2 0M8 14.5c2.2 2 5.8 2 8 0"/>`),
   start: svg(`<path ${ST} d="M5 21V3M5 4h12l-2.5 4L17 12H5"/>`),
-  bak: svg(`<path ${F} d="M4 5h12v13a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/><path ${ST} d="M16 8h2.5a2.5 2.5 0 0 1 0 5H16"/><path fill="rgba(255,255,255,.8)" d="M3.5 4.5c0-1.6 1.6-2.6 3.1-2 1-1.3 3.1-1.3 4.1 0 1.6-.6 3.8.3 3.8 2.3V8h-11z"/><path fill="rgba(0,0,0,.25)" d="M7 10h1.6v8H7zM11.4 10H13v8h-1.6z"/>`),
+  winst: svg(`<path ${F} d="M6 3h12v4a6 6 0 0 1-12 0z"/><path ${ST} d="M6 5H3.5a3 3 0 0 0 3 4M18 5h2.5a3 3 0 0 1-3 4M12 13v4M8 21h8M9.5 17h5"/>`),
   finish: svg(`<path ${ST} d="M5 21V3"/><path fill="currentColor" d="M5 3h4v3H5zM13 3h4v3h-4zM9 6h4v3H9zM5 9h4v3H5zM13 9h4v3h-4zM17 6h3v3h-3zM9 3h4v0zM17 3h3v0z"/>`),
 };
 // soort vakje -> kleur, plaatje, korte naam en uitleg
@@ -369,9 +369,8 @@ const KIND = {
   maatje: { c: 'var(--v-speciaal)', name: 'Drinkmaatje', lb: () => 'Maatje', dark: true, text: 'Kies een maatje: als jij drinkt, drinkt die mee.' },
   ruil: { c: 'var(--v-speciaal)', name: 'Ruil', lb: () => 'Ruil', dark: true, text: 'Kies iemand en ruil van plek.' },
   rust: { c: 'var(--v-rust)', name: 'Rust', lb: () => 'Rust', dark: true, text: 'Even niks. Proost!' },
-  ad: { c: 'var(--v-drink)', name: 'Ad fundum', lb: () => 'Ad!', big: 'AD', text: `Drink je glas in één keer leeg (telt als ${Z.AD_SIPS} slokken).` },
-  finish: { c: '#222', name: 'Finish', lb: () => 'Finish', text: 'Wie hier als eerste komt, wint en mag een bak uitdelen.' },
-  bak: { c: 'var(--v-drink)', name: 'Bak', lb: () => 'Bak', text: `De winnaar kiest wie er een bak trekt: glas in één keer leeg (telt als ${Z.AD_SIPS}).` },
+  finish: { c: '#222', name: 'Finish', lb: () => 'Finish', text: `Wie hier als eerste komt, wint en deelt ${Z.WIN_SIPS} slokken uit.` },
+  winst: { c: 'var(--v-geef)', name: 'Winst', lb: () => 'Winst', text: `De winnaar kiest wie er ${Z.WIN_SIPS} drinkt.` },
 };
 const SHOW_STEP = 210;   // zo snel loopt een pion van vakje naar vakje
 const THROW_MS = 1300;   // zo lang rolt de steen over het bord
@@ -386,7 +385,7 @@ const store = {
 };
 
 // wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
-// Je naam neemt hij over van een ander spel in ATJE als je die daar al eens hebt ingevuld.
+// Je naam neemt hij over van een ander spel in De Spelkeet als je die daar al eens hebt ingevuld.
 const me = (() => {
   const v = store.get(KEY.me, {}) || {};
   let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
@@ -395,7 +394,7 @@ const me = (() => {
     crypto.getRandomValues(a);
     token = [...a].map((x) => abc[x & 63]).join('');
   }
-  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik', 'bord-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
+  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik', 'wolf-ik', 'bord-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
   const o = { token, name: typeof name === 'string' ? name.slice(0, Z.NAME_MAX) : '' };
   store.set(KEY.me, o);
   return o;
@@ -655,7 +654,7 @@ function present(ev) {
         render();
       };
       // eerst laten zien wie de winnaar laat drinken, dan pas wie er wint
-      if (ui.banner && ui.banner.kind === 'bak') setTimeout(after, 1900);
+      if (ui.banner && ui.banner.kind === 'winst') setTimeout(after, 1900);
       else afterWalk(after);
       slokFor(ev, 2600);
       clearDiceLater(600);
@@ -686,10 +685,9 @@ function slokFor(ev, delay = 0) {
     const of = list[k - 1] ? nm(list[k - 1][0]) : 'je maatje';
     return Slok.drink(n, `Jij bent drinkmaatje van ${of}: als die drinkt, drink jij mee.`, { delay });
   }
-  if (ev.type === 'keuze' && ev.kind === 'bak') return Slok.bak(`${nm(ev.player)} ${ev.player === S.winner ? 'won en ' : ''}deelt jou een bak uit.`, { delay });
-  if (ev.type === 'vak' && ev.t === 'ad') return Slok.bak(`Vakje ${ev.at}: ad fundum.`, { title: 'Ad fundum!', delay });
   let why = '';
   if (ev.type === 'keuze' && ev.kind === 'geef') why = `${nm(ev.player)} geeft jou ${slok(ev.n)}.`;
+  else if (ev.type === 'keuze' && ev.kind === 'winst') why = `${nm(ev.player)} won en geeft jou ${slok(ev.n)}.`;
   else if (ev.type === 'duel') { const me = ev.player === S.you ? ev.a : ev.b, them = ev.player === S.you ? ev.b : ev.a; why = `Duel: jij gooide ${me}, ${nm(ev.player === S.you ? ev.target : ev.player)} gooide ${them}.`; }
   else if (ev.type === 'dubbel') why = ev.r % 2 ? `Dubbel of niks: je gooide ${ev.r}, oneven.` : `Dubbel of niks: ${nm(ev.player)} gooide ${ev.r}, even. De rest drinkt 1.`;
   else if (ev.type === 'klaar') why = `${nm(ev.winner)} won, en jij stond het verst achter.`;
@@ -709,7 +707,7 @@ function effect(ev) {
   if (drinksMe) { buzz([80, 40, 80]); Snd.gulp(); }
   slokFor(ev, 700);
   const nm = (i) => (i === S.you ? 'Jij' : S.players[i].name);
-  if (ev.type === 'keuze' && ev.kind === 'bak') banner('Bak!', ev.target === S.you ? 'Jij trekt een bak' : `${nm(ev.target)} trekt een bak`, 'var(--v-drink)', 2200, 'bak');
+  if (ev.type === 'keuze' && ev.kind === 'winst') banner(`${ev.n} slokken`, `${nm(ev.target)} drinkt ze`, 'var(--v-geef)', 2200, 'winst');
   if (ev.type === 'duel') {
     if (ev.tie) banner('Gelijk!', 'Nog een keer gooien', 'var(--v-speciaal)', 1500);
     else { const lo = ev.a < ev.b ? ev.player : ev.target; banner(`${nm(lo === ev.player ? ev.target : ev.player)} wint`, `${nm(lo)} drinkt ${ev.n}`, 'var(--v-speciaal)', 2000); }
@@ -717,8 +715,8 @@ function effect(ev) {
   if (ev.type === 'dubbel') banner(ev.r % 2 ? 'Oneven' : 'Even!', ev.r % 2 ? `${nm(ev.player)} drinkt ${ev.n}` : 'De rest drinkt 1', 'var(--v-speciaal)', 1700);
   if (ev.type !== 'vak') return;
   const k = KIND[ev.t];
-  const big = { gans: 'Gans!', brug: 'Brug!', dood: 'Dood!', put: 'In de put!', cafe: 'Café!', doolhof: 'Doolhof!', ad: 'Ad fundum!', iedereen: 'Iedereen!', dubbel: 'Dubbel of niks', duel: 'Duel!', finish: 'Finish!' }[ev.t];
-  if (big) banner(big, ev.t === 'finish' ? `${S.players[ev.player].name} mag een bak uitdelen` : `${S.players[ev.player].name} · vakje ${ev.at}`, ev.t === 'finish' ? 'var(--v-geef)' : k.c);
+  const big = { gans: 'Gans!', brug: 'Brug!', dood: 'Dood!', put: 'In de put!', cafe: 'Café!', doolhof: 'Doolhof!', iedereen: 'Iedereen!', dubbel: 'Dubbel of niks', duel: 'Duel!', finish: 'Finish!' }[ev.t];
+  if (big) banner(big, ev.t === 'finish' ? `${S.players[ev.player].name} deelt ${Z.WIN_SIPS} slokken uit` : `${S.players[ev.player].name} · vakje ${ev.at}`, ev.t === 'finish' ? 'var(--v-geef)' : k.c);
   if (ev.t === 'gans') Snd.honk();
   if (ev.t === 'dood') Snd.bad();
 }
@@ -883,7 +881,7 @@ function cardText(ev) {
       case 'maatje': return [`${t} is drinkmaatje`, `Als ${whoLow(p)} drinkt, drinkt ${t} mee. Tot het einde van het potje.`];
       case 'duel': return [`Duel: ${who(p)} tegen ${whom(ev.target)}`, `Jullie gooien allebei op je eigen telefoon. De laagste drinkt ${slok(n)}.`];
       case 'ruil': return ['Van plek geruild', `${who(p)} en ${t} ruilen van plek.`];
-      case 'bak': return [`${who(p)} deelt een bak uit`, `${t} trekt een bak: glas in één keer leeg (telt als ${slok(Z.AD_SIPS)}).${(ev.drinks || []).some((d) => d[2] === 'maatje') ? ` ${drinkLine(ev.drinks.filter((d) => d[2] === 'maatje'))} mee.` : ''}`];
+      case 'winst': return [`${who(p)} deelt ${n} uit`, `${drinkLine(ev.drinks)}.`];
       default: return ['', ''];
     }
   }
@@ -909,8 +907,7 @@ function cardText(ev) {
     case 'regel': return ['Bedenk een regel', `${who(p)} bedenkt een regel voor de rest van het potje. Bijvoorbeeld: ${esc(Z.REGELS[ev.i] || '')}`];
     case 'dubbel': return ['Dubbel of niks', `${who(p)} gooit nog een keer. Even: de rest drinkt 1. Oneven: ${whoLow(p)} drinkt ${n}.`];
     case 'rust': return ['Even rust', 'Niks aan de hand. Proost!'];
-    case 'ad': return ['Ad fundum!', `${who(p)} ${p === S.you ? 'drinkt je glas' : 'drinkt het glas'} in één keer leeg (telt als ${slok(Z.AD_SIPS)}).`];
-    case 'finish': return ['Finish!', `${who(p)} staat op de finish en mag een bak uitdelen.`];
+    case 'finish': return ['Finish!', `${who(p)} staat op de finish en deelt ${slok(Z.WIN_SIPS)} uit.`];
     case 'geef': return [`Geef ${n} weg`, `${who(p)} kiest wie er ${n} drinkt.`];
     case 'maatje': return ['Drinkmaatje', `${who(p)} kiest een drinkmaatje.`];
     case 'duel': return ['Duel!', `${who(p)} kiest een tegenstander.`];
@@ -937,7 +934,7 @@ function vHome() {
   <div class="homeboard">${boardHTML({ pawns: demo })}</div>
   <div class="startcard">
     <div class="chips"><span class="chip">${Z.MIN_PLAYERS} tot ${Z.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>Het drankspel als ganzenbord. Gooi de steen over het bord, loop met je pion en doe wat er op het vakje staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje. Wie als eerste op de finish staat, wint en mag een bak uitdelen.</p>
+    <p>Het drankspel als ganzenbord. Gooi de steen over het bord, loop met je pion en doe wat er op het vakje staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje. Wie als eerste op de finish staat, wint en kiest wie er ${slok(Z.WIN_SIPS)} drinkt.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${Z.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -1008,8 +1005,8 @@ function playDock(walkingNow) {
   }
   if (S.phase === 'kiezen') {
     const k = S.pending.kind, n = S.pending.n;
-    const q = { geef: `Wie drinkt er ${n}?`, maatje: 'Wie wordt je drinkmaatje?', duel: 'Met wie duel je?', ruil: 'Met wie ruil je van plek?', bak: 'Wie trekt er een bak?' }[k];
-    const doing = { geef: `kiest wie er ${n} drinkt`, maatje: 'kiest een drinkmaatje', duel: 'kiest een tegenstander', ruil: 'kiest iemand om mee te ruilen', bak: 'kiest wie er een bak trekt' }[k];
+    const q = { geef: `Wie drinkt er ${n}?`, maatje: 'Wie wordt je drinkmaatje?', duel: 'Met wie duel je?', ruil: 'Met wie ruil je van plek?', winst: `Wie drinkt er ${n}?` }[k];
+    const doing = { geef: `kiest wie er ${n} drinkt`, maatje: 'kiest een drinkmaatje', duel: 'kiest een tegenstander', ruil: 'kiest iemand om mee te ruilen', winst: `kiest wie er ${n} drinkt` }[k];
     if (actor >= 0) {
       const busyBtn = ui.sent === S.seq ? 'disabled' : '';
       const opts = S.players.map((p, i) => ({ p, i })).filter(({ p, i }) => i !== actor && p.connected).map(({ p, i }) =>
@@ -1024,11 +1021,11 @@ function playDock(walkingNow) {
 
 function doneDock() {
   const ev = [...(S.log || [])].reverse().find((e) => e.type === 'klaar');
-  const bak = [...(S.log || [])].reverse().find((e) => e.type === 'keuze' && e.kind === 'bak' && (!ev || e.seq < ev.seq));
+  const win = [...(S.log || [])].reverse().find((e) => e.type === 'keuze' && e.kind === 'winst' && (!ev || e.seq < ev.seq));
   const rows = S.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.pos - a.p.pos).map(({ p, i }) =>
     `<div class="${i === S.winner ? 'won' : ''}" style="--pc:${PC[i % PC.length]}"><span><i></i>${who(i)}${i === S.winner ? ' 🏆' : ''}</span><b>vak ${p.pos} · ${slok(p.sips)}</b></div>`).join('');
   return `<div class="ask-h"><h2>${who(S.winner)} wint!</h2><span class="pill">Potje ${S.round}</span></div>
-    ${bak ? `<p class="sub">${who(bak.player)} liet ${whom(bak.target)} een bak trekken.</p>` : ''}
+    ${win ? `<p class="sub">${who(win.player)} liet ${whom(win.target)} ${slok(win.n)} drinken.</p>` : ''}
     ${ev && ev.drinks && ev.drinks.length ? `<p class="sub">Wie het verst achter staat, drinkt: ${drinkLine(ev.drinks)}.</p>` : ''}
     <div class="standing">${rows}</div>
     ${isHost()
@@ -1049,7 +1046,7 @@ function menuHTML() {
     ${game && host ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
     ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
     <a href="/melden?spel=borrelbord${S ? `&code=${S.code}` : ''}">Iets melden <span>›</span></a>
-    <a href="/">Naar ATJE <span>›</span></a>
+    <a href="/">Naar De Spelkeet <span>›</span></a>
   </nav>`;
 }
 
@@ -1060,11 +1057,11 @@ function scoreHTML() {
     <thead><tr><th>Speler</th><th>Vak</th><th>Slokken</th><th>Gewonnen</th></tr></thead>
     <tbody>${rows.map(({ p, i }) => `<tr style="--pc:${PC[i % PC.length]}"><td><i></i>${esc(p.name)}</td><td>${p.pos}</td><td>${p.sips}</td><td>${p.wins}</td></tr>`).join('')}</tbody>
   </table></div>
-  <p class="sub">Slokken: wat de telefoon bijhoudt. De vragen en regels houd je zelf bij. Een ad fundum of een bak telt als ${Z.AD_SIPS}.</p>`;
+  <p class="sub">Slokken: wat de telefoon bijhoudt. De vragen en regels houd je zelf bij.</p>`;
 }
 
 function rulesHTML() {
-  const legend = ['drink', 'geef', 'iedereen', 'buren', 'laatste', 'vraag', 'regel', 'duel', 'maatje', 'ruil', 'dubbel', 'gans', 'brug', 'cafe', 'put', 'doolhof', 'dood', 'ad', 'rust', 'finish'].map((t) => {
+  const legend = ['drink', 'geef', 'iedereen', 'buren', 'laatste', 'vraag', 'regel', 'duel', 'maatje', 'ruil', 'dubbel', 'gans', 'brug', 'cafe', 'put', 'doolhof', 'dood', 'rust', 'finish'].map((t) => {
     const k = KIND[t], sq = Z.BOARD.find((s) => s.t === t) || { t };
     return `<div><span class="sq${k.dark ? ' dark' : ''}" style="--tc:${k.c}">${tileIcon(sq)}</span><span><b>${k.name}</b>. ${k.text}</span></div>`;
   }).join('');
@@ -1077,7 +1074,7 @@ function rulesHTML() {
       <li><b>Het vakje.</b> Doe wat er staat. Moet je iemand kiezen, dan doe je dat op je telefoon.</li>
       <li><b>De finish.</b> Gooi je verder dan de finish, dan sta je er ook op.</li>
       <li><b>Duel en dubbel of niks.</b> Bij een duel gooien jullie allebei op je eigen telefoon; de laagste drinkt, bij gelijk gooien jullie nog een keer. Bij dubbel of niks gooi je zelf nog een keer.</li>
-      <li><b>Winnen.</b> Wie als eerste op de finish staat, wint en mag een bak uitdelen: kies wie er zijn glas in één keer leeg drinkt (telt als ${slok(Z.AD_SIPS)}). Wie dan het verst achter staat, drinkt ${slok(Z.LAST_SIPS)}.</li>
+      <li><b>Winnen.</b> Wie als eerste op de finish staat, wint en kiest wie er ${slok(Z.WIN_SIPS)} drinkt. Wie dan het verst achter staat, drinkt ${slok(Z.LAST_SIPS)}.</li>
     </ol>
     <div class="legend">${legend}</div>
     <p class="small">Een drinkmaatje drinkt mee als jij moet drinken, behalve als iedereen al drinkt. Vragen en regels houd je zelf bij; de telefoon telt de rest. Valt wie aan de beurt is weg, dan is de volgende aan de beurt. Wie later aanschuift, begint op start. Drink met mate: water of karnemelk telt ook.</p>

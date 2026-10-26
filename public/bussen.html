@@ -21,7 +21,7 @@
 :root{
   /* Layout: zoals een pokerapp. Bovenin een glazen balk, in het midden een groene vilten tafel met
      de spelers rondom (jij altijd onderaan) en de kaarten van de fase op het vilt, onderin een donkere
-     actiebalk met wat jij nu kunt doen. Eromheen de nachtlucht van ATJE. */
+     actiebalk met wat jij nu kunt doen. Eromheen de nachtlucht van De Spelkeet. */
   --night:#150b18;
   --night-2:#24112b;
   --night-3:#0b060d;
@@ -450,7 +450,7 @@ const me = (() => {
     crypto.getRandomValues(a);
     token = [...a].map((x) => abc[x & 63]).join('');
   }
-  // je naam neemt hij over van een ander spel in ATJE als je die daar al eens hebt ingevuld
+  // je naam neemt hij over van een ander spel in De Spelkeet als je die daar al eens hebt ingevuld
   const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik', 'bord-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
   const o = { token, name: typeof name === 'string' ? name.slice(0, B.NAME_MAX) : '' };
   store.set(KEY.me, o);
@@ -613,12 +613,9 @@ function present(ev) {
   switch (ev.type) {
     case 'vraag':
       show(ev); Snd.flip();
-      if (ev.disco && ev.ok) { later(380, Snd.disco); setTimeout(celebrate, 400); buzz([90, 60, 90, 60, 160]); setTimeout(() => { ui.banner = { title: 'Disco!', sub: 'Iedereen een bak', disco: true }; clearTimeout(ui.bannerTimer); ui.bannerTimer = setTimeout(() => { ui.banner = null; render(); }, 2000); render(); }, 450); break; }
+      if (ev.disco && ev.ok) { later(380, Snd.disco); setTimeout(celebrate, 400); buzz([90, 60, 90, 60, 160]); setTimeout(() => { ui.banner = { title: 'Disco!', sub: `De rest drinkt ${B.DISCO_SIPS}`, disco: true }; clearTimeout(ui.bannerTimer); ui.bannerTimer = setTimeout(() => { ui.banner = null; render(); }, 2000); render(); }, 450); break; }
       later(380, ev.ok ? Snd.good : Snd.bad);
       if (!ev.ok && mine(ev.player)) buzz([70, 50, 70]);
-      break;
-    case 'bak':
-      if (!mine(ev.player)) toast(`${S.players[ev.player].name} heeft een bak gedaan`);
       break;
     case 'piramide':
       // even kijken: pas na de pauze kan de volgende kaart om
@@ -883,7 +880,7 @@ function askPanel(round, p) {
     const have = [...new Set(h.map((c) => c.s))].map((k) => `<span class="cl${B.SUITS[k].red ? ' r' : ''}">${B.SUITS[k].sym}</span>`).join(' ');
     sub = `Komt de vorm van je volgende kaart al voor in je hand? Je hebt ${have}.`;
     buttons = optBtn('answer', 'ja', 'up', 'Ja<small>heb ik al</small>') + optBtn('answer', 'nee', 'down', 'Nee<small>heb ik nog niet</small>');
-    if (B.canDisco(h)) buttons += optBtn('answer', 'disco', 'disco', 'Disco!<small>de vierde vorm: iedereen een bak</small>');
+    if (B.canDisco(h)) buttons += optBtn('answer', 'disco', 'disco', `Disco!<small>de vierde vorm: de rest drinkt ${B.DISCO_SIPS}</small>`);
   }
   return `${forNote(p)}<div class="ask-h"><h2>${p === S.you ? 'Jij bent aan de beurt' : Q.q}</h2><span class="stake" title="Slokken bij deze vraag">${GLASS}${Q.sips}</span></div>
     <p class="sub"><b>${Q.q}</b> ${sub}</p>
@@ -907,7 +904,7 @@ function vraagResult(ev) {
   else {
     const suit = SUITNAME[B.SUITS[ev.card.s].id].toLowerCase();
     explain = ev.right === 'ja' ? `Het is ${L}: ${suit} had ${ev.player === S.you ? 'je' : nameOf(ev.player)} al.` : `Het is ${L}: ${suit} had ${ev.player === S.you ? 'je' : nameOf(ev.player)} nog niet.`;
-    if (ev.disco) explain = ev.ok ? `Het is ${L}: vier verschillende vormen. Iedereen een bak!` : `Geen disco: ${explain.charAt(0).toLowerCase()}${explain.slice(1)}`;
+    if (ev.disco) explain = ev.ok ? `Het is ${L}: vier verschillende vormen. De rest drinkt ${B.DISCO_SIPS}!` : `Geen disco: ${explain.charAt(0).toLowerCase()}${explain.slice(1)}`;
   }
   const head = ev.ok ? (ev.disco ? 'Disco!' : 'Goed!') : ev.paal ? 'Paal!' : 'Fout!';
   return `<div class="res-h${ev.disco && ev.ok ? ' disco' : ''} ${ev.ok ? 'good' : 'bad'}"><span class="verdict">${ev.player === S.you ? head : `${nameOf(ev.player)}: ${head}`}</span><span class="sub">${explain}${ev.paal ? ' Paal telt als fout.' : ''}</span></div>`;
@@ -915,7 +912,7 @@ function vraagResult(ev) {
 
 function vraagAction(ev) {
   const w = who(ev.player);
-  if (ev.disco && ev.ok) return `<div class="action">${GLASS}<span>Iedereen moet een bak</span></div>`;
+  if (ev.disco && ev.ok) return `<div class="action">${GLASS}<span>${ev.player === S.you ? 'De rest' : `Iedereen behalve ${nameOf(ev.player)}`} drinkt ${B.sipsText(B.DISCO_SIPS)}</span></div>`;
   return `<div class="action">${GLASS}<span>${ev.ok ? `${w} hoeft niks te drinken` : `${w} moet ${B.sipsText(ev.sips)} drinken`}</span></div>`;
 }
 
@@ -1058,7 +1055,11 @@ function vBus() {
   });
   const rn = who(r);
   let dock;
-  if (ev && ev.done) {
+  if (ev && ev.done && ev.max) {
+    // genoeg gedronken in de bus: eruit
+    dock = `<div class="res-h bad"><span class="verdict">${ev.paal ? 'Paal!' : 'Fout!'}</span><span class="sub">${explain}${ev.paal ? ' Paal telt als fout.' : ''}</span></div>
+      <div class="action">${GLASS}<span>${rn} moet nog ${B.sipsText(ev.sips)} drinken. Daarmee ${r === S.you ? 'heb je' : 'heeft'} ${r === S.you ? '' : `${rn} `}${B.sipsText(B.BUS_MAX_SIPS)} in de bus gehad: uit de bus!</span></div>`;
+  } else if (ev && ev.done) {
     dock = `<div class="res-h good"><span class="verdict">Uit de bus!</span><span class="sub">${explain} ${rn} ${r === S.you ? 'bent' : 'is'} eruit na ${ev.tries} ${ev.tries === 1 ? 'rit' : 'ritten'}.</span></div>`;
   } else if (b.fail) {
     const head = `<div class="res-h bad"><span class="verdict">${ev && ev.paal ? 'Paal!' : 'Fout!'}</span><span class="sub">${explain}${ev && ev.paal ? ' Paal telt als fout.' : ''}</span></div>
@@ -1127,15 +1128,6 @@ function sipsHTML() {
     ${eind ? '' : '<button class="ghostbtn" type="button" data-act="sipssave">Weer sparen</button>'}`;
 }
 
-function bakHTML() {
-  const m = S.me, disco = m.bakFrom.some((f) => f.disco);
-  const by = andList(m.bakFrom.map((f) => f.disco ? (f.p === S.you ? 'jouw disco' : `de disco van ${nameOf(f.p)}`) : (f.p === S.you ? 'jezelf' : nameOf(f.p))));
-  return `${sheetTop(disco ? 'Disco!' : 'Een bak!', disco ? 'Iedereen een bak' : 'Voor jou', false)}
-    <div class="sipbig">${GLASS}<b>${m.bak}</b><span>${m.bak === 1 ? 'bak' : 'bakken'} ${disco ? 'door' : 'van'} ${by}</span></div>
-    <p class="sub">${disco ? 'Vier verschillende vormen: iedereen drinkt zijn glas leeg.' : 'Drink je glas leeg.'} Een bak kun je niet sparen.</p>
-    <button class="cta" type="button" data-act="bakdone"><span>Gedaan</span>${ARR}</button>`;
-}
-
 function menuHTML() {
   return `${sheetTop('Menu')}
   <nav class="mlist">
@@ -1145,7 +1137,7 @@ function menuHTML() {
     ${S ? `<button type="button" data-act="share">Uitnodigen <span>${S.code}</span></button>
     <button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>` : ''}
     <a href="/melden?spel=bussen${S ? `&code=${S.code}` : ''}">Iets melden <span>›</span></a>
-    <a href="/">Naar ATJE <span>›</span></a>
+    <a href="/">Naar De Spelkeet <span>›</span></a>
   </nav>`;
 }
 
@@ -1163,14 +1155,14 @@ function rulesHTML() {
       <li>Heb je het vormpje al? Komt de vorm (harten, ruiten, klaveren of schoppen) van je vierde kaart al voor in je hand? <b>4 slokken</b></li>
     </ol>
     <p class="small">Gelijk is paal, en paal telt als fout. De aas is het hoogst, de 2 het laagst.</p>
-    <p><b>Disco:</b> heb je bij de vierde vraag drie verschillende vormen, dan mag je ook Disco kiezen. Wordt je vierde kaart de ontbrekende vorm, dan heb je alle vier de vormen en moet iedereen een bak. Disco mis telt als fout.</p>
+    <p><b>Disco:</b> heb je bij de vierde vraag drie verschillende vormen, dan mag je ook Disco kiezen. Wordt je vierde kaart de ontbrekende vorm, dan heb je alle vier de vormen en drinkt de rest ${B.sipsText(B.DISCO_SIPS)}. Disco mis telt als fout.</p>
     <h3>Slokken: nu doen of sparen</h3>
     <p>Krijg je slokken, dan kies je op je telefoon: nu doen of sparen. Gespaarde slokken komen terug aan het eind van de vragenronde en van de piramide. Dan mag je ze weer sparen, maar aan het eind van het spel moeten ze op. Bovenin zie je altijd hoeveel je er nog hebt staan.</p>
     <h3>2. De piramide</h3>
     <p>Er liggen ${B.PYRAMID_SIZE} kaarten, van onder naar boven: ${andList(B.PYRAMID.map((r) => r.lay.length === 1 ? 'één' : String(r.lay.length)))}. De host draait ze één voor één om en iedereen ziet tegelijk welke kaart open ligt. Heb je dezelfde waarde in je hand? Tik dan zelf je kaart aan om hem weg te leggen, voordat de volgende kaart om gaat. Daarna deel je uit: tik aan tafel op wie er drinkt. Elke rij is een aantal slokken waard, van onder naar boven ${andList(B.PYRAMID.map((r) => String(r.sips)))}. Ligt de kaart dwars, dan telt hij dubbel: de onderste is dus ${slotText(0)} en de bovenste ${slotText(B.PYRAMID_SIZE - 1)}.</p>
     <h3>3. De bus</h3>
     <p>Wie daarna de meeste kaarten over heeft, moet de bus in. Staan er spelers gelijk, dan kiest ieder een dichte kaart: wie de laagste trekt, moet erin. Weer gelijk? Dan kiezen die spelers opnieuw.</p>
-    <p>In de bus liggen ${S ? S.busLength : B.BUS_DEFAULT} kaarten op een rij en de eerste ligt open. Raad steeds of de volgende hoger of lager is. Fout of paal? Drink zoveel slokken als de hoeveelste gok het was en begin opnieuw met nieuwe kaarten. Haal je het eind, dan ben je uit de bus.</p>
+    <p>In de bus liggen ${S ? S.busLength : B.BUS_DEFAULT} kaarten op een rij en de eerste ligt open. Raad steeds of de volgende hoger of lager is. Fout of paal? Drink zoveel slokken als de hoeveelste gok het was en begin opnieuw met nieuwe kaarten. Haal je het eind, dan ben je uit de bus. Heb je in de bus ${B.sipsText(B.BUS_MAX_SIPS)} gedronken, dan mag je er ook uit.</p>
     <p class="small">Valt iemand weg, dan kan de host even voor die speler spelen. Wie terugkomt, zit weer op zijn eigen plek. Drink met mate: water of karnemelk telt ook.</p>
   </div>`;
 }
@@ -1182,10 +1174,7 @@ function closeSheet() { ui.sheet = null; renderSheet(); }
 function renderSheet() {
   let key = null, html = null, sips = false;
   if (ui.sheet) { key = ui.sheet.key; html = ui.sheet.html; }
-  else if (S && S.me && !ui.show && !ui.banner && S.me.bak > 0) {
-    key = `bak:${S.me.bak}`;
-    html = bakHTML(); sips = true;
-  } else if (S && S.me && !ui.show && (S.me.pending > 0 || S.me.settle)) {
+  else if (S && S.me && !ui.show && (S.me.pending > 0 || S.me.settle)) {
     key = `sips:${S.me.pending}:${S.me.settle}:${S.me.saved}:${S.phase === 'klaar'}`;
     html = sipsHTML(); sips = true;
   }
@@ -1351,7 +1340,6 @@ const actions = {
   guess(el) { Net.send({ t: 'guess', o: el.dataset.o }); },
   retry() { Net.send({ t: 'retry' }); },
   sipsnow() { Net.send({ t: 'sips', act: 'now' }); Snd.good(); },
-  bakdone() { Net.send({ t: 'bak' }); Snd.good(); },
   sipssave() { Net.send({ t: 'sips', act: 'save' }); Snd.chip(); },
   owe() {
     const p = S.players[S.you];

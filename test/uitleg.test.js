@@ -32,7 +32,7 @@ test('uitleg en slokkenkaart: op elke speelpagina een knop en het script', () =>
   assert.equal((hal.match(/data-uitleg="\$\{g\.id\}"/g) || []).length, 1, 'uitleg-knop bij elk spel in de hoofdpagina');
   assert.ok(hal.includes('href="/iphone"'));
   assert.match(hal, /<ol class="ipsteps">[\s\S]*Zet op beginscherm[\s\S]*Voeg toe/, 'de stappen voor een iPhone staan ook op de hoofdpagina');
-  // op Android (ook als ATJE daar als app staat) mag /iphone niet terugsturen naar de hoofdpagina
+  // op Android (ook als De Spelkeet daar als app staat) mag /iphone niet terugsturen naar de hoofdpagina
   assert.match(read('iphone.html'), /navigator\.standalone === true && !document\.referrer/);
 });
 
@@ -42,7 +42,7 @@ test('de server: de iPhone-pagina en de plaatjes van de uitleg', async () => {
     const r = await fetch(srv.url + '/iphone');
     assert.equal(r.status, 200);
     const html = await r.text();
-    assert.match(html, /<title>ATJE op je iPhone<\/title>/);
+    assert.match(html, /<title>De Spelkeet op je iPhone<\/title>/);
     assert.match(html, /Zet op beginscherm/);
     assert.match(html, /rel="apple-touch-icon"/);
     const img = await fetch(srv.url + '/img/uitleg/mexen-1.webp');

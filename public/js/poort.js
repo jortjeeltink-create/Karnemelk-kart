@@ -1,9 +1,9 @@
-// De poort van ATJE, op elke speelpagina: de eerste keer vraagt hij of je 18 of ouder bent (er zitten drankspellen
+// De poort van De Spelkeet, op elke speelpagina: de eerste keer vraagt hij of je 18 of ouder bent (er zitten drankspellen
 // in), met een paar regels over verantwoord spelen en de voorwaarden. Daarna onthoudt deze telefoon het.
 // Ook meldt hij de service worker aan, voor een nette pagina als je geen internet hebt (/sw.js).
 (() => {
   'use strict';
-  const KEY = 'atje-18';
+  const KEY = 'spelkeet-18';
   const VERSION = '1';   // ophogen als de voorwaarden flink veranderen: dan vraagt hij het opnieuw
 
   if ('serviceWorker' in navigator && window.isSecureContext) {
@@ -38,8 +38,8 @@
   .rpoort .nee{color:#c9bccb;box-shadow:inset 0 0 0 2px rgba(201,188,203,.35)}}`;
 
   const welcome = `
-    <div class="t"><b>18+</b><h2 id="rpoort-h">Welkom bij ATJE</h2></div>
-    <p>ATJE is voor een avond met vrienden. Er zitten drankspellen in, daarom is ATJE alleen voor mensen van <strong>18 jaar en ouder</strong>.</p>
+    <div class="t"><b>18+</b><h2 id="rpoort-h">Welkom in De Spelkeet</h2></div>
+    <p>De Spelkeet is voor een avond met vrienden. Er zitten drankspellen in, daarom is De Spelkeet alleen voor mensen van <strong>18 jaar en ouder</strong>.</p>
     <ul>
       <li>Een slok mag ook water, fris of karnemelk zijn.</li>
       <li>Drink nooit als je nog moet rijden.</li>
@@ -50,7 +50,7 @@
     <button class="nee" type="button" data-poort="nee">Ik ben jonger dan 18</button>`;
   const tooYoung = `
     <div class="t"><b>18+</b><h2 id="rpoort-h">Nog even wachten</h2></div>
-    <p>ATJE is alleen voor mensen van 18 jaar en ouder. Kom terug als je 18 bent!</p>
+    <p>De Spelkeet is alleen voor mensen van 18 jaar en ouder. Kom terug als je 18 bent!</p>
     <p class="s">Meer weten over alcohol en jongeren? Kijk op <a href="https://www.alcoholinfo.nl" rel="noopener">alcoholinfo.nl</a>.</p>
     <button class="nee" type="button" data-poort="terug">Toch 18 of ouder? Terug</button>`;
 
