@@ -79,6 +79,9 @@ Karnemelk Kart is een originele, kleurrijke arcade-kartgame voor in de browser. 
   - Gooi je verder dan de finish, dan sta je er ook op. Wie als eerste op de finish staat, wint en kiest wie er 3 slokken drinkt. Wie dan het verst achter staat, drinkt 2. Daarna start de host een nieuw potje; de stand blijft.
   - Het aantal slokken is zo gekozen dat het te doen blijft: gemiddeld zo'n 10 per speler per potje (ongeveer één glas), en een potje duurt ongeveer 10 worpen per speler (de vragen en regels niet meegeteld).
   - Valt wie aan de beurt is weg, dan is de volgende aan de beurt (moest hij nog iemand kiezen, dan kiest de telefoon). Wie later aanschuift, begint op start. Tik op een vakje om te zien wat het doet.
+- **18+ en verantwoord spelen**: de eerste keer vraagt elke pagina of je 18 of ouder bent (`public/js/poort.js`), met een paar regels over verantwoord spelen en de voorwaarden. Geen enkel spel laat een glas leegdrinken, en elk spel heeft een maximum aantal slokken per keer.
+- **Privacy, voorwaarden en melden**: `/privacy`, `/voorwaarden` en `/melden` (een speler, naam of iets anders melden; de meldingen staan in de opslag en in het logboek). Grove namen en uitdagingen worden geweigerd (`public/shared/namen.js`); de host kan spelers van tafel halen. In Karnemelk Kart wis je je gegevens via Instellingen → Mijn gegevens wissen.
+- **Als app in de Play Store**: Rondje is een PWA met een offline-pagina (`/sw.js`), iconen voor Android en de koppeling `/.well-known/assetlinks.json`. Hoe je hem in de Play Store zet, staat in [PLAY-STORE.md](PLAY-STORE.md); het icoon, de banner, screenshots en teksten staan in `store/`.
 - Alles in het Nederlands.
 
 ## Snel starten op je eigen computer
@@ -160,6 +163,10 @@ Je krijgt een adres als `https://iets-willekeurigs.trycloudflare.com` dat werkt 
 | `KK_SECRET` | – | Geheim om reservekopieën te ondertekenen. Niet ingevuld: de server maakt er zelf één en bewaart die in de opslag. Op hosting zonder vaste schijf moet je dit invullen (Render doet het automatisch) |
 | `UPSTASH_REDIS_REST_URL` | – | Optioneel: opslag in Upstash Redis in plaats van een bestand |
 | `UPSTASH_REDIS_REST_TOKEN` | – | Hoort bij de URL hierboven |
+| `CONTACT_EMAIL` | – | Het e-mailadres op het privacybeleid, de voorwaarden en het meldformulier |
+| `MELD_SLEUTEL` | – | Geheim woord om de meldingen te lezen op `/api/meldingen?sleutel=…`. Niet ingevuld: niet te lezen (wel in het logboek) |
+| `ANDROID_PACKAGE` | – | Pakketnaam van de app in de Play Store, voor `/.well-known/assetlinks.json` |
+| `ANDROID_SHA256` | – | Vingerafdruk(ken) (SHA-256) van de ondertekeningssleutel van de app, gescheiden door komma's |
 | `REDIRECT_TO` | – | Verhuisd naar een nieuw adres? Zet hier het nieuwe adres (bijvoorbeeld `https://rondje.onrender.com`) op de oude server, dan stuurt die iedereen door, met de rest van de link erbij. `/health` blijft gewoon werken |
 
 **Naar een ander webadres verhuizen** (bijvoorbeeld van `karnemelk-kart.onrender.com` naar `rondje.onrender.com`): het adres van een bestaande service op Render kun je niet hernoemen. Maak daarom een nieuwe gratis Web Service met dezelfde repository en de nieuwe naam, en neem bij Environment de `KK_SECRET` van de oude service over (anders herkent de nieuwe server de reservekopieën op de telefoons niet en zijn de MP-punten weg). Werkt het nieuwe adres, zet dan `REDIRECT_TO` op de oude service, en pas het adres van het deelplaatje (`og:image` in `public/speelhal.html`) aan.
@@ -263,6 +270,10 @@ Alle banen hebben schansen (soms met een boostring erachter) en extra turbostrok
 ```
 server/            server (http + WebSocket) en opslag
 public/speelhal.html  Rondje, de hoofdpagina met al de spellen
+public/privacy.html, voorwaarden.html, melden.html  privacybeleid, voorwaarden en het meldformulier (/privacy, /voorwaarden, /melden)
+public/offline.html, sw.js  de pagina als er geen internet is, en de service worker die hem laat zien
+public/js/poort.js  de poort (18+) op elke speelpagina
+store/             het icoon, de banner, screenshots en teksten voor de Play Store
 public/index.html  de kartgame (/kart)
 public/bussen.html  Bussen, het online kaartspel (praat met de server via /ws/bussen)
 public/boer.html    Boerenbruiloft, het online partyspel (praat met de server via /ws/boer)

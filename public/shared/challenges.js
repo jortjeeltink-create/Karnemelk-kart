@@ -1,4 +1,5 @@
 // Uitdagingen voor de verliezer. Alles is vrijwillig en kan overgeslagen worden.
+import { isOffensive } from './namen.js';
 export const DEFAULT_CHALLENGE = 'Een atje karnemelk! 🥛';
 
 export const CHALLENGES = [
@@ -22,5 +23,5 @@ export function nextChallenge(current, rand = Math.random) {
 export function cleanChallenge(text) {
   if (typeof text !== 'string') return null;
   const t = text.replace(/\s+/g, ' ').trim().slice(0, 80);
-  return t.length >= 2 ? t : null;
+  return t.length >= 2 && !isOffensive(t) ? t : null;
 }

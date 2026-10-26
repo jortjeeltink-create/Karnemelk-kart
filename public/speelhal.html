@@ -139,7 +139,11 @@ main{position:relative;z-index:1;padding-left:max(16px,env(safe-area-inset-left,
 .facts dd{margin:0;font-family:var(--display);font-weight:700;font-size:var(--s4);line-height:1.08}
 .gbody .small{font-size:var(--s1);color:var(--plum-2)}
 
-footer{max-width:1180px;margin:0 auto;padding-block:10vh 22vh;text-align:center;display:grid;gap:12px;justify-items:center;color:var(--ink-soft);font-size:var(--s1)}
+footer{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding-block:10vh 22vh;text-align:center;display:grid;gap:12px;justify-items:center;color:var(--ink-soft);font-size:var(--s1)}
+footer .fineprint{max-width:46ch;margin-top:18px;line-height:1.5}
+footer .links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px}
+footer .links a{color:var(--cream);text-underline-offset:3px}
+.menu .note a{color:inherit;font-weight:700;text-underline-offset:3px}
 footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw,150px);line-height:.85;color:var(--cream);text-transform:uppercase}
 
 /* passen niet alle namen in de balk, dan alleen de naam van het spel waar je bent */
@@ -169,6 +173,7 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
   .odo .dg i,.cta{transition:none}
 }
 </style>
+<script src="/js/poort.js" defer></script>
 </head>
 <body>
 
@@ -202,13 +207,15 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
   <div class="big">Game over?</div>
   <p>Nog lang niet. Scroll terug naar boven en kies een ander spel.</p>
   <a class="pill glass" href="#top" data-nav>↑ Terug naar boven</a>
+  <p class="fineprint">Rondje is voor 18+. Drinken is nooit verplicht: een slok mag ook water of fris zijn, en drink nooit als je nog moet rijden.</p>
+  <nav class="links" aria-label="Over Rondje"><a href="/voorwaarden">Voorwaarden</a><a href="/privacy">Privacy</a><a href="/melden">Iets melden</a></nav>
 </footer>
 
 <div class="legal" aria-hidden="true"><span>Rondje</span><span>/</span><span>18+</span><span>/</span><span>Drink met mate</span></div>
 
 <div class="menu" id="menu" hidden>
   <nav id="menuNav"></nav>
-  <p class="note">Vanuit elk spel kom je via het menu weer terug in Rondje.</p>
+  <p class="note">Vanuit elk spel kom je via het menu weer terug in Rondje. <a href="/voorwaarden">Voorwaarden</a> · <a href="/privacy">Privacy</a> · <a href="/melden">Iets melden</a></p>
 </div>
 
 <div class="dock" id="dock">

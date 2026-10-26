@@ -219,6 +219,20 @@ export class Hub {
         return;
       }
 
+      case 'erase': {
+        // alles van dit profiel wissen; andere schermen met hetzelfde profiel horen het ook
+        const gone = session.profile;
+        for (const s of this.sessions) {
+          if (!s.profile || s.profile.key !== gone.key) continue;
+          if (s.room) s.room.leave(s);
+          s.profile = null;
+          this.sendTo(s, { t: 'erased' });
+        }
+        await this.store.erase(gone, [session.device, session.cookieDevice]);
+        this.log(`profiel ${gone.name} gewist`);
+        return;
+      }
+
       case 'transferCode': {
         if (this.offline) return this.sendTo(session, { t: 'transferFailed', msg: 'Overzetten kan alleen met de online server.' });
         const code = await this.store.createTransfer(session.profile);

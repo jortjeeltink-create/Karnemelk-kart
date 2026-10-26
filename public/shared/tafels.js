@@ -16,6 +16,7 @@
 //   action(t, s, me, msg) een zet van een speler; geeft iets terug als iedereen een nieuwe stand moet zien
 //   view(t, me, out)     vult de stand aan met wat speler `me` van het spel mag zien
 import { ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH } from './constants.js';
+import { isOffensive, OFFENSIVE_MSG } from './namen.js';
 
 export const TABLE_IDLE_MS = 30 * 60 * 1000;  // een tafel zonder verbonden spelers verdwijnt na een half uur
 const TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/;
@@ -142,7 +143,7 @@ class Table {
       const p = this.players[back];
       if (p.session && p.session !== s) { p.session.table = null; this.hub.sendTo(p.session, { t: 'left', reason: 'Je speelt nu op een ander scherm verder.' }); }
       p.session = s; p.connected = true;
-      if (!this.g) {
+      if (!this.g && !isOffensive(rawName)) {
         const name = this.cleanName(rawName, back);
         if (name) p.name = name;
       }
@@ -155,6 +156,7 @@ class Table {
     const blocked = this.g ? this.game.joinBlocked(this) : null;
     if (blocked) return { ok: false, error: blocked };
     if (this.players.length >= this.game.maxPlayers) return { ok: false, error: `De tafel is vol (${this.game.maxPlayers} spelers).` };
+    if (isOffensive(rawName)) return { ok: false, error: OFFENSIVE_MSG };
     const name = this.cleanName(rawName, -1);
     if (!name) return { ok: false, error: 'Kies eerst een naam.' };
     if (!this.maker) this.maker = token;
