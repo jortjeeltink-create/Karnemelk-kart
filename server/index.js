@@ -1,4 +1,4 @@
-// De server van Rondje: levert de bestanden en regelt de live multiplayer van Karnemelk Kart en de tafelspellen.
+// De server van ATJE: levert de bestanden en regelt de live multiplayer van Karnemelk Kart en de tafelspellen.
 // Start met:  npm start   (standaard op http://localhost:3000)
 import http from 'node:http';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -16,7 +16,6 @@ import { DealerHub } from '../public/shared/ftdhub.js';
 import { PaardHub } from '../public/shared/paardhub.js';
 import { RotondeHub } from '../public/shared/rotondehub.js';
 import { MijnenveldHub } from '../public/shared/mijnenveldhub.js';
-import { WeerwolvenHub } from '../public/shared/weerwolvenhub.js';
 import { ZuipbordHub } from '../public/shared/zuipbordhub.js';
 import { createStore, randomString, loadSecret, makeSigner, makeSecretCheck } from './store.js';
 import { isDeviceToken } from '../public/shared/profiles.js';
@@ -29,7 +28,7 @@ const DATA_DIR = process.env.DATA_DIR || join(ROOT, 'data');
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml',
-  '.png': 'image/png', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json', '.txt': 'text/plain; charset=utf-8',
+  '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json', '.txt': 'text/plain; charset=utf-8',
 };
 const COMPRESS = new Set(['.html', '.js', '.mjs', '.css', '.json', '.svg', '.webmanifest', '.txt']);
 
@@ -57,7 +56,7 @@ addDir(join(ROOT, 'public'), '/');
 
 // Op de pagina's met het privacybeleid, de voorwaarden en het meldformulier staat het e-mailadres voor contact.
 // Zet het in CONTACT_EMAIL (bijvoorbeeld op Render bij Environment); dan staat het er vanzelf in.
-const CONTACT_EMAIL = (process.env.CONTACT_EMAIL || '').trim() || 'het e-mailadres bij Rondje in de Google Play Store';
+const CONTACT_EMAIL = (process.env.CONTACT_EMAIL || '').trim() || 'het e-mailadres bij ATJE in de Google Play Store';
 for (const page of ['/privacy.html', '/voorwaarden.html', '/melden.html']) {
   const f = files.get(page);
   if (!f) continue;
@@ -118,15 +117,13 @@ const dealerHub = new DealerHub({ log, build: buildOf('/dealer.html') });
 const paardHub = new PaardHub({ log, build: buildOf('/paardenrace.html') });
 const rotondeHub = new RotondeHub({ log, build: buildOf('/rotonde.html') });
 const mijnHub = new MijnenveldHub({ log, build: buildOf('/mijnenveld.html') });
-const wolfHub = new WeerwolvenHub({ log, build: buildOf('/weerwolven.html') });
 const bordHub = new ZuipbordHub({ log, build: buildOf('/zuipbord.html') });
 
-// Spellen die een nieuwe naam kregen (Weerwolven heet nu Wolvennacht, Zuipbord heet Borrelbord), en spellen die van
-// de site af zijn: wie nog een oude link heeft, komt op de goede plek.
+// Een spel met een nieuwe naam (Zuipbord heet nu Borrelbord), en spellen die van de site af zijn (Weerwolven, Mega
+// Ball, Stock Market, Rode Zone): wie nog een oude link heeft, komt op de goede plek.
 const OLD_PATHS = [
-  [/^\/weerwolven(?=\/|$)/, '/wolvennacht'],
   [/^\/zuipbord(?=\/|$)/, '/borrelbord'],
-  [/^\/(megaball|stockmarket|rodezone)(\/.*)?$/, '/'],
+  [/^\/(megaball|stockmarket|rodezone|weerwolven|wolvennacht)(\/.*)?$/, '/'],
 ];
 
 // Verhuisd naar een nieuw adres? Zet REDIRECT_TO (bijvoorbeeld https://speelhal.onrender.com) op de oude server,
@@ -187,7 +184,7 @@ const server = http.createServer((req, res) => {
   }
   if (path === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ ok: true, ...hub.stats(), bussen: busHub.stats(), boer: boerHub.stats(), mexen: mexHub.stats(), dealer: dealerHub.stats(), paardenrace: paardHub.stats(), rotonde: rotondeHub.stats(), mijnenveld: mijnHub.stats(), weerwolven: wolfHub.stats(), zuipbord: bordHub.stats() }));
+    return res.end(JSON.stringify({ ok: true, ...hub.stats(), bussen: busHub.stats(), boer: boerHub.stats(), mexen: mexHub.stats(), dealer: dealerHub.stats(), paardenrace: paardHub.stats(), rotonde: rotondeHub.stats(), mijnenveld: mijnHub.stats(), zuipbord: bordHub.stats() }));
   }
   if (MOVED_TO) {
     res.writeHead(301, { Location: MOVED_TO + req.url, 'Cache-Control': 'no-cache' });
@@ -199,10 +196,10 @@ const server = http.createServer((req, res) => {
     res.writeHead(301, { Location: path.replace(moved[0], moved[1]) + url.search, 'Cache-Control': 'no-cache' });
     return res.end();
   }
-  // Rondje is de hoofdpagina; uitnodigingen (/?room=, /join/) gaan nog steeds naar de kartgame
+  // ATJE is de hoofdpagina; uitnodigingen (/?room=, /join/) gaan nog steeds naar de kartgame
   if (path === '/kart' || path === '/kart/' || path.startsWith('/join/') || (path === '/' && url.searchParams.has('room'))) path = '/index.html';
   else if (path === '/') path = '/speelhal.html';
-  else if (path === '/privacy' || path === '/voorwaarden' || path === '/melden') path += '.html';
+  else if (path === '/privacy' || path === '/voorwaarden' || path === '/melden' || path === '/iphone') path += '.html';
   else if (path === '/bussen' || path === '/bussen/' || /^\/bussen\/[A-Za-z]{4}$/.test(path)) path = '/bussen.html';
   else if (path === '/boer' || path === '/boer/' || /^\/boer\/[A-Za-z]{4}$/.test(path)) path = '/boer.html';
   else if (path === '/mexen' || path === '/mexen/' || /^\/mexen\/[A-Za-z]{4}$/.test(path)) path = '/mexen.html';
@@ -210,7 +207,6 @@ const server = http.createServer((req, res) => {
   else if (path === '/paardenrace' || path === '/paardenrace/' || /^\/paardenrace\/[A-Za-z]{4}$/.test(path)) path = '/paardenrace.html';
   else if (path === '/rotonde' || path === '/rotonde/' || /^\/rotonde\/[A-Za-z]{4}$/.test(path)) path = '/rotonde.html';
   else if (path === '/mijnenveld' || path === '/mijnenveld/' || /^\/mijnenveld\/[A-Za-z]{4}$/.test(path)) path = '/mijnenveld.html';
-  else if (path === '/wolvennacht' || path === '/wolvennacht/' || /^\/wolvennacht\/[A-Za-z]{4}$/.test(path)) path = '/weerwolven.html';
   else if (path === '/borrelbord' || path === '/borrelbord/' || /^\/borrelbord\/[A-Za-z]{4}$/.test(path)) path = '/zuipbord.html';
   if (path.includes('..') || path.includes(sep + sep)) { res.writeHead(400); return res.end(); }
   const f = files.get(path);
@@ -239,11 +235,10 @@ const dealerWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 const paardWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 const rotondeWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 const mijnWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
-const wolfWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 const bordWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 server.on('upgrade', (req, socket, head) => {
   const { pathname } = new URL(req.url, 'http://x');
-  const target = { '/ws': wss, '/ws/bussen': busWss, '/ws/boer': boerWss, '/ws/mexen': mexWss, '/ws/dealer': dealerWss, '/ws/paardenrace': paardWss, '/ws/rotonde': rotondeWss, '/ws/mijnenveld': mijnWss, '/ws/weerwolven': wolfWss, '/ws/zuipbord': bordWss }[pathname];
+  const target = { '/ws': wss, '/ws/bussen': busWss, '/ws/boer': boerWss, '/ws/mexen': mexWss, '/ws/dealer': dealerWss, '/ws/paardenrace': paardWss, '/ws/rotonde': rotondeWss, '/ws/mijnenveld': mijnWss, '/ws/zuipbord': bordWss }[pathname];
   if (!target) { socket.destroy(); return; }
   target.handleUpgrade(req, socket, head, (ws) => target.emit('connection', ws, req));
 });
@@ -294,7 +289,6 @@ tableChannel(dealerWss, dealerHub);
 tableChannel(paardWss, paardHub);
 tableChannel(rotondeWss, rotondeHub);
 tableChannel(mijnWss, mijnHub);
-tableChannel(wolfWss, wolfHub);
 tableChannel(bordWss, bordHub);
 
 // dode verbindingen opruimen: wie twee keer op rij niet antwoordt, valt weg (en komt vanzelf terug zodra hij weer
@@ -307,15 +301,15 @@ function sweep(clients) {
     ws.ping();
   }
 }
-const tableChannels = [busWss, boerWss, mexWss, dealerWss, paardWss, rotondeWss, mijnWss, wolfWss, bordWss];
+const tableChannels = [busWss, boerWss, mexWss, dealerWss, paardWss, rotondeWss, mijnWss, bordWss];
 const heartbeat = setInterval(() => sweep(wss.clients), 15000);
 const tableBeat = setInterval(() => { for (const channel of tableChannels) sweep(channel.clients); }, 4000);
 
 const tickTimer = setInterval(() => hub.tick(), 1000 / 60);
-const busTimer = setInterval(() => { busHub.tick(); boerHub.tick(); mexHub.tick(); dealerHub.tick(); paardHub.tick(); rotondeHub.tick(); mijnHub.tick(); wolfHub.tick(); bordHub.tick(); }, 5000);
+const busTimer = setInterval(() => { busHub.tick(); boerHub.tick(); mexHub.tick(); dealerHub.tick(); paardHub.tick(); rotondeHub.tick(); mijnHub.tick(); bordHub.tick(); }, 5000);
 
 server.listen(PORT, HOST, () => {
-  log(`Rondje draait op http://localhost:${PORT}`);
+  log(`ATJE draait op http://localhost:${PORT}`);
   for (const ifs of Object.values(os.networkInterfaces())) {
     for (const i of ifs || []) {
       if (i.family === 'IPv4' && !i.internal) log(`Op je wifi (telefoon): http://${i.address}:${PORT}`);

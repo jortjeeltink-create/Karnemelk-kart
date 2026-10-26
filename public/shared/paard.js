@@ -1,11 +1,9 @@
 // Paardenrace: het drankspel, online met iedereen op zijn eigen telefoon.
-// De vier azen zijn de paarden. Iedereen kiest een paard en zet 1 tot 5 slokken in.
+// De vier azen zijn de paarden. Iedereen kiest een paard en zet een aantal slokken in, die hij vooraf drinkt.
 // Naast de baan liggen zeven dichte kaarten. Om de beurt trek je een kaart van de stapel: het paard met die
 // vorm doet een stap naar voren. Zijn alle paarden langs een dichte kaart, dan gaat die open en moet het paard
 // met die vorm een stap terug. Het eerste paard voorbij de zevende kaart wint. Wie op een ander paard zette,
-// drinkt zijn eigen inzet en de hoogste inzet op het winnende paard erbij, samen hooguit 8.
-// (Vroeger dronk iedereen zijn inzet ook al vooraf, tot 10, en de inzetten van alle winnaars bij elkaar: zo kon één
-// race 30 slokken of meer kosten.)
+// drinkt zijn eigen inzet nog een keer en de inzet van de winnaar erbij.
 // Een potje is een gewoon object (JSON) met de seed van de random-generator erin, net als bij Bussen.
 import { newDeck, shuffle, rand, cleanNames, NAME_MAX } from './bussen.js';
 
@@ -16,8 +14,7 @@ export const HORSES = 4;            // de vier azen, in de volgorde van SUITS in
 export const TRACK = 7;             // zoveel dichte kaarten liggen er naast de baan
 export const FINISH = TRACK + 1;    // 0 = start, 1 tot en met 7 = naast die kaart, 8 = over de finish
 export const BET_MIN = 1;
-export const BET_MAX = 5;
-export const LOSE_MAX = 8;          // wie verliest, drinkt nooit meer dan dit in één race
+export const BET_MAX = 10;
 export const BET_DEFAULT = 2;
 const LOG_SIZE = 16;
 
@@ -108,7 +105,10 @@ export function startRace(g, live) {
   g.winner = -1;
   g.drinks = [];
   g.race++;
-  for (const i of racers) g.players[i].races++;
+  for (const i of racers) {
+    g.players[i].sips += g.players[i].bet;
+    g.players[i].races++;
+  }
   g.turn = nextRacer(g, g.starter < 0 ? g.players.length - 1 : g.starter, live);
   g.starter = g.turn;
   g.phase = 'race';
@@ -141,11 +141,11 @@ export function draw(g, player, live, card = null) {
   return ev;
 }
 
-// Over de finish: wie op dit paard zette, wint. De rest drinkt zijn eigen inzet en de hoogste inzet op het
-// winnende paard, samen hooguit LOSE_MAX.
+// Over de finish: wie op dit paard zette, wint. De rest drinkt zijn eigen inzet en de inzet van de winnaar
+// (zetten er meer spelers op het winnende paard, dan van allemaal bij elkaar).
 function finish(g, horse) {
   const winners = g.racers.filter((i) => g.players[i].horse === horse);
-  const pot = Math.max(0, ...winners.map((i) => g.players[i].bet));
+  const pot = winners.reduce((n, i) => n + g.players[i].bet, 0);
   g.winner = horse;
   g.turn = -1;
   g.phase = 'uitslag';
@@ -157,9 +157,9 @@ function finish(g, horse) {
       p.wins++;
       g.drinks[i] = { own: 0, winner: 0, total: 0 };
     } else {
-      const total = Math.min(LOSE_MAX, p.bet + pot);
+      const total = p.bet + pot;
       p.sips += total;
-      g.drinks[i] = { own: p.bet, winner: total - p.bet, total };
+      g.drinks[i] = { own: p.bet, winner: pot, total };
     }
   }
   return emit(g, { type: 'finish', horse, winners, pot });

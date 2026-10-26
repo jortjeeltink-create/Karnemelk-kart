@@ -201,23 +201,23 @@ test('10 spelers racen live samen, met herverbinden, punten en winkel', { timeou
 test('de server levert de game en een gezondheidscheck', async () => {
   const srv = await startServer();
   try {
-    // de hoofdpagina is Rondje met al de spellen
+    // de hoofdpagina is ATJE met al de spellen
     const hall = await fetch(srv.url + '/');
     assert.equal(hall.status, 200);
     const hallHtml = await hall.text();
-    assert.match(hallHtml, /<title>Rondje<\/title>/);
-    for (const href of ['/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld', '/wolvennacht', '/borrelbord']) assert.ok(hallHtml.includes(`'${href}'`), `Rondje linkt naar ${href}`);
-    for (const href of ['/megaball', '/stockmarket', '/rodezone', '/weerwolven', '/zuipbord']) assert.ok(!hallHtml.includes(`'${href}'`), `${href} staat niet in Rondje`);
+    assert.match(hallHtml, /<title>ATJE<\/title>/);
+    for (const href of ['/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld', '/borrelbord']) assert.ok(hallHtml.includes(`'${href}'`), `ATJE linkt naar ${href}`);
+    for (const href of ['/megaball', '/stockmarket', '/rodezone', '/weerwolven', '/wolvennacht', '/zuipbord']) assert.ok(!hallHtml.includes(`'${href}'`), `${href} staat niet in ATJE`);
     assert.match(hallHtml, /'Karnemelk Kart'/, 'de kartgame heet Karnemelk Kart');
     // namen van merken of grove namen staan nergens meer in
-    assert.doesNotMatch(hallHtml, /Mario|Fuck|Boer zoekt|Wakkerdam|Zuipbord|Weerwolven van/);
+    assert.doesNotMatch(hallHtml, /Mario|Fuck|Wakkerdam|Zuipbord|Weerwolven van/);
     assert.match(hallHtml, /rel="manifest" href="\/speelhal\.webmanifest"/);
-    // op het beginscherm en bij het delen heet het Rondje, met een eigen logo
+    // op het beginscherm en bij het delen heet het ATJE, met een eigen logo
     const hallManifest = await (await fetch(srv.url + '/speelhal.webmanifest')).json();
-    assert.equal(hallManifest.name, 'Rondje');
+    assert.equal(hallManifest.name, 'ATJE');
     assert.equal(hallManifest.start_url, '/');
     for (const icon of hallManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
-    assert.match(hallHtml, /property="og:title" content="Rondje"/);
+    assert.match(hallHtml, /property="og:title" content="ATJE"/);
     assert.equal((await fetch(srv.url + '/img/speelhal-deel.png')).status, 200);
     assert.equal((await fetch(srv.url + '/img/speelhal-180.png')).status, 200);
     assert.equal((await (await fetch(srv.url + '/manifest.webmanifest')).json()).start_url, '/kart', 'de kartgame opent de race');
@@ -268,9 +268,9 @@ test('de server levert de game en een gezondheidscheck', async () => {
     assert.equal(manifest.start_url, '/bussen');
     assert.equal((await fetch(srv.url + manifest.icons[0].src)).status, 200);
     assert.match(await (await fetch(srv.url + '/bussen/ABCD')).text(), /<title>Bussen<\/title>/, 'uitnodigingslink voor een tafel');
-    // Boerenbruiloft: ook een losse app, met een uitnodigingslink per tafel
-    assert.match(await (await fetch(srv.url + '/boer')).text(), /<title>Boerenbruiloft<\/title>/);
-    assert.match(await (await fetch(srv.url + '/boer/ABCD')).text(), /<title>Boerenbruiloft<\/title>/);
+    // Boer zoekt vrouw: ook een losse app, met een uitnodigingslink per tafel
+    assert.match(await (await fetch(srv.url + '/boer')).text(), /<title>Boer zoekt vrouw<\/title>/);
+    assert.match(await (await fetch(srv.url + '/boer/ABCD')).text(), /<title>Boer zoekt vrouw<\/title>/);
     assert.equal((await fetch(srv.url + '/shared/boer.js')).status, 200);
     const boerManifest = await (await fetch(srv.url + '/boer.webmanifest')).json();
     assert.equal(boerManifest.start_url, '/boer');
@@ -310,15 +310,12 @@ test('de server levert de game en een gezondheidscheck', async () => {
     const mijnManifest = await (await fetch(srv.url + '/mijnenveld.webmanifest')).json();
     assert.equal(mijnManifest.start_url, '/mijnenveld');
     for (const icon of mijnManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
-    // Wolvennacht: ook een losse app, met een uitnodigingslink per tafel; de oude naam stuurt door
-    assert.match(await (await fetch(srv.url + '/wolvennacht')).text(), /<title>Wolvennacht<\/title>/);
-    assert.match(await (await fetch(srv.url + '/wolvennacht/ABCD')).text(), /<title>Wolvennacht<\/title>/);
-    const oldWolf = await fetch(srv.url + '/weerwolven/ABCD?x=1', { redirect: 'manual' });
-    assert.deepEqual([oldWolf.status, oldWolf.headers.get('location')], [301, '/wolvennacht/ABCD?x=1']);
-    assert.equal((await fetch(srv.url + '/shared/weerwolven.js')).status, 200);
-    const wolfManifest = await (await fetch(srv.url + '/weerwolven.webmanifest')).json();
-    assert.equal(wolfManifest.start_url, '/wolvennacht');
-    for (const icon of wolfManifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200);
+    // Weerwolven (later Wolvennacht) is van de site af: oude links gaan naar de hoofdpagina
+    for (const old of ['/weerwolven/ABCD', '/wolvennacht', '/wolvennacht/ABCD']) {
+      const r = await fetch(srv.url + old, { redirect: 'manual' });
+      assert.deepEqual([r.status, r.headers.get('location')], [301, '/'], old);
+    }
+    assert.equal((await fetch(srv.url + '/shared/weerwolven.js')).status, 404);
     // Borrelbord: ook een losse app, met een uitnodigingslink per tafel; de oude naam stuurt door
     assert.match(await (await fetch(srv.url + '/borrelbord')).text(), /<title>Borrelbord<\/title>/);
     assert.match(await (await fetch(srv.url + '/borrelbord/ABCD')).text(), /<title>Borrelbord<\/title>/);
@@ -486,7 +483,7 @@ test('Rotonde online: twee telefoons, de host kiest een kaart en gokt, de ander 
     a.send({ t: 'pick', i: 0 });
     a.send({ t: 'guess', color: 'rood' });
     const after = await opened;
-    assert.ok(after.pot === 6 || after.players[0].sips === 6, 'goed in de pot, of fout gedronken (de paarse is 6)');
+    assert.ok(after.pot === 12 || after.players[0].sips === 12, 'goed in de pot, of fout gedronken');
     const health = await (await fetch(srv.url + '/health')).json();
     assert.deepEqual(health.rotonde, { tables: 1, players: 2 });
     [a, b].forEach((c) => c.close());
@@ -501,7 +498,7 @@ test('Mijnenveld online: twee telefoons, de host gooit twee keer en de ander zie
     const url = srv.ws + '/mijnenveld';
     const [a, b] = await Promise.all([new Client(url).open(), new Client(url).open()]);
     const sa = await a.request({ t: 'create', name: 'Jort', token: 'mijn-telefoon-a-0123456789' }, 'state');
-    assert.equal(sa.mineSips, 3);
+    assert.equal(sa.mineSips, 5);
     assert.match(sa.build, /^[\w-]{12}$/);
     await b.request({ t: 'join', code: sa.code, name: 'Meke', token: 'mijn-telefoon-b-0123456789' }, (m) => m.t === 'state' && m.players.length === 2);
     const started = b.wait((m) => m.t === 'state' && m.phase === 'gooien');
@@ -518,34 +515,6 @@ test('Mijnenveld online: twee telefoons, de host gooit twee keer en de ander zie
     const health = await (await fetch(srv.url + '/health')).json();
     assert.deepEqual(health.mijnenveld, { tables: 1, players: 2 });
     [a, b].forEach((c) => c.close());
-  } finally {
-    await srv.stop();
-  }
-});
-
-test('Wolvennacht online: vier telefoons, iedereen krijgt geheim een rol en alleen de wolf ziet de andere wolven', async () => {
-  const srv = await startServer();
-  try {
-    const url = srv.ws + '/weerwolven';
-    const phones = await Promise.all([0, 1, 2, 3].map(() => new Client(url).open()));
-    const s0 = await phones[0].request({ t: 'create', name: 'Jort', token: 'wolf-telefoon-0-0123456789' }, 'state');
-    assert.deepEqual(s0.settings, { wolves: 0, ziener: true, heks: true, jager: true, cupido: false });
-    assert.match(s0.build, /^[\w-]{12}$/);
-    for (const [i, name] of ['Meke', 'Sim', 'Stan'].entries()) {
-      await phones[i + 1].request({ t: 'join', code: s0.code, name, token: `wolf-telefoon-${i + 1}-0123456789` }, (m) => m.t === 'state' && m.players.length === i + 2);
-    }
-    const dealt = phones.map((p) => p.wait((m) => m.t === 'state' && m.phase === 'rollen'));
-    phones[0].send({ t: 'start' });
-    const views = await Promise.all(dealt);
-    assert.deepEqual(views.map((v) => v.me.role).sort(), ['heks', 'jager', 'wolf', 'ziener']);
-    for (const v of views) assert.ok(v.players.every((p) => p.role === undefined), 'geen rollen van anderen');
-    const night = phones.map((p) => p.wait((m) => m.t === 'state' && m.phase === 'nacht'));
-    phones.forEach((p) => p.send({ t: 'ready' }));
-    const nv = await Promise.all(night);
-    assert.deepEqual(nv.map((v) => v.me.task).sort(), ['heks', 'verdenk', 'wolf', 'zien']);
-    const health = await (await fetch(srv.url + '/health')).json();
-    assert.deepEqual(health.weerwolven, { tables: 1, players: 4 });
-    phones.forEach((c) => c.close());
   } finally {
     await srv.stop();
   }

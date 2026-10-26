@@ -99,6 +99,9 @@ p{margin:0}
 .dock .cta.hot{background:linear-gradient(90deg,#1e3a10 0%,#4b7f1f 46%,#a6d83c 100%)}
 .dock .cta:disabled{background:rgba(255,255,255,.08);color:var(--ink-soft);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 .ghostbtn{display:block;width:100%;border-radius:999px;padding:14px 20px;font-size:var(--s2);font-weight:700;color:var(--plum);box-shadow:inset 0 0 0 1px rgba(43,21,49,.3);text-decoration:none;text-align:center}
+.howrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.howrow .ghostbtn{padding-left:10px;padding-right:10px;white-space:nowrap}
+.rules-how{margin:0 0 14px}
 .ghostbtn:hover{background:var(--cream-2)}
 .dock .ghostbtn{padding:11px 18px;color:var(--cream);box-shadow:inset 0 0 0 1px rgba(255,255,255,.28)}
 .dock .ghostbtn:hover{background:rgba(255,255,255,.08)}
@@ -327,6 +330,8 @@ button.seat:active .ava{transform:scale(.94)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 <script src="/js/poort.js" defer></script>
+<script src="/js/slok.js" defer></script>
+<script src="/js/uitleg.js" defer></script>
 </head>
 <body>
 <div class="glow" aria-hidden="true"></div>
@@ -379,7 +384,7 @@ const store = {
 };
 
 // wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
-// Je naam neemt hij over van een ander spel in Rondje als je die daar al eens hebt ingevuld.
+// Je naam neemt hij over van een ander spel in ATJE als je die daar al eens hebt ingevuld.
 const me = (() => {
   const v = store.get(KEY.me, {}) || {};
   let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
@@ -388,7 +393,7 @@ const me = (() => {
     crypto.getRandomValues(a);
     token = [...a].map((x) => abc[x & 63]).join('');
   }
-  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik', 'wolf-ik', 'bord-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
+  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik', 'bord-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
   const o = { token, name: typeof name === 'string' ? name.slice(0, P.NAME_MAX) : '' };
   store.set(KEY.me, o);
   return o;
@@ -590,9 +595,10 @@ function present(ev) {
       ui.disp = { pos: [0, 0, 0, 0], track: Array(P.TRACK).fill(null), last: null };
       ui.head = 'Daar gaan ze!';
       const mine = ev.racers.find((r) => r.player === S.you);
-      banner('De race begint', mine ? `${B.sipsText(mine.bet)} op ${HORSE[mine.horse]}` : `Race ${ev.race}`, STEP_MS.start + 200);
+      banner(mine ? 'Drink je inzet!' : 'De race begint', mine ? `${B.sipsText(mine.bet)} op ${HORSE[mine.horse]}` : `Race ${ev.race}`, STEP_MS.start + 200);
       ui.note = 'De paarden staan klaar. Trek om de beurt een kaart.';
       Snd.bugle(); buzz(mine ? [80, 50, 80] : 40);
+      if (mine) window.Slok?.drink(mine.bet, `Je inzet op ${HORSE[mine.horse]}. Die drink je vooraf.`, { kick: 'Jouw inzet', delay: 500 });
       return STEP_MS.start;
     }
     case 'kaart':
@@ -618,6 +624,13 @@ function present(ev) {
       banner(`${HORSE[ev.horse]} wint!`, won ? 'Jouw paard!' : ev.winners.length ? `${ev.winners.map((i) => S.players[i].name).join(' en ')}` : 'Niemand zette erop', STEP_MS.finish + 300);
       Snd.win(); buzz(won ? [90, 50, 90, 50, 160] : [160]);
       if (won) celebrate();
+      // verloren: je eigen inzet nog een keer, plus de inzet van de winnaar(s)
+      const dr = S.phase === 'uitslag' && S.drinks ? S.drinks[S.you] : null;
+      if (dr && dr.total) {
+        window.Slok?.drink(dr.total, dr.winner
+          ? `${HORSE[ev.horse]} won. Je drinkt je eigen inzet nog een keer (${dr.own}) en de inzet van ${ev.winners.length > 1 ? 'de winnaars' : 'de winnaar'} (${dr.winner}).`
+          : `${HORSE[ev.horse]} won en niemand zette erop. Je drinkt je eigen inzet nog een keer.`, { delay: STEP_MS.finish });
+      }
       return STEP_MS.finish;
     }
     default:
@@ -766,7 +779,7 @@ function vHome() {
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${P.MIN_PLAYERS} tot ${P.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>Kies een aas als paard en zet slokken in. Om de beurt trek je een kaart, en het paard met die vorm galoppeert een stap vooruit. Zette je op het verkeerde paard? Dan drink je.</p>
+    <p>Kies een aas als paard en zet slokken in. Om de beurt trek je een kaart, en het paard met die vorm galoppeert een stap vooruit. Je inzet drink je vooraf. Zette je op het verkeerde paard? Dan drink je je inzet nog een keer, plus die van de winnaar.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${P.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -775,7 +788,7 @@ function vHome() {
     <div class="or">of</div>
     <button class="cta" type="button" data-act="create" ${busy}><span>${ui.joining ? 'Verbinden…' : 'Nieuwe tafel'}</span>${ARR}</button>
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
-    <button class="ghostbtn" type="button" data-act="rules">Spelregels</button>
+    <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="paardenrace"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
   <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
 }
@@ -816,7 +829,7 @@ function betDock() {
     ? `<button class="ghostbtn" type="button" data-act="go">Nu starten met ${ready} ${ready === 1 ? 'speler' : 'spelers'}</button>` : '';
   if (p.ready) {
     return `<div class="ask-h"><h2>Jij zet ${p.bet} op ${HORSE[p.horse]}</h2><span class="racechip">${title}</span></div>
-      <p class="sub">Wint een ander paard, dan drink je je inzet plus de hoogste inzet op de winnaar (samen hooguit ${P.LOSE_MAX}).</p>
+      <p class="sub">Als de race begint, drink je eerst je inzet: ${B.sipsText(p.bet)}.</p>
       ${waiting.length ? `<p class="waitline">Wachten op ${list(waiting)}</p>` : '<p class="waitline">De race begint</p>'}
       ${go}
       <button class="linkbtn" type="button" data-act="unready">Paard of inzet wijzigen</button>`;
@@ -873,10 +886,9 @@ function resultDock() {
   const winners = S.racers.filter((i) => S.drinks[i] && !S.drinks[i].total);
   const head = `${HORSE[h]} wint!`;
   const explain = winners.length ? `${list(winners.map(who))} ${winners.length === 1 ? 'zette' : 'zetten'} op ${HORSE[h]}.` : `Niemand zette op ${HORSE[h]}: iedereen drinkt alleen zijn eigen inzet.`;
-  const capped = mine && mine.total && mine.total < mine.own + Math.max(0, ...winners.map((i) => S.players[i].bet)) ? `, samen hooguit ${P.LOSE_MAX}` : '';
   const myLine = !mine ? '' : mine.total
-    ? `<div class="action">${GLASS}<span>Jij drinkt ${B.sipsText(mine.total)}<small>Je eigen inzet ${mine.own}${mine.winner ? ` + ${mine.winner} van de winnaar${capped}` : ''}</small></span></div>`
-    : `<div class="action">${GLASS}<span>Jij wint!<small>De anderen drinken hun inzet en die van de winnaar.</small></span></div>`;
+    ? `<div class="action">${GLASS}<span>Jij drinkt ${B.sipsText(mine.total)}<small>Je eigen inzet ${mine.own}${mine.winner ? ` + ${mine.winner} van de winnaar${winners.length > 1 ? 's' : ''}` : ''}</small></span></div>`
+    : `<div class="action">${GLASS}<span>Jij wint!<small>De anderen drinken jouw inzet.</small></span></div>`;
   const rows = S.racers.filter((i) => i !== S.you).map((i) => {
     const dr = S.drinks[i];
     return `<div class="${dr.total ? '' : 'won'}" style="--pc:${PC[i % PC.length]}"><span><i></i>${nameOf(i)} <small>${sym(S.players[i].horse)}</small></span><b>${dr.total ? `drinkt ${dr.total}` : 'wint'}</b></div>`;
@@ -893,6 +905,7 @@ function menuHTML() {
   const host = isHost(), game = S && S.phase !== 'lobby';
   return `${sheetTop('Menu')}
   <nav class="mlist">
+    <button type="button" data-act="uitleg">Uitleg met plaatjes <span>›</span></button>
     <button type="button" data-act="rules">Spelregels <span>›</span></button>
     ${game ? '<button type="button" data-act="score">Stand <span>›</span></button>' : ''}
     <button type="button" data-act="mute">Geluid <span>${Snd.muted ? 'uit' : 'aan'}</span></button>
@@ -900,7 +913,7 @@ function menuHTML() {
     ${game && host ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
     ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
     <a href="/melden?spel=paardenrace${S ? `&code=${S.code}` : ''}">Iets melden <span>›</span></a>
-    <a href="/">Naar Rondje <span>›</span></a>
+    <a href="/">Naar ATJE <span>›</span></a>
   </nav>`;
 }
 
@@ -911,18 +924,20 @@ function scoreHTML() {
     <thead><tr><th>Speler</th><th>Slokken</th><th>Gewonnen</th><th>Races</th></tr></thead>
     <tbody>${rows.map(({ p, i }) => `<tr style="--pc:${PC[i % PC.length]}"><td><i></i>${esc(p.name)}</td><td>${p.sips}</td><td>${p.wins}</td><td>${p.races}</td></tr>`).join('')}</tbody>
   </table></div>
-  <p class="sub">Slokken: hoeveel iemand moest drinken. Gewonnen: hoe vaak iemands paard als eerste over de finish kwam.</p>`;
+  <p class="sub">Slokken: hoeveel iemand moest drinken, ook de inzet vooraf. Gewonnen: hoe vaak iemands paard als eerste over de finish kwam.</p>`;
 }
 
 function rulesHTML() {
   return `${sheetTop('Spelregels', 'Paardenrace')}
+  <button class="ghostbtn rules-how" type="button" data-act="uitleg"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Bekijk de uitleg met plaatjes</button>
   <div class="rules">
     <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander. De vier azen zijn de paarden: harten, ruiten, klaveren en schoppen.</p>
     <ol>
       <li><b>Inzetten.</b> Kies een aas als paard en zet ${P.BET_MIN} tot ${P.BET_MAX} slokken in. Meer spelers mogen op hetzelfde paard. Is iedereen klaar, dan begint de race.</li>
+      <li><b>Drink je inzet.</b> Bij de start drinkt iedereen eerst de slokken die hij inzette.</li>
       <li><b>De baan.</b> Naast de baan liggen ${P.TRACK} dichte kaarten, de azen staan op de start. Om de beurt trek je een kaart van de stapel: het paard met die vorm doet een stap vooruit.</li>
       <li><b>Een stap terug.</b> Zijn alle vier de paarden langs een dichte kaart, dan gaat die open. Het paard met dezelfde vorm moet een stap terug.</li>
-      <li><b>Finish.</b> Het eerste paard voorbij de ${P.TRACK}e kaart wint. Wie op een ander paard zette, drinkt zijn eigen inzet plus de hoogste inzet op het winnende paard, samen hooguit ${P.LOSE_MAX}. Wie op de winnaar zette, hoeft niks.</li>
+      <li><b>Finish.</b> Het eerste paard voorbij de ${P.TRACK}e kaart wint. Wie op een ander paard zette, drinkt zijn eigen inzet nog een keer, plus de inzet van de winnaar. Zetten er meer spelers op het winnende paard, dan tellen hun inzetten bij elkaar op.</li>
     </ol>
     <p class="small">Wint er een paard waar niemand op zette, dan drinkt iedereen alleen zijn eigen inzet. Wie later aanschuift, zet in voor de volgende race. Valt wie aan de beurt is weg, dan trekt de volgende. Drink met mate: water of karnemelk telt ook.</p>
   </div>`;
@@ -1086,6 +1101,7 @@ const actions = {
     toast(n ? `Jij dronk al ${B.sipsText(n)}` : 'Jij hebt nog niks hoeven drinken');
   },
   menu() { openSheet('menu', menuHTML()); },
+  uitleg() { closeSheet(); window.Uitleg?.open('paardenrace'); },
   rules() { openSheet('rules', rulesHTML()); },
   score() { openSheet('score', scoreHTML()); },
   mute() { Snd.muted = !Snd.muted; store.set(KEY.mute, Snd.muted); if (!Snd.muted) Snd.chip(); openSheet('menu', menuHTML()); },

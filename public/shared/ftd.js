@@ -1,7 +1,7 @@
 // Pak de dealer (eerst Fuck the dealer): het kaartspel, online met iedereen op zijn eigen telefoon.
 // De dealer houdt de stapel vast en ziet als enige de bovenste kaart. Om de beurt raden de anderen welke kaart
 // het is. Goed in één keer: de dealer drinkt 5 slokken. Fout: de dealer zegt hoger of lager, en je raadt nog één
-// keer. Nu goed: de dealer drinkt 3. Weer fout: jij drinkt het verschil tussen je gok en de kaart (hooguit 5). Speelt de
+// keer. Nu goed: de dealer drinkt 3. Weer fout: jij drinkt het verschil tussen je gok en de kaart. Speelt de
 // dealer drie spelers achter elkaar uit, dan is hij dealer af en gaat de stapel naar de volgende.
 // Een potje is een gewoon object (JSON) met de seed van de random-generator erin, net als bij Bussen.
 import { newDeck, shuffle, rand, cleanNames, NAME_MAX } from './bussen.js';
@@ -12,7 +12,6 @@ export const MAX_PLAYERS = 10;
 export const STREAK = 3;          // zoveel spelers achter elkaar uitgespeeld: dealer af
 export const SIPS_FIRST = 5;      // de dealer drinkt als je hem in één keer raadt
 export const SIPS_SECOND = 3;     // en als je hem in twee keer raadt
-export const MAX_DIFF = 5;        // twee keer fout: het verschil, maar nooit meer dan dit (een 2 tegen een aas is anders 12)
 export const RANKS = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 const LOG_SIZE = 16;
 
@@ -91,7 +90,7 @@ function resolve(g, live, guesses, ok) {
   const player = g.guesser, dealer = g.dealer;
   g.board[card.r]++;
   const drinker = ok ? dealer : player;
-  const sips = ok === 1 ? SIPS_FIRST : ok === 2 ? SIPS_SECOND : Math.min(MAX_DIFF, Math.abs(guesses[1] - card.r));
+  const sips = ok === 1 ? SIPS_FIRST : ok === 2 ? SIPS_SECOND : Math.abs(guesses[1] - card.r);
   g.players[drinker].sips += sips;
   if (ok) { g.players[player].right++; g.streak = 0; } else { g.players[dealer].beaten++; g.streak++; }
   g.first = null;

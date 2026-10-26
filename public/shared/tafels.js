@@ -1,5 +1,5 @@
 // Online tafels met een code van 4 letters, voor de kaartspellen waarbij iedereen op zijn eigen telefoon speelt
-// (Bussen, Boerenbruiloft). Hier zit alles wat elke tafel nodig heeft: maken, meedoen, opnieuw verbinden met
+// (Bussen, Boer zoekt vrouw). Hier zit alles wat elke tafel nodig heeft: maken, meedoen, opnieuw verbinden met
 // een sleutel per telefoon, de host, van tafel halen en nog een potje. Het spel zelf komt binnen als `game`:
 //
 //   id                   naam voor in het logboek

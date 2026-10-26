@@ -100,6 +100,9 @@ p{margin:0}
 .dock .cta.hot{background:linear-gradient(90deg,#33246b 0%,#6a52c4 46%,#b9a8ff 100%)}
 .dock .cta:disabled{background:rgba(255,255,255,.08);color:var(--ink-soft);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 .ghostbtn{display:block;width:100%;border-radius:999px;padding:14px 20px;font-size:var(--s2);font-weight:700;color:var(--plum);box-shadow:inset 0 0 0 1px rgba(43,21,49,.3);text-decoration:none;text-align:center}
+.howrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.howrow .ghostbtn{padding-left:10px;padding-right:10px;white-space:nowrap}
+.rules-how{margin:0 0 14px}
 .ghostbtn:hover{background:var(--cream-2)}
 .linkbtn{justify-self:start;padding:4px 0;font-size:var(--s1);font-weight:700;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px}
 
@@ -323,6 +326,8 @@ button.seat:active .ava{transform:scale(.94)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 <script src="/js/poort.js" defer></script>
+<script src="/js/slok.js" defer></script>
+<script src="/js/uitleg.js" defer></script>
 </head>
 <body>
 <div class="glow" aria-hidden="true"></div>
@@ -371,7 +376,7 @@ const store = {
 };
 
 // wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
-// Je naam neemt hij over van een ander spel in Rondje als je die daar al eens hebt ingevuld.
+// Je naam neemt hij over van een ander spel in ATJE als je die daar al eens hebt ingevuld.
 const me = (() => {
   const v = store.get(KEY.me, {}) || {};
   let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
@@ -380,7 +385,7 @@ const me = (() => {
     crypto.getRandomValues(a);
     token = [...a].map((x) => abc[x & 63]).join('');
   }
-  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik', 'wolf-ik', 'bord-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
+  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik', 'bord-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
   const o = { token, name: typeof name === 'string' ? name.slice(0, F.NAME_MAX) : '' };
   store.set(KEY.me, o);
   return o;
@@ -563,6 +568,13 @@ function present(ev) {
         if (!S) return;
         if (ev.ok) Snd.good(); else Snd.bad();
         if (ev.drinker === S.you) buzz([90, 50, 90]);
+        if (ev.drinker === S.you) {
+          const card = B.cardName(ev.card), nm = S.players[ev.player].name;
+          const why = ev.ok === 1 ? `${nm} raadde ${card} in één keer.`
+            : ev.ok === 2 ? `${nm} raadde ${card} in twee keer.`
+              : `Je zei ${B.RANK_NAME[ev.guesses[1]] || ev.guesses[1]}, maar het was ${card}. Het verschil is ${ev.sips}.`;
+          window.Slok?.drink(ev.sips, why, { delay: 900 });
+        }
         if (ev.ok === 1) celebrate();
       }, 450);
       break;
@@ -702,7 +714,7 @@ function vHome() {
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${F.MIN_PLAYERS} tot ${F.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>De dealer ziet de bovenste kaart, de rest raadt. Goed geraden? Dan drinkt de dealer. Fout? Dan drink jij het verschil (hooguit ${F.MAX_DIFF}).</p>
+    <p>De dealer ziet de bovenste kaart, de rest raadt. In één keer goed? Dan drinkt de dealer ${F.SIPS_FIRST}, in twee keer ${F.SIPS_SECOND}. Fout? Dan drink jij het verschil.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${F.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -711,7 +723,7 @@ function vHome() {
     <div class="or">of</div>
     <button class="cta" type="button" data-act="create" ${busy}><span>${ui.joining ? 'Verbinden…' : 'Nieuwe tafel'}</span>${ARR}</button>
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
-    <button class="ghostbtn" type="button" data-act="rules">Spelregels</button>
+    <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="dealer"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
   <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
 }
@@ -771,7 +783,7 @@ function spelDock() {
         <p class="sub">Welke kaart ligt er bovenop bij ${nameOf(d)}? In één keer goed: de dealer drinkt ${F.SIPS_FIRST}.</p>${ranksHTML(busy)}`;
     }
     return `${forNote}<div class="ask-h"><h2>${S.hint === 'hoger' ? 'Hoger' : 'Lager'} dan ${rank(S.first)}!</h2></div>
-      <p class="sub">Nog één gok. Goed: de dealer drinkt ${F.SIPS_SECOND}. Fout: jij drinkt het verschil, hooguit ${F.MAX_DIFF}.</p>${ranksHTML(busy)}`;
+      <p class="sub">Nog één gok. Goed: de dealer drinkt ${F.SIPS_SECOND}. Fout: jij drinkt het verschil.</p>${ranksHTML(busy)}`;
   }
   const said = S.first != null ? `${nameOf(g)} zei ${rank(S.first)}: de kaart is <b>${S.hint}</b>.` : `${nameOf(g)} raadt welke kaart er bovenop ligt.`;
   if (d === S.you) {
@@ -779,7 +791,7 @@ function spelDock() {
     return `<div class="secret">${S.top ? cardHTML(S.top) : ''}<div><h2>Jij bent de dealer</h2><p class="sub">Alleen jij ziet deze kaart. Speel er nog ${left} ${left === 1 ? 'speler' : 'spelers'} uit, dan ben je dealer af.</p></div></div>
       <p class="sub">${said}</p><p class="waitline">Wachten op ${nameOf(g)}</p>`;
   }
-  return `<div class="ask-h"><h2>${nameOf(g)} raadt</h2></div><p class="sub">${said} Goed: ${nameOf(d)} drinkt. Fout: ${nameOf(g)} drinkt het verschil, hooguit ${F.MAX_DIFF}.</p><p class="waitline">Wachten op ${nameOf(g)}</p>`;
+  return `<div class="ask-h"><h2>${nameOf(g)} raadt</h2></div><p class="sub">${said} Goed: ${nameOf(d)} drinkt. Fout: ${nameOf(g)} drinkt het verschil.</p><p class="waitline">Wachten op ${nameOf(g)}</p>`;
 }
 
 function resultDock(ev) {
@@ -787,7 +799,7 @@ function resultDock(ev) {
   const head = ev.ok === 1 ? 'Raak!' : ev.ok === 2 ? 'Goed!' : 'Mis!';
   const explain = ev.ok === 1 ? `${who(p)} raadde ${card} in één keer.`
     : ev.ok === 2 ? `${who(p)} zei eerst ${said[0]} en daarna ${said[1]}: het was ${card}.`
-      : `${who(p)} zei ${said[0]} en daarna ${said[1]}, maar het was ${card}. ${Math.abs(ev.guesses[1] - ev.card.r) > ev.sips ? `Het verschil is ${Math.abs(ev.guesses[1] - ev.card.r)}, maar meer dan ${F.MAX_DIFF} wordt het nooit.` : `Het verschil is ${ev.sips}.`}`;
+      : `${who(p)} zei ${said[0]} en daarna ${said[1]}, maar het was ${card}. Het verschil is ${ev.sips}.`;
   const drinks = `${ev.drinker === S.you ? 'Jij drinkt' : `${nameOf(ev.drinker)} drinkt`} ${B.sipsText(ev.sips)}`;
   return `<div class="res-h ${ev.ok ? 'good' : 'bad'}"><span class="verdict">${head}</span><span class="sub">${explain}</span></div>
     <div class="action">${GLASS}<span>${drinks}</span></div>`;
@@ -798,6 +810,7 @@ function menuHTML() {
   const host = isHost(), game = S && S.phase !== 'lobby';
   return `${sheetTop('Menu')}
   <nav class="mlist">
+    <button type="button" data-act="uitleg">Uitleg met plaatjes <span>›</span></button>
     <button type="button" data-act="rules">Spelregels <span>›</span></button>
     ${game ? '<button type="button" data-act="score">Stand <span>›</span></button>' : ''}
     <button type="button" data-act="mute">Geluid <span>${Snd.muted ? 'uit' : 'aan'}</span></button>
@@ -805,7 +818,7 @@ function menuHTML() {
     ${game && host ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
     ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
     <a href="/melden?spel=dealer${S ? `&code=${S.code}` : ''}">Iets melden <span>›</span></a>
-    <a href="/">Naar Rondje <span>›</span></a>
+    <a href="/">Naar ATJE <span>›</span></a>
   </nav>`;
 }
 
@@ -821,12 +834,13 @@ function scoreHTML() {
 
 function rulesHTML() {
   return `${sheetTop('Spelregels', 'Pak de dealer')}
+  <button class="ghostbtn rules-how" type="button" data-act="uitleg"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Bekijk de uitleg met plaatjes</button>
   <div class="rules">
     <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander. Bij de start wordt er een willekeurige dealer gekozen.</p>
     <ol>
       <li><b>Raden.</b> De dealer houdt de stapel vast en ziet als enige de bovenste kaart. De speler na de dealer raadt welke kaart het is, van 2 tot en met de aas.</li>
       <li><b>In één keer goed?</b> Dan drinkt de dealer ${F.SIPS_FIRST} slokken.</li>
-      <li><b>Fout?</b> Dan hoor je of de kaart hoger of lager is, en raad je nog één keer. Nu goed: de dealer drinkt ${F.SIPS_SECOND} slokken. Weer fout: jij drinkt het verschil tussen je gok en de kaart, maar nooit meer dan ${F.MAX_DIFF}. Zeg je 6 en is het een 2, dan drink je er 4.</li>
+      <li><b>Fout?</b> Dan hoor je of de kaart hoger of lager is, en raad je nog één keer. Nu goed: de dealer drinkt ${F.SIPS_SECOND} slokken. Weer fout: jij drinkt het verschil tussen je gok en de kaart. Zeg je 6 en is het een 2, dan drink je er 4.</li>
       <li><b>Volgende.</b> De kaart gaat open op tafel en de volgende speler raadt.</li>
       <li><b>Dealer af.</b> Speelt de dealer ${F.STREAK} spelers achter elkaar uit, dan gaat de stapel naar de volgende speler. Raadt er iemand goed, dan begint de dealer weer bij nul.</li>
     </ol>
@@ -973,6 +987,7 @@ const actions = {
     toast(n ? `Jij dronk al ${B.sipsText(n)}` : 'Jij hebt nog niks hoeven drinken');
   },
   menu() { openSheet('menu', menuHTML()); },
+  uitleg() { closeSheet(); window.Uitleg?.open('dealer'); },
   rules() { openSheet('rules', rulesHTML()); },
   score() { openSheet('score', scoreHTML()); },
   mute() { Snd.muted = !Snd.muted; store.set(KEY.mute, Snd.muted); if (!Snd.muted) Snd.chip(); openSheet('menu', menuHTML()); },

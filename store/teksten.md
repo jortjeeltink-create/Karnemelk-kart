@@ -5,7 +5,7 @@ Kopieer deze teksten in de Play Console bij **Groei → Store-presence → Hoofd
 ## App-naam (max. 30 tekens)
 
 ```
-Rondje: spellen met vrienden
+ATJE: spellen met vrienden
 ```
 
 ## Korte beschrijving (max. 80 tekens)
@@ -17,16 +17,15 @@ Kaart-, dobbel- en drankspellen met vrienden, ieder op zijn eigen telefoon. 18+
 ## Volledige beschrijving (max. 4000 tekens)
 
 ```
-Rondje is voor een avond met vrienden. Iedereen speelt op zijn eigen telefoon: één iemand maakt een tafel en deelt de code van vier letters, de rest doet mee. Geen account nodig, geen reclame.
+ATJE is voor een avond met vrienden. Iedereen speelt op zijn eigen telefoon: één iemand maakt een tafel en deelt de code van vier letters, de rest doet mee. Geen account nodig, geen reclame.
 
-TIEN SPELLEN
+NEGEN SPELLEN
 
 • Karnemelk Kart: race live tegen tot 10 vrienden over 13 banen door een vrolijk Nederland. Drift door de bochten, spring over sloten, pak een stroopwafel-turbo en schiet met klompen. Spaar punten voor nieuwe karts, hoeden en capes.
-• Borrelbord: het ganzenbord als partyspel. Gooi de dobbelsteen over het bord en doe wat er op het vakje staat: een vraag, een regel, een duel of een drinkmaatje.
+• Borrelbord: het drankspel als ganzenbord. Gooi de dobbelsteen over het bord en doe wat er op het vakje staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje. De winnaar deelt een bak uit.
 • Bussen: rood of zwart, hoger of lager, de piramide, en wie de meeste kaarten overhoudt moet de bus in.
-• Wolvennacht: het weerwolvenspel zonder spelleider. Je telefoon deelt de rollen uit en regelt de nacht. Met de ziener, de heks, de jager en Cupido.
-• Boerenbruiloft: de boer telt met zijn ogen dicht, de bruid neemt stiekem een slok. Raadt de boer wie zijn bruid is?
-• Mexen: het dobbelspel. De laagste worp verliest, elke Mex verdubbelt.
+• Boer zoekt vrouw: de boer telt met zijn ogen dicht en de vrouw drinkt stiekem een glas leeg. Raadt de boer wie het was?
+• Mexen: het dobbelspel. De laagste worp drinkt, elke Mex verdubbelt.
 • Pak de dealer: raad de kaart die alleen de dealer ziet.
 • Paardenrace: de vier azen racen tegen elkaar. Op welk paard zet jij?
 • Rotonde: 37 kaarten als een zon op tafel. Gok rood of zwart en laat de pot groeien.
@@ -35,12 +34,13 @@ TIEN SPELLEN
 ZO WERKT HET
 • Maak een tafel en deel de code of de link. Iedereen ziet live wat er gebeurt.
 • Je kaarten en geheime rollen zie je alleen op je eigen telefoon.
-• Valt je verbinding even weg? Je komt vanzelf terug op je eigen plek.
+• Bij elk spel staat een uitleg met plaatjes, en je ziet altijd hoeveel slokken je moet drinken.
+• Vrienden met een iPhone spelen gewoon mee via de link.
 
-VERANTWOORD SPELEN
-Rondje bevat drankspellen en is alleen voor 18 jaar en ouder. Drinken is nooit verplicht: een slok mag ook water, fris of karnemelk zijn. De spellen tellen slokken, nooit glazen, en houden het aantal per keer beperkt. Drink nooit als je nog moet rijden.
+ALLEEN VOOR 18+
+ATJE bevat drankspellen en is alleen voor 18 jaar en ouder. Drinken is nooit verplicht: een slok mag ook water, fris of karnemelk zijn. Drink nooit als je nog moet rijden.
 
-Rondje heeft internet nodig: je speelt live met je vrienden aan tafel.
+ATJE heeft internet nodig: je speelt live met je vrienden aan tafel.
 ```
 
 ## Categorie en tags
@@ -55,4 +55,4 @@ Rondje heeft internet nodig: je speelt live met je vrienden aan tafel.
 |---|---|
 | `icoon-512.png` | App-icoon (512 × 512) |
 | `banner-1024x500.png` | Feature graphic (1024 × 500) |
-| `screenshot-1-rondje.png` t/m `screenshot-6-paardenrace.png` | Screenshots voor telefoons (1080 × 1920, minstens 2) |
+| `screenshot-1-atje.png` t/m `screenshot-6-paardenrace.png` | Screenshots voor telefoons (1080 × 1920, minstens 2) |

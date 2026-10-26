@@ -100,6 +100,9 @@ p{margin:0}
 .dock .cta.hot{background:linear-gradient(90deg,#0d4752 0%,#1b8797 46%,#5fe0ee 100%)}
 .dock .cta:disabled{background:rgba(255,255,255,.08);color:var(--ink-soft);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 .ghostbtn{display:block;width:100%;border-radius:999px;padding:14px 20px;font-size:var(--s2);font-weight:700;color:var(--plum);box-shadow:inset 0 0 0 1px rgba(43,21,49,.3);text-decoration:none;text-align:center}
+.howrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.howrow .ghostbtn{padding-left:10px;padding-right:10px;white-space:nowrap}
+.rules-how{margin:0 0 14px}
 .ghostbtn:hover{background:var(--cream-2)}
 .linkbtn{justify-self:start;padding:4px 0;font-size:var(--s1);font-weight:700;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px}
 
@@ -291,6 +294,8 @@ button.seat:active .ava{transform:scale(.94)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 <script src="/js/poort.js" defer></script>
+<script src="/js/slok.js" defer></script>
+<script src="/js/uitleg.js" defer></script>
 </head>
 <body>
 <div class="glow" aria-hidden="true"></div>
@@ -344,7 +349,7 @@ const store = {
 };
 
 // wie ben ik: een geheime sleutel per telefoon, zodat je na wegvallen op je eigen plek terugkomt.
-// Je naam neemt hij over van een ander spel in Rondje als je die daar al eens hebt ingevuld.
+// Je naam neemt hij over van een ander spel in ATJE als je die daar al eens hebt ingevuld.
 const me = (() => {
   const v = store.get(KEY.me, {}) || {};
   let token = typeof v.token === 'string' && /^[A-Za-z0-9_-]{16,64}$/.test(v.token) ? v.token : null;
@@ -353,7 +358,7 @@ const me = (() => {
     crypto.getRandomValues(a);
     token = [...a].map((x) => abc[x & 63]).join('');
   }
-  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik', 'wolf-ik', 'bord-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
+  const name = typeof v.name === 'string' && v.name ? v.name : ['bussen-ik', 'boer-ik', 'mexen-ik', 'dealer-ik', 'paard-ik', 'rotonde-ik', 'mijn-ik', 'bord-ik'].filter((k) => k !== KEY.me).map((k) => (store.get(k, {}) || {}).name).find((n) => typeof n === 'string' && n);
   const o = { token, name: typeof name === 'string' ? name.slice(0, M.NAME_MAX) : '' };
   store.set(KEY.me, o);
   return o;
@@ -536,6 +541,10 @@ function present(ev) {
       afterRoll(() => {
         Snd.bad(); buzz(ev.player === S.you ? [120, 60, 120] : 40);
         banner(ev.player === S.you ? 'Jij drinkt!' : `${S.players[ev.player].name} drinkt`, sipsText(ev.sips));
+        if (ev.player === S.you) {
+          const mex = ev.mexes ? ` ${ev.mexes === 1 ? 'Er viel een Mex' : `Er vielen ${ev.mexes} Mexen`}, dus de inzet (${ev.sips / 2 ** ev.mexes}) keer ${2 ** ev.mexes}.` : '';
+          window.Slok?.drink(ev.sips, `${ev.dice ? M.scoreName(ev.dice) : 'Jouw worp'} was de laagste worp.${mex}`, { delay: 600 });
+        }
       });
       break;
   }
@@ -667,7 +676,7 @@ function vHome() {
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${M.MIN_PLAYERS} tot ${M.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>Gooi om de beurt met twee stenen. Wie het laagst gooit, drinkt. Gooit iemand Mex, dan verdubbelen de slokken (hooguit ${M.MAX_SIPS}).</p>
+    <p>Gooi om de beurt met twee stenen. Wie het laagst gooit, drinkt de inzet: 1, 2 of 3 slokken. Gooit iemand Mex, dan verdubbelen de slokken.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${M.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -676,7 +685,7 @@ function vHome() {
     <div class="or">of</div>
     <button class="cta" type="button" data-act="create" ${busy}><span>${ui.joining ? 'Verbinden…' : 'Nieuwe tafel'}</span>${ARR}</button>
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
-    <button class="ghostbtn" type="button" data-act="rules">Spelregels</button>
+    <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="mexen"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
   <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
 }
@@ -763,8 +772,7 @@ function spelDock() {
 
 function resultDock() {
   const l = S.loser, mine = l === S.you, d = diceOf(l);
-  const capped = S.stake * 2 ** S.mexes > M.MAX_SIPS ? ` Meer dan ${M.MAX_SIPS} wordt het nooit.` : '';
-  const mex = S.mexes ? ` ${S.mexes === 1 ? 'Er viel een Mex, dus dubbel' : `Er vielen ${S.mexes} Mexen, dus ${2 ** S.mexes} keer de inzet`}.${capped}` : '';
+  const mex = S.mexes ? ` ${S.mexes === 1 ? 'Er viel een Mex, dus dubbel' : `Er vielen ${S.mexes} Mexen, dus ${2 ** S.mexes} keer de inzet`}.` : '';
   const enough = liveCount() >= M.MIN_PLAYERS;
   const next = canNext()
     ? `<button class="cta" type="button" data-act="next" ${enough ? '' : 'disabled'}><span>${!enough ? `Minstens ${M.MIN_PLAYERS} spelers nodig` : mine ? 'Gedronken? Jij begint' : 'Volgende ronde'}</span>${ARR}</button>`
@@ -778,6 +786,7 @@ function menuHTML() {
   const host = isHost(), game = S && S.phase !== 'lobby', between = !game || S.phase === 'uitslag';
   return `${sheetTop('Menu')}
   <nav class="mlist">
+    <button type="button" data-act="uitleg">Uitleg met plaatjes <span>›</span></button>
     <button type="button" data-act="rules">Spelregels <span>›</span></button>
     ${game ? '<button type="button" data-act="score">Stand <span>›</span></button>' : ''}
     <button type="button" data-act="mute">Geluid <span>${Snd.muted ? 'uit' : 'aan'}</span></button>
@@ -786,7 +795,7 @@ function menuHTML() {
     ${game && host && S.phase === 'uitslag' ? '<button type="button" data-act="againask">Terug naar de lobby <span>›</span></button>' : ''}
     ${S ? '<button type="button" data-act="leaveask">Verlaat tafel <span>›</span></button>' : ''}
     <a href="/melden?spel=mexen${S ? `&code=${S.code}` : ''}">Iets melden <span>›</span></a>
-    <a href="/">Naar Rondje <span>›</span></a>
+    <a href="/">Naar ATJE <span>›</span></a>
   </nav>`;
 }
 
@@ -803,13 +812,14 @@ function scoreHTML() {
 function rulesHTML() {
   const stake = S ? S.stake : M.STAKE_DEFAULT;
   return `${sheetTop('Spelregels', 'Mexen')}
+  <button class="ghostbtn rules-how" type="button" data-act="uitleg"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Bekijk de uitleg met plaatjes</button>
   <div class="rules">
     <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander. Iedereen ziet elke worp live op tafel.</p>
     <ol>
       <li><b>Gooien.</b> Om de beurt gooi je met twee stenen. Je laatste worp telt, dus nog een keer gooien is een gok.</li>
       <li><b>Hoe vaak.</b> De eerste van de ronde mag tot ${M.MAX_THROWS} keer gooien. Hoe vaak hij gooit, zo vaak mag de rest ook.</li>
       <li><b>Wat telt.</b> De hoogste steen eerst: een 6 en een 4 is 64. Dubbels zijn honderden: twee vijven is 500 en gaat boven elke gewone worp. Het hoogst is <b>Mex</b>: een 2 en een 1. Het laagst is 31.</li>
-      <li><b>Drinken.</b> Wie de laagste worp heeft, drinkt de inzet (${sipsText(stake)}). Elke Mex in de ronde verdubbelt de slokken, tot hooguit ${sipsText(M.MAX_SIPS)}.</li>
+      <li><b>Drinken.</b> Wie de laagste worp heeft, drinkt de inzet (${sipsText(stake)}). Elke Mex in de ronde verdubbelt de slokken.</li>
       <li><b>Gelijk.</b> Staan er meer spelers even laag, dan gooien die nog één keer (afgooien).</li>
       <li><b>Volgende ronde.</b> Wie verloor, begint.</li>
     </ol>
@@ -961,6 +971,7 @@ const actions = {
     toast(n ? `Jij dronk al ${sipsText(n)}` : 'Jij hebt nog niks hoeven drinken');
   },
   menu() { openSheet('menu', menuHTML()); },
+  uitleg() { closeSheet(); window.Uitleg?.open('mexen'); },
   rules() { openSheet('rules', rulesHTML()); },
   score() { openSheet('score', scoreHTML()); },
   mute() { Snd.muted = !Snd.muted; store.set(KEY.mute, Snd.muted); if (!Snd.muted) Snd.chip(); openSheet('menu', menuHTML()); },

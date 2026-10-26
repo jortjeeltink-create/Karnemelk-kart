@@ -28,7 +28,8 @@ test('het bord: 48 vakjes van start tot finish, met vijf ganzen en van elke soor
   const count = (t) => Z.BOARD.filter((s) => s.t === t).length;
   assert.equal(count('gans'), 5);
   for (const t of ['brug', 'cafe', 'put', 'doolhof', 'dood']) assert.equal(count(t), 1, t);
-  assert.equal(count('ad'), 0, 'geen ad fundum');
+  assert.equal(count('ad'), 1, 'vakje 47 is een ad fundum');
+  assert.equal(Z.BOARD[47].t, 'ad');
   assert.ok(Z.BOARD.every((sq) => !sq.n || sq.n <= 2), 'nergens meer dan 2 slokken');
   for (const t of ['drink', 'geef', 'iedereen', 'vraag', 'regel', 'duel', 'maatje', 'ruil', 'buren', 'dubbel', 'laatste']) assert.ok(count(t) >= 1, t);
   assert.ok(Z.VRAGEN.length >= 30 && Z.REGELS.length >= 8);
@@ -67,7 +68,7 @@ test('de gans: nog een keer zoveel verder; de brug naar 12; het doolhof terug; d
   assert.equal(g.players[1].sips, 2);
 });
 
-test('de finish: verder gooien mag, je stopt erop; de winnaar deelt slokken uit en de laatste drinkt', () => {
+test('de finish: verder gooien mag, je stopt erop; de winnaar deelt een bak uit en de laatste drinkt', () => {
   const g = game(3);
   g.players[1].pos = 10;
   g.players[2].pos = 20;
@@ -76,13 +77,13 @@ test('de finish: verder gooien mag, je stopt erop; de winnaar deelt slokken uit 
   assert.equal(g.players[0].pos, Z.SIZE);
   assert.equal(g.winner, 0);
   assert.equal(g.players[0].wins, 1);
-  // de winnaar kiest wie er drinkt
-  assert.deepEqual([g.phase, g.pending], ['kiezen', { kind: 'winst', n: Z.WIN_SIPS }]);
+  // de winnaar kiest wie er een bak trekt
+  assert.deepEqual([g.phase, g.pending], ['kiezen', { kind: 'bak', n: Z.AD_SIPS }]);
   assert.equal(Z.choose(g, 1, 2, seats(3)), null, 'alleen de winnaar kiest');
   const sips2 = g.players[2].sips;
   Z.choose(g, 0, 2, seats(3));
-  assert.deepEqual(last(g, 'keuze').drinks, [[2, Z.WIN_SIPS]]);
-  assert.equal(g.players[2].sips, sips2 + Z.WIN_SIPS);
+  assert.deepEqual(last(g, 'keuze').drinks, [[2, Z.AD_SIPS]]);
+  assert.equal(g.players[2].sips, sips2 + Z.AD_SIPS);
   assert.equal(g.phase, 'klaar');
   assert.deepEqual(last(g, 'klaar').drinks, [[1, Z.LAST_SIPS]], 'wie het verst achter staat');
   assert.equal(Z.roll(g, 1, seats(3), 3), null);
@@ -160,7 +161,7 @@ test('buren, de laatste, dubbel of niks en ad fundum', () => {
   Z.roll(g, 0, seats(4), 4);
   assert.deepEqual(last(g, 'dubbel').drinks, [[1, 1], [2, 1], [3, 1]], 'even: de rest drinkt 1');
   from(g, 0, 46, 1);
-  assert.deepEqual(last(g, 'vak').drinks, [[0, 2]]);
+  assert.deepEqual(last(g, 'vak').drinks, [[0, Z.AD_SIPS]], 'ad fundum');
 });
 
 test('een duel: bij gelijk gooien jullie allebei nog een keer', () => {
