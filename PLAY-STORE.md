@@ -25,8 +25,19 @@ Hieronder staat wat jij zelf moet doen, in deze volgorde.
 ## 1. Hosting en webadres
 
 - **Kies je webadres nu, voordat je publiceert.** De app zit vast aan dat adres. Een ander adres betekent later een nieuwe app-versie en een nieuwe koppeling.
-  - `karnemelk-kart.onrender.com` werkt.
+  - Gebruik `spelkeet.onrender.com` (zie hieronder hoe je daar komt), niet meer `karnemelk-kart.onrender.com`.
   - Een eigen domein (bijvoorbeeld iets met "spelkeet") is netter. Koppelen kan in Render bij *Settings → Custom Domains*.
+- **Van `karnemelk-kart` naar `spelkeet.onrender.com`.** Een adres op Render kun je niet hernoemen. Maak daarom een nieuwe service:
+  1. Ga in Render naar **New → Web Service** en kies de repository *Karnemelk-kart* (branch `main`).
+  2. Vul in:
+     - **Name**: `spelkeet`;
+     - **Region**: Frankfurt;
+     - **Build Command**: `npm install --omit=dev`;
+     - **Start Command**: `npm start`;
+     - **Health Check Path**: `/health`.
+  3. Zet bij **Environment** dezelfde instellingen als bij de oude service (`KK_SECRET`, `CONTACT_EMAIL`, `MELD_SLEUTEL`, en `UPSTASH_…` als je die hebt). Kopieer ze met de hand.
+  4. Klik op **Create Web Service** en wacht tot `https://spelkeet.onrender.com` werkt.
+  5. Zet bij de **oude** service (`karnemelk-kart`) onder *Environment*: `REDIRECT_TO` = `https://spelkeet.onrender.com`. Wie de oude link nog heeft, komt dan vanzelf op het nieuwe adres.
 - **Neem een betaald plan bij Render.** Het gratis plan valt na 15 minuten zonder bezoekers in slaap, en dan wacht de eerste speler bijna een minuut. In een app voelt dat kapot. Het goedkoopste betaalde plan (Starter) is genoeg.
 - **Zet bij Render onder *Environment* deze instellingen:**
 
@@ -48,7 +59,7 @@ Meldingen komen ook in de logboeken van Render ("melding: …"). Op het gratis p
 
 ## 3. De Android-app maken (zonder programmeren)
 
-1. Ga naar [pwabuilder.com](https://www.pwabuilder.com) en vul het adres van De Spelkeet in (bijvoorbeeld `https://karnemelk-kart.onrender.com`).
+1. Ga naar [pwabuilder.com](https://www.pwabuilder.com) en vul het adres van De Spelkeet in (bijvoorbeeld `https://spelkeet.onrender.com`).
 2. Kies **Package for stores → Android → Generate package**. Vul in:
    - **Package ID**: bijvoorbeeld `nl.spelkeet.app`. Hij moet uniek zijn en kan later **nooit** meer veranderen.
    - **App name** en **Launcher name**: `De Spelkeet`.
