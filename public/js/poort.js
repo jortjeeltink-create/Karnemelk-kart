@@ -1,10 +1,15 @@
 // De poort van De Spelkeet, op elke speelpagina: de eerste keer vraagt hij of je 18 of ouder bent (er zitten drankspellen
 // in), met een paar regels over verantwoord spelen en de voorwaarden. Daarna onthoudt deze telefoon het.
-// Ook meldt hij de service worker aan, voor een nette pagina als je geen internet hebt (/sw.js).
+// Ook meldt hij de service worker aan, voor een nette pagina als je geen internet hebt (/sw.js), en onthoudt hij of je
+// in de app uit de Play Store speelt (die opent met /?app=play): dan speelt Borrelbord alleen met de rustige regels.
 (() => {
   'use strict';
   const KEY = 'spelkeet-18';
   const VERSION = '1';   // ophogen als de voorwaarden flink veranderen: dan vraagt hij het opnieuw
+
+  try {
+    if (/[?&]app=play\b/.test(location.search) || document.referrer.startsWith('android-app://')) sessionStorage.setItem('spelkeet-play', '1');
+  } catch (e) { /* geen opslag: dan niet */ }
 
   if ('serviceWorker' in navigator && window.isSecureContext) {
     addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });

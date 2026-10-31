@@ -58,7 +58,16 @@
       { img: 'mijnenveld-3', t: 'Boem!', p: 'Ligt er een mijn op die kaart, dan drink je de slokken <b>per mijn</b> (hooguit 6 in één keer). Daarna leg jij de mijn ergens anders neer: op een kaart, of tussen twee kaarten (dan raakt hij ze allebei).' },
       { img: 'mijnenveld-4', t: 'Rood of zwart', p: 'Dan gok je de kleur en de kaart gaat open. Goed: de volgende is aan de beurt. Fout: <b>2 slokken</b> en je gooit opnieuw. Liggen alle kaarten open, dan is het veld leeg.' },
     ] },
+    // in de browser: de stevige regels (de host kan ook rustig kiezen); in de app alleen rustig (borrelbordRustig)
     borrelbord: { name: 'Borrelbord', c: '#f2c230', url: '/borrelbord', slides: [
+      { img: 'borrelbord-stevig-1', t: 'Het bord', p: '48 vakjes, zoals ganzenbord. ' + TAFEL(2, 10) + ' De host kiest de regels: <b>stevig</b> (de oude regels, met veel slokken) of <b>rustig</b>. Deze uitleg is voor stevig.' },
+      { img: 'borrelbord-stevig-2', t: 'Gooien', p: 'Ben je aan de beurt? <b>Houd de knop vast en laat los</b>. De steen rolt over het bord, bij iedereen, en je pion loopt zoveel vakjes.' },
+      { img: 'borrelbord-stevig-3', t: 'Het vakje', p: 'Doe wat er staat: <b>drink 1 of 2</b>, <b>geef 1 tot 3</b> weg, iedereen of je buren drinken 1, de laatste drinkt 2, een vraag, een regel, een drinkmaatje of van plek ruilen. Moet je iemand kiezen, dan doe je dat op je telefoon.' },
+      { img: 'borrelbord-stevig-4', t: 'Duel en dubbel of niks', p: 'Bij een duel gooien jullie allebei op je eigen telefoon: de laagste drinkt <b>2</b>, bij gelijk nog een keer. Bij dubbel of niks gooi je nog eens: even, dan drinkt de rest <b>1</b>; oneven, dan drink jij <b>3</b>.' },
+      { img: 'borrelbord-stevig-5', t: 'Gans, brug en doodskop', p: 'Op een gans loop je nog een keer zoveel verder. De brug brengt je naar 12. In het café drink je 1 en sla je een beurt over. In de put zit je vast tot een ander erin valt. Het doolhof zet je 5 terug, de doodskop naar start (en drink 2). Vakje 47 is een <b>ad fundum</b>: glas in één keer leeg.' },
+      { img: 'borrelbord-stevig-6', t: 'Winnen', p: 'Wie als eerste op de finish staat, wint en mag <b>een bak</b> uitdelen: kies wie zijn glas in één keer leeg drinkt. Wie dan het verst achter staat, drinkt <b>3</b>.' },
+    ] },
+    borrelbordRustig: { name: 'Borrelbord', c: '#f2c230', url: '/borrelbord', slides: [
       { img: 'borrelbord-1', t: 'Het bord', p: '48 vakjes, zoals ganzenbord. ' + TAFEL(2, 10) },
       { img: 'borrelbord-2', t: 'Gooien', p: 'Ben je aan de beurt? <b>Houd de knop vast en laat los</b>. De steen rolt over het bord, bij iedereen, en je pion loopt zoveel vakjes.' },
       { img: 'borrelbord-3', t: 'Het vakje', p: 'Doe wat er staat: <b>drink 1</b>, <b>geef 1</b> weg, iedereen of je buren drinken 1, een vraag, een regel, een drinkmaatje of van plek ruilen. Moet je iemand kiezen, dan doe je dat op je telefoon.' },
@@ -73,9 +82,12 @@
       { img: 'kart-4', t: 'Punten en de winkel', p: 'Na elke race krijg je MP-punten. Koop er karts, hoeden, capes en meer mee in de winkel, en maak je eigen coureur.' },
     ] },
   };
+  // in de app uit de Play Store (die opent met /?app=play) speelt Borrelbord alleen met de rustige regels
+  const PLAY = (() => { try { return sessionStorage.getItem('spelkeet-play') === '1' || /[?&]app=play\b/.test(location.search); } catch (e) { return false; } })();
   // andere namen voor hetzelfde spel
   GAMES.paard = GAMES.paardenrace;
   GAMES.zuipbord = GAMES.borrelbord;
+  GAMES.zuipbordRustig = GAMES.borrelbordRustig;
 
   const CSS = `
 .uitleg{position:fixed;inset:0;z-index:2147482000;display:flex;flex-direction:column;background:#120a16 radial-gradient(90% 55% at 50% 0%,color-mix(in srgb,var(--uc) 38%,transparent),transparent 70%) no-repeat;color:#f6efe3;font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:contain;animation:uIn .25s ease both}
@@ -190,7 +202,7 @@
   }
 
   function open(key, o = {}) {
-    const g = GAMES[key];
+    const g = (PLAY && GAMES[`${key}Rustig`]) || GAMES[key];
     if (!g) return false;
     mount();
     game = g; at = 0; opts = o;

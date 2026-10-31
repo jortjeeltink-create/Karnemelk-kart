@@ -227,3 +227,41 @@ test('een potje blijft te doen: gemiddeld zo\'n 10 slokken per speler, en nieman
     assert.ok(most <= 60, `${n} spelers: de meeste ${most}`);
   }
 });
+
+test('stevig: het oude bord met meer slokken, een ad fundum op 47 en een bak voor de winnaar', () => {
+  assert.equal(Z.newGame(names(2)).mode, 'rustig', 'zonder stand: rustig');
+  assert.equal(Z.BOARD_STEVIG.length, Z.SIZE + 1);
+  assert.equal(Z.BOARD_STEVIG[47].t, 'ad');
+  assert.equal(Z.BOARD.filter((s) => s.t === 'ad').length, 0, 'rustig heeft geen ad fundum');
+  const g = Z.newGame(names(3), { seed: 1, mode: 'stevig' });
+  Z.begin(g, seats(3), 0);
+  // ad fundum op 47
+  g.players[1].pos = 10; g.players[2].pos = 20;
+  from(g, 0, 46, 1);
+  assert.deepEqual(last(g, 'vak').drinks, [[0, Z.AD_SIPS]]);
+  // de finish: de winnaar deelt een bak uit, de laatste drinkt er 3
+  from(g, 0, 45, 6);
+  assert.deepEqual([g.phase, g.pending], ['kiezen', { kind: 'bak', n: Z.AD_SIPS }]);
+  Z.choose(g, 0, 2, seats(3));
+  assert.deepEqual(last(g, 'keuze').drinks, [[2, Z.AD_SIPS]]);
+  assert.equal(g.phase, 'klaar');
+  assert.deepEqual(last(g, 'klaar').drinks, [[1, 3]]);
+});
+
+test('stevig: gemiddeld zo\'n 15 slokken per speler, duidelijk meer dan rustig', () => {
+  const avg = (mode, n) => {
+    let total = 0;
+    for (let seed = 1; seed <= 200; seed++) {
+      const g = Z.newGame(names(n), { seed, mode });
+      Z.begin(g, seats(n), 0);
+      for (let k = 0; g.phase !== 'klaar' && k < 5000; k++) play(g, n, k);
+      total += g.players.reduce((t, p) => t + p.sips, 0);
+    }
+    return total / 200 / n;
+  };
+  for (const n of [3, 6]) {
+    const s = avg('stevig', n), r = avg('rustig', n);
+    assert.ok(s >= 12 && s <= 20, `${n} spelers stevig: ${s.toFixed(1)}`);
+    assert.ok(s > r + 3, `${n} spelers: stevig ${s.toFixed(1)}, rustig ${r.toFixed(1)}`);
+  }
+});
