@@ -63,7 +63,7 @@ Meldingen komen ook in de logboeken van Render ("melding: …"). Op het gratis p
 2. Kies **Package for stores → Android → Generate package**. Vul in:
    - **Package ID**: bijvoorbeeld `nl.spelkeet.app`. Hij moet uniek zijn en kan later **nooit** meer veranderen.
    - **App name** en **Launcher name**: `De Spelkeet`.
-   - **Start URL**: `/`.
+   - **Start URL**: `/?app=play`. Daaraan herkent De Spelkeet dat het de app is: Borrelbord speelt dan alleen met de rustige regels (in de browser kan ook stevig).
    - **Display mode**: Standalone. **Orientation**: Default (de kartgame kan dan ook liggend).
    - **Signing key**: *Create new*.
 3. Download het zip-bestand. Daarin zitten:
@@ -149,7 +149,7 @@ Zonder deze koppeling toont de app bovenin een adresbalk.
 - **Wat er al gedaan is volgens het beleid van Google Play over alcohol.** Google verbiedt apps die "overmatig drinken positief neerzetten, zoals overmatig drinken, comazuipen of drinken als wedstrijd". Daarom:
   - een 18+-poort, met tips voor verantwoord spelen;
   - "een slok mag ook water, fris of karnemelk zijn", op elke drinkmelding;
-  - geen bak of ad fundum (een glas in één keer leeg) in Bussen en Borrelbord;
+  - geen bak of ad fundum (een glas in één keer leeg) in Bussen, en in de app ook niet in Borrelbord: de app speelt Borrelbord alleen met de rustige regels. De stevige regels (met ad fundum en een bak) zijn er alleen op de website, en wie de app gebruikt, kan niet aanschuiven aan een stevige tafel;
   - een maximum aantal slokken per keer in elk spel:
     - Mexen: 6;
     - Pak de dealer: 5;

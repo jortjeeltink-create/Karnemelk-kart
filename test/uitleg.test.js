@@ -14,6 +14,7 @@ test('uitleg: elk spel heeft dia\'s, en elk plaatje bestaat', () => {
   const imgs = [...src.matchAll(/img: '([a-z0-9-]+)'/g)].map((m) => m[1]);
   assert.ok(imgs.length >= 40, `${imgs.length} dia's`);
   for (const img of imgs) assert.ok(existsSync(new URL(`img/uitleg/${img}.webp`, root)), `plaatje ${img}.webp`);
+  assert.match(src, /borrelbordRustig: \{ name: 'Borrelbord'/, 'in de app: de rustige uitleg van Borrelbord');
 });
 
 test('uitleg en slokkenkaart: op elke speelpagina een knop en het script', () => {

@@ -269,6 +269,13 @@ function T(c, s, x, y, size, col, o = {}){ c.font = `${o.w || 700} ${size}px ${o
 const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 
 /* ================= SPELLEN ================= */
+// In de app uit de Play Store (die opent met /?app=play): Borrelbord speelt daar alleen met de rustige regels.
+const PLAY = (() => {
+  try {
+    if (/[?&]app=play\b/.test(location.search) || document.referrer.startsWith('android-app://')) sessionStorage.setItem('spelkeet-play', '1');
+    return sessionStorage.getItem('spelkeet-play') === '1';
+  } catch (e) { return false; }
+})();
 const GAMES = [
   { id: 'kart', name: 'Karnemelk', name2: 'Kart', short: 'Karnemelk Kart', acc: '#ff7a00', tint: '#2c1410', bg: '#9fd8ff',
     url: '/kart',
@@ -321,7 +328,9 @@ const GAMES = [
   { id: 'borrelbord', name: 'Borrel', name2: 'bord', short: 'Borrelbord', acc: '#f2c230', tint: '#2a2208', bg: '#3a200d',
     url: '/borrelbord',
     chips: ['Bordspel', 'Online met vrienden'],
-    text: 'Het drankspel als ganzenbord. Gooi de steen over het bord, loop met je pion over 48 vakjes en doe wat er staat: drinken, uitdelen, een vraag, een duel (allebei gooien) of een drinkmaatje kiezen. Met de gans, de brug, het café, de put en de doodskop. Wie als eerste op de finish staat, wint en deelt 3 slokken uit.',
+    text: 'Het drankspel als ganzenbord. Gooi de steen over het bord, loop met je pion over 48 vakjes en doe wat er staat: drinken, uitdelen, een vraag, een duel (allebei gooien) of een drinkmaatje kiezen. Met de gans, de brug, het café, de put en de doodskop. ' + (PLAY
+      ? 'Wie als eerste op de finish staat, wint en deelt 3 slokken uit.'
+      : 'De host kiest de regels: stevig, met veel slokken, een ad fundum op vakje 47 en een bak voor de winnaar, of rustig.'),
     facts: [['Spelers', '2 tot 10'], ['Vakjes', '48'], ['Meedoen', 'met een code']],
     cta: 'Speel Borrelbord' }
 ];

@@ -146,6 +146,13 @@ button.pl{cursor:pointer}
 .cta .arr{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.22);flex:none}
 .cta:disabled{background:rgba(58,36,18,.12);color:var(--ink-2);box-shadow:none;text-shadow:none}
 .cta:disabled .arr{background:rgba(58,36,18,.08)}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modes button{display:grid;gap:2px;padding:10px 12px;border-radius:16px;text-align:left;font-size:13px;line-height:1.3;color:var(--ink-2);box-shadow:inset 0 0 0 2px rgba(58,36,18,.2);background:rgba(255,255,255,.5)}
+.modes button b{font-family:var(--display);font-size:20px;line-height:1.1;color:var(--ink)}
+.modes button[aria-pressed="true"]{box-shadow:inset 0 0 0 3px var(--v-drink);background:#fff}
+.modes button:disabled{opacity:.45}
+.modeline{font-size:var(--s1);color:var(--ink-2)}
+.modeline b{color:var(--ink)}
 .ghostbtn{display:block;width:100%;border-radius:999px;padding:12px 20px;font-size:var(--s2);font-weight:900;color:var(--ink);box-shadow:inset 0 0 0 2px rgba(58,36,18,.3);text-decoration:none;text-align:center}
 .howrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .howrow .ghostbtn{padding-left:10px;padding-right:10px;white-space:nowrap}
@@ -344,11 +351,23 @@ const ICON = {
   dubbel: svg(`<rect x="1.5" y="6" width="11" height="11" rx="2.5" ${F}/><rect x="11.5" y="3" width="11" height="11" rx="2.5" ${F} opacity=".8"/><circle cx="4.5" cy="9" r="1.1" fill="rgba(0,0,0,.5)"/><circle cx="9.5" cy="14" r="1.1" fill="rgba(0,0,0,.5)"/><circle cx="17" cy="8.5" r="1.1" fill="rgba(0,0,0,.5)"/>`),
   rust: svg(`<circle cx="12" cy="12" r="9.5" ${F}/><path fill="none" stroke="rgba(0,0,0,.5)" stroke-width="1.9" stroke-linecap="round" d="M7.5 10.5c.6-.8 1.6-.8 2.2 0M14.3 10.5c.6-.8 1.6-.8 2.2 0M8 14.5c2.2 2 5.8 2 8 0"/>`),
   start: svg(`<path ${ST} d="M5 21V3M5 4h12l-2.5 4L17 12H5"/>`),
+  bak: svg(`<path ${F} d="M4 5h12v13a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/><path ${ST} d="M16 8h2.5a2.5 2.5 0 0 1 0 5H16"/><path fill="rgba(255,255,255,.8)" d="M3.5 4.5c0-1.6 1.6-2.6 3.1-2 1-1.3 3.1-1.3 4.1 0 1.6-.6 3.8.3 3.8 2.3V8h-11z"/><path fill="rgba(0,0,0,.25)" d="M7 10h1.6v8H7zM11.4 10H13v8h-1.6z"/>`),
   winst: svg(`<path ${F} d="M6 3h12v4a6 6 0 0 1-12 0z"/><path ${ST} d="M6 5H3.5a3 3 0 0 0 3 4M18 5h2.5a3 3 0 0 1-3 4M12 13v4M8 21h8M9.5 17h5"/>`),
   finish: svg(`<path ${ST} d="M5 21V3"/><path fill="currentColor" d="M5 3h4v3H5zM13 3h4v3h-4zM9 6h4v3H9zM5 9h4v3H5zM13 9h4v3h-4zM17 6h3v3h-3zM9 3h4v0zM17 3h3v0z"/>`),
 };
+// Speel je in de app uit de Play Store? Die opent met /?app=play (of komt binnen vanuit Android); dan alleen rustig.
+const PLAY = (() => {
+  try {
+    if (/[?&]app=play\b/.test(location.search) || document.referrer.startsWith('android-app://')) sessionStorage.setItem('spelkeet-play', '1');
+    return sessionStorage.getItem('spelkeet-play') === '1';
+  } catch (e) { return false; }
+})();
+// de stand: stevig (de oude regels) of rustig
+const mode = () => (S && S.mode) || (PLAY ? 'rustig' : Z.MODE_DEFAULT);
+const stevig = () => mode() === 'stevig';
+const board = () => Z.boardOf(mode());
 // soort vakje -> kleur, plaatje, korte naam en uitleg
-const nOf = (t) => Z.BOARD.find((s) => s.t === t).n;
+const nOf = (t) => (board().find((s) => s.t === t) || {}).n;
 const KIND = {
   start: { c: 'var(--v-geef)', name: 'Start', lb: () => 'Start', text: 'Hier begint iedereen.' },
   drink: { c: 'var(--v-drink)', name: 'Drink', lb: (s) => `Drink ${s.n}`, text: 'Jij drinkt.' },
@@ -359,17 +378,19 @@ const KIND = {
   gans: { c: 'var(--v-beweeg)', name: 'Gans', lb: () => 'Gans', text: 'Nog een keer zoveel vakjes verder.' },
   brug: { c: 'var(--v-beweeg)', name: 'Brug', lb: () => 'Brug', text: `Over de brug naar vakje ${Z.BRIDGE_TO}.` },
   doolhof: { c: 'var(--v-beweeg)', name: 'Doolhof', lb: () => 'Doolhof', text: `${Z.MAZE_BACK} vakjes terug.` },
-  dood: { c: 'var(--v-dood)', name: 'Doodskop', lb: () => 'Dood', text: `Terug naar start, en drink ${nOf('dood')}.` },
-  cafe: { c: 'var(--v-beweeg)', name: 'Café', lb: () => 'Café', text: `Drink ${nOf('cafe')} en sla een beurt over.` },
+  dood: { c: 'var(--v-dood)', name: 'Doodskop', lb: () => 'Dood', get text() { return `Terug naar start, en drink ${nOf('dood')}.`; } },
+  cafe: { c: 'var(--v-beweeg)', name: 'Café', lb: () => 'Café', get text() { return `Drink ${nOf('cafe')} en sla een beurt over.`; } },
   put: { c: 'var(--v-beweeg)', name: 'Put', lb: () => 'Put', text: 'Je zit vast tot iemand anders erin valt.' },
   vraag: { c: 'var(--v-vraag)', name: 'Vraag', lb: () => 'Vraag', big: '?', text: 'Een vraag of opdracht voor de groep.' },
   regel: { c: 'var(--v-vraag)', name: 'Regel', lb: () => 'Regel', big: '!', text: 'Bedenk een regel voor de rest van het potje.' },
-  dubbel: { c: 'var(--v-speciaal)', name: 'Dubbel of niks', lb: () => 'Dubbel', dark: true, text: `Gooi zelf nog een keer: even, dan drinkt de rest 1; oneven, dan drink jij ${nOf('dubbel')}.` },
-  duel: { c: 'var(--v-speciaal)', name: 'Duel', lb: () => 'Duel', dark: true, text: `Kies iemand: jullie gooien allebei op je eigen telefoon, de laagste drinkt ${nOf('duel')}. Gelijk? Nog een keer.` },
+  dubbel: { c: 'var(--v-speciaal)', name: 'Dubbel of niks', lb: () => 'Dubbel', dark: true, get text() { return `Gooi zelf nog een keer: even, dan drinkt de rest 1; oneven, dan drink jij ${nOf('dubbel')}.`; } },
+  duel: { c: 'var(--v-speciaal)', name: 'Duel', lb: () => 'Duel', dark: true, get text() { return `Kies iemand: jullie gooien allebei op je eigen telefoon, de laagste drinkt ${nOf('duel')}. Gelijk? Nog een keer.`; } },
   maatje: { c: 'var(--v-speciaal)', name: 'Drinkmaatje', lb: () => 'Maatje', dark: true, text: 'Kies een maatje: als jij drinkt, drinkt die mee.' },
   ruil: { c: 'var(--v-speciaal)', name: 'Ruil', lb: () => 'Ruil', dark: true, text: 'Kies iemand en ruil van plek.' },
   rust: { c: 'var(--v-rust)', name: 'Rust', lb: () => 'Rust', dark: true, text: 'Even niks. Proost!' },
-  finish: { c: '#222', name: 'Finish', lb: () => 'Finish', text: `Wie hier als eerste komt, wint en deelt ${Z.WIN_SIPS} slokken uit.` },
+  ad: { c: 'var(--v-drink)', name: 'Ad fundum', lb: () => 'Ad!', big: 'AD', text: `Drink je glas in één keer leeg (telt als ${Z.AD_SIPS} slokken).` },
+  finish: { c: '#222', name: 'Finish', lb: () => 'Finish', get text() { return stevig() ? 'Wie hier als eerste komt, wint en mag een bak uitdelen.' : `Wie hier als eerste komt, wint en deelt ${Z.WIN_SIPS} slokken uit.`; } },
+  bak: { c: 'var(--v-drink)', name: 'Bak', lb: () => 'Bak', text: `De winnaar kiest wie er een bak trekt: glas in één keer leeg (telt als ${Z.AD_SIPS}).` },
   winst: { c: 'var(--v-geef)', name: 'Winst', lb: () => 'Winst', text: `De winnaar kiest wie er ${Z.WIN_SIPS} drinkt.` },
 };
 const SHOW_STEP = 210;   // zo snel loopt een pion van vakje naar vakje
@@ -524,7 +545,7 @@ function onState(m) {
   S = m;
   ui.joining = false; ui.error = '';
   store.set(KEY.table, { code: m.code });
-  Net.want = { t: 'join', code: m.code, name: me.name, token: me.token };
+  Net.want = { t: 'join', code: m.code, name: me.name, token: me.token, play: PLAY };
   if (location.pathname !== `/borrelbord/${m.code}`) history.replaceState(null, '', `/borrelbord/${m.code}`);
   const seq = m.seq || 0;
   if (first || m.phase === 'lobby' || seq < ui.seen) {
@@ -654,7 +675,7 @@ function present(ev) {
         render();
       };
       // eerst laten zien wie de winnaar laat drinken, dan pas wie er wint
-      if (ui.banner && ui.banner.kind === 'winst') setTimeout(after, 1900);
+      if (ui.banner && (ui.banner.kind === 'winst' || ui.banner.kind === 'bak')) setTimeout(after, 1900);
       else afterWalk(after);
       slokFor(ev, 2600);
       clearDiceLater(600);
@@ -685,6 +706,8 @@ function slokFor(ev, delay = 0) {
     const of = list[k - 1] ? nm(list[k - 1][0]) : 'je maatje';
     return Slok.drink(n, `Jij bent drinkmaatje van ${of}: als die drinkt, drink jij mee.`, { delay });
   }
+  if (ev.type === 'keuze' && ev.kind === 'bak') return Slok.bak(`${nm(ev.player)} won en deelt jou een bak uit.`, { delay });
+  if (ev.type === 'vak' && ev.t === 'ad') return Slok.bak(`Vakje ${ev.at}: ad fundum.`, { title: 'Ad fundum!', delay });
   let why = '';
   if (ev.type === 'keuze' && ev.kind === 'geef') why = `${nm(ev.player)} geeft jou ${slok(ev.n)}.`;
   else if (ev.type === 'keuze' && ev.kind === 'winst') why = `${nm(ev.player)} won en geeft jou ${slok(ev.n)}.`;
@@ -708,6 +731,7 @@ function effect(ev) {
   slokFor(ev, 700);
   const nm = (i) => (i === S.you ? 'Jij' : S.players[i].name);
   if (ev.type === 'keuze' && ev.kind === 'winst') banner(`${ev.n} slokken`, `${nm(ev.target)} drinkt ze`, 'var(--v-geef)', 2200, 'winst');
+  if (ev.type === 'keuze' && ev.kind === 'bak') banner('Bak!', ev.target === S.you ? 'Jij trekt een bak' : `${nm(ev.target)} trekt een bak`, 'var(--v-drink)', 2200, 'bak');
   if (ev.type === 'duel') {
     if (ev.tie) banner('Gelijk!', 'Nog een keer gooien', 'var(--v-speciaal)', 1500);
     else { const lo = ev.a < ev.b ? ev.player : ev.target; banner(`${nm(lo === ev.player ? ev.target : ev.player)} wint`, `${nm(lo)} drinkt ${ev.n}`, 'var(--v-speciaal)', 2000); }
@@ -715,8 +739,8 @@ function effect(ev) {
   if (ev.type === 'dubbel') banner(ev.r % 2 ? 'Oneven' : 'Even!', ev.r % 2 ? `${nm(ev.player)} drinkt ${ev.n}` : 'De rest drinkt 1', 'var(--v-speciaal)', 1700);
   if (ev.type !== 'vak') return;
   const k = KIND[ev.t];
-  const big = { gans: 'Gans!', brug: 'Brug!', dood: 'Dood!', put: 'In de put!', cafe: 'Café!', doolhof: 'Doolhof!', iedereen: 'Iedereen!', dubbel: 'Dubbel of niks', duel: 'Duel!', finish: 'Finish!' }[ev.t];
-  if (big) banner(big, ev.t === 'finish' ? `${S.players[ev.player].name} deelt ${Z.WIN_SIPS} slokken uit` : `${S.players[ev.player].name} · vakje ${ev.at}`, ev.t === 'finish' ? 'var(--v-geef)' : k.c);
+  const big = { gans: 'Gans!', brug: 'Brug!', dood: 'Dood!', put: 'In de put!', cafe: 'Café!', doolhof: 'Doolhof!', ad: 'Ad fundum!', iedereen: 'Iedereen!', dubbel: 'Dubbel of niks', duel: 'Duel!', finish: 'Finish!' }[ev.t];
+  if (big) banner(big, ev.t === 'finish' ? (stevig() ? `${S.players[ev.player].name} mag een bak uitdelen` : `${S.players[ev.player].name} deelt ${Z.WIN_SIPS} slokken uit`) : `${S.players[ev.player].name} · vakje ${ev.at}`, ev.t === 'finish' ? 'var(--v-geef)' : k.c);
   if (ev.t === 'gans') Snd.honk();
   if (ev.t === 'dood') Snd.bad();
 }
@@ -745,7 +769,7 @@ function cellOf(i) {
 }
 const tileIcon = (sq) => { const k = KIND[sq.t]; return k.big ? `<span class="big">${k.big}</span>` : ICON[sq.t]; };
 function boardHTML({ pawns = [], over = '', hot = -1 } = {}) {
-  const tiles = Z.BOARD.map((sq, i) => {
+  const tiles = board().map((sq, i) => {
     const k = KIND[sq.t], { row, col } = cellOf(i);
     const cls = `tile${k.dark ? ' dark' : ''}${sq.t === 'start' || sq.t === 'finish' ? ` ${sq.t}` : ''}${i === hot ? ' hot' : ''}`;
     return `<div class="${cls}" style="grid-row:${row + 1};grid-column:${col + 1};--tc:${k.c}" title="${i}: ${k.name}"><span class="no">${i}</span>${tileIcon(sq)}<span class="lb">${k.lb(sq)}</span></div>`;
@@ -882,6 +906,7 @@ function cardText(ev) {
       case 'duel': return [`Duel: ${who(p)} tegen ${whom(ev.target)}`, `Jullie gooien allebei op je eigen telefoon. De laagste drinkt ${slok(n)}.`];
       case 'ruil': return ['Van plek geruild', `${who(p)} en ${t} ruilen van plek.`];
       case 'winst': return [`${who(p)} deelt ${n} uit`, `${drinkLine(ev.drinks)}.`];
+      case 'bak': return [`${who(p)} deelt een bak uit`, `${t} trekt een bak: glas in één keer leeg (telt als ${slok(Z.AD_SIPS)}).${(ev.drinks || []).some((d) => d[2] === 'maatje') ? ` ${drinkLine(ev.drinks.filter((d) => d[2] === 'maatje'))} mee.` : ''}`];
       default: return ['', ''];
     }
   }
@@ -907,7 +932,8 @@ function cardText(ev) {
     case 'regel': return ['Bedenk een regel', `${who(p)} bedenkt een regel voor de rest van het potje. Bijvoorbeeld: ${esc(Z.REGELS[ev.i] || '')}`];
     case 'dubbel': return ['Dubbel of niks', `${who(p)} gooit nog een keer. Even: de rest drinkt 1. Oneven: ${whoLow(p)} drinkt ${n}.`];
     case 'rust': return ['Even rust', 'Niks aan de hand. Proost!'];
-    case 'finish': return ['Finish!', `${who(p)} staat op de finish en deelt ${slok(Z.WIN_SIPS)} uit.`];
+    case 'ad': return ['Ad fundum!', `${who(p)} ${p === S.you ? 'drinkt je glas' : 'drinkt het glas'} in één keer leeg (telt als ${slok(Z.AD_SIPS)}).`];
+    case 'finish': return ['Finish!', stevig() ? `${who(p)} staat op de finish en mag een bak uitdelen.` : `${who(p)} staat op de finish en deelt ${slok(Z.WIN_SIPS)} uit.`];
     case 'geef': return [`Geef ${n} weg`, `${who(p)} kiest wie er ${n} drinkt.`];
     case 'maatje': return ['Drinkmaatje', `${who(p)} kiest een drinkmaatje.`];
     case 'duel': return ['Duel!', `${who(p)} kiest een tegenstander.`];
@@ -934,7 +960,7 @@ function vHome() {
   <div class="homeboard">${boardHTML({ pawns: demo })}</div>
   <div class="startcard">
     <div class="chips"><span class="chip">${Z.MIN_PLAYERS} tot ${Z.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>Het drankspel als ganzenbord. Gooi de steen over het bord, loop met je pion en doe wat er op het vakje staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje. Wie als eerste op de finish staat, wint en kiest wie er ${slok(Z.WIN_SIPS)} drinkt.</p>
+    <p>Het drankspel als ganzenbord. Gooi de steen over het bord, loop met je pion en doe wat er op het vakje staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje. Wie als eerste op de finish staat, wint en ${stevig() ? 'mag een bak uitdelen' : `kiest wie er ${slok(Z.WIN_SIPS)} drinkt`}.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${Z.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -948,6 +974,16 @@ function vHome() {
   <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
 }
 
+// de regels kiezen (de host) of zien welke het zijn; in de app is het altijd rustig
+function modeHTML(host) {
+  if (!host || PLAY) return `<p class="modeline">Regels: <b>${stevig() ? 'stevig' : 'rustig'}</b>${stevig() ? ' (de oude regels, met ad fundum en een bak voor de winnaar)' : ''}</p>`;
+  const lock = S.canStevig === false;
+  return `<div class="modes" role="group" aria-label="Regels">
+      <button type="button" data-act="mode-set" data-m="stevig" aria-pressed="${stevig()}" ${lock ? 'disabled' : ''}><b>Stevig</b>De oude regels: meer slokken, ad fundum en een bak voor de winnaar</button>
+      <button type="button" data-act="mode-set" data-m="rustig" aria-pressed="${!stevig()}"><b>Rustig</b>Zo'n 10 slokken per potje, zonder bak</button>
+    </div>${lock ? '<p class="fine">Er zit iemand met de app aan tafel: die speelt alleen met de rustige regels.</p>' : ''}`;
+}
+
 function vLobby() {
   const n = S.players.length, host = isHost(), short = Z.MIN_PLAYERS - liveCount();
   const pawns = S.players.map((p, i) => ({ i, name: p.name, pos: 0, cls: i === S.you ? 'me' : '' }));
@@ -955,6 +991,7 @@ function vLobby() {
   const list = `<div class="who">${S.players.map((p, i) => `<button type="button" ${host && i !== S.you ? `data-act="kickask" data-seat="${i}"` : 'disabled'} style="--pc:${PC[i % PC.length]}"><i>${esc(initial(p.name))}</i>${i === S.you ? 'Jij' : esc(p.name)}${i === S.host ? ' (host)' : ''}</button>`).join('')}</div>`;
   const dock = `<div class="ask-h"><h2>${host ? 'Jij bent de host' : 'Je zit aan tafel'}</h2><button class="sharebtn" type="button" data-act="share">${SHARE}Uitnodigen</button></div>
     <p class="sub">Vrienden doen mee met code <b>${S.code}</b> of met de link. De host gooit als eerste.</p>
+    ${modeHTML(host)}
     ${list}
     ${host
       ? `<button class="cta green" type="button" data-act="start" ${short > 0 ? 'disabled' : ''}><span>${short > 0 ? `Wacht op ${short} ${short === 1 ? 'speler' : 'spelers'}` : 'Start het spel'}</span>${ARR}</button>
@@ -1005,8 +1042,8 @@ function playDock(walkingNow) {
   }
   if (S.phase === 'kiezen') {
     const k = S.pending.kind, n = S.pending.n;
-    const q = { geef: `Wie drinkt er ${n}?`, maatje: 'Wie wordt je drinkmaatje?', duel: 'Met wie duel je?', ruil: 'Met wie ruil je van plek?', winst: `Wie drinkt er ${n}?` }[k];
-    const doing = { geef: `kiest wie er ${n} drinkt`, maatje: 'kiest een drinkmaatje', duel: 'kiest een tegenstander', ruil: 'kiest iemand om mee te ruilen', winst: `kiest wie er ${n} drinkt` }[k];
+    const q = { geef: `Wie drinkt er ${n}?`, maatje: 'Wie wordt je drinkmaatje?', duel: 'Met wie duel je?', ruil: 'Met wie ruil je van plek?', winst: `Wie drinkt er ${n}?`, bak: 'Wie trekt er een bak?' }[k];
+    const doing = { geef: `kiest wie er ${n} drinkt`, maatje: 'kiest een drinkmaatje', duel: 'kiest een tegenstander', ruil: 'kiest iemand om mee te ruilen', winst: `kiest wie er ${n} drinkt`, bak: 'kiest wie er een bak trekt' }[k];
     if (actor >= 0) {
       const busyBtn = ui.sent === S.seq ? 'disabled' : '';
       const opts = S.players.map((p, i) => ({ p, i })).filter(({ p, i }) => i !== actor && p.connected).map(({ p, i }) =>
@@ -1021,11 +1058,11 @@ function playDock(walkingNow) {
 
 function doneDock() {
   const ev = [...(S.log || [])].reverse().find((e) => e.type === 'klaar');
-  const win = [...(S.log || [])].reverse().find((e) => e.type === 'keuze' && e.kind === 'winst' && (!ev || e.seq < ev.seq));
+  const win = [...(S.log || [])].reverse().find((e) => e.type === 'keuze' && (e.kind === 'winst' || e.kind === 'bak') && (!ev || e.seq < ev.seq));
   const rows = S.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.pos - a.p.pos).map(({ p, i }) =>
     `<div class="${i === S.winner ? 'won' : ''}" style="--pc:${PC[i % PC.length]}"><span><i></i>${who(i)}${i === S.winner ? ' 🏆' : ''}</span><b>vak ${p.pos} · ${slok(p.sips)}</b></div>`).join('');
   return `<div class="ask-h"><h2>${who(S.winner)} wint!</h2><span class="pill">Potje ${S.round}</span></div>
-    ${win ? `<p class="sub">${who(win.player)} liet ${whom(win.target)} ${slok(win.n)} drinken.</p>` : ''}
+    ${win ? `<p class="sub">${who(win.player)} liet ${whom(win.target)} ${win.kind === 'bak' ? 'een bak trekken' : `${slok(win.n)} drinken`}.</p>` : ''}
     ${ev && ev.drinks && ev.drinks.length ? `<p class="sub">Wie het verst achter staat, drinkt: ${drinkLine(ev.drinks)}.</p>` : ''}
     <div class="standing">${rows}</div>
     ${isHost()
@@ -1057,24 +1094,25 @@ function scoreHTML() {
     <thead><tr><th>Speler</th><th>Vak</th><th>Slokken</th><th>Gewonnen</th></tr></thead>
     <tbody>${rows.map(({ p, i }) => `<tr style="--pc:${PC[i % PC.length]}"><td><i></i>${esc(p.name)}</td><td>${p.pos}</td><td>${p.sips}</td><td>${p.wins}</td></tr>`).join('')}</tbody>
   </table></div>
-  <p class="sub">Slokken: wat de telefoon bijhoudt. De vragen en regels houd je zelf bij.</p>`;
+  <p class="sub">Slokken: wat de telefoon bijhoudt. De vragen en regels houd je zelf bij.${stevig() ? ` Een ad fundum of een bak telt als ${Z.AD_SIPS}.` : ''}</p>`;
 }
 
 function rulesHTML() {
-  const legend = ['drink', 'geef', 'iedereen', 'buren', 'laatste', 'vraag', 'regel', 'duel', 'maatje', 'ruil', 'dubbel', 'gans', 'brug', 'cafe', 'put', 'doolhof', 'dood', 'rust', 'finish'].map((t) => {
-    const k = KIND[t], sq = Z.BOARD.find((s) => s.t === t) || { t };
+  const legend = ['drink', 'geef', 'iedereen', 'buren', 'laatste', 'vraag', 'regel', 'duel', 'maatje', 'ruil', 'dubbel', 'gans', 'brug', 'cafe', 'put', 'doolhof', 'dood', ...(stevig() ? ['ad'] : []), 'rust', 'finish'].map((t) => {
+    const k = KIND[t], sq = board().find((s) => s.t === t) || { t };
     return `<div><span class="sq${k.dark ? ' dark' : ''}" style="--tc:${k.c}">${tileIcon(sq)}</span><span><b>${k.name}</b>. ${k.text}</span></div>`;
   }).join('');
   return `${sheetTop('Spelregels', 'Borrelbord')}
   <button class="ghostbtn rules-how" type="button" data-act="uitleg"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Bekijk de uitleg met plaatjes</button>
   <div class="rules">
     <p>Het drankspel als ganzenbord. Iedereen speelt op zijn eigen telefoon: maak een tafel en deel de code, of doe mee met de code van een ander.</p>
+    <p class="modeline">${PLAY ? 'In de app speel je met de <b>rustige</b> regels.' : `De host kiest in de lobby de regels: <b>stevig</b> (de oude regels, met meer slokken, een ad fundum en een bak voor de winnaar) of <b>rustig</b>. ${S ? `Deze tafel speelt <b>${stevig() ? 'stevig' : 'rustig'}</b>.` : ''}`}</p>
     <ol>
       <li><b>Gooien.</b> Om de beurt gooi je de steen: houd de knop vast en laat los. De steen rolt over het bord, bij iedereen, en je pion loopt zoveel vakjes vooruit.</li>
       <li><b>Het vakje.</b> Doe wat er staat. Moet je iemand kiezen, dan doe je dat op je telefoon.</li>
       <li><b>De finish.</b> Gooi je verder dan de finish, dan sta je er ook op.</li>
       <li><b>Duel en dubbel of niks.</b> Bij een duel gooien jullie allebei op je eigen telefoon; de laagste drinkt, bij gelijk gooien jullie nog een keer. Bij dubbel of niks gooi je zelf nog een keer.</li>
-      <li><b>Winnen.</b> Wie als eerste op de finish staat, wint en kiest wie er ${slok(Z.WIN_SIPS)} drinkt. Wie dan het verst achter staat, drinkt ${slok(Z.LAST_SIPS)}.</li>
+      <li><b>Winnen.</b> Wie als eerste op de finish staat, wint en ${stevig() ? `mag een bak uitdelen: kies wie er zijn glas in één keer leeg drinkt (telt als ${slok(Z.AD_SIPS)})` : `kiest wie er ${slok(Z.WIN_SIPS)} drinkt`}. Wie dan het verst achter staat, drinkt ${slok(Z.rulesOf(mode()).last)}.</li>
     </ol>
     <div class="legend">${legend}</div>
     <p class="small">Een drinkmaatje drinkt mee als jij moet drinken, behalve als iedereen al drinkt. Vragen en regels houd je zelf bij; de telefoon telt de rest. Valt wie aan de beurt is weg, dan is de volgende aan de beurt. Wie later aanschuift, begint op start. Drink met mate: water of karnemelk telt ook.</p>
@@ -1187,7 +1225,7 @@ function joinWith(code) {
   if (code.length !== 4) { ui.error = 'Vul de code van 4 letters in.'; render(); return; }
   ui.joining = true; ui.error = ''; ui.code = code;
   Snd.ac();
-  Net.go({ t: 'join', code, name, token: me.token });
+  Net.go({ t: 'join', code, name, token: me.token, play: PLAY });
   render();
 }
 
@@ -1207,10 +1245,11 @@ const actions = {
     if (!name) return;
     ui.joining = true; ui.error = '';
     Snd.ac();
-    Net.go({ t: 'create', name, token: me.token });
+    Net.go({ t: 'create', name, token: me.token, play: PLAY });
     render();
   },
   start() { Snd.ac(); Net.send({ t: 'start' }); },
+  'mode-set'(el) { Snd.ac(); Net.send({ t: 'settings', mode: el.dataset.m }); },
   share() {
     const url = `${location.origin}/borrelbord/${S.code}`, text = `Doe mee met Borrelbord aan tafel ${S.code}`;
     closeSheet();
@@ -1234,7 +1273,7 @@ const actions = {
     toast(n ? `Jij dronk al ${slok(n)}` : 'Jij hebt nog niks hoeven drinken');
   },
   menu() { openSheet('menu', menuHTML()); },
-  uitleg() { closeSheet(); window.Uitleg?.open('borrelbord'); },
+  uitleg() { closeSheet(); if (stevig()) window.Uitleg?.open('borrelbord'); else window.Uitleg?.open('borrelbordRustig'); },
   rules() { openSheet('rules', rulesHTML()); },
   score() { openSheet('score', scoreHTML()); },
   mute() { Snd.muted = !Snd.muted; store.set(KEY.mute, Snd.muted); if (!Snd.muted) Snd.chip(); openSheet('menu', menuHTML()); },
@@ -1261,7 +1300,7 @@ document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-act]');
   if (el && !el.disabled && actions[el.dataset.act]) { actions[el.dataset.act](el); return; }
   const tile = e.target.closest('.tile');
-  if (tile && tile.title) toast(tile.title.replace(/^(\d+): /, 'Vakje $1: ') + '. ' + (KIND[Z.BOARD[+tile.title.split(':')[0]].t].text));
+  if (tile && tile.title) toast(tile.title.replace(/^(\d+): /, 'Vakje $1: ') + '. ' + (KIND[board()[+tile.title.split(':')[0]].t].text));
   if (e.target === $('#overlay')) closeSheet();
 });
 document.addEventListener('submit', (e) => { if (e.target.id === 'joinForm') { e.preventDefault(); joinWith($('#codeIn').value); } });
@@ -1278,7 +1317,7 @@ document.addEventListener('keydown', (e) => {
 const lastTable = store.get(KEY.table, null);
 if (lastTable && typeof lastTable.code === 'string' && (!urlCode || urlCode === lastTable.code)) {
   ui.joining = true;
-  Net.go({ t: 'join', code: lastTable.code, name: me.name, token: me.token });
+  Net.go({ t: 'join', code: lastTable.code, name: me.name, token: me.token, play: PLAY });
 }
 render();
 if (urlCode && !ui.joining) { const n = $('#nameIn'); if (n && !n.value) n.focus(); }
