@@ -134,7 +134,10 @@ const OLD_PATHS = [
 
 // Verhuisd naar een nieuw adres? Zet REDIRECT_TO (bijvoorbeeld https://speelhal.onrender.com) op de oude server,
 // dan stuurt die iedereen door, met de rest van de link erbij. Alleen /health blijft, zodat Render de server ziet.
-const MOVED_TO = (process.env.REDIRECT_TO || '').replace(/\/+$/, '');
+// De oude service op Render (karnemelk-kart) draait dezelfde code en stuurt ook zonder REDIRECT_TO door naar
+// spelkeet.onrender.com: Render zet zelf RENDER_EXTERNAL_HOSTNAME.
+const OLD_HOSTS = { 'karnemelk-kart.onrender.com': 'https://spelkeet.onrender.com' };
+const MOVED_TO = (process.env.REDIRECT_TO || OLD_HOSTS[(process.env.RENDER_EXTERNAL_HOSTNAME || '').trim().toLowerCase()] || '').replace(/\/+$/, '');
 
 // ---------- meldingen (Iets melden): een speler, een naam of iets anders ----------
 // De laatste 500 staan in de opslag onder 'meldingen'. Lezen kan met MELD_SLEUTEL: /api/meldingen?sleutel=...

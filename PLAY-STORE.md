@@ -37,8 +37,8 @@ Hieronder staat wat jij zelf moet doen, in deze volgorde.
      - **Health Check Path**: `/health`.
   3. Zet bij **Environment** dezelfde instellingen als bij de oude service (`KK_SECRET`, `CONTACT_EMAIL`, `MELD_SLEUTEL`, en `UPSTASH_…` als je die hebt). Kopieer ze met de hand.
   4. Klik op **Create Web Service** en wacht tot `https://spelkeet.onrender.com` werkt.
-  5. Zet bij de **oude** service (`karnemelk-kart`) onder *Environment*: `REDIRECT_TO` = `https://spelkeet.onrender.com`. Wie de oude link nog heeft, komt dan vanzelf op het nieuwe adres.
-- **Neem een betaald plan bij Render.** Het gratis plan valt na 15 minuten zonder bezoekers in slaap, en dan wacht de eerste speler bijna een minuut. In een app voelt dat kapot. Het goedkoopste betaalde plan (Starter) is genoeg.
+  5. De **oude** service (`karnemelk-kart`) stuurt vanzelf door naar `https://spelkeet.onrender.com`; dat staat in de code. Wie de oude link nog heeft, komt dus op het nieuwe adres. (`REDIRECT_TO` instellen hoeft niet meer.)
+- **Een betaald plan bij Render.** Het gratis plan valt na 15 minuten zonder bezoekers in slaap, en dan wacht de eerste speler bijna een minuut. In een app voelt dat kapot. In `render.yaml` staat daarom `plan: starter` (ongeveer $7 per maand). Is de service met de Blueprint gemaakt, dan neemt Render dat vanzelf over (er moet wel een betaalkaart in je Render-account staan). Staat er in Render bij *Settings → Instance Type* nog *Free*, kies dan daar *Starter*.
 - **Zet bij Render onder *Environment* deze instellingen:**
 
 | Instelling | Wat | Voorbeeld |
