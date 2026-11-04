@@ -22,6 +22,9 @@ services:
         sync: false
       - key: MELD_SLEUTEL
         generateValue: true
+      # een mail bij elke melding (naar despelkeet@gmail.com): de API-sleutel van resend.com
+      - key: RESEND_API_KEY
+        sync: false
       - key: ANDROID_PACKAGE
         sync: false
       - key: ANDROID_SHA256

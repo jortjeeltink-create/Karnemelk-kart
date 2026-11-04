@@ -45,6 +45,7 @@ Hieronder staat wat jij zelf moet doen, in deze volgorde.
 |---|---|---|
 | `CONTACT_EMAIL` | Hoeft niet: standaard staat het adres van De Spelkeet (despelkeet@gmail.com) op het privacybeleid, de voorwaarden en het meldformulier. Wil je later een ander adres, zet het dan hier | `spelkeet.app@gmail.com` |
 | `MELD_SLEUTEL` | Een geheim woord. Daarmee lees je de meldingen op `/api/meldingen?sleutel=…` | een lange willekeurige tekst |
+| `RESEND_API_KEY` | Voor een mail bij elke melding (naar het contactadres). Maak een gratis account op [resend.com](https://resend.com) met despelkeet@gmail.com en maak een API-sleutel | `re_…` |
 | `ANDROID_PACKAGE` | Hoeft niet: de app heet `nl.spelkeet.app`, en dat staat al in de code | `nl.spelkeet.app` |
 | `ANDROID_SHA256` | Hoeft niet: de vingerafdrukken staan in de code (`APP_PRINTS` in `server/index.js`). Hiermee kun je er een extra bij zetten | `AB:CD:…` |
 

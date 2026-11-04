@@ -168,6 +168,41 @@ function readJson(req, max = 4096) {
     req.on('error', () => resolve(null));
   });
 }
+// Bij elke melding een mail, via Resend (resend.com, gratis tot 100 mails per dag). Zet daarvoor RESEND_API_KEY op
+// Render. De mail gaat naar MELD_MAIL, of anders naar het contactadres. Zonder sleutel gaat er geen mail; de melding
+// staat dan nog steeds in de opslag en in het logboek. Met RESEND_FROM kies je een eigen afzender (dan moet je domein
+// bij Resend geverifieerd zijn); standaard is dat onboarding@resend.dev, en dat mag alleen naar je eigen Resend-adres.
+const MAIL_KEY = (process.env.RESEND_API_KEY || '').trim();
+const MAIL_TO = (process.env.MELD_MAIL || '').trim() || CONTACT_EMAIL;
+const MAIL_FROM = (process.env.RESEND_FROM || '').trim() || 'De Spelkeet <onboarding@resend.dev>';
+const MAIL_URL = (process.env.RESEND_URL || '').trim() || 'https://api.resend.com/emails';
+async function mailMelding(m) {
+  if (!MAIL_KEY || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(MAIL_TO)) return;
+  const subject = `Melding${m.spel ? ` bij ${m.spel}` : ''}${m.naam ? ` over ${m.naam}` : ''}`;
+  const text = [
+    'Er is iets gemeld in De Spelkeet.',
+    '',
+    `Wanneer: ${m.at}`,
+    `Spel: ${m.spel || '-'}`,
+    `Tafel: ${m.code || '-'}`,
+    `Over: ${m.naam || '-'}`,
+    '',
+    m.wat,
+    '',
+    `Alle meldingen: ${SITE_URL || ''}/api/meldingen?sleutel=(je MELD_SLEUTEL)`,
+  ].join('\n');
+  try {
+    const r = await fetch(MAIL_URL, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${MAIL_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: MAIL_FROM, to: [MAIL_TO], subject, text }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!r.ok) log(`melding: mail niet verstuurd (${r.status})`);
+  } catch (e) {
+    log(`melding: mail niet verstuurd (${e.message})`);
+  }
+}
 async function melden(req, res) {
   const send = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)); };
   const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
@@ -180,6 +215,7 @@ async function melden(req, res) {
   list.unshift(melding);
   await store.kv.set('meldingen', list.slice(0, MELD_MAX));
   log(`melding: ${melding.spel || '-'} ${melding.code || ''} ${melding.naam ? `over ${melding.naam}` : ''}: ${wat.slice(0, 80)}`);
+  mailMelding(melding);   // niet op wachten: de speler krijgt meteen antwoord
   return send(200, { ok: true });
 }
 
