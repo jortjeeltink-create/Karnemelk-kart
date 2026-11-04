@@ -43,7 +43,7 @@ Hieronder staat wat jij zelf moet doen, in deze volgorde.
 
 | Instelling | Wat | Voorbeeld |
 |---|---|---|
-| `CONTACT_EMAIL` | Het e-mailadres dat op het privacybeleid, de voorwaarden en het meldformulier staat. Gebruik gerust een apart adres; het wordt openbaar | `spelkeet.app@gmail.com` |
+| `CONTACT_EMAIL` | Hoeft niet: standaard staat jouw adres (jort.jeeltink@gmail.com) op het privacybeleid, de voorwaarden en het meldformulier. Wil je later een ander adres, zet het dan hier | `spelkeet.app@gmail.com` |
 | `MELD_SLEUTEL` | Een geheim woord. Daarmee lees je de meldingen op `/api/meldingen?sleutel=…` | een lange willekeurige tekst |
 | `ANDROID_PACKAGE` | De pakketnaam van de app (stap 3) | `nl.spelkeet.app` |
 | `ANDROID_SHA256` | De vingerafdruk(ken) van de ondertekeningssleutel (stap 4), gescheiden door komma's | `AB:CD:…` |

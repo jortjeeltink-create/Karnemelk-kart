@@ -55,8 +55,8 @@ function addDir(dir, urlPrefix) {
 addDir(join(ROOT, 'public'), '/');
 
 // Op de pagina's met het privacybeleid, de voorwaarden en het meldformulier staat het e-mailadres voor contact.
-// Zet het in CONTACT_EMAIL (bijvoorbeeld op Render bij Environment); dan staat het er vanzelf in.
-const CONTACT_EMAIL = (process.env.CONTACT_EMAIL || '').trim() || 'het e-mailadres bij De Spelkeet in de Google Play Store';
+// Standaard is dat het adres van de maker; een ander adres zet je in CONTACT_EMAIL (bijvoorbeeld op Render bij Environment).
+const CONTACT_EMAIL = (process.env.CONTACT_EMAIL || '').trim() || 'jort.jeeltink@gmail.com';
 // Het eigen webadres, voor het plaatje bij een gedeelde link (og:image moet een volledig adres zijn). Render zet
 // RENDER_EXTERNAL_URL zelf; elders kan het met PUBLIC_URL. Zonder adres wordt het een gewoon pad.
 const SITE_URL = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/+$/, '');
