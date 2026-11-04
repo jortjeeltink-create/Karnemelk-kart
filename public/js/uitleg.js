@@ -27,11 +27,11 @@
       { img: 'bussen-7', t: '3. De bus', p: 'Wie de meeste kaarten overhoudt, moet de bus in (bij gelijk kiest ieder een dichte kaart; de laagste moet erin). Raad steeds hoger of lager. Fout of paal? Dan krijg je zoveel strafpunten als de hoeveelste gok het was (<b>1, 2, 3…</b>) en begin je opnieuw. Haal je het eind, dan ben je eruit.' },
     ] },
     boer: { name: 'Boer zoekt vrouw', c: '#ff6b8b', url: '/boer', slides: [
-      { img: 'boer-1', t: 'Aan tafel', p: TAFEL(3, 10, ' Zet <b>twee volle glazen</b> op tafel: elk glas is een <b>mega strafpunt</b>.') },
+      { img: 'boer-1', t: 'Aan tafel', p: TAFEL(3, 10, ' Er zijn per ronde <b>twee mega strafpunten</b> te verdelen.') },
       { img: 'boer-2', t: 'Je rol', p: 'Iedereen krijgt stiekem een rol op zijn telefoon: één <b>boer</b>, één <b>vrouw</b> en de rest <b>burgers</b>. Laat niemand meekijken. Tik op je kaart om nog eens te kijken.' },
       { img: 'boer-3', t: 'De boer telt', p: 'De boer begint wanneer hij wil en telt met zijn ogen dicht tot 8 (de host kan dat aanpassen). De vrouw werkt intussen zo snel mogelijk stiekem <b>het eerste mega strafpunt</b> weg. De burgers doen gewoon alsof.' },
       { img: 'boer-4', t: 'Raden', p: 'Bij de pling mag de boer kijken. Hij wijst op zijn telefoon aan wie de vrouw was.' },
-      { img: 'boer-5', t: 'Het tweede glas', p: 'Goed geraden? Dan krijgt de vrouw <b>ook het tweede mega strafpunt</b>. Fout? Dan is het voor <b>de boer</b>. Wie het krijgt, ziet het groot op zijn telefoon. Glazen vullen, en de host verdeelt de rollen opnieuw.' },
+      { img: 'boer-5', t: 'Het tweede mega strafpunt', p: 'Goed geraden? Dan krijgt de vrouw <b>ook het tweede mega strafpunt</b>. Fout? Dan is het voor <b>de boer</b>. Wie het krijgt, ziet het groot op zijn telefoon. Daarna verdeelt de host de rollen opnieuw.' },
     ] },
     dealer: { name: 'Pak de dealer', c: '#a28fe3', url: '/dealer', slides: [
       { img: 'dealer-1', t: 'Aan tafel', p: TAFEL(2, 10, ' Bij de start wordt er een willekeurige dealer gekozen.') },

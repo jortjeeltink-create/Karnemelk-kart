@@ -4,7 +4,7 @@ De Spelkeet is een website (een PWA). In de Play Store komt hij als **Trusted We
 
 Op de site staat al klaar:
 
-- **De poort.** De eerste keer vraagt De Spelkeet of je 18 of ouder bent, met regels over verantwoord spelen en de voorwaarden.
+- **Geen leeftijdscheck.** De Spelkeet is een strafpuntenspel, geen drankspel, dus er is geen 18+-poort. De voorwaarden zeggen dat de app niet bedoeld is voor kinderen jonger dan 13.
 - **De juridische pagina's:**
   - `/privacy` (privacybeleid);
   - `/voorwaarden` (gebruiksvoorwaarden, met de regels voor namen);
@@ -111,13 +111,13 @@ Zonder deze koppeling toont de app bovenin een adresbalk.
 | Privacybeleid | `https://jouw-adres/privacy` |
 | Advertenties | Nee, de app bevat geen advertenties |
 | Toegang tot de app | Alle functies zijn beschikbaar zonder inloggen |
-| Doelgroep | Alleen **18 jaar en ouder**. Niet aantrekkelijk voor kinderen |
+| Doelgroep | **13 jaar en ouder** (13–15, 16–17, 18+). Niet aantrekkelijk voor kinderen |
 | Contentclassificatie (IARC) | Zie hieronder |
 | Gegevensveiligheid | Zie hieronder |
 | Overheid, financiën, gezondheid, nieuws | Nee |
 
 **Contentclassificatie**: categorie *Game*. Beantwoord eerlijk:
-- **Alcohol: ja.** Het zijn kroegspellen. De app telt strafpunten en mega strafpunten; wat dat is, spreken de spelers zelf af, en een glas wordt soms genoemd (Boer zoekt vrouw). Zeg hier eerlijk ja.
+- **Alcohol: alleen verwijzingen.** In de app wordt niet gedronken; je krijgt strafpunten en mega strafpunten, en wat dat is, spreken de spelers zelf af. Wel staat er een café (de kroeg) in de achtergrond en heet een spel Borrelbord. Vraagt de lijst naar verwijzingen naar alcohol, zeg dan eerlijk ja.
 - **Geweld: alleen fantasie, zonder bloed.** Karts die met klompen schieten (tekenfilmachtig).
 - **Gokken: nee.**
   - Er is geen echt geld en geen casino.
@@ -152,11 +152,10 @@ Zonder deze koppeling toont de app bovenin een adresbalk.
 
 - **Lees de reden in de e-mail.** Meestal gaat het over het beleid voor *alcohol* of *inhoud van gebruikers*.
 - **Wat er nu in de app zit.** Google verbiedt apps die "overmatig drinken positief neerzetten, zoals overmatig drinken, comazuipen of drinken als wedstrijd". De Spelkeet heeft:
-  - een 18+-poort, met tips voor verantwoord spelen;
   - geen slokken meer: elk spel telt **strafpunten**, en wat vroeger een bak, atje of ad fundum was, heet een **mega strafpunt** en telt apart. Wat een strafpunt is, spreken de spelers zelf af ("Wat een strafpunt is, spreken jullie samen af", op elke strafkaart);
   - de app heet De Spelkeet, met een icoon zonder bier.
-- **Waar Google nog over kan vallen.** De spelregels zijn weer de oorspronkelijke: er zit geen maximum meer op het aantal strafpunten per keer, en Bussen, Borrelbord (middel en extreem) en Boer zoekt vrouw hebben mega strafpunten. Borrelbord heeft ook een lichte versie zonder mega strafpunten. Bij Boer zoekt vrouw staan er nog twee volle glazen op tafel. Ook de naam "Boer zoekt vrouw" (een tv-programma) kan een reden zijn. Wordt de app afgewezen, lees dan de reden en pas alleen dat ene punt aan.
-- **Je kunt bezwaar maken** via de link in de e-mail. Leg daarin uit dat het een spel voor volwassenen is dat verantwoord drinken stimuleert.
+- **Waar Google nog over kan vallen.** De mega strafpunten en Boer zoekt vrouw (de vrouw werkt snel een mega strafpunt weg; de glazen op tafel zijn karnemelk). Ook de naam "Boer zoekt vrouw" (een tv-programma) kan een reden zijn. Wordt de app afgewezen, lees dan de reden en pas alleen dat ene punt aan.
+- **Je kunt bezwaar maken** via de link in de e-mail. Leg daarin uit dat het een spel met strafpunten is voor vrienden, zonder drank.
 
 ## Na het publiceren
 

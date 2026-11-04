@@ -1,7 +1,7 @@
 {
   "name": "Borrelbord",
   "short_name": "Borrelbord",
-  "description": "Het kroegspel als ganzenbord: gooi de steen, loop met je pion en doe wat er op het vakje staat.",
+  "description": "Het partyspel als ganzenbord: gooi de steen, loop met je pion en doe wat er op het vakje staat.",
   "lang": "nl",
   "id": "/borrelbord",
   "start_url": "/borrelbord",

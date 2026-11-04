@@ -1,4 +1,4 @@
-// Klaar voor de Play Store: de poort (18+), het privacybeleid, de voorwaarden, melden, de offline-pagina,
+// Klaar voor de Play Store: geen leeftijdscheck, het privacybeleid, de voorwaarden, melden, de offline-pagina,
 // de koppeling met de Android-app en de filter op grove namen.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -34,7 +34,7 @@ test('de server: zonder CONTACT_EMAIL staat het adres van De Spelkeet op het pri
   }
 });
 
-test('de server: privacybeleid, voorwaarden, melden, offline-pagina en de poort op elke speelpagina', async () => {
+test('de server: privacybeleid, voorwaarden, melden, offline-pagina; geen 18+ meer, wel de service worker op elke speelpagina', async () => {
   const srv = await startServer({ env: { CONTACT_EMAIL: 'hallo@voorbeeld.nl', MELD_SLEUTEL: 'geheim123', ANDROID_PACKAGE: '', ANDROID_SHA256: '' } });
   try {
     for (const [path, title] of [['/privacy', 'Privacybeleid'], ['/voorwaarden', 'Voorwaarden'], ['/melden', 'Iets melden']]) {
@@ -42,17 +42,18 @@ test('de server: privacybeleid, voorwaarden, melden, offline-pagina en de poort 
       assert.match(html, new RegExp(`<title>${title} · De Spelkeet</title>`), path);
       assert.ok(html.includes('hallo@voorbeeld.nl'), `${path}: het contactadres staat erin`);
       assert.ok(!html.includes('{{CONTACT_EMAIL}}'), path);
-      assert.ok(!html.includes('/js/poort.js'), `${path} is altijd te lezen, ook zonder de poort`);
+      assert.ok(!/18\+|18 jaar/.test(html), `${path}: geen 18+`);
     }
     assert.match(await (await fetch(srv.url + '/privacy')).text(), /Mijn gegevens wissen/);
-    // elke speelpagina heeft de poort (18+) en een link om iets te melden
+    // elke speelpagina meldt de service worker aan, zegt niks over 18+ en heeft een link om iets te melden
     for (const path of ['/', '/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld', '/borrelbord']) {
       const html = await (await fetch(srv.url + path)).text();
-      assert.ok(html.includes('<script src="/js/poort.js" defer></script>'), `${path}: de poort`);
+      assert.ok(html.includes('<script src="/js/poort.js" defer></script>'), `${path}: de service worker`);
+      assert.ok(!/18\+|18 jaar|alcohol/i.test(html), `${path}: geen 18+ en geen alcohol`);
       if (path !== '/kart') assert.ok(html.includes('/melden'), `${path}: iets melden`);
     }
     const poort = await (await fetch(srv.url + '/js/poort.js')).text();
-    assert.match(poort, /18 jaar en ouder/);
+    assert.ok(!/18 jaar|18\+|alcohol/.test(poort.replace(/^\/\/.*$/gm, '')), 'geen leeftijdscheck meer');
     assert.match(poort, /serviceWorker\.register\('\/sw\.js'\)/);
     // de service worker en de offline-pagina
     const sw = await fetch(srv.url + '/sw.js');

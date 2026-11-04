@@ -80,7 +80,7 @@ Kopieer de **SHA-256-vingerafdruk** onder *Certificaat van app-ondertekeningssle
 | **Privacybeleid** | `https://spelkeet.onrender.com/privacy` |
 | **App-toegang** | *Alle functionaliteit is beschikbaar zonder speciale toegang* |
 | **Advertenties** | *Nee, mijn app bevat geen advertenties* |
-| **Doelgroep en content** | Leeftijd: alleen **18 en ouder**. "Kan je app onbedoeld kinderen aanspreken?" **Nee** |
+| **Doelgroep en content** | Leeftijden: **13–15, 16–17 en 18 en ouder** (niet jonger dan 13: dan gelden de strenge regels voor kinderapps). "Kan je app onbedoeld kinderen aanspreken?" **Nee** |
 | **Nieuws-app** | Nee |
 | **Overheidsapp** | Nee |
 | **Financiële functies** | *Mijn app biedt geen financiële functies* |
@@ -93,7 +93,7 @@ E-mailadres: `despelkeet@gmail.com`. Categorie: **Game**. Beantwoord eerlijk:
 |---|---|
 | Geweld | Ja, alleen **tekenfilmachtig / fantasie**, zonder bloed (karts die met klompen schieten) |
 | Angst, seks, grof taalgebruik | Nee |
-| **Alcohol, tabak of drugs** | **Ja**: er wordt naar alcohol verwezen (kroegspellen, strafpunten). Geen tabak, geen drugs |
+| **Alcohol, tabak of drugs** | In de app wordt niet gedronken: je krijgt strafpunten. Wel staat er een café (de kroeg) in de achtergrond en heet een spel Borrelbord. Vraagt de lijst naar *verwijzingen* naar alcohol, kies dan eerlijk **ja, alleen verwijzingen**. Geen tabak, geen drugs |
 | Gokken (echt geld of nagebootst) | **Nee**: geen geld, geen casino. Bij Paardenrace zet je strafpunten in |
 | Spelers kunnen met elkaar omgaan | **Ja**: namen zien elkaar aan tafel; geen chat |
 | Locatie delen | Nee |
