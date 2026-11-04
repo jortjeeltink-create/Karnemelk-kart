@@ -63,8 +63,10 @@ test('de server: privacybeleid, voorwaarden, melden, offline-pagina en de poort 
     const manifest = await (await fetch(srv.url + '/speelhal.webmanifest')).json();
     assert.ok(manifest.icons.some((i) => i.purpose === 'maskable' && i.sizes === '512x512'));
     for (const icon of manifest.icons) assert.equal((await fetch(srv.url + icon.src)).status, 200, icon.src);
-    // zonder pakketnaam en vingerafdruk is er geen koppeling
-    assert.equal((await fetch(srv.url + '/.well-known/assetlinks.json')).status, 404);
+    // zonder instellingen: de koppeling met nl.spelkeet.app en de uploadsleutel
+    const [std] = await (await fetch(srv.url + '/.well-known/assetlinks.json')).json();
+    assert.equal(std.target.package_name, 'nl.spelkeet.app');
+    assert.ok(std.target.sha256_cert_fingerprints.includes('CE:61:C5:3A:25:3C:74:BE:0E:00:D0:30:54:19:D0:C1:28:30:48:F6:48:DA:1F:4D:19:51:22:4E:75:95:AB:4B'));
     // melden
     const post = (body) => fetch(srv.url + '/api/melden', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     assert.equal((await post({ wat: 'x' })).status, 400, 'te kort');
@@ -106,7 +108,10 @@ test('de koppeling met de Android-app (Digital Asset Links)', async () => {
     assert.match(r.headers.get('content-type'), /application\/json/);
     const [link] = await r.json();
     assert.deepEqual(link.relation, ['delegate_permission/common.handle_all_urls']);
-    assert.deepEqual(link.target, { namespace: 'android_app', package_name: 'nl.spelkeet.app', sha256_cert_fingerprints: [print.toUpperCase()] });
+    assert.equal(link.target.package_name, 'nl.spelkeet.app');
+    assert.equal(link.target.namespace, 'android_app');
+    assert.equal(link.target.sha256_cert_fingerprints[0], print.toUpperCase(), 'de extra vingerafdruk uit ANDROID_SHA256');
+    assert.equal(link.target.sha256_cert_fingerprints.length, 2, 'plus de uploadsleutel; "nonsens" telt niet');
   } finally {
     await srv.stop();
   }

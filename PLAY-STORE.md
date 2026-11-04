@@ -45,8 +45,8 @@ Hieronder staat wat jij zelf moet doen, in deze volgorde.
 |---|---|---|
 | `CONTACT_EMAIL` | Hoeft niet: standaard staat jouw adres (jort.jeeltink@gmail.com) op het privacybeleid, de voorwaarden en het meldformulier. Wil je later een ander adres, zet het dan hier | `spelkeet.app@gmail.com` |
 | `MELD_SLEUTEL` | Een geheim woord. Daarmee lees je de meldingen op `/api/meldingen?sleutel=…` | een lange willekeurige tekst |
-| `ANDROID_PACKAGE` | De pakketnaam van de app (stap 3) | `nl.spelkeet.app` |
-| `ANDROID_SHA256` | De vingerafdruk(ken) van de ondertekeningssleutel (stap 4), gescheiden door komma's | `AB:CD:…` |
+| `ANDROID_PACKAGE` | Hoeft niet: de app heet `nl.spelkeet.app`, en dat staat al in de code | `nl.spelkeet.app` |
+| `ANDROID_SHA256` | Hoeft niet: de vingerafdrukken staan in de code (`APP_PRINTS` in `server/index.js`). Hiermee kun je er een extra bij zetten | `AB:CD:…` |
 
 Meldingen komen ook in de logboeken van Render ("melding: …"). Op het gratis plan zonder schijf zijn de bewaarde meldingen na een herstart weg; de logboeken niet.
 
@@ -58,6 +58,9 @@ Meldingen komen ook in de logboeken van Render ("melding: …"). Op het gratis p
 4. **Let op:** een nieuw persoonlijk account moet eerst een **gesloten test** doen met **minstens 12 testers, 14 dagen achter elkaar**, voordat je naar productie mag (stap 6). Zoek dus alvast 12 vrienden met een Android-telefoon.
 
 ## 3. De Android-app maken (zonder programmeren)
+
+**Al gedaan:** Claude heeft de app gebouwd met Bubblewrap (`De-Spelkeet-1.0.0.aab`, pakketnaam `nl.spelkeet.app`, versie 1.0.0) en je de uploadsleutel met het wachtwoord gestuurd. Bewaar die goed. Wil je hem ooit zelf opnieuw maken, dan kan het zo:
+
 
 1. Ga naar [pwabuilder.com](https://www.pwabuilder.com) en vul het adres van De Spelkeet in (bijvoorbeeld `https://spelkeet.onrender.com`).
 2. Kies **Package for stores → Android → Generate package**. Vul in:
@@ -92,6 +95,8 @@ Zonder deze koppeling toont de app bovenin een adresbalk.
    - `ANDROID_SHA256`: allebei, met een komma ertussen;
    - `ANDROID_PACKAGE`: je Package ID.
 5. Controleer dat `https://jouw-adres/.well-known/assetlinks.json` je pakketnaam en vingerafdrukken toont.
+
+**Makkelijker:** stuur de vingerafdruk van de app-ondertekeningssleutel naar Claude. Die zet hem bij `APP_PRINTS` in `server/index.js`; dan hoef je in Render niks in te vullen. De uploadsleutel staat er al in. Het hele invulblad voor de Play Console staat in [`store/invulblad.md`](store/invulblad.md).
 
 ## 5. Alles invullen in de Play Console
 
