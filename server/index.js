@@ -74,12 +74,19 @@ for (const page of ['/privacy.html', '/voorwaarden.html', '/melden.html', '/spee
 }
 
 // De koppeling met de Android-app in de Play Store (Digital Asset Links): zonder dit bestand toont de app een
-// adresbalk. ANDROID_PACKAGE is de pakketnaam van de app, ANDROID_SHA256 de vingerafdruk(ken) van de sleutel
-// waarmee Google de app ondertekent, gescheiden door komma's (Play Console → App-integriteit → App-ondertekening).
+// adresbalk. De app heet nl.spelkeet.app. APP_PRINTS zijn de vingerafdrukken (SHA-256) van de sleutels waarmee de app
+// ondertekend is: de uploadsleutel, en (na het uploaden) die van Google (Play Console → App-integriteit →
+// App-ondertekening). Een andere pakketnaam kan met ANDROID_PACKAGE, en ANDROID_SHA256 voegt vingerafdrukken toe
+// (gescheiden door komma's).
+const APP_PACKAGE = 'nl.spelkeet.app';
+const APP_PRINTS = [
+  'CE:61:C5:3A:25:3C:74:BE:0E:00:D0:30:54:19:D0:C1:28:30:48:F6:48:DA:1F:4D:19:51:22:4E:75:95:AB:4B', // uploadsleutel
+];
 const ASSET_LINKS = (() => {
-  const pkg = (process.env.ANDROID_PACKAGE || '').trim();
-  const prints = (process.env.ANDROID_SHA256 || '').split(/[\s,]+/).map((x) => x.trim().toUpperCase()).filter((x) => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(x));
-  if (!pkg || !prints.length) return null;
+  const pkg = (process.env.ANDROID_PACKAGE || '').trim() || APP_PACKAGE;
+  const own = (process.env.ANDROID_SHA256 || '').split(/[\s,]+/).map((x) => x.trim().toUpperCase()).filter((x) => /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/.test(x));
+  const prints = [...new Set([...own, ...(pkg === APP_PACKAGE ? APP_PRINTS : [])])];
+  if (!prints.length) return null;
   return JSON.stringify([{ relation: ['delegate_permission/common.handle_all_urls'], target: { namespace: 'android_app', package_name: pkg, sha256_cert_fingerprints: prints } }]);
 })();
 
