@@ -25,10 +25,10 @@ test('aan tafel: een grove naam mag niet meedoen', () => {
   assert.equal(got.state.players[0].name, 'Sanne');
 });
 
-test('de server: zonder CONTACT_EMAIL staat het adres van de maker op het privacybeleid', async () => {
+test('de server: zonder CONTACT_EMAIL staat het adres van De Spelkeet op het privacybeleid', async () => {
   const srv = await startServer({ env: { CONTACT_EMAIL: '' } });
   try {
-    for (const path of ['/privacy', '/voorwaarden', '/melden']) assert.ok((await (await fetch(srv.url + path)).text()).includes('jort.jeeltink@gmail.com'), path);
+    for (const path of ['/privacy', '/voorwaarden', '/melden']) assert.ok((await (await fetch(srv.url + path)).text()).includes('despelkeet@gmail.com'), path);
   } finally {
     await srv.stop();
   }

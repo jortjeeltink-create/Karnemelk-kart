@@ -30,7 +30,7 @@ Klik op **App maken**. Je komt op het *Dashboard* met een lijst taken. Die doe j
 1. Kies **E-maillijsten → Lijst maken**. Noem hem `Vrienden` en plak de 12 (of meer) Gmail-adressen erin. Sla op.
 2. Bij **Feedback-URL of e-mailadres** vul je in:
    ```
-   jort.jeeltink@gmail.com
+   despelkeet@gmail.com
    ```
 3. Ga naar het tabblad **Releases → Nieuwe release maken**.
    - Bij *App-ondertekening door Google Play*: klik op **Doorgaan** (laat dat aan staan).
@@ -68,7 +68,7 @@ Kopieer de **SHA-256-vingerafdruk** onder *Certificaat van app-ondertekeningssle
 *Groei → Store-presence → **Store-instellingen***
 - App-categorie: **Game → Casual**
 - Tags: Partyspel, Multiplayer, Kaartspel
-- E-mailadres: `jort.jeeltink@gmail.com`
+- E-mailadres: `despelkeet@gmail.com`
 - Website: `https://spelkeet.onrender.com`
 
 ## 5. App-content (de taken op het dashboard)
@@ -87,7 +87,7 @@ Kopieer de **SHA-256-vingerafdruk** onder *Certificaat van app-ondertekeningssle
 | **Gezondheid** | *Mijn app heeft geen gezondheidsfuncties* |
 
 ### Contentclassificatie (de vragenlijst)
-E-mailadres: `jort.jeeltink@gmail.com`. Categorie: **Game**. Beantwoord eerlijk:
+E-mailadres: `despelkeet@gmail.com`. Categorie: **Game**. Beantwoord eerlijk:
 
 | Vraag over | Antwoord |
 |---|---|
