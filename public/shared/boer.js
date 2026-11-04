@@ -1,6 +1,6 @@
-// Boer zoekt vrouw: het drankspel, online met iedereen op zijn eigen telefoon.
+// Boer zoekt vrouw: het partyspel, online met iedereen op zijn eigen telefoon.
 // Iedereen krijgt een rol: één boer, één vrouw en de rest burgers. De boer begint wanneer hij wil met tellen,
-// met zijn ogen dicht. De vrouw drinkt intussen zo snel mogelijk een glas leeg. Daarna raadt de boer wie de
+// met zijn ogen dicht. De vrouw werkt intussen zo snel mogelijk een mega strafpunt weg. Daarna raadt de boer wie de
 // vrouw was: goed geraden, dan drinkt de vrouw ook het tweede glas; fout, dan drinkt de boer het.
 // Een potje is een gewoon object (JSON) met de seed van de random-generator erin, net als bij Bussen.
 import { shuffle, rand, cleanNames, NAME_MAX } from './bussen.js';

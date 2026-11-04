@@ -709,7 +709,7 @@ const sheetTop = (title, kick = '', close = true) => `<div class="sheet-top"><di
 function vHome() {
   const empty = Array.from({ length: 4 }, () => ({ name: 'Vrije plek', empty: true }));
   const fan = `<div class="duo"><div class="stack">${cardHTML(null)}${cardHTML(null)}${cardHTML(null)}</div>${cardHTML({ r: 14, s: 3 })}</div>`;
-  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: `<p class="felt-sub">Kroegspel voor op tafel</p><div class="felt-logo small">Pak de<br>dealer</div>${fan}` });
+  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: `<p class="felt-sub">Partyspel voor op tafel</p><div class="felt-logo small">Pak de<br>dealer</div>${fan}` });
   const busy = ui.joining ? 'disabled' : '';
   return `
   ${table}
@@ -726,7 +726,7 @@ function vHome() {
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
     <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="dealer"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
-  <p class="note">Voor 18+. Wat een strafpunt is, spreken jullie samen af.</p>`;
+  <p class="note">Wat een strafpunt is, spreken jullie samen af.</p>`;
 }
 
 function vLobby() {

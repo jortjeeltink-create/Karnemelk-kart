@@ -1,4 +1,4 @@
-// Paardenrace: het drankspel, online met iedereen op zijn eigen telefoon.
+// Paardenrace: het kaartspel, online met iedereen op zijn eigen telefoon.
 // De vier azen zijn de paarden. Iedereen kiest een paard en zet een aantal slokken in, die hij vooraf drinkt.
 // Naast de baan liggen zeven dichte kaarten. Om de beurt trek je een kaart van de stapel: het paard met die
 // vorm doet een stap naar voren. Zijn alle paarden langs een dichte kaart, dan gaat die open en moet het paard

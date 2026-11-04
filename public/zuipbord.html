@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Borrelbord</title>
-<meta name="description" content="Borrelbord: het kroegspel als ganzenbord, online met iedereen op zijn eigen telefoon. Gooi de steen, loop met je pion en doe wat er op het vakje staat.">
+<meta name="description" content="Borrelbord: het partyspel als ganzenbord, online met iedereen op zijn eigen telefoon. Gooi de steen, loop met je pion en doe wat er op het vakje staat.">
 <meta name="theme-color" content="#2e180a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -977,7 +977,7 @@ function vHome() {
   <div class="homeboard">${boardHTML({ pawns: demo })}</div>
   <div class="startcard">
     <div class="chips"><span class="chip">${Z.MIN_PLAYERS} tot ${Z.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>Het kroegspel als ganzenbord. Gooi de steen over het bord, loop met je pion en doe wat er op het vakje staat: strafpunten, uitdelen, een vraag, een duel of een maatje. De host kiest <b>licht</b>, <b>middel</b> of <b>extreem</b>: hoe extremer, hoe meer strafpunten en mega strafpunten.</p>
+    <p>Het partyspel als ganzenbord. Gooi de steen over het bord, loop met je pion en doe wat er op het vakje staat: strafpunten, uitdelen, een vraag, een duel of een maatje. De host kiest <b>licht</b>, <b>middel</b> of <b>extreem</b>: hoe extremer, hoe meer strafpunten en mega strafpunten.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${Z.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -988,7 +988,7 @@ function vHome() {
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
     <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="borrelbord"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
-  <p class="note">Voor 18+. Wat een strafpunt is, spreken jullie samen af.</p>`;
+  <p class="note">Wat een strafpunt is, spreken jullie samen af.</p>`;
 }
 
 // de versie kiezen (de host) of zien welke het is
@@ -1121,7 +1121,7 @@ function rulesHTML() {
   return `${sheetTop('Spelregels', 'Borrelbord')}
   <button class="ghostbtn rules-how" type="button" data-act="uitleg"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Bekijk de uitleg met plaatjes</button>
   <div class="rules">
-    <p>Het kroegspel als ganzenbord. Iedereen speelt op zijn eigen telefoon: maak een tafel en deel de code, of doe mee met de code van een ander.</p>
+    <p>Het partyspel als ganzenbord. Iedereen speelt op zijn eigen telefoon: maak een tafel en deel de code, of doe mee met de code van een ander.</p>
     <p>Je krijgt <b>strafpunten</b>, en soms een <b>mega strafpunt</b>: die telt apart. Wat een strafpunt en een mega strafpunt zijn, spreken jullie samen af.</p>
     <p class="modeline">De host kiest de versie: <b>licht</b> (${MODEINFO.licht.short.toLowerCase()}), <b>middel</b> (${MODEINFO.middel.short.toLowerCase()}) of <b>extreem</b> (${MODEINFO.extreem.short.toLowerCase()}). ${S ? `Deze tafel speelt <b>${MODEINFO[mode()].name.toLowerCase()}</b>; hieronder staan die regels.` : 'Hieronder staan de regels van middel.'}</p>
     <ol>

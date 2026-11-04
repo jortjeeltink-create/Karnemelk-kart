@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Boer zoekt vrouw</title>
-<meta name="description" content="Het kroegspel Boer zoekt vrouw online: iedereen een rol op zijn eigen telefoon, de boer telt en raadt wie de vrouw is.">
+<meta name="description" content="Het partyspel Boer zoekt vrouw online: iedereen een rol op zijn eigen telefoon, de boer telt en raadt wie de vrouw is.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -149,13 +149,13 @@ p{margin:0}
 .clock b{position:relative;font-family:var(--display);font-weight:900;font-size:min(22cqw,17cqh,104px);line-height:1;color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 3px 0 rgba(0,0,0,.35)}
 .clock.last b{color:var(--gold)}
 
-/* twee glazen op tafel */
+/* twee glazen karnemelk op tafel: ze lopen leeg zolang de boer telt, als een zandloper */
 .glasses{display:flex;align-items:flex-end;gap:5cqw;--gh:min(15cqh,76px)}
 .glass-svg{height:var(--gh);width:auto;overflow:visible;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35))}
 .glass-svg .wall{fill:rgba(255,255,255,.14)}
 .glass-svg .rim{fill:none;stroke:rgba(255,255,255,.85);stroke-width:2.2;stroke-linejoin:round}
-.glass-svg .beer{fill:#f0a81c}
-.glass-svg .foam{fill:#fff6dc}
+.glass-svg .beer{fill:#f4efe2}
+.glass-svg .foam{fill:#ffffff}
 .glass-svg .shine{fill:rgba(255,255,255,.35)}
 
 /* stoelen */
@@ -613,7 +613,7 @@ function present(ev) {
       if (ev.ok) { Snd.win(); celebrate(); } else Snd.bad();
       buzz(ev.ok ? [60, 40, 60] : [120, 60, 120]);
       banner(ev.ok ? 'Raak!' : 'Mis!', `${S.players[ev.vrouw].name} was de vrouw`);
-      // het tweede glas (een mega strafpunt): groot op de telefoon van wie het krijgt
+      // het tweede mega strafpunt: groot op de telefoon van wie het krijgt
       if (ev.ok && ev.vrouw === S.you) window.Slok?.bak('De boer raadde dat jij de vrouw was. Jij krijgt ook het tweede mega strafpunt.', { title: 'Nog een mega strafpunt!', delay: 1500 });
       if (!ev.ok && ev.boer === S.you) window.Slok?.bak(`Mis: ${S.players[ev.vrouw].name} was de vrouw. Jij krijgt het tweede mega strafpunt.`, { title: 'Mega strafpunt!', delay: 1500 });
       break;
@@ -658,7 +658,7 @@ function timeIsUp() {
     // alleen als je de klok zag lopen: wie later binnenkomt, krijgt geen pling
     if (ui.liveRound === S.round) {
       Snd.pling(); buzz([80, 60, 80]);
-      banner('Tijd!', S.boer === S.you ? 'Ogen open' : 'Glas neer');
+      banner('Tijd!', S.boer === S.you ? 'Ogen open' : 'Stop!');
     }
   }
   render();
@@ -785,7 +785,7 @@ const countSeg = () => `<div class="seg" role="group" aria-label="Tellen tot">${
 /* ================= SCHERMEN ================= */
 function vHome() {
   const empty = Array.from({ length: 4 }, () => ({ name: 'Vrije plek', empty: true }));
-  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: `<p class="felt-sub">Kroegspel voor op tafel</p><div class="felt-logo small">Boer zoekt<br>vrouw</div><div class="trio">${['boer', 'vrouw', 'burger'].map((r) => tileHTML(r, { cls: 'mini' })).join('')}</div>` });
+  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: `<p class="felt-sub">Partyspel voor op tafel</p><div class="felt-logo small">Boer zoekt<br>vrouw</div><div class="trio">${['boer', 'vrouw', 'burger'].map((r) => tileHTML(r, { cls: 'mini' })).join('')}</div>` });
   const busy = ui.joining ? 'disabled' : '';
   return `
   ${table}
@@ -802,7 +802,7 @@ function vHome() {
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
     <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="boer"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
-  <p class="note">Voor 18+. Wat een strafpunt is, spreken jullie samen af.</p>`;
+  <p class="note">Wat een strafpunt is, spreken jullie samen af.</p>`;
 }
 
 function vLobby() {
@@ -813,7 +813,7 @@ function vLobby() {
     seat: (i) => ({ kick: host && i !== S.you, now: i === S.host }),
   });
   const dock = `<div class="ask-h"><h2>${host ? 'Jij bent de host' : 'Je zit aan tafel'}</h2><button class="sharebtn" type="button" data-act="share">${SHARE}Uitnodigen</button></div>
-    <p class="sub">Vrienden doen mee met code <b>${S.code}</b> of met de link. Zet twee volle glazen op tafel: elk glas is een mega strafpunt.</p>
+    <p class="sub">Vrienden doen mee met code <b>${S.code}</b> of met de link.</p>
     ${host
       ? `<div class="optrow"><span>De boer telt tot</span>${countSeg()}</div>
         <button class="cta" type="button" data-act="start" ${enough ? '' : 'disabled'}><span>${enough ? 'Start het spel' : `Wacht op ${V.MIN_PLAYERS - liveCount()} ${V.MIN_PLAYERS - liveCount() === 1 ? 'speler' : 'spelers'}`}</span>${ARR}</button>
@@ -840,14 +840,14 @@ function vSpel() {
     // voor de vrouw precies hetzelfde scherm als voor de rest, zodat niemand het aan je telefoon ziet
     dock = boer === S.you
       ? `<div class="ask-h"><h2>Ogen dicht!</h2></div><p class="sub">Je telefoon tikt de seconden. Bij de <b>pling</b> mag je kijken en raden wie de vrouw is.</p>`
-      : `<div class="ask-h"><h2>${nameOf(boer)} telt</h2></div><p class="sub"><b>Vrouw:</b> werk nu zo snel mogelijk je mega strafpunt weg! De rest: doe gewoon alsof.</p><p class="fine">Bij de pling moet het glas weer op tafel staan.</p>`;
+      : `<div class="ask-h"><h2>${nameOf(boer)} telt</h2></div><p class="sub"><b>Vrouw:</b> werk nu zo snel mogelijk je mega strafpunt weg! De rest: doe gewoon alsof.</p><p class="fine">Bij de pling moet je klaar zijn: niks laten merken!</p>`;
   } else if (ph === 'tellen') {
     center = `<div class="bigword">Tijd!</div>${glassesHTML(0, 1)}<p class="felt-sub">${actor >= 0 ? 'Wie is de vrouw?' : `${nameOf(boer)} raadt wie de vrouw is`}</p>`;
     seat = (i) => {
       const can = actor >= 0 && playing(i) && i !== boer;
       return { tile: playing(i) && i !== S.you ? 'dicht' : null, dim: !playing(i), now: i === boer && actor < 0, target: can && ui.pick !== i, picked: can && ui.pick === i };
     };
-    dock = actor >= 0 ? guessDock(actor) : `<div class="ask-h"><h2>Tijd!</h2></div><p class="sub">Glas neer. <b>${nameOf(boer)}</b> doet de ogen open en raadt nu wie de vrouw is.</p><p class="waitline">Wachten op ${nameOf(boer)}</p>`;
+    dock = actor >= 0 ? guessDock(actor) : `<div class="ask-h"><h2>Tijd!</h2></div><p class="sub">Stop! <b>${nameOf(boer)}</b> doet de ogen open en raadt nu wie de vrouw is.</p><p class="waitline">Wachten op ${nameOf(boer)}</p>`;
   } else {
     const ok = S.guess === S.vrouw;
     center = `<div class="bigword ${ok ? 'good' : 'bad'}">${ok ? 'Raak!' : 'Mis!'}</div>${glassesHTML(0, 0)}<p class="felt-sub">${nameOf(S.vrouw)} was de vrouw</p>`;
@@ -872,7 +872,7 @@ function myRoleDock() {
   let text;
   if (!open) text = `<div class="role"><h2>Wie ben jij?</h2><p class="sub">Tik op het kaartje om stiekem te kijken. Laat niemand meekijken!</p></div>`;
   else if (r === 'boer') text = `<div class="role farmer"><h2>${ROLE.boer.title}</h2><p class="sub">Begin wanneer je wilt. Doe je ogen dicht: je telefoon telt tot ${S.count} en plingt als je mag kijken.</p></div>`;
-  else if (r === 'vrouw') text = `<div class="role queen"><h2>${ROLE.vrouw.title}</h2><p class="sub">Zodra de boer begint te tellen: werk zo snel mogelijk een mega strafpunt weg (één glas). Niks laten merken!</p></div>`;
+  else if (r === 'vrouw') text = `<div class="role queen"><h2>${ROLE.vrouw.title}</h2><p class="sub">Zodra de boer begint te tellen: werk zo snel mogelijk een mega strafpunt weg. Niks laten merken!</p></div>`;
   else text = `<div class="role"><h2>${ROLE.burger.title}</h2><p class="sub">Jij krijgt niks. Doe gerust alsof jij de vrouw bent.</p></div>`;
   // heeft de boer gezien wie hij is, dan blijft de knop staan, ook als zijn kaartje weer dicht is
   const go = r === 'boer' && (open || ui.looked === S.round) ? `<button class="cta hot" type="button" data-act="count"><span>Ogen dicht: begin met tellen</span>${ARR}</button>` : '';
@@ -907,8 +907,8 @@ function resultDock(ok) {
   const line = `${drinks === S.you ? 'Jij krijgt' : `${nameOf(drinks)} krijgt`} ${ok ? 'ook ' : ''}het tweede mega strafpunt`;
   const enough = liveCount() >= V.MIN_PLAYERS;
   const next = isHost()
-    ? `<button class="cta" type="button" data-act="deal" ${enough ? '' : 'disabled'}><span>${enough ? 'Glazen gevuld? Volgende ronde' : `Minstens ${V.MIN_PLAYERS} spelers nodig`}</span>${ARR}</button>`
-    : `<p class="waitline">Glazen vullen. ${nameOf(S.host)} start de volgende ronde</p>`;
+    ? `<button class="cta" type="button" data-act="deal" ${enough ? '' : 'disabled'}><span>${enough ? 'Volgende ronde' : `Minstens ${V.MIN_PLAYERS} spelers nodig`}</span>${ARR}</button>`
+    : `<p class="waitline">${nameOf(S.host)} start de volgende ronde</p>`;
   return `<div class="res-h ${ok ? 'good' : 'bad'}"><span class="verdict">${head}</span><span class="sub">${explain}</span></div>
     <div class="action">${STRAF}<span>${line}</span></div>${next}`;
 }
@@ -946,14 +946,14 @@ function rulesHTML() {
   return `${sheetTop('Spelregels', 'Boer zoekt vrouw')}
   <button class="ghostbtn rules-how" type="button" data-act="uitleg"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Bekijk de uitleg met plaatjes</button>
   <div class="rules">
-    <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander. Zet twee volle glazen op tafel: elk glas is een mega strafpunt.</p>
+    <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander.</p>
     <ol>
       <li><b>Rollen.</b> Iedereen krijgt stiekem een rol op zijn telefoon: één boer, één vrouw en de rest burgers.</li>
       <li><b>De boer.</b> De boer mag op elk moment beginnen met tellen tot ${n}, met de ogen dicht. Zijn telefoon telt mee en tikt de seconden.</li>
-      <li><b>De vrouw.</b> De vrouw moet zo snel mogelijk een mega strafpunt wegwerken (een van de glazen) zodra de boer begint te tellen. De burgers doen gewoon alsof.</li>
+      <li><b>De vrouw.</b> De vrouw moet zo snel mogelijk een mega strafpunt wegwerken zodra de boer begint te tellen. De burgers doen gewoon alsof.</li>
       <li><b>Raden.</b> Bij de pling mag de boer kijken. Hij raadt wie de vrouw is en het mega strafpunt heeft weggewerkt.</li>
       <li><b>Straf.</b> Goed geraden? Dan krijgt de vrouw ook het tweede mega strafpunt. Fout geraden? Dan krijgt de boer het tweede mega strafpunt.</li>
-      <li><b>Nieuwe ronde.</b> Glazen weer vullen, en de host verdeelt de rollen opnieuw.</li>
+      <li><b>Nieuwe ronde.</b> De host verdeelt de rollen opnieuw.</li>
     </ol>
     <p class="small">Is ${n} seconden te lang of te kort? De host past het aan in het menu. Wie later aanschuift, doet mee vanaf de volgende ronde. Wat een strafpunt is, spreken jullie samen af.</p>
   </div>`;

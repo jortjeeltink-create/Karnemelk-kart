@@ -1,7 +1,7 @@
 {
   "name": "Paardenrace",
   "short_name": "Paardenrace",
-  "description": "Het kroegspel Paardenrace online: kies een aas als paard, zet strafpunten in en trek om de beurt een kaart.",
+  "description": "Het kaartspel Paardenrace online: kies een aas als paard, zet strafpunten in en trek om de beurt een kaart.",
   "lang": "nl",
   "id": "/paardenrace",
   "start_url": "/paardenrace",

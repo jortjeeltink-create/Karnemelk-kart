@@ -1,4 +1,4 @@
-// Borrelbord (eerst Zuipbord): het kroegspel op een bord, zoals ganzenbord, online met iedereen op zijn eigen telefoon.
+// Borrelbord (eerst Zuipbord): het partyspel op een bord, zoals ganzenbord, online met iedereen op zijn eigen telefoon.
 // 48 vakjes van start (0) tot de finish (48). Om de beurt gooi je één steen en loop je zoveel vakjes. Elk vakje heeft
 // een opdracht: zelf strafpunten, uitdelen, iedereen krijgt er een, je buren, een vraag, een regel, een duel, dubbel of
 // niks, een maatje kiezen of van plek ruilen. Op een gans loop je nog een keer zoveel vakjes verder, de brug brengt je
@@ -116,7 +116,7 @@ export const VRAGEN = [
 // Regels: de speler bedenkt een regel die blijft tot het einde van het potje (hier een voorbeeld).
 export const REGELS = [
   'Niemand mag nog "strafpunt" zeggen.',
-  'Je pakt je glas alleen nog met je linkerhand.',
+  'Je pakt je telefoon alleen nog met je linkerhand.',
   'Voor je een strafpunt wegwerkt, zeg je "proost" tegen iemand.',
   'Niemand mag nog iemand bij zijn naam noemen.',
   'Wie een 6 gooit, mag 1 strafpunt uitdelen.',

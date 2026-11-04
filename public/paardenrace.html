@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Paardenrace</title>
-<meta name="description" content="Het kroegspel Paardenrace online: kies een aas als paard, zet strafpunten in en trek om de beurt een kaart. Wie op het verkeerde paard zette, krijgt strafpunten.">
+<meta name="description" content="Het kaartspel Paardenrace online: kies een aas als paard, zet strafpunten in en trek om de beurt een kaart. Wie op het verkeerde paard zette, krijgt strafpunten.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -774,7 +774,7 @@ const aces = () => `<div class="aces">${[0, 1, 2, 3].map((h) => cardHTML({ r: 14
 /* ================= SCHERMEN ================= */
 function vHome() {
   const empty = Array.from({ length: 4 }, () => ({ name: 'Vrije plek', empty: true }));
-  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: `<div class="center"><p class="felt-sub">Kroegspel voor op tafel</p><div class="felt-logo small">Paarden<br>race</div>${aces()}</div>` });
+  const table = tableHTML({ order: [0, 1, 2, 3], people: empty, cls: 'lobby home', center: `<div class="center"><p class="felt-sub">Partyspel voor op tafel</p><div class="felt-logo small">Paarden<br>race</div>${aces()}</div>` });
   const busy = ui.joining ? 'disabled' : '';
   return `
   ${table}
@@ -791,7 +791,7 @@ function vHome() {
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
     <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="paardenrace"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
-  <p class="note">Voor 18+. Wat een strafpunt is, spreken jullie samen af.</p>`;
+  <p class="note">Wat een strafpunt is, spreken jullie samen af.</p>`;
 }
 
 function vLobby() {

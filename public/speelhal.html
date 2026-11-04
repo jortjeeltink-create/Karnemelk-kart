@@ -234,11 +234,11 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
   <div class="big">Game over?</div>
   <p>Nog lang niet. Scroll terug naar boven en kies een ander spel.</p>
   <a class="pill glass" href="#top" data-nav>↑ Terug naar boven</a>
-  <p class="fineprint">De Spelkeet is voor 18+. Wat een strafpunt of een mega strafpunt is, spreken jullie samen af. Niks is verplicht, en wie nog moet fietsen of rijden, houdt het bij fris.</p>
+  <p class="fineprint">Wat een strafpunt of een mega strafpunt is, spreken jullie samen af: een opdracht, een grap of gewoon de stand bijhouden. Niks is verplicht, het gaat om de lol.</p>
   <nav class="links" aria-label="Over De Spelkeet"><a href="/voorwaarden">Voorwaarden</a><a href="/privacy">Privacy</a><a href="/melden">Iets melden</a></nav>
 </footer>
 
-<div class="legal" aria-hidden="true"><span>De Spelkeet</span><span>/</span><span>18+</span><span>/</span><span>Strafpunten</span></div>
+<div class="legal" aria-hidden="true"><span>De Spelkeet</span><span>/</span><span>Met vrienden</span><span>/</span><span>Strafpunten</span></div>
 
 <div class="menu" id="menu" hidden>
   <nav id="menuNav"></nav>
@@ -286,7 +286,7 @@ const GAMES = [
     cta: 'Speel Bussen' },
   { id: 'boer', name: 'Boer zoekt', name2: 'vrouw', short: 'Boer zoekt vrouw', acc: '#ff6b8b', tint: '#2a0f1c', bg: '#1a0b14',
     url: '/boer',
-    chips: ['Kroegspel', 'Online met vrienden'],
+    chips: ['Partyspel', 'Online met vrienden'],
     text: 'Iedereen krijgt stiekem een rol op zijn eigen telefoon: boer, vrouw of burger. De boer telt met zijn ogen dicht en de vrouw werkt stiekem een mega strafpunt weg. Bij de pling raadt de boer wie het was: goed is het tweede mega strafpunt voor de vrouw, fout is het voor de boer.',
     facts: [['Spelers', '3 tot 10'], ['Tellen', '8 seconden'], ['Meedoen', 'met een code']],
     cta: 'Speel Boer zoekt vrouw' },
@@ -323,7 +323,7 @@ const GAMES = [
   { id: 'borrelbord', name: 'Borrel', name2: 'bord', short: 'Borrelbord', acc: '#f2c230', tint: '#2a2208', bg: '#3a200d',
     url: '/borrelbord',
     chips: ['Bordspel', 'Online met vrienden'],
-    text: 'Het kroegspel als ganzenbord. Gooi de steen over het bord, loop met je pion over 48 vakjes en doe wat er staat: strafpunten krijgen of uitdelen, een vraag, een duel (allebei gooien) of een maatje kiezen. Met de gans, de brug, het café, de put en de doodskop. De host kiest licht, middel of extreem: van zo\'n 10 strafpunten per potje tot zo\'n 25, met mega strafpunten.',
+    text: 'Het partyspel als ganzenbord. Gooi de steen over het bord, loop met je pion over 48 vakjes en doe wat er staat: strafpunten krijgen of uitdelen, een vraag, een duel (allebei gooien) of een maatje kiezen. Met de gans, de brug, het café, de put en de doodskop. De host kiest licht, middel of extreem: van zo\'n 10 strafpunten per potje tot zo\'n 25, met mega strafpunten.',
     facts: [['Spelers', '2 tot 10'], ['Versies', 'licht, middel, extreem'], ['Meedoen', 'met een code']],
     cta: 'Speel Borrelbord' }
 ];
@@ -477,7 +477,7 @@ const PREV = {
   },
   boer(c, w, h, t){
     const g = c.createRadialGradient(w / 2, h * .1, 10, w / 2, h * .45, h); g.addColorStop(0, '#5a1f3a'); g.addColorStop(1, '#1a0b14'); c.fillStyle = g; c.fillRect(0, 0, w, h);
-    // de boer telt tot 8, dan de pling: de vrouw draait om en haar glas is leeg
+    // de boer telt tot 8, dan de pling: de vrouw draait om; het glas karnemelk loopt leeg als een zandloper
     const cyc = reduce ? 9 : (t / 1000) % 11, counting = cyc < 8;
     const R = Math.min(w * .13, h * .2), cx = w * .4, cy = h * .34;
     c.beginPath(); c.arc(cx, cy, R, 0, TAU); c.fillStyle = 'rgba(0,0,0,.3)'; c.fill(); c.lineWidth = R * .14; c.strokeStyle = 'rgba(255,255,255,.12)'; c.stroke();
@@ -488,7 +488,7 @@ const PREV = {
     c.save(); c.beginPath(); c.moveTo(gx, gy); c.lineTo(gx + gw, gy); c.lineTo(gx + gw * .88, gy + gh); c.lineTo(gx + gw * .12, gy + gh); c.closePath();
     c.fillStyle = 'rgba(255,255,255,.14)'; c.fill(); c.clip();
     const top = gy + gh * .12 + gh * .88 * (1 - f);
-    c.fillStyle = '#f0a81c'; c.fillRect(gx - 2, top + 5, gw + 4, gh); if (f > .03) { c.fillStyle = '#fff6dc'; c.fillRect(gx - 2, top, gw + 4, 6); }
+    c.fillStyle = '#f4efe2'; c.fillRect(gx - 2, top, gw + 4, gh);
     c.restore();
     c.beginPath(); c.moveTo(gx, gy); c.lineTo(gx + gw, gy); c.lineTo(gx + gw * .88, gy + gh); c.lineTo(gx + gw * .12, gy + gh); c.closePath(); c.lineWidth = 2.5; c.strokeStyle = 'rgba(255,255,255,.85)'; c.stroke();
     // vijf dichte rolkaartjes; na de pling draait de vrouw om
