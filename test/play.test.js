@@ -2,6 +2,7 @@
 // de koppeling met de Android-app en de filter op grove namen.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import http from 'node:http';
 import { startServer } from './helpers.js';
 import { isOffensive } from '../public/shared/namen.js';
 import { cleanChallenge } from '../public/shared/challenges.js';
@@ -113,6 +114,44 @@ test('de koppeling met de Android-app (Digital Asset Links)', async () => {
     assert.equal(link.target.namespace, 'android_app');
     assert.equal(link.target.sha256_cert_fingerprints[0], print.toUpperCase(), 'de extra vingerafdruk uit ANDROID_SHA256');
     assert.equal(link.target.sha256_cert_fingerprints.length, 2, 'plus de uploadsleutel; "nonsens" telt niet');
+  } finally {
+    await srv.stop();
+  }
+});
+
+test('een melding gaat ook per mail naar het contactadres (via Resend), zonder dat de speler hoeft te wachten', async () => {
+  const got = [];
+  const fake = http.createServer((req, res) => {
+    let body = '';
+    req.on('data', (c) => { body += c; });
+    req.on('end', () => { got.push({ url: req.url, auth: req.headers.authorization, body: JSON.parse(body) }); res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{"id":"x"}'); });
+  });
+  await new Promise((r) => fake.listen(0, '127.0.0.1', r));
+  const srv = await startServer({ env: { CONTACT_EMAIL: 'hallo@voorbeeld.nl', RESEND_API_KEY: 're_test', RESEND_URL: `http://127.0.0.1:${fake.address().port}/emails` } });
+  try {
+    const r = await fetch(srv.url + '/api/melden', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ spel: 'bussen', code: 'abcd', naam: 'Henk', wat: 'Deze naam is grof' }) });
+    assert.equal(r.status, 200);
+    for (let i = 0; i < 40 && !got.length; i++) await new Promise((res) => setTimeout(res, 50));
+    assert.equal(got.length, 1, 'er is een mail verstuurd');
+    const [m] = got;
+    assert.equal(m.url, '/emails');
+    assert.equal(m.auth, 'Bearer re_test');
+    assert.deepEqual(m.body.to, ['hallo@voorbeeld.nl']);
+    assert.match(m.body.from, /onboarding@resend\.dev/);
+    assert.equal(m.body.subject, 'Melding bij bussen over Henk');
+    assert.match(m.body.text, /Tafel: ABCD/);
+    assert.match(m.body.text, /Deze naam is grof/);
+  } finally {
+    await srv.stop();
+    fake.close();
+  }
+});
+
+test('zonder RESEND_API_KEY gaat er geen mail, maar de melding lukt wel', async () => {
+  const srv = await startServer({ env: { RESEND_API_KEY: '' } });
+  try {
+    const r = await fetch(srv.url + '/api/melden', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ wat: 'Iets kapot bij Mexen' }) });
+    assert.equal(r.status, 200);
   } finally {
     await srv.stop();
   }
