@@ -1,8 +1,7 @@
 // Borrelbord (eerst Zuipbord) online: tafels met een groepscode (zie tafels.js), de spelregels in zuipbord.js.
 // Er is niks geheim: iedereen ziet het bord, alle pionnen en wat er op elk vakje gebeurt.
-// De host kiest de stand: stevig (de oude regels, met ad fundum en een bak) of rustig. De app uit de Play Store
-// speelt alleen rustig (de telefoon stuurt dan play: true mee): een tafel uit de app is rustig, met de app schuif je
-// niet aan bij een stevige tafel, en zit er iemand met de app aan tafel, dan kan de host niet naar stevig.
+// De host kiest de versie: licht, middel of extreem. Dat kan in de lobby en na een potje (dan geldt het voor het
+// volgende potje), niet tijdens een potje.
 import * as Z from './zuipbord.js';
 import { TableHub } from './tafels.js';
 
@@ -18,15 +17,10 @@ const zuipbord = {
   cleanNames: Z.cleanNames,
 
   setup(t) { t.mode = Z.MODE_DEFAULT; },
-  created(t, msg) { if (msg.play === true) t.mode = 'rustig'; },
-  admit: (t, msg) => (msg.play === true && t.mode === 'stevig'
-    ? 'Deze tafel speelt Borrelbord met de stevige regels, en die zitten niet in de app. Doe mee via je browser, of vraag de host om rustig te kiezen.'
-    : null),
-  // de stand kiezen, in de lobby
   settings(t, msg) {
-    if (t.g || !Z.MODES.includes(msg.mode) || msg.mode === t.mode) return false;
-    if (msg.mode === 'stevig' && t.players.some((p) => p.play)) return false;
+    if (!Z.MODES.includes(msg.mode) || msg.mode === t.mode || (t.g && t.g.phase !== 'klaar')) return false;
     t.mode = msg.mode;
+    if (t.g) t.g.mode = msg.mode;
     return true;
   },
 
@@ -65,13 +59,11 @@ const zuipbord = {
   view(t, me, out) {
     const g = t.g;
     out.mode = g ? g.mode : t.mode;
-    // kan de host nu naar stevig? (niet als er iemand met de app aan tafel zit)
-    out.canStevig = !t.players.some((p) => p.play);
     if (!g) return;
     out.phase = g.phase;
     out.players = out.players.map((base, i) => {
       const p = g.players[i];
-      return { ...base, pos: p.pos, sips: p.sips, wins: p.wins, skip: p.skip, stuck: p.stuck, buddy: p.buddy };
+      return { ...base, pos: p.pos, sips: p.sips, megas: p.megas, wins: p.wins, skip: p.skip, stuck: p.stuck, buddy: p.buddy };
     });
     out.round = g.round;
     out.turn = g.turn;

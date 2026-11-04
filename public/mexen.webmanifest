@@ -1,7 +1,7 @@
 {
   "name": "Mexen",
   "short_name": "Mexen",
-  "description": "Het dobbelspel Mexen online: iedereen gooit op zijn eigen telefoon, de laagste worp drinkt.",
+  "description": "Het dobbelspel Mexen online: iedereen gooit op zijn eigen telefoon, de laagste worp krijgt strafpunten.",
   "lang": "nl",
   "id": "/mexen",
   "start_url": "/mexen",

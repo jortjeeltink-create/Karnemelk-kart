@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mexen</title>
-<meta name="description" content="Het dobbelspel Mexen online: iedereen gooit op zijn eigen telefoon, de laagste worp drinkt en elke Mex verdubbelt.">
+<meta name="description" content="Het dobbelspel Mexen online: iedereen gooit op zijn eigen telefoon, de laagste worp krijgt strafpunten en elke Mex verdubbelt.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -330,7 +330,8 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // vaste kleur per stoel aan tafel
 const PC = ['#4f8dff', '#d690c9', '#ff7a00', '#2fbf71', '#f7c548', '#ff4a24', '#a28fe3', '#36c5d6', '#e86aa0', '#9ccf3c'];
 const ARR = '<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>';
-const GLASS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l-1.6 16.2a2 2 0 0 1-2 1.8H9.6a2 2 0 0 1-2-1.8z"/><path d="M6.6 9h10.8"/></svg>';
+// een strafkaart: zo zie je de strafpunten
+const STRAF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="3" width="11" height="17" rx="2.2" transform="rotate(14 12 11.5)"/><path d="M12.4 8.2v4.4M12.1 15.6v.2" stroke-linecap="round"/></svg>';
 const SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
 // de stippen op een steen, als vakjes 1 tot 9 in een raster van 3 bij 3
 const PIPS = { 1: [5], 2: [3, 7], 3: [3, 5, 7], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] };
@@ -528,7 +529,7 @@ function present(ev) {
       break;
     case 'worp':
       show(ev); Snd.dice();
-      if (ev.mex) setTimeout(() => { if (!S) return; Snd.win(); celebrate(); buzz([60, 40, 60]); banner('Mex!', 'De slokken verdubbelen'); render(); }, 650);
+      if (ev.mex) setTimeout(() => { if (!S) return; Snd.win(); celebrate(); buzz([60, 40, 60]); banner('Mex!', 'De strafpunten verdubbelen'); render(); }, 650);
       break;
     case 'staan':
       Snd.chip();
@@ -540,9 +541,9 @@ function present(ev) {
     case 'verloren':
       afterRoll(() => {
         Snd.bad(); buzz(ev.player === S.you ? [120, 60, 120] : 40);
-        banner(ev.player === S.you ? 'Jij drinkt!' : `${S.players[ev.player].name} drinkt`, sipsText(ev.sips));
+        banner(ev.player === S.you ? 'Jij krijgt ze!' : `${S.players[ev.player].name} krijgt ze`, sipsText(ev.sips));
         if (ev.player === S.you) {
-          const mex = ev.mexes ? ` ${ev.mexes === 1 ? 'Er viel een Mex' : `Er vielen ${ev.mexes} Mexen`}, dus de inzet (${S.stake}) keer ${2 ** ev.mexes}${S.stake * 2 ** ev.mexes > ev.sips ? `, maar meer dan ${M.MAX_SIPS} wordt het nooit` : ''}.` : '';
+          const mex = ev.mexes ? ` ${ev.mexes === 1 ? 'Er viel een Mex' : `Er vielen ${ev.mexes} Mexen`}, dus de inzet (${S.stake}) keer ${2 ** ev.mexes}.` : '';
           window.Slok?.drink(ev.sips, `${ev.dice ? M.scoreName(ev.dice) : 'Jouw worp'} was de laagste worp.${mex}`, { delay: 600 });
         }
       });
@@ -649,7 +650,7 @@ function tableHTML({ order: seatsOrder, people, center = '', seat = () => ({}), 
     const el = btn ? 'button' : 'div';
     const hole = o.dice ? diceHTML(o.dice) : '';
     const line = p.empty ? '' : p.connected === false ? '<span class="off">weg</span>'
-      : p.sips != null ? `<span class="${p.sips ? '' : 'zero'}" title="Slokken gedronken">${GLASS}${p.sips}</span>` : '';
+      : p.sips != null ? `<span class="${p.sips ? '' : 'zero'}" title="Strafpunten">${STRAF}${p.sips}</span>` : '';
     const isMe = S && i === S.you && !p.empty;
     return `<${el} class="seat${o.now ? ' now' : ''}${o.target ? ' target' : ''}${o.picked ? ' picked' : ''}${o.dim ? ' dim' : ''}${p.empty ? ' empty' : ''}${isMe ? ' me' : ''}${p.connected === false ? ' off' : ''}" style="--pc:${PC[i % PC.length]}"${btn}>
       ${hole ? `<div class="hole">${hole}</div>` : ''}<span class="ava">${p.empty ? '+' : esc(initial(p.name))}</span>
@@ -664,7 +665,7 @@ function tableHTML({ order: seatsOrder, people, center = '', seat = () => ({}), 
 
 const gameTable = (center, seat) => tableHTML({ order: order(), people: S.players, center, dealer: S.host, seat });
 const sheetTop = (title, kick = '', close = true) => `<div class="sheet-top"><div>${kick ? `<p class="kick">${kick}</p>` : ''}<h2 class="sheet-title" id="sheetTitle">${title}</h2></div>${close ? '<button class="xbtn" type="button" data-act="close" aria-label="Sluiten">✕</button>' : ''}</div>`;
-const stakeSeg = () => `<div class="seg" role="group" aria-label="Inzet in slokken">${M.STAKES.map((k) => `<button type="button" data-act="stake-set" data-n="${k}" aria-pressed="${S.stake === k}">${k}</button>`).join('')}</div>`;
+const stakeSeg = () => `<div class="seg" role="group" aria-label="Inzet in strafpunten">${M.STAKES.map((k) => `<button type="button" data-act="stake-set" data-n="${k}" aria-pressed="${S.stake === k}">${k}</button>`).join('')}</div>`;
 const gooiBtn = (label, busy) => `<button class="cta hot" type="button" data-act="roll" ${busy ? 'disabled' : ''}><span>${label}</span>${CUPICON}</button>`;
 
 /* ================= SCHERMEN ================= */
@@ -676,7 +677,7 @@ function vHome() {
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${M.MIN_PLAYERS} tot ${M.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>Gooi om de beurt met twee stenen. Wie het laagst gooit, drinkt de inzet: 1, 2 of 3 slokken. Gooit iemand Mex, dan verdubbelen de slokken (hooguit ${M.MAX_SIPS}).</p>
+    <p>Gooi om de beurt met twee stenen. Wie het laagst gooit, krijgt de inzet aan strafpunten: 1, 2 of 3. Gooit iemand Mex, dan verdubbelen de strafpunten.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${M.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -687,7 +688,7 @@ function vHome() {
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
     <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="mexen"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
-  <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
+  <p class="note">Voor 18+. Wat een strafpunt is, spreken jullie samen af.</p>`;
 }
 
 function vLobby() {
@@ -700,7 +701,7 @@ function vLobby() {
   const dock = `<div class="ask-h"><h2>${host ? 'Jij bent de host' : 'Je zit aan tafel'}</h2><button class="sharebtn" type="button" data-act="share">${SHARE}Uitnodigen</button></div>
     <p class="sub">Vrienden doen mee met code <b>${S.code}</b> of met de link.</p>
     ${host
-      ? `<div class="optrow"><span>Inzet (slokken)</span>${stakeSeg()}</div>
+      ? `<div class="optrow"><span>Inzet (strafpunten)</span>${stakeSeg()}</div>
         <button class="cta" type="button" data-act="start" ${short > 0 ? 'disabled' : ''}><span>${short > 0 ? `Wacht op ${short} ${short === 1 ? 'speler' : 'spelers'}` : 'Start het spel'}</span>${ARR}</button>
         ${n > 1 ? '<p class="fine">Tik op een speler om die van tafel te halen.</p>' : ''}`
       : `<p class="waitline">Wachten tot ${nameOf(S.host)} het spel start</p>`}
@@ -717,12 +718,12 @@ function vSpel() {
     center = `${pot}<span class="whochip" style="--pc:${PC[ev.player % PC.length]}"><i></i>${who(ev.player)}</span>${diceHTML(ev.dice, { big: true, roll: ui.showFresh })}<div class="score${ev.mex ? ' mex' : ''}">${M.scoreName(ev.dice)}</div>`;
   } else if (ph === 'uitslag') {
     const d = diceOf(S.loser);
-    center = `${pot}<div class="bigword bad">${S.loser === S.you ? 'Jij drinkt' : `${nameOf(S.loser)} drinkt`}</div><div class="score low">${sipsText(S.lostSips)}</div>${d ? diceHTML(d, { big: true }) : ''}`;
+    center = `${pot}<div class="bigword bad">${S.loser === S.you ? 'Jij krijgt ze' : `${nameOf(S.loser)} krijgt ze`}</div><div class="score low">${sipsText(S.lostSips)}</div>${d ? diceHTML(d, { big: true }) : ''}`;
   } else {
     const d = ph === 'gooien' ? S.dice[t] : null;
     center = `${ph === 'afgooien' ? '<div class="pot mex">Afgooien</div>' : pot}<span class="whochip" style="--pc:${PC[t % PC.length]}"><i></i>${who(t)}</span>
       ${d ? `${diceHTML(d, { big: true })}<div class="score${M.isMex(d) ? ' mex' : ''}">${M.scoreName(d)}</div>` : CUP}
-      ${ph === 'gooien' ? throwsHTML(S.count[t], S.max) : '<p class="felt-sub">Eén worp: de laagste drinkt</p>'}`;
+      ${ph === 'gooien' ? throwsHTML(S.count[t], S.max) : '<p class="felt-sub">Eén worp: de laagste krijgt de strafpunten</p>'}`;
   }
   const low = ph === 'gooien' ? lowestSoFar(S.order.slice(0, S.at)) : -1;
   const seat = (i) => {
@@ -763,7 +764,7 @@ function spelDock() {
   }
   if (actor >= 0) {
     const others = S.tie.order.filter((p) => p !== actor);
-    return `${forNote}<div class="ask-h"><h2>Afgooien!</h2></div><p class="sub">${actor === S.you ? 'Jij stond' : `${nameOf(actor)} stond`} even laag als ${andList(others.map((p) => p === S.you ? 'jij' : nameOf(p)))}. Gooi nog één keer: de laagste drinkt.</p>${gooiBtn('Gooi', busy)}`;
+    return `${forNote}<div class="ask-h"><h2>Afgooien!</h2></div><p class="sub">${actor === S.you ? 'Jij stond' : `${nameOf(actor)} stond`} even laag als ${andList(others.map((p) => p === S.you ? 'jij' : nameOf(p)))}. Gooi nog één keer: de laagste krijgt de strafpunten.</p>${gooiBtn('Gooi', busy)}`;
   }
   if (ph === 'afgooien') return `<div class="ask-h"><h2>Afgooien</h2></div><p class="sub">${andList(S.tie.order.map(who))} stonden even laag en gooien nog één keer.</p><p class="waitline">Wachten op ${nameOf(t)}</p>`;
   const n = S.count[t];
@@ -772,14 +773,13 @@ function spelDock() {
 
 function resultDock() {
   const l = S.loser, mine = l === S.you, d = diceOf(l);
-  const capped = S.stake * 2 ** S.mexes > M.MAX_SIPS ? ` Meer dan ${M.MAX_SIPS} wordt het nooit.` : '';
-  const mex = S.mexes ? ` ${S.mexes === 1 ? 'Er viel een Mex, dus dubbel' : `Er vielen ${S.mexes} Mexen, dus ${2 ** S.mexes} keer de inzet`}.${capped}` : '';
+  const mex = S.mexes ? ` ${S.mexes === 1 ? 'Er viel een Mex, dus dubbel' : `Er vielen ${S.mexes} Mexen, dus ${2 ** S.mexes} keer de inzet`}.` : '';
   const enough = liveCount() >= M.MIN_PLAYERS;
   const next = canNext()
-    ? `<button class="cta" type="button" data-act="next" ${enough ? '' : 'disabled'}><span>${!enough ? `Minstens ${M.MIN_PLAYERS} spelers nodig` : mine ? 'Gedronken? Jij begint' : 'Volgende ronde'}</span>${ARR}</button>`
+    ? `<button class="cta" type="button" data-act="next" ${enough ? '' : 'disabled'}><span>${!enough ? `Minstens ${M.MIN_PLAYERS} spelers nodig` : mine ? 'Gedaan? Jij begint' : 'Volgende ronde'}</span>${ARR}</button>`
     : `<p class="waitline">Wachten tot ${nameOf(l)} de volgende ronde begint</p>`;
-  return `<div class="res-h bad"><span class="verdict">${mine ? 'Jij drinkt!' : `${nameOf(l)} drinkt`}</span><span class="sub">${d ? `${M.scoreName(d)} was de laagste worp.` : ''}${mex}</span></div>
-    <div class="action">${GLASS}<span>${mine ? 'Jij drinkt' : `${nameOf(l)} drinkt`} ${sipsText(S.lostSips)}</span></div>${next}`;
+  return `<div class="res-h bad"><span class="verdict">${mine ? 'Jij krijgt ze!' : `${nameOf(l)} krijgt ze`}</span><span class="sub">${d ? `${M.scoreName(d)} was de laagste worp.` : ''}${mex}</span></div>
+    <div class="action">${STRAF}<span>${mine ? 'Jij krijgt' : `${nameOf(l)} krijgt`} ${sipsText(S.lostSips)}</span></div>${next}`;
 }
 
 /* ================= VELLEN ================= */
@@ -804,10 +804,10 @@ function scoreHTML() {
   const rows = S.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.sips - a.p.sips || b.p.lost - a.p.lost);
   return `${sheetTop('Stand', `Na ${S.round} ${S.round === 1 ? 'ronde' : 'rondes'}`)}
   <div class="scorecard"><table>
-    <thead><tr><th>Speler</th><th>Slokken</th><th>Verloren</th><th>Mex</th></tr></thead>
+    <thead><tr><th>Speler</th><th>Strafpunten</th><th>Verloren</th><th>Mex</th></tr></thead>
     <tbody>${rows.map(({ p, i }) => `<tr style="--pc:${PC[i % PC.length]}"><td><i></i>${esc(p.name)}</td><td>${p.sips}</td><td>${p.lost}</td><td>${p.mex}</td></tr>`).join('')}</tbody>
   </table></div>
-  <p class="sub">Slokken: hoeveel iemand moest drinken. Verloren: hoe vaak iemand het laagst gooide. Mex: hoe vaak iemand Mex gooide.</p>`;
+  <p class="sub">Strafpunten: hoeveel iemand er kreeg. Verloren: hoe vaak iemand het laagst gooide. Mex: hoe vaak iemand Mex gooide.</p>`;
 }
 
 function rulesHTML() {
@@ -820,11 +820,11 @@ function rulesHTML() {
       <li><b>Gooien.</b> Om de beurt gooi je met twee stenen. Je laatste worp telt, dus nog een keer gooien is een gok.</li>
       <li><b>Hoe vaak.</b> De eerste van de ronde mag tot ${M.MAX_THROWS} keer gooien. Hoe vaak hij gooit, zo vaak mag de rest ook.</li>
       <li><b>Wat telt.</b> De hoogste steen eerst: een 6 en een 4 is 64. Dubbels zijn honderden: twee vijven is 500 en gaat boven elke gewone worp. Het hoogst is <b>Mex</b>: een 2 en een 1. Het laagst is 31.</li>
-      <li><b>Drinken.</b> Wie de laagste worp heeft, drinkt de inzet (${sipsText(stake)}). Elke Mex in de ronde verdubbelt de slokken, tot hooguit ${sipsText(M.MAX_SIPS)}.</li>
+      <li><b>Strafpunten.</b> Wie de laagste worp heeft, krijgt de inzet: ${sipsText(stake)}. Elke Mex in de ronde verdubbelt de strafpunten.</li>
       <li><b>Gelijk.</b> Staan er meer spelers even laag, dan gooien die nog één keer (afgooien).</li>
       <li><b>Volgende ronde.</b> Wie verloor, begint.</li>
     </ol>
-    <p class="small">Gooi je Mex, dan is je beurt meteen klaar: beter kan niet. Valt iemand weg, dan gooit de host voor die speler. Wie later aanschuift, gooit mee vanaf de volgende ronde. Drink met mate: water of karnemelk telt ook.</p>
+    <p class="small">Gooi je Mex, dan is je beurt meteen klaar: beter kan niet. Valt iemand weg, dan gooit de host voor die speler. Wie later aanschuift, gooit mee vanaf de volgende ronde. Wat een strafpunt is, spreken jullie samen af.</p>
   </div>`;
 }
 
@@ -899,8 +899,8 @@ function render() {
     const n = S.players[S.you].sips;
     own.hidden = false;
     own.classList.toggle('zero', !n);
-    own.innerHTML = `${GLASS}${n}`;
-    own.setAttribute('aria-label', `Jij dronk ${sipsText(n)}`);
+    own.innerHTML = `${STRAF}${n}`;
+    own.setAttribute('aria-label', `Jij hebt ${sipsText(n)}`);
   } else own.hidden = true;
   if (ui.sheet && ui.sheet.key === 'menu') ui.sheet.html = menuHTML();
   if (ui.sheet && ui.sheet.key === 'score' && S) ui.sheet.html = scoreHTML();
@@ -969,7 +969,7 @@ const actions = {
   next() { Snd.ac(); Net.send({ t: 'next' }); },
   mine() {
     const n = S.players[S.you].sips;
-    toast(n ? `Jij dronk al ${sipsText(n)}` : 'Jij hebt nog niks hoeven drinken');
+    toast(n ? `Jij hebt al ${sipsText(n)}` : 'Jij hebt nog geen strafpunten');
   },
   menu() { openSheet('menu', menuHTML()); },
   uitleg() { closeSheet(); window.Uitleg?.open('mexen'); },

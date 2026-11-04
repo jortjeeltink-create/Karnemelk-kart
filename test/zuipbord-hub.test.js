@@ -104,31 +104,34 @@ test('een duel: allebei gooien op je eigen telefoon; wie weggaat, daarvoor gooit
   assert.ok(phones[2].state().log.some((e) => e.type === 'duel' && e.drinks));
 });
 
-test('de regels: stevig in de browser, rustig in de app; met de app schuif je niet aan bij stevig', () => {
-  const hub = new ZuipbordHub({ now, log: () => {}, build: 'z1', random: () => 0.5 });
-  const [a, b] = [1, 2].map((n) => phone(hub, n));
-  // in de browser: stevig, en de host kan wisselen
-  a.say({ t: 'create', name: 'Jort', token: a.token });
-  assert.equal(a.state().mode, 'stevig');
-  a.say({ t: 'settings', mode: 'rustig' });
-  assert.equal(a.state().mode, 'rustig');
-  a.say({ t: 'settings', mode: 'stevig' });
-  const code = a.state().code;
-  // met de app aan een stevige tafel: nee
-  b.say({ t: 'join', code, name: 'Meke', token: b.token, play: true });
-  assert.match(b.last.joinFailed.msg, /stevige regels/);
-  // naar rustig, dan mag de app erbij; dan kan de host niet meer naar stevig
-  a.say({ t: 'settings', mode: 'rustig' });
-  b.say({ t: 'join', code, name: 'Meke', token: b.token, play: true });
-  assert.equal(b.state().players.length, 2);
-  assert.equal(a.state().canStevig, false);
-  a.say({ t: 'settings', mode: 'stevig' });
-  assert.equal(a.state().mode, 'rustig', 'niet met de app aan tafel');
-  a.say({ t: 'start' });
-  assert.equal(hub.tables.get(code).g.mode, 'rustig');
-  // een tafel uit de app is rustig (op een andere server: deze geeft steeds dezelfde code)
-  const hub2 = new ZuipbordHub({ now, log: () => {}, build: 'z1', random: () => 0.5 });
-  const d = phone(hub2, 4);
-  d.say({ t: 'create', name: 'Sim', token: d.token, play: true });
-  assert.equal(d.state().mode, 'rustig');
+test('de host kiest licht, middel of extreem, in de lobby en na een potje; de mega strafpunten staan apart in de stand', () => {
+  const { phones, t } = table(['Jort', 'Meke']);
+  assert.equal(phones[1].state().mode, 'middel', 'zonder keuze: middel');
+  phones[1].say({ t: 'settings', mode: 'extreem' });
+  assert.equal(phones[1].state().mode, 'middel', 'alleen de host kiest');
+  phones[0].say({ t: 'settings', mode: 'onzin' });
+  assert.equal(phones[1].state().mode, 'middel');
+  phones[0].say({ t: 'settings', mode: 'licht' });
+  assert.equal(phones[1].state().mode, 'licht', 'iedereen ziet de keuze');
+  phones[0].say({ t: 'settings', mode: 'middel' });
+  phones[0].say({ t: 'start' });
+  assert.equal(t.g.mode, 'middel');
+  phones[0].say({ t: 'settings', mode: 'extreem' });
+  assert.equal(t.g.mode, 'middel', 'niet tijdens een potje');
+  assert.equal(phones[1].state().players[0].megas, 0);
+  t.g.players[0].pos = 46; t.g.turn = 0; t.g.phase = 'gooien';
+  for (let n = 0; t.g.players[0].pos !== 47 && n < 50; n++) { t.g.players[0].pos = 46; t.g.turn = 0; t.g.phase = 'gooien'; phones[0].say({ t: 'roll' }); }
+  assert.equal(t.g.players[0].pos, 47);
+  assert.equal(phones[1].state().players[0].megas, 1, 'vakje 47: iedereen ziet het mega strafpunt');
+  // na het potje: een andere versie voor het volgende potje
+  t.g.players[0].pos = 45; t.g.turn = 0; t.g.phase = 'gooien';
+  for (let n = 0; t.g.phase !== 'klaar' && n < 60; n++) {
+    if (t.g.phase === 'kiezen') phones[0].say({ t: 'choose', target: 1 });
+    else { if (t.g.phase === 'gooien' && t.g.turn === 0) t.g.players[0].pos = 45; phones[t.g.turn === 0 ? 0 : 1].say({ t: 'roll' }); }
+  }
+  assert.equal(t.g.phase, 'klaar');
+  phones[0].say({ t: 'settings', mode: 'extreem' });
+  assert.equal(phones[1].state().mode, 'extreem');
+  phones[0].say({ t: 'next' });
+  assert.equal(t.g.mode, 'extreem');
 });

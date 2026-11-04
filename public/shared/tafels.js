@@ -7,8 +7,6 @@
 //   maxPlayers           zoveel spelers passen er aan tafel
 //   cleanNames(list)     namen opschonen (zie bussen.js)
 //   setup(t)             eigen velden op een nieuwe tafel zetten, bijvoorbeeld instellingen
-//   created(t, msg)      (mag ontbreken) de tafel is net gemaakt; msg is het bericht van wie hem maakte
-//   admit(t, msg)        (mag ontbreken) mag deze telefoon aanschuiven? null = ja, anders de reden
 //   settings(t, msg)     de host past een instelling aan; true = laat iedereen het zien
 //   joinBlocked(t)       mag er nu iemand bij? null = ja, anders de reden voor de nieuwe speler
 //   joined(t, seat)      er is een nieuwe speler bij gekomen terwijl er een potje loopt
@@ -87,17 +85,14 @@ export class TableHub {
       if (msg.t === 'create') {
         table = new Table(this, this.newCode());
         this.tables.set(table.code, table);
-        if (this.game.created) this.game.created(table, msg);
         this.log(`${this.game.id}: tafel ${table.code} gemaakt`);
       } else {
         const code = typeof msg.code === 'string' ? msg.code.toUpperCase().replace(/[^A-Z]/g, '') : '';
         table = this.tables.get(code);
         if (!table) return this.sendTo(s, { t: 'joinFailed', msg: code.length < ROOM_CODE_LENGTH ? `Vul de code van ${ROOM_CODE_LENGTH} letters in.` : `Tafel ${code} bestaat niet (meer). Controleer de code.`, gone: true });
-        const no = this.game.admit ? this.game.admit(table, msg) : null;
-        if (no) return this.sendTo(s, { t: 'joinFailed', msg: no });
       }
       if (s.table && s.table !== table) s.table.leave(s);
-      const res = table.join(s, msg.name, token, msg.play === true);
+      const res = table.join(s, msg.name, token);
       if (!res.ok) {
         if (!table.players.length) this.tables.delete(table.code);
         return this.sendTo(s, { t: 'joinFailed', msg: res.error });
@@ -134,7 +129,7 @@ class Table {
     this.hub = hub;
     this.game = hub.game;
     this.code = code;
-    this.players = [];      // { token, name, session, connected, play }; play: speelt in de app uit de Play Store
+    this.players = [];      // { token, name, session, connected }
     this.host = 0;
     this.maker = null;      // wie de tafel maakte: die wordt weer host als hij terugkomt
     this.g = null;          // het potje; null = lobby
@@ -142,12 +137,12 @@ class Table {
     this.game.setup(this);
   }
 
-  join(s, rawName, token, play = false) {
+  join(s, rawName, token) {
     const back = this.players.findIndex((p) => p.token === token);
     if (back >= 0) {
       const p = this.players[back];
       if (p.session && p.session !== s) { p.session.table = null; this.hub.sendTo(p.session, { t: 'left', reason: 'Je speelt nu op een ander scherm verder.' }); }
-      p.session = s; p.connected = true; p.play = play;
+      p.session = s; p.connected = true;
       if (!this.g && !isOffensive(rawName)) {
         const name = this.cleanName(rawName, back);
         if (name) p.name = name;
@@ -165,7 +160,7 @@ class Table {
     const name = this.cleanName(rawName, -1);
     if (!name) return { ok: false, error: 'Kies eerst een naam.' };
     if (!this.maker) this.maker = token;
-    this.players.push({ token, name, session: s, connected: true, play });
+    this.players.push({ token, name, session: s, connected: true });
     s.table = this; s.seat = this.players.length - 1;
     this.emptySince = null;
     if (token === this.maker || !this.players[this.host].connected) this.host = s.seat;

@@ -29,8 +29,9 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Martian+Mono:wght@400;500;700&family=Sofia+Sans+Extra+Condensed:wght@500;700;800;900&family=Lilita+One&display=swap">
 <style>
 :root{
-  /* Layout: vaste nachtlucht met een draaiende spiraal van lila blokken; elk spel is een halte op de scroll,
-     een brede crème kaart met een levende preview. De lucht kleurt mee met het spel waar je bent. */
+  /* Layout: een Hollandse avond als achtergrond (de maan, molens, grachten en een fietspad); scroll je naar beneden,
+     dan fiets je naar de kroeg. Elk spel is een halte op de route, een brede crème kaart met een levende preview.
+     De lucht kleurt mee met het spel waar je bent. */
   --night:#150b18;
   --night-3:#0b060d;
   --cream:#f3efdb;
@@ -154,7 +155,8 @@ main{position:relative;z-index:1;padding-left:max(16px,env(safe-area-inset-left,
 .facts dd{margin:0;font-family:var(--display);font-weight:700;font-size:var(--s4);line-height:1.08}
 .gbody .small{font-size:var(--s1);color:var(--plum-2)}
 
-footer{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding-block:10vh 22vh;text-align:center;display:grid;gap:12px;justify-items:center;color:var(--ink-soft);font-size:var(--s1)}
+footer{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding-block:10vh calc(46vh + 24px);text-align:center;display:grid;gap:12px;justify-items:center;color:var(--ink-soft);font-size:var(--s1)}
+footer>p,footer .big{text-shadow:0 1px 10px rgba(8,4,12,.75),0 0 2px rgba(8,4,12,.6)}
 footer .fineprint{max-width:46ch;margin-top:18px;line-height:1.5}
 footer .links{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 18px}
 footer .links a{color:var(--cream);text-underline-offset:3px}
@@ -232,11 +234,11 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
   <div class="big">Game over?</div>
   <p>Nog lang niet. Scroll terug naar boven en kies een ander spel.</p>
   <a class="pill glass" href="#top" data-nav>↑ Terug naar boven</a>
-  <p class="fineprint">De Spelkeet is voor 18+. Drinken is nooit verplicht: een slok mag ook water of fris zijn, en drink nooit als je nog moet rijden.</p>
+  <p class="fineprint">De Spelkeet is voor 18+. Wat een strafpunt of een mega strafpunt is, spreken jullie samen af. Niks is verplicht, en wie nog moet fietsen of rijden, houdt het bij fris.</p>
   <nav class="links" aria-label="Over De Spelkeet"><a href="/voorwaarden">Voorwaarden</a><a href="/privacy">Privacy</a><a href="/melden">Iets melden</a></nav>
 </footer>
 
-<div class="legal" aria-hidden="true"><span>De Spelkeet</span><span>/</span><span>18+</span><span>/</span><span>Drink met mate</span></div>
+<div class="legal" aria-hidden="true"><span>De Spelkeet</span><span>/</span><span>18+</span><span>/</span><span>Strafpunten</span></div>
 
 <div class="menu" id="menu" hidden>
   <nav id="menuNav"></nav>
@@ -269,13 +271,6 @@ function T(c, s, x, y, size, col, o = {}){ c.font = `${o.w || 700} ${size}px ${o
 const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 
 /* ================= SPELLEN ================= */
-// In de app uit de Play Store (die opent met /?app=play): Borrelbord speelt daar alleen met de rustige regels.
-const PLAY = (() => {
-  try {
-    if (/[?&]app=play\b/.test(location.search) || document.referrer.startsWith('android-app://')) sessionStorage.setItem('spelkeet-play', '1');
-    return sessionStorage.getItem('spelkeet-play') === '1';
-  } catch (e) { return false; }
-})();
 const GAMES = [
   { id: 'kart', name: 'Karnemelk', name2: 'Kart', short: 'Karnemelk Kart', acc: '#ff7a00', tint: '#2c1410', bg: '#9fd8ff',
     url: '/kart',
@@ -286,52 +281,50 @@ const GAMES = [
   { id: 'bussen', name: 'Bussen', name2: '', short: 'Bussen', acc: '#4f8dff', tint: '#101b3f', bg: '#0b1230',
     url: '/bussen',
     chips: ['Kaartspel', 'Online met vrienden'],
-    text: 'Het kaartspel bussen, online. Iedereen speelt op zijn eigen telefoon: raad rood of zwart en hoger of lager, deel slokken uit of spaar ze op, en hoop dat jij niet de bus in moet.',
+    text: 'Het kaartspel bussen, online. Iedereen speelt op zijn eigen telefoon: raad rood of zwart en hoger of lager, deel strafpunten uit of spaar ze op, en hoop dat jij niet de bus in moet.',
     facts: [['Spelers', '2 tot 9'], ['Fases', 'vragen, piramide, bus'], ['Meedoen', 'met een code']],
     cta: 'Speel Bussen' },
   { id: 'boer', name: 'Boer zoekt', name2: 'vrouw', short: 'Boer zoekt vrouw', acc: '#ff6b8b', tint: '#2a0f1c', bg: '#1a0b14',
     url: '/boer',
-    chips: ['Drankspel', 'Online met vrienden'],
-    text: 'Iedereen krijgt stiekem een rol op zijn eigen telefoon: boer, vrouw of burger. De boer telt met zijn ogen dicht en de vrouw drinkt stiekem een glas leeg. Bij de pling raadt de boer wie het was: goed is het tweede glas voor de vrouw, fout is het voor de boer.',
+    chips: ['Kroegspel', 'Online met vrienden'],
+    text: 'Iedereen krijgt stiekem een rol op zijn eigen telefoon: boer, vrouw of burger. De boer telt met zijn ogen dicht en de vrouw werkt stiekem een mega strafpunt weg. Bij de pling raadt de boer wie het was: goed is het tweede mega strafpunt voor de vrouw, fout is het voor de boer.',
     facts: [['Spelers', '3 tot 10'], ['Tellen', '8 seconden'], ['Meedoen', 'met een code']],
     cta: 'Speel Boer zoekt vrouw' },
   { id: 'mexen', name: 'Mexen', name2: '', short: 'Mexen', acc: '#36c5d6', tint: '#0d2a30', bg: '#0b1d22',
     url: '/mexen',
     chips: ['Dobbelspel', 'Online met vrienden'],
-    text: 'Het dobbelspel, online. Gooi om de beurt met twee stenen op je eigen telefoon en zie iedereen live gooien. De eerste bepaalt hoe vaak je mag gooien, de laagste worp drinkt de inzet (1 tot 3 slokken), en elke Mex verdubbelt dat, tot hooguit 6.',
+    text: 'Het dobbelspel, online. Gooi om de beurt met twee stenen op je eigen telefoon en zie iedereen live gooien. De eerste bepaalt hoe vaak je mag gooien, de laagste worp krijgt de inzet (1 tot 3 strafpunten), en elke Mex verdubbelt dat.',
     facts: [['Spelers', '2 tot 10'], ['Hoogst', 'Mex (2 en 1)'], ['Meedoen', 'met een code']],
     cta: 'Speel Mexen' },
   { id: 'dealer', name: 'Pak de', name2: 'dealer', short: 'Pak de dealer', acc: '#a28fe3', tint: '#1d1532', bg: '#130d22',
     url: '/dealer',
     chips: ['Kaartspel', 'Online met vrienden'],
-    text: 'De dealer ziet de bovenste kaart op zijn telefoon, de rest raadt. In één keer goed: de dealer drinkt 5. Fout? Dan hoor je hoger of lager. Nu goed: de dealer drinkt 3. Weer fout: jij drinkt het verschil, hooguit 5. Speelt de dealer er drie achter elkaar uit, dan gaat de stapel door.',
+    text: 'De dealer ziet de bovenste kaart op zijn telefoon, de rest raadt. In één keer goed: de dealer krijgt 5 strafpunten. Fout? Dan hoor je hoger of lager. Nu goed: de dealer krijgt er 3. Weer fout: jij krijgt het verschil. Speelt de dealer er drie achter elkaar uit, dan gaat de stapel door.',
     facts: [['Spelers', '2 tot 10'], ['Dealer af', 'na 3 keer'], ['Meedoen', 'met een code']],
     cta: 'Speel Pak de dealer' },
   { id: 'paard', name: 'Paarden', name2: 'race', short: 'Paardenrace', acc: '#a6d83c', tint: '#1c2a0e', bg: '#121c08',
     url: '/paardenrace',
     chips: ['Kaartspel', 'Online met vrienden'],
-    text: 'De vier azen zijn de paarden. Kies er een, zet 1 tot 5 slokken in en trek om de beurt een kaart: het paard met die vorm galoppeert een stap vooruit. Zijn alle paarden langs een dichte kaart, dan gaat die open en moet dat paard terug. Zette je op het verkeerde paard? Dan drink je je inzet en die van de winnaar, samen hooguit 8.',
+    text: 'De vier azen zijn de paarden. Kies er een, zet 1 tot 10 strafpunten in (die krijg je vooraf) en trek om de beurt een kaart: het paard met die vorm galoppeert een stap vooruit. Zijn alle paarden langs een dichte kaart, dan gaat die open en moet dat paard terug. Zette je op het verkeerde paard? Dan krijg je je inzet nog een keer en die van de winnaar.',
     facts: [['Spelers', '2 tot 10'], ['Paarden', 'de vier azen'], ['Meedoen', 'met een code']],
     cta: 'Speel Paardenrace' },
   { id: 'rotonde', name: 'Rotonde', name2: '', short: 'Rotonde', acc: '#d63bb5', tint: '#2a0f26', bg: '#1a0b18',
     url: '/rotonde',
     chips: ['Kaartspel', 'Online met vrienden'],
-    text: '37 kaarten liggen als een zon op tafel, en de kleur zegt hoeveel slokken een kaart waard is: van 1 aan de buitenkant tot 6 in het midden. Kies een kaart en gok rood of zwart. Goed? Dan gaat hij in de pot. Fout? Dan drink je de kaart plus de hele pot, hooguit 8.',
+    text: '37 kaarten liggen als een zon op tafel, en de kleur zegt hoeveel strafpunten een kaart waard is: van 1 aan de buitenkant tot 12 in het midden. Kies een kaart en gok rood of zwart. Goed? Dan gaat hij in de pot. Fout? Dan krijg je de kaart plus de hele pot.',
     facts: [['Spelers', '2 tot 10'], ['Kaarten', '37, van 1 tot 12'], ['Meedoen', 'met een code']],
     cta: 'Speel Rotonde' },
   { id: 'mijnenveld', name: 'Mijnen', name2: 'veld', short: 'Mijnenveld', acc: '#c9803a', tint: '#2a1a08', bg: '#1a1006',
     url: '/mijnenveld',
     chips: ['Dobbel- en kaartspel', 'Online met vrienden'],
-    text: '36 kaarten in een veld van 6 bij 6, met 8 verstopte mijnen. Gooi de steen twee keer: eerst voor de kolom, dan voor de rij. Land je op een mijn? Boem: 2, 3 of 5 slokken (hooguit 6 in één keer), en dan leg jij hem ergens anders neer, op een kaart of tussen twee kaarten. Daarna gok je rood of zwart; fout is 2 slokken.',
+    text: '36 kaarten in een veld van 6 bij 6, met 8 verstopte mijnen. Gooi de steen twee keer: eerst voor de kolom, dan voor de rij. Land je op een mijn? Boem: 3, 5 of 10 strafpunten, en dan leg jij hem ergens anders neer, op een kaart of tussen twee kaarten. Daarna gok je rood of zwart; fout is 2 strafpunten.',
     facts: [['Spelers', '2 tot 10'], ['Mijnen', '8 verstopt'], ['Meedoen', 'met een code']],
     cta: 'Speel Mijnenveld' },
   { id: 'borrelbord', name: 'Borrel', name2: 'bord', short: 'Borrelbord', acc: '#f2c230', tint: '#2a2208', bg: '#3a200d',
     url: '/borrelbord',
     chips: ['Bordspel', 'Online met vrienden'],
-    text: 'Het drankspel als ganzenbord. Gooi de steen over het bord, loop met je pion over 48 vakjes en doe wat er staat: drinken, uitdelen, een vraag, een duel (allebei gooien) of een drinkmaatje kiezen. Met de gans, de brug, het café, de put en de doodskop. ' + (PLAY
-      ? 'Wie als eerste op de finish staat, wint en deelt 3 slokken uit.'
-      : 'De host kiest de regels: stevig, met veel slokken, een ad fundum op vakje 47 en een bak voor de winnaar, of rustig.'),
-    facts: [['Spelers', '2 tot 10'], ['Vakjes', '48'], ['Meedoen', 'met een code']],
+    text: 'Het kroegspel als ganzenbord. Gooi de steen over het bord, loop met je pion over 48 vakjes en doe wat er staat: strafpunten krijgen of uitdelen, een vraag, een duel (allebei gooien) of een maatje kiezen. Met de gans, de brug, het café, de put en de doodskop. De host kiest licht, middel of extreem: van zo\'n 10 strafpunten per potje tot zo\'n 25, met mega strafpunten.',
+    facts: [['Spelers', '2 tot 10'], ['Versies', 'licht, middel, extreem'], ['Meedoen', 'met een code']],
     cta: 'Speel Borrelbord' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
@@ -555,7 +548,7 @@ const PREV = {
   },
   dealer(c, w, h, t){
     const g = c.createRadialGradient(w / 2, h * .1, 10, w / 2, h * .45, h); g.addColorStop(0, '#2e2357'); g.addColorStop(1, '#130d22'); c.fillStyle = g; c.fillRect(0, 0, w, h);
-    // elke 5 seconden een kaart: eerste gok, "lager", tweede gok, kaart open en wie drinkt
+    // elke 5 seconden een kaart: eerste gok, "lager", tweede gok, kaart open en wie de strafpunten krijgt
     const cyc = reduce ? 4.2 : (t / 1000) % 5;
     const cw = Math.min(w * .13, h * .3), ch = cw * 1.4, cy = h * .52;
     const card = (x, y, rot, open, txt, red) => {
@@ -577,7 +570,7 @@ const PREV = {
     if (cyc < 1.2) bubble('8?', '#fff');
     else if (cyc < 2.1) bubble('LAGER', '#ffb35c');
     else if (cyc < 3) bubble('6?', '#fff');
-    else if (cyc > 3.6) T(c, '4 SLOKKEN', w * .62, h * .17, Math.min(w * .065, h * .13), '#ff5a64', { w: 900 });
+    else if (cyc > 3.6) T(c, '4 STRAFPUNTEN', w * .62, h * .17, Math.min(w * .05, h * .11), '#ff5a64', { w: 900 });
   },
   paard(c, w, h, t){
     const g = c.createRadialGradient(w / 2, h * .1, 10, w / 2, h * .45, h); g.addColorStop(0, '#2b5a16'); g.addColorStop(1, '#121c08'); c.fillStyle = g; c.fillRect(0, 0, w, h);
@@ -619,7 +612,7 @@ const PREV = {
   },
   rotonde(c, w, h, t){
     const g = c.createRadialGradient(w / 2, h * .1, 10, w / 2, h * .45, h); g.addColorStop(0, '#4a1a44'); g.addColorStop(1, '#1a0b18'); c.fillStyle = g; c.fillRect(0, 0, w, h);
-    // elke 1,3 seconden een kaart: kiezen, omdraaien, goed in de pot of fout drinken; daarna weer van voren af aan
+    // elke 1,3 seconden een kaart: kiezen, omdraaien, goed in de pot of fout en strafpunten; daarna weer van voren af aan
     const COL = { 1: '#e5484d', 2: '#f78a1d', 3: '#4a5ae8', 4: '#34c25a', 12: '#d63bb5' }, STEP = 1300, n = ROT.steps.length;
     const k = reduce ? 9 : Math.floor(t / STEP) % (n + 3), e = reduce ? 1 : (t % STEP) / STEP;
     const S = Math.min(w * .62, h * .94), u = S / 6.9, cw = u * .63, ch = cw * 1.4, cx = w / 2, cy = h / 2;
@@ -646,7 +639,7 @@ const PREV = {
     T(c, String(potNow), side / 2, h * .55, Math.min(side * .5, h * .2), '#f7c548', { w: 900 });
     if (cur && e > .55) {
       T(c, cur.ok ? 'GOED' : 'FOUT!', w - side / 2, h * .42, Math.min(side * .34, h * .12), cur.ok ? '#3ee07f' : '#ff5a64', { w: 900 });
-      T(c, cur.ok ? `+${cur.v}` : `${cur.sips} ${cur.sips === 1 ? 'SLOK' : 'SLOKKEN'}`, w - side / 2, h * .55, Math.min(side * (cur.ok ? .3 : .13), h * .1), '#fff', { w: 900 });
+      T(c, cur.ok ? `+${cur.v}` : `${cur.sips} STRAF`, w - side / 2, h * .55, Math.min(side * (cur.ok ? .3 : .13), h * .1), '#fff', { w: 900 });
     }
   },
   mijnenveld(c, w, h, t){
@@ -696,7 +689,7 @@ const PREV = {
   borrelbord(c, w, h, t){
     // een houten tafel met het bord van 7 bij 7; om de beurt gooit een pion en springt hij vakje voor vakje verder
     const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#7a4825'); g.addColorStop(1, '#3a200d'); c.fillStyle = g; c.fillRect(0, 0, w, h);
-    const COL = { S: '#2eaa57', D: '#e5483b', G: '#2eaa57', I: '#f08c1a', B: '#3d7fe0', V: '#8b5bd6', X: '#f2c230', R: '#e9dcbc', K: '#2a2422', F: '#ffffff' };
+    const COL = { S: '#2eaa57', D: '#e5483b', G: '#2eaa57', I: '#f08c1a', B: '#3d7fe0', V: '#8b5bd6', X: '#f2c230', R: '#e9dcbc', K: '#2a2422', M: '#9b1b3a', F: '#ffffff' };
     const bs = Math.min(h * .9, w * .62), bx = w * .36 - bs / 2, by = (h - bs) / 2, pad = bs * .035, cs = (bs - pad * 2) / 7;
     rr(c, bx - bs * .03, by - bs * .03, bs * 1.06, bs * 1.06, bs * .06); c.fillStyle = '#6b3f1f'; c.fill();
     rr(c, bx, by, bs, bs, bs * .04); c.fillStyle = '#fff3d6'; c.fill();
@@ -726,11 +719,11 @@ const PREV = {
     const P = { 1: [5], 2: [3, 7], 3: [3, 5, 7], 4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9] }[v];
     for (const q of P) { const gx = (q - 1) % 3 - 1, gy = Math.ceil(q / 3) - 2; c.beginPath(); c.arc(gx * ds * .27, gy * ds * .27, ds * .085, 0, TAU); c.fillStyle = '#3a2412'; c.fill(); }
     c.restore();
-    if (cur && e > .78) { const ch = BORDJE[cur.to]; const word = { D: 'DRINK!', G: 'GEEF!', I: 'IEDEREEN!', B: 'GANS!', V: 'VRAAG', X: 'DUEL!', R: 'RUST', K: 'DOOD!', F: 'FINISH!', S: '' }[ch]; T(c, word, dx, h * .8, Math.min(w * .07, h * .13), COL[ch] === '#ffffff' ? '#f2c230' : COL[ch], { w: 400, f: LF }); }
+    if (cur && e > .78) { const ch = BORDJE[cur.to]; const word = { D: 'STRAF!', M: 'MEGA!', G: 'GEEF!', I: 'IEDEREEN!', B: 'GANS!', V: 'VRAAG', X: 'DUEL!', R: 'RUST', K: 'DOOD!', F: 'FINISH!', S: '' }[ch]; T(c, word, dx, h * .8, Math.min(w * .07, h * .13), COL[ch] === '#ffffff' ? '#f2c230' : COL[ch], { w: 400, f: LF }); }
   }
 };
 // voor het voorproefje van Borrelbord: de soort van elk vakje (zie zuipbord.js) en een vaste reeks worpen voor drie pionnen
-const BORDJE = 'SDGVRBBDXVXIGVBDVIXBGVIBDXVIRGXBBVVDXRVDGBBIVDKDF';
+const BORDJE = 'SDGVRBBDXVXIGVBDVIXBGVIBDXVIRGXBBVVDXRVDGBBIVDKMF';
 const LF = '"Lilita One","Arial Rounded MT Bold",sans-serif';
 const ZB = (() => { const pos = [0, 0, 0], rolls = [4, 3, 6, 2, 5, 3, 6, 4, 1, 5, 2, 6, 3, 4, 5], out = []; rolls.forEach((v, j) => { const p = j % 3; pos[p] = Math.min(48, pos[p] + v); out.push({ v, to: pos[p] }); }); return out; })();
 let prevs = [];
@@ -746,81 +739,393 @@ function drawPrevs(t, dt, all){
   }
 }
 
-/* ================= LUCHT ================= */
+/* ================= DE ACHTERGROND: op de fiets door Holland naar de kroeg ================= */
+// Een avond in Holland: de maan boven de polder, molens en tulpenvelden, de grachten met verlichte ramen en
+// onderin het fietspad. Scroll je naar beneden, dan fiets je verder (met een vriend achterop): van huis, langs
+// de molens, door de stad, tot je onderaan de pagina bij de kroeg bent. De lucht kleurt mee met het spel waar je
+// bent, en het shirt van de fietser ook.
 const Sky = {
   init(){
     this.cv = $('#sky'); this.c = this.cv.getContext('2d');
     let seed = 7; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    this.stars = Array.from({ length: 240 }, () => ({ x: r(), y: r(), z: .2 + r() * .8, s: r() < .08 ? 1.7 : .4 + r() * .9, ph: r() * TAU, col: r() < .14 ? '#ffd98a' : '#ffffff' }));
-    this.cloudDefs = [{ x: .86, y: .18, w: .62, p: .22 }, { x: .02, y: .62, w: .5, p: .3 }, { x: .78, y: 1.25, w: .55, p: .26 }, { x: .1, y: 1.95, w: .6, p: .2 }, { x: .9, y: 2.55, w: .5, p: .32 }];
+    this.stars = Array.from({ length: 150 }, () => ({ x: r(), y: r(), z: .2 + r() * .8, s: r() < .08 ? 1.6 : .4 + r() * .9, ph: r() * TAU }));
+    this.cloudDefs = [{ x: .2, y: .12, w: .5, p: .05 }, { x: .78, y: .26, w: .46, p: .08 }, { x: 1.3, y: .06, w: .4, p: .035 }, { x: 1.8, y: .2, w: .5, p: .06 }];
     this.tint = hex2rgb('#1b0d1f'); this.acc = hex2rgb('#d690c9');
+    this.lastY = scrollY; this.v = 0; this.n = 0;
     this.resize(); addEventListener('resize', () => this.resize());
   },
   resize(){
-    this.W = innerWidth; this.H = innerHeight; this.dpr = Math.min(2, devicePixelRatio || 1);
+    // op een groot scherm hoeft de achtergrond niet op volle scherpte: dat scheelt veel rekenwerk
+    this.W = innerWidth; this.H = innerHeight; this.dpr = Math.min(this.W > 900 ? 1.5 : 2, devicePixelRatio || 1);
+    this.S = clamp(Math.min(this.H / 800, this.W / 380), .72, 1.25);
     this.cv.width = Math.round(this.W * this.dpr); this.cv.height = Math.round(this.H * this.dpr);
-    this.clouds = this.cloudDefs.map((d, i) => ({ ...d, img: this.cloud(Math.round(this.W * d.w), Math.round(this.W * d.w * .5), i) }));
+    this.clouds = this.cloudDefs.map((d, i) => ({ ...d, img: this.cloud(Math.round(this.W * d.w), Math.round(this.W * d.w * .32), i) }));
+    // de indeling van boven naar beneden: horizon, de huizen en molens, het water en het fietspad
+    const H = this.H, S = this.S, c = this.c, yH = H * .58, yM = H * .71, yW = yM + 22 * S, yP = Math.max(H - 150 * S, yW + 20 * S);
+    this.L = { yH, yM, yW, yP, yPb: yP + 36 * S, cx: this.W < 700 ? this.W * .26 : clamp(this.W * .1, 90, 220) };
+    this.landG = c.createLinearGradient(0, yH, 0, H); this.landG.addColorStop(0, '#22303a'); this.landG.addColorStop(.25, '#17242a'); this.landG.addColorStop(1, '#0e1517');
+    this.waterG = c.createLinearGradient(0, yM, 0, yW); this.waterG.addColorStop(0, '#1a2a44'); this.waterG.addColorStop(1, '#0d1626');
+    const front = this.L.cx + 22 * S;
+    this.beamG = c.createLinearGradient(front, 0, front + 150 * S, 0); this.beamG.addColorStop(0, 'rgba(255,246,214,.34)'); this.beamG.addColorStop(1, 'rgba(255,246,214,0)');
+    this.lampGlow = this.glow(70 * S, 'rgba(255,207,115,.32)');
+    this.moonGlow = this.glow(100 * S, 'rgba(255,244,214,.3)');
+    this.measure();
   },
+  // een zachte gloed als plaatje, zodat hij niet elke frame opnieuw berekend wordt
+  glow(r, col){
+    const cv = document.createElement('canvas'), n = Math.max(4, Math.round(r * 2)); cv.width = cv.height = n;
+    const x = cv.getContext('2d'), g = x.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
+    g.addColorStop(0, col); g.addColorStop(1, col.replace(/[\d.]+\)$/, '0)'));
+    x.fillStyle = g; x.fillRect(0, 0, n, n);
+    return cv;
+  },
+  measure(){ this.max = Math.max(1, document.documentElement.scrollHeight - innerHeight); },
+  // een langgerekte Hollandse wolk, met een randje maanlicht erop
   cloud(w, h, k){
     const cv = document.createElement('canvas'); cv.width = Math.max(10, w); cv.height = Math.max(10, h); const x = cv.getContext('2d');
     let s = 11 + k * 31; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
-    for (let i = 0; i < 11; i++) {
-      const bx = w * (.12 + .76 * r()), by = h * (.42 + .28 * r()), br = h * (.2 + .22 * r());
-      const g = x.createRadialGradient(bx, by, 0, bx, by, br); g.addColorStop(0, 'rgba(78,42,92,.95)'); g.addColorStop(.6, 'rgba(60,30,74,.6)'); g.addColorStop(1, 'rgba(40,18,48,0)');
+    for (let i = 0; i < 12; i++) {
+      const bx = w * (.1 + .8 * r()), by = h * (.45 + .25 * r()), br = h * (.22 + .25 * r());
+      const g = x.createRadialGradient(bx, by, 0, bx, by, br); g.addColorStop(0, 'rgba(58,52,88,.9)'); g.addColorStop(.6, 'rgba(48,42,76,.55)'); g.addColorStop(1, 'rgba(40,34,64,0)');
       x.fillStyle = g; x.beginPath(); x.arc(bx, by, br, 0, TAU); x.fill();
     }
     x.globalCompositeOperation = 'source-atop';
-    const rg = x.createLinearGradient(w, 0, w * .35, h); rg.addColorStop(0, 'rgba(236,92,82,.6)'); rg.addColorStop(.5, 'rgba(170,64,120,.18)'); rg.addColorStop(1, 'rgba(0,0,0,0)');
+    const rg = x.createLinearGradient(0, 0, 0, h); rg.addColorStop(0, 'rgba(226,220,246,.42)'); rg.addColorStop(.45, 'rgba(150,140,190,.1)'); rg.addColorStop(1, 'rgba(232,128,96,.16)');
     x.fillStyle = rg; x.fillRect(0, 0, w, h);
     return cv;
   },
-  brick(c, x, y, w, h, t, depth, alpha){
-    const L = lerp(.55, 1, depth), a = this.acc, m = .22;
-    const mix = (base, i) => Math.round(lerp(base, a[i], m) * L);
-    c.globalAlpha = alpha;
-    rr(c, x - w / 2, y - h / 2 + t, w, h, h * .45); c.fillStyle = `rgb(${mix(70, 0)},${mix(52, 1)},${mix(130, 2)})`; c.fill();
-    const g = c.createLinearGradient(0, y - h / 2, 0, y + h / 2);
-    g.addColorStop(0, `rgb(${mix(214, 0)},${mix(200, 1)},${mix(250, 2)})`); g.addColorStop(1, `rgb(${mix(150, 0)},${mix(128, 1)},${mix(222, 2)})`);
-    rr(c, x - w / 2, y - h / 2, w, h, h * .45); c.fillStyle = g; c.fill();
-    c.globalAlpha = 1;
+  // vast getal tussen 0 en 1 per vakje, zodat de wereld er bij elke keer scrollen hetzelfde uitziet
+  h(i, k){ const v = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return v - Math.floor(v); },
+  // waar ben je op de route? p = 0 bovenaan de pagina, 1 onderaan
+  where(p){ return p < .07 ? 'dorp' : p < .45 ? 'polder' : p < .86 ? 'stad' : 'kroeg'; },
+  pOf(x, speed){ return clamp((x - this.W / 2) / speed / this.max, 0, 1); },
+  mix(a, b, k){ return `rgb(${a.map((v, i) => Math.round(lerp(v, b[i], k))).join(',')})`; },
+
+  molen(c, x, base, S, t, i, col, far){
+    const h = (far ? 26 : 104) * S, wb = (far ? 7 : 34) * S, wt = (far ? 4 : 19) * S, R = (far ? 15 : 66) * S;
+    c.fillStyle = col;
+    c.beginPath(); c.moveTo(x - wb / 2, base); c.lineTo(x - wt / 2, base - h); c.lineTo(x + wt / 2, base - h); c.lineTo(x + wb / 2, base); c.closePath(); c.fill();
+    // de kap
+    c.beginPath(); c.moveTo(x - wt / 2 - 2 * S, base - h); c.quadraticCurveTo(x, base - h - (far ? 7 : 22) * S, x + wt / 2 + 2 * S, base - h); c.closePath(); c.fill();
+    if (!far) {
+      // de stelling, een deur en een verlicht raampje
+      c.fillRect(x - wb * .72, base - h * .38, wb * 1.44, 2.2 * S);
+      c.fillStyle = 'rgba(0,0,0,.35)'; rr(c, x - 4 * S, base - 13 * S, 8 * S, 13 * S, 4 * S); c.fill();
+      c.fillStyle = '#ffcf73'; c.fillRect(x - 3 * S, base - h * .66, 6 * S, 7 * S);
+    }
+    // de wieken
+    const hx = x, hy = base - h - (far ? 2 : 6) * S, a0 = (reduce ? .4 : t * (far ? .0003 : .00045)) + i;
+    c.save(); c.translate(hx, hy);
+    for (let k = 0; k < 4; k++) {
+      c.save(); c.rotate(a0 + k * Math.PI / 2);
+      c.fillStyle = col; c.fillRect(-1.4 * S, 0, 2.8 * S, R);
+      if (!far) {
+        c.strokeStyle = 'rgba(233,220,188,.55)'; c.lineWidth = 1 * S;
+        c.strokeRect(1.4 * S, R * .2, 10 * S, R * .8);
+        for (let q = 1; q < 6; q++) { c.beginPath(); c.moveTo(1.4 * S, R * (.2 + q * .8 / 6)); c.lineTo(11.4 * S, R * (.2 + q * .8 / 6)); c.stroke(); }
+      } else { c.fillRect(1.4 * S, R * .25, 3 * S, R * .75); }
+      c.restore();
+    }
+    c.fillStyle = col; c.beginPath(); c.arc(0, 0, (far ? 1.6 : 4.5) * S, 0, TAU); c.fill();
+    c.restore();
   },
+  // een grachtenpand: trapgevel, halsgevel, klokgevel of een rechte lijst; ramen met witte kozijnen, soms licht aan
+  pand(c, x, base, w, ht, type, body, i, S){
+    const top = base - ht, peak = 26 * S;
+    c.fillStyle = body; c.beginPath(); c.moveTo(x, base); c.lineTo(x, top);
+    if (type === 0) { // trapgevel
+      const st = 4, sw = w / (st * 2 + 1);
+      for (let k = 0; k < st; k++) { c.lineTo(x + sw * k, top - peak * k / st); c.lineTo(x + sw * (k + 1), top - peak * k / st); }
+      c.lineTo(x + sw * st, top - peak); c.lineTo(x + w - sw * st, top - peak);
+      for (let k = st - 1; k >= 0; k--) { c.lineTo(x + w - sw * (k + 1), top - peak * k / st); c.lineTo(x + w - sw * k, top - peak * k / st); }
+    } else if (type === 1) { // halsgevel
+      c.quadraticCurveTo(x + w * .22, top - 2 * S, x + w * .3, top - peak * .7); c.lineTo(x + w * .3, top - peak); c.quadraticCurveTo(x + w * .5, top - peak * 1.3, x + w * .7, top - peak);
+      c.lineTo(x + w * .7, top - peak * .7); c.quadraticCurveTo(x + w * .78, top - 2 * S, x + w, top);
+    } else if (type === 2) { // klokgevel
+      c.bezierCurveTo(x + w * .05, top - peak * .9, x + w * .3, top - peak * .5, x + w * .35, top - peak * 1.05); c.quadraticCurveTo(x + w * .5, top - peak * 1.35, x + w * .65, top - peak * 1.05);
+      c.bezierCurveTo(x + w * .7, top - peak * .5, x + w * .95, top - peak * .9, x + w, top);
+    } else if (type === 3) { // schuin dak (in het dorp)
+      c.lineTo(x + w / 2, top - peak * 1.1); c.lineTo(x + w, top);
+    } else { c.lineTo(x - 2 * S, top); c.lineTo(x - 2 * S, top - 5 * S); c.lineTo(x + w + 2 * S, top - 5 * S); c.lineTo(x + w + 2 * S, top); }
+    c.lineTo(x + w, base); c.closePath(); c.fill();
+    // ramen
+    const cols = w > 46 * S ? 3 : 2, rows = Math.max(2, Math.floor((ht - 26 * S) / (24 * S))), ww = w / (cols * 1.7 + .7), wh = 14 * S;
+    const lit = [];
+    for (let rI = 0; rI < rows; rI++) for (let k = 0; k < cols; k++) {
+      const wx = x + ww * .7 + k * ww * 1.7, wy = top + 10 * S + rI * 24 * S, on = this.h(i * 13 + rI * 5 + k, 9) < .42;
+      c.fillStyle = 'rgba(233,220,188,.75)'; c.fillRect(wx - 1 * S, wy - 1 * S, ww + 2 * S, wh + 2 * S);
+      c.fillStyle = on ? '#ffcf73' : '#1a1628'; c.fillRect(wx, wy, ww, wh);
+      c.fillStyle = 'rgba(233,220,188,.75)'; c.fillRect(wx + ww / 2 - .6 * S, wy, 1.2 * S, wh);
+      if (on) lit.push(wx + ww / 2);
+    }
+    // deur met een trapje
+    c.fillStyle = '#2a1a14'; rr(c, x + w * .5 - 6 * S, base - 18 * S, 12 * S, 18 * S, 5 * S); c.fill();
+    return lit;
+  },
+  boom(c, x, base, S, col){
+    c.fillStyle = col; c.fillRect(x - 1.5 * S, base - 34 * S, 3 * S, 34 * S);
+    c.beginPath(); c.arc(x, base - 44 * S, 16 * S, 0, TAU); c.arc(x - 11 * S, base - 36 * S, 11 * S, 0, TAU); c.arc(x + 11 * S, base - 37 * S, 12 * S, 0, TAU); c.fill();
+  },
+  populier(c, x, base, S, col){
+    c.fillStyle = col; c.beginPath(); c.ellipse(x, base - 40 * S, 7 * S, 40 * S, 0, 0, TAU); c.fill(); c.fillRect(x - 1 * S, base - 6 * S, 2 * S, 6 * S);
+  },
+  koe(c, x, base, S){
+    c.fillStyle = '#e9e4d8'; rr(c, x - 9 * S, base - 12 * S, 18 * S, 8 * S, 3 * S); c.fill();
+    c.fillStyle = '#1b1820'; c.beginPath(); c.arc(x - 3 * S, base - 9 * S, 3 * S, 0, TAU); c.arc(x + 4 * S, base - 8 * S, 2.4 * S, 0, TAU); c.fill();
+    c.fillRect(x + 7 * S, base - 14 * S, 5 * S, 5 * S);
+    c.fillStyle = '#e9e4d8'; for (const lx of [-7, -3, 4, 7]) c.fillRect(x + lx * S, base - 5 * S, 1.6 * S, 5 * S);
+  },
+  // een lantaarnpaal langs het fietspad
+  lamp(c, x, base, S){
+    const top = base - 116 * S;
+    c.drawImage(this.lampGlow, x - 70 * S, top - 64 * S, 140 * S, 140 * S);
+    c.fillStyle = '#16131c'; c.fillRect(x - 2 * S, top, 4 * S, 116 * S); c.fillRect(x - 4 * S, base - 10 * S, 8 * S, 10 * S);
+    c.beginPath(); c.moveTo(x - 9 * S, top + 2 * S); c.lineTo(x + 9 * S, top + 2 * S); c.lineTo(x + 5 * S, top - 8 * S); c.lineTo(x - 5 * S, top - 8 * S); c.closePath(); c.fill();
+    c.fillStyle = '#ffdf9a'; c.fillRect(x - 6 * S, top + 2 * S, 12 * S, 5 * S);
+  },
+  // een wit fietsbordje met rode letters
+  bord(c, x, base, S, text){
+    c.fillStyle = '#16131c'; c.fillRect(x - 1.5 * S, base - 52 * S, 3 * S, 52 * S);
+    rr(c, x - 36 * S, base - 64 * S, 72 * S, 20 * S, 3 * S); c.fillStyle = '#f6f2e6'; c.fill(); c.lineWidth = 1.5 * S; c.strokeStyle = '#d2343f'; c.stroke();
+    T(c, text, x, base - 53.5 * S, 11 * S, '#d2343f', { w: 800 });
+  },
+  fiets(c, x, y, S, col, a = 0){ // een geparkeerde fiets, op zijn standaard
+    c.save(); c.translate(x, y); c.rotate(a); c.strokeStyle = col; c.lineWidth = 1.8 * S;
+    for (const wx of [-13, 13]) { c.beginPath(); c.arc(wx * S, 0, 8.5 * S, 0, TAU); c.stroke(); }
+    c.beginPath(); c.moveTo(-13 * S, 0); c.lineTo(-3 * S, 0); c.lineTo(-6 * S, -15 * S); c.moveTo(-3 * S, 0); c.quadraticCurveTo(4 * S, -6 * S, 9 * S, -15 * S); c.lineTo(13 * S, 0);
+    c.moveTo(9 * S, -15 * S); c.lineTo(8 * S, -20 * S); c.lineTo(3 * S, -20 * S); c.moveTo(-9 * S, -16 * S); c.lineTo(-3 * S, -16 * S); c.stroke();
+    c.restore();
+  },
+  // thuis, waar de fietstocht begint
+  thuis(c, x, base, S){
+    this.pand(c, x - 60 * S, base, 60 * S, 92 * S, 3, '#4a2a2a', 3, S);
+    this.pand(c, x, base, 60 * S, 92 * S, 3, '#553030', 4, S);
+    this.pand(c, x + 60 * S, base, 60 * S, 92 * S, 3, '#4a2a2a', 5, S);
+    c.fillStyle = '#e5483b'; c.fillRect(x + 40 * S, base - 34 * S, 14 * S, 6 * S); // bloembak
+  },
+  // de kroeg aan het eind van de route
+  kroeg(c, x, base, S, t){
+    const w = 236 * S, ht = 172 * S, top = base - ht;
+    this.pand(c, x + w, base, 64 * S, 150 * S, 0, '#3e2a3a', 7, S);
+    c.fillStyle = '#5b2a24'; c.beginPath(); c.moveTo(x, base); c.lineTo(x, top); c.lineTo(x + w * .2, top); c.lineTo(x + w * .2, top - 14 * S); c.lineTo(x + w * .8, top - 14 * S); c.lineTo(x + w * .8, top); c.lineTo(x + w, top); c.lineTo(x + w, base); c.closePath(); c.fill();
+    // bovenramen
+    for (let k = 0; k < 4; k++) { const wx = x + 18 * S + k * 54 * S; c.fillStyle = 'rgba(233,220,188,.8)'; c.fillRect(wx - 1.5 * S, top + 16 * S, 33 * S, 34 * S); c.fillStyle = k % 2 ? '#ffcf73' : '#2a1d2e'; c.fillRect(wx, top + 17.5 * S, 30 * S, 31 * S); }
+    // de pui: hout, grote verlichte ramen met mensen erachter, en de deur
+    const py = top + 66 * S;
+    c.fillStyle = '#2f1c12'; c.fillRect(x - 4 * S, py, w + 8 * S, base - py);
+    T(c, 'DE SPELKEET', x + w / 2, py + 10 * S, 14 * S, '#f2c230', { w: 900 });
+    const g = c.createLinearGradient(0, py + 22 * S, 0, base - 8 * S); g.addColorStop(0, '#ffd98a'); g.addColorStop(1, '#f08c1a');
+    for (const [wx, ww] of [[x + 10 * S, 82 * S], [x + w - 92 * S, 82 * S]]) {
+      c.fillStyle = g; c.fillRect(wx, py + 22 * S, ww, base - py - 34 * S);
+      // mensen aan de bar
+      for (let k = 0; k < 3; k++) {
+        const mx = wx + 16 * S + k * 25 * S, bob = reduce ? 0 : Math.sin(t * .002 + k * 2 + wx) * 1.5 * S;
+        c.fillStyle = 'rgba(58,28,20,.78)'; c.beginPath(); c.arc(mx, py + 44 * S + bob, 7 * S, 0, TAU); c.fill();
+        rr(c, mx - 9 * S, py + 52 * S + bob, 18 * S, 30 * S, 7 * S); c.fill();
+      }
+      c.strokeStyle = '#2f1c12'; c.lineWidth = 3 * S; c.strokeRect(wx, py + 22 * S, ww, base - py - 34 * S);
+      c.beginPath(); c.moveTo(wx + ww / 2, py + 22 * S); c.lineTo(wx + ww / 2, base - 12 * S); c.stroke();
+    }
+    c.fillStyle = '#ffcf73'; rr(c, x + w / 2 - 15 * S, py + 24 * S, 30 * S, base - py - 24 * S, 14 * S); c.fill();
+    c.fillStyle = '#3a2216'; rr(c, x + w / 2 - 12 * S, py + 27 * S, 24 * S, base - py - 27 * S, 11 * S); c.fill();
+    // het neonbord
+    const nx = x + w / 2, ny = top + 2 * S, glow = reduce ? 1 : .85 + .15 * Math.sin(t * .006);
+    c.save(); c.shadowColor = '#ff6b8b'; c.shadowBlur = 22 * S * glow;
+    rr(c, nx - 44 * S, ny - 30 * S, 88 * S, 28 * S, 8 * S); c.fillStyle = '#2a0f1c'; c.fill(); c.lineWidth = 2.5 * S; c.strokeStyle = '#ff6b8b'; c.stroke();
+    T(c, 'CAFÉ', nx, ny - 15.5 * S, 21 * S, '#ffd1dc', { w: 900, f: LF });
+    c.restore();
+    // lampjes van de gevel naar de lantaarn
+    c.strokeStyle = 'rgba(20,14,22,.9)'; c.lineWidth = 1 * S; c.beginPath(); c.moveTo(x - 90 * S, top + 40 * S); c.quadraticCurveTo(x - 40 * S, top + 66 * S, x, top + 44 * S); c.stroke();
+    for (let k = 0; k <= 8; k++) { const q = k / 8, lx = lerp(x - 90 * S, x, q), ly = (1 - q) * (1 - q) * (top + 40 * S) + 2 * (1 - q) * q * (top + 66 * S) + q * q * (top + 44 * S); c.fillStyle = ['#ffcf73', '#ff6b8b', '#36c5d6', '#a6d83c'][k % 4]; c.beginPath(); c.arc(lx, ly + 3 * S, 2.6 * S, 0, TAU); c.fill(); }
+    // fietsen voor de deur
+    this.fiets(c, x + w * .72, base + 14 * S, S, 'rgba(243,239,219,.8)', -.05);
+    this.fiets(c, x + w * .86, base + 15 * S, S, 'rgba(243,239,219,.65)', .04);
+    this.fiets(c, x + w * 1.02, base + 14 * S, S, 'rgba(243,239,219,.7)', -.03);
+  },
+  // de fietser, met een vriend achterop
+  fietser(c, cx, y, S, t, dist, moving, shirt){
+    const R = 12 * S, by = y - R, rot = dist / R, cr = rot * .45, bob = moving ? Math.sin(cr * 2) * .6 * S : 0;
+    const rear = cx - 22 * S, front = cx + 22 * S, BB = [cx - 2 * S, by + 1 * S];
+    const hip = [cx - 9 * S, by - 23 * S + bob], sh = [cx - 4 * S, by - 45 * S + bob], grip = [cx + 10 * S, by - 31 * S];
+    const knee = (hx, hy, px, py) => { const L = 16 * S, dx = px - hx, dy = py - hy, d = Math.min(Math.hypot(dx, dy), 2 * L - .01), a = Math.atan2(dy, dx), k = a - Math.acos(clamp(d / (2 * L), -1, 1)); return [hx + Math.cos(k) * L, hy + Math.sin(k) * L]; };
+    const line = (pts, col, w) => { c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); pts.slice(1).forEach(p => c.lineTo(p[0], p[1])); c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'round'; c.lineJoin = 'round'; c.stroke(); };
+    const pedal = (ph) => [BB[0] + Math.cos(ph) * 7 * S, BB[1] + Math.sin(ph) * 7 * S];
+    // het licht voorop, op het fietspad
+    c.fillStyle = this.beamG; c.beginPath(); c.moveTo(front + 6 * S, by - 14 * S); c.lineTo(front + 150 * S, y - 6 * S); c.lineTo(front + 150 * S, y + 10 * S); c.closePath(); c.fill();
+    // schaduw
+    c.fillStyle = 'rgba(0,0,0,.28)'; c.beginPath(); c.ellipse(cx, y + 2 * S, 40 * S, 4 * S, 0, 0, TAU); c.fill();
+    // het verre been
+    const p2 = pedal(cr + Math.PI), k2 = knee(hip[0], hip[1], p2[0], p2[1]);
+    line([hip, k2, p2], '#1d1a2c', 6 * S);
+    // wielen
+    for (const wx of [rear, front]) {
+      c.beginPath(); c.arc(wx, by, R, 0, TAU); c.strokeStyle = '#0c0a10'; c.lineWidth = 3.4 * S; c.stroke();
+      c.beginPath(); c.arc(wx, by, R - 1.8 * S, 0, TAU); c.strokeStyle = 'rgba(243,239,219,.85)'; c.lineWidth = 1.1 * S; c.stroke();
+      c.strokeStyle = 'rgba(243,239,219,.35)'; c.lineWidth = .8 * S; c.beginPath();
+      for (let k = 0; k < 6; k++) { const a = rot + k * Math.PI / 3; c.moveTo(wx, by); c.lineTo(wx + Math.cos(a) * (R - 2 * S), by + Math.sin(a) * (R - 2 * S)); }
+      c.stroke();
+      // spatbord
+      c.beginPath(); c.arc(wx, by, R + 2.2 * S, Math.PI * 1.05, Math.PI * 1.95); c.strokeStyle = '#e9dcbc'; c.lineWidth = 2 * S; c.stroke();
+    }
+    // het frame van een omafiets, met bagagedrager en kettingkast
+    const FR = '#e9dcbc';
+    line([[rear, by], BB, [cx - 9 * S, by - 21 * S], [rear, by]], FR, 2.4 * S);
+    c.beginPath(); c.moveTo(BB[0], BB[1]); c.quadraticCurveTo(cx + 6 * S, by - 4 * S, cx + 15 * S, by - 23 * S); c.moveTo(BB[0] + 1 * S, BB[1] - 4 * S); c.quadraticCurveTo(cx + 6 * S, by - 9 * S, cx + 15 * S, by - 25 * S); c.strokeStyle = FR; c.lineWidth = 2.4 * S; c.stroke();
+    line([[cx + 15 * S, by - 25 * S], [front, by]], FR, 2.4 * S);
+    line([[cx + 15 * S, by - 25 * S], [cx + 15 * S, by - 31 * S], grip], FR, 2.2 * S);
+    line([[cx - 11 * S, by - 18 * S], [rear - 9 * S, by - 18 * S]], FR, 2.6 * S);
+    line([[rear - 7 * S, by - 18 * S], [rear, by]], FR, 1.6 * S);
+    c.fillStyle = '#1d1a2c'; rr(c, rear + 2 * S, by - 3 * S, 22 * S, 6 * S, 3 * S); c.fill();
+    c.fillStyle = '#1d1a2c'; rr(c, cx - 15 * S, by - 25 * S, 12 * S, 4 * S, 2 * S); c.fill();
+    c.fillStyle = '#fff6d6'; c.beginPath(); c.arc(front + 4 * S, by - 14 * S, 2.6 * S, 0, TAU); c.fill();
+    c.fillStyle = '#ff3b3b'; c.fillRect(rear - 11 * S, by - 17 * S, 3 * S, 3 * S);
+    // de vriend achterop, zijwaarts op de bagagedrager
+    const wave = moving || reduce ? 0 : Math.sin(t * .008) * .5;
+    const seat = [rear - 2 * S, by - 21 * S], psh = [rear - 4 * S, by - 42 * S];
+    line([seat, [rear + 6 * S, by - 12 * S], [rear + 5 * S, by - 1 * S]], '#3a3f6b', 6 * S);
+    line([seat, psh], '#f3efdb', 9 * S);
+    line([[psh[0] + 2 * S, psh[1] + 3 * S], [cx - 10 * S, by - 31 * S], [cx - 6 * S, by - 27 * S]], '#f3efdb', 3.6 * S);
+    const ua = -2.1 + wave; line([[psh[0] - 1 * S, psh[1] + 2 * S], [psh[0] - 1 * S + Math.cos(ua) * 10 * S, psh[1] + 2 * S + Math.sin(ua) * 10 * S], [psh[0] - 1 * S + Math.cos(ua) * 10 * S + Math.cos(ua + .5) * 9 * S, psh[1] + 2 * S + Math.sin(ua) * 10 * S + Math.sin(ua + .5) * 9 * S]], '#f3efdb', 3.4 * S);
+    c.fillStyle = '#f0c9a0'; c.beginPath(); c.arc(psh[0] + 1 * S, psh[1] - 8 * S, 6 * S, 0, TAU); c.fill();
+    c.fillStyle = '#e8c46a'; c.beginPath(); c.arc(psh[0] + 1 * S, psh[1] - 10 * S, 6.4 * S, Math.PI * .95, Math.PI * 2.05); c.fill(); c.fillRect(psh[0] - 5.4 * S, psh[1] - 10 * S, 3.4 * S, 10 * S);
+    // de fietser zelf: rechtop, zoals je in Nederland fietst
+    line([hip, sh], shirt, 10 * S);
+    line([[sh[0] + 1 * S, sh[1] + 3 * S], [cx + 5 * S, by - 35 * S + bob], grip], shirt, 4 * S);
+    c.fillStyle = '#f0c9a0'; c.beginPath(); c.arc(sh[0] + 2 * S, sh[1] - 8 * S + bob, 6.2 * S, 0, TAU); c.fill();
+    c.fillStyle = '#4a2e1a'; c.beginPath(); c.arc(sh[0] + 1 * S, sh[1] - 10 * S + bob, 6.4 * S, Math.PI * .9, Math.PI * 1.95); c.fill();
+    // het nabije been
+    const p1 = pedal(cr), k1 = knee(hip[0], hip[1], p1[0], p1[1]);
+    line([hip, k1, p1], '#2a2a48', 6.4 * S);
+    c.fillStyle = '#0c0a10'; c.fillRect(p1[0] - 3 * S, p1[1] - 1 * S, 6 * S, 2.4 * S);
+    c.lineCap = 'butt'; c.lineJoin = 'miter';
+  },
+
   draw(t, target, accent){
-    const c = this.c, W = this.W, H = this.H, sy = scrollY;
+    const c = this.c, W = this.W, H = this.H, sy = scrollY, S = this.S;
     const tg = hex2rgb(target), ac = hex2rgb(accent), k = reduce ? 1 : .05;
     for (let i = 0; i < 3; i++) { this.tint[i] = lerp(this.tint[i], tg[i], k); this.acc[i] = lerp(this.acc[i], ac[i], k); }
+    if (++this.n % 30 === 0) this.measure();
+    this.v = lerp(this.v, Math.abs(sy - this.lastY), .25); this.lastY = sy;
     c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    const bg = c.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, `rgb(${this.tint.map(Math.round).join(',')})`); bg.addColorStop(1, '#120914'); c.fillStyle = bg; c.fillRect(0, 0, W, H);
+    const { yH, yM, yW, yP, yPb, cx } = this.L;
+    const tint = this.tint, warm = [232, 128, 96];
+
+    // de lucht: donker bovenin, een warme gloed boven de horizon
+    const bg = c.createLinearGradient(0, 0, 0, yH); bg.addColorStop(0, this.mix(tint, [10, 8, 20], .25)); bg.addColorStop(.6, this.mix(tint, [52, 40, 88], .45)); bg.addColorStop(1, this.mix(tint, warm, .42));
+    c.fillStyle = bg; c.fillRect(0, 0, W, yH + 2);
     for (const s of this.stars) {
-      const y = ((s.y * H * 1.2 - sy * .12 * s.z) % (H * 1.2) + H * 1.2) % (H * 1.2) - H * .1;
-      c.globalAlpha = (reduce ? .8 : .55 + .45 * Math.sin(t * .0016 * s.z + s.ph)) * (.35 + .65 * s.z); c.fillStyle = s.col; c.fillRect(s.x * W, y, s.s, s.s);
+      const y = s.y * yH * .7; c.globalAlpha = (reduce ? .75 : .5 + .45 * Math.sin(t * .0016 * s.z + s.ph)) * (.3 + .7 * s.z) * (1 - s.y * .6);
+      c.fillStyle = '#fff'; c.fillRect(s.x * W, y, s.s, s.s);
     }
     c.globalAlpha = 1;
-    const loopH = H * 3.2;
-    for (const cl of this.clouds) { const drift = reduce ? 0 : Math.sin(t * .00008 + cl.y * 3) * 30; const y = ((cl.y * H - sy * cl.p) % loopH + loopH) % loopH - H * .6; c.drawImage(cl.img, cl.x * W - cl.img.width / 2 + drift, y); }
-    const cx = W / 2, R = Math.min(W * .4, 580), dy = 24, step = .36, rot = sy * .0016 + (reduce ? 0 : t * .00004);
-    const camY = sy * .55, i0 = Math.max(0, Math.floor((camY - 160) / dy)), i1 = Math.floor((camY + H + 160) / dy), items = [];
-    for (let i = i0; i <= i1; i++) { if (i % 9 > 6) continue; const th = i * step + rot, depth = (Math.cos(th) + 1) / 2; items.push({ x: cx + Math.sin(th) * R, y: i * dy - camY + 120 + (depth - .5) * 60, d: depth, f: Math.abs(Math.cos(th)) }); }
-    items.sort((a, b) => a.d - b.d);
-    const s0 = W < 700 ? .6 : 1, drawB = b => { const sc = (.62 + .5 * b.d) * s0; this.brick(c, b.x, b.y, 78 * sc * (.32 + .68 * b.f), 20 * sc, 9 * sc, b.d, .28 + .72 * b.d); };
-    items.filter(b => b.d < .5).forEach(drawB);
-    // keuzerad in de hero
-    const fade = 1 - smooth(H * .7, H * 1.3, sy);
-    if (fade > 0) {
-      const tx = W / 2, ty = H * .5 - sy * .85, tr = Math.min(W * .42, H * .54, 500), seg = TAU / GAMES.length, spin = -Math.PI / 2 - seg / 2 - sy * .004 - (reduce ? 0 : t * .00006);
-      c.globalAlpha = fade;
-      GAMES.forEach((g, i) => {
-        const s = spin + i * seg + .04, e = spin + (i + 1) * seg - .04;
-        c.beginPath(); c.arc(tx, ty, tr, s, e); c.lineWidth = 10; c.lineCap = 'round'; c.strokeStyle = g.acc; c.shadowColor = g.acc; c.shadowBlur = 18; c.stroke(); c.shadowBlur = 0;
-        c.beginPath(); c.arc(tx, ty, tr - 26, s, e); c.lineWidth = 1; c.strokeStyle = 'rgba(162,143,227,.35)'; c.stroke();
-        const label = g.short.toUpperCase(), mid = (s + e) / 2, rad = tr - 46, step2 = 15 / rad;
-        c.font = `500 12px ${MF}`; c.fillStyle = 'rgba(243,239,219,.7)'; c.textAlign = 'center'; c.textBaseline = 'middle';
-        [...label].forEach((ch, k) => { const a = mid + (k - (label.length - 1) / 2) * step2 * .62; c.save(); c.translate(tx + Math.cos(a) * rad, ty + Math.sin(a) * rad); c.rotate(a + Math.PI / 2); c.fillText(ch, 0, 0); c.restore(); });
-      });
-      c.lineCap = 'butt';
-      c.beginPath(); c.moveTo(tx, ty - tr - 30); c.lineTo(tx - 10, ty - tr - 46); c.lineTo(tx + 10, ty - tr - 46); c.closePath(); c.fillStyle = '#d690c9'; c.fill();
+    // de maan
+    const mx = W * .84, my = W < 700 ? H * .045 + 12 * S : H * .12, mr = (W < 700 ? 15 : 20) * S;
+    c.drawImage(this.moonGlow, mx - mr * 5, my - mr * 5, mr * 10, mr * 10);
+    c.fillStyle = '#f6eed2'; c.beginPath(); c.arc(mx, my, mr, 0, TAU); c.fill();
+    c.fillStyle = 'rgba(200,188,160,.45)'; c.beginPath(); c.arc(mx - mr * .3, my - mr * .2, mr * .22, 0, TAU); c.arc(mx + mr * .35, my + mr * .3, mr * .15, 0, TAU); c.arc(mx + mr * .1, my - mr * .45, mr * .1, 0, TAU); c.fill();
+    // wolken die langzaam meeschuiven
+    for (const cl of this.clouds) {
+      const loop = W * 2.2, x = ((cl.x * W - sy * cl.p + (reduce ? 0 : t * .004 * cl.p)) % loop + loop) % loop - cl.img.width * .6;
+      c.drawImage(cl.img, x, cl.y * H);
+    }
+
+    // het land onder de horizon
+    c.fillStyle = this.landG; c.fillRect(0, yH, W, H - yH);
+
+    // ver weg: bomen, boerderijen, molentjes en de skyline van de stad
+    const far = this.mix(tint, [30, 30, 52], .6), fs = .05, fsp = 26 * S, fcam = sy * fs;
+    c.fillStyle = far; c.fillRect(0, yH - 3 * S, W, 5 * S);
+    for (let i = Math.floor((fcam - 60 * S) / fsp); i <= Math.ceil((fcam + W + 60 * S) / fsp); i++) {
+      const x = i * fsp - fcam, zone = this.where(this.pOf(i * fsp, fs)), a = this.h(i, 1);
+      c.fillStyle = far;
+      if (zone === 'stad' || zone === 'kroeg') {
+        const bh = (10 + a * 24) * S; c.fillRect(x, yH - bh, fsp + 1, bh);
+        if (a > .55) { c.beginPath(); c.moveTo(x + fsp * .2, yH - bh); c.lineTo(x + fsp * .5, yH - bh - 9 * S); c.lineTo(x + fsp * .8, yH - bh); c.fill(); }
+        if (this.h(i, 2) < .07) { c.fillRect(x + fsp * .3, yH - 52 * S, fsp * .4, 52 * S); c.beginPath(); c.moveTo(x + fsp * .25, yH - 52 * S); c.lineTo(x + fsp * .5, yH - 80 * S); c.lineTo(x + fsp * .75, yH - 52 * S); c.fill(); }
+        if (this.h(i, 3) < .5) { c.fillStyle = 'rgba(255,207,115,.55)'; c.fillRect(x + fsp * (.2 + a * .5), yH - bh * .6, 2 * S, 2 * S); }
+      } else if (a < .5) {
+        c.beginPath(); c.arc(x + fsp / 2, yH - 7 * S, (6 + a * 8) * S, 0, TAU); c.arc(x + fsp * .2, yH - 4 * S, 5 * S, 0, TAU); c.fill();
+      } else if (a < .58) {
+        c.beginPath(); c.moveTo(x, yH); c.lineTo(x + fsp * .5, yH - 13 * S); c.lineTo(x + fsp, yH); c.fill();
+      } else if (a < .68 && this.h(i - 1, 1) >= .58) this.molen(c, x + fsp / 2, yH, S, t, i, far, true);
+    }
+
+    // dichtbij: molens en tulpenvelden in de polder, grachtenpanden in de stad
+    const ms = .26, msp = 64 * S, mcam = sy * ms, i0 = Math.floor((mcam - 120 * S) / msp), i1 = Math.ceil((mcam + W + 120 * S) / msp);
+    const mid = this.mix(tint, [24, 20, 36], .7), tul = ['#d9485f', '#f2c230', '#e86fa0', '#f08c1a', '#f3efdb'];
+    const BRICK = ['#5b2a24', '#4a2a2a', '#3a2c3c', '#2f3b34', '#5a3a26', '#3b2a22', '#2c2a3e'];
+    const lights = [], items = [];
+    for (let i = i0; i <= i1; i++) items.push({ i, x: i * msp - mcam, zone: this.where(this.pOf(i * msp, ms)) });
+    // eerst de grond: tulpen in rijen
+    for (const it of items) {
+      if (it.zone !== 'polder' || this.h(it.i, 4) > .62) continue;
+      for (let k = 0; k < 4; k++) {
+        const y = yH + (yM - yH) * (.16 + k * .2), hh = (yM - yH) * (.1 + k * .02);
+        c.fillStyle = tul[Math.floor(this.h(it.i, 10 + k) * tul.length)]; c.globalAlpha = .55 + k * .08;
+        c.fillRect(it.x, y, msp + .5, hh);
+      }
       c.globalAlpha = 1;
     }
-    items.filter(b => b.d >= .5).forEach(drawB);
+    for (const it of items) {
+      const { i, x, zone } = it, a = this.h(i, 2);
+      if (zone === 'polder') {
+        if (a < .3 && this.h(i - 1, 2) >= .3) this.molen(c, x + msp / 2, yM - 2 * S, S, t, i, mid, false);
+        else if (a < .48) { this.populier(c, x + msp * .2, yM, S, mid); this.populier(c, x + msp * .55, yM, S, mid); this.populier(c, x + msp * .9, yM, S, mid); }
+        else if (a < .56) { c.fillStyle = mid; c.fillRect(x + 6 * S, yM - 30 * S, msp - 12 * S, 30 * S); c.beginPath(); c.moveTo(x, yM - 28 * S); c.lineTo(x + msp / 2, yM - 58 * S); c.lineTo(x + msp, yM - 28 * S); c.fill(); c.fillStyle = '#ffcf73'; c.fillRect(x + msp * .3, yM - 20 * S, 7 * S, 7 * S); }
+        else if (a < .68) { this.koe(c, x + msp * .3, yM - 4 * S, S); if (a < .62) this.koe(c, x + msp * .75, yM - 10 * S, S * .8); }
+      } else if (zone === 'stad' || zone === 'kroeg' || zone === 'dorp') {
+        const type = zone === 'dorp' ? 3 : Math.floor(this.h(i, 5) * 4.4), ht = (zone === 'dorp' ? 70 + a * 20 : 112 + a * 62) * S;
+        const lit = this.pand(c, x + 1 * S, yM, msp - 2 * S, ht, type, BRICK[Math.floor(this.h(i, 6) * BRICK.length)], i, S);
+        lit.forEach((lx) => lights.push(lx));
+        if (zone === 'kroeg' && this.h(i, 7) < .8) {
+          // lampjes tussen de huizen
+          const ly = yM - ht * .42;
+          for (let q = 0; q < 6; q++) { const lx = x + q * msp / 6; c.fillStyle = ['#ffcf73', '#ff6b8b', '#36c5d6'][(i + q) % 3]; c.beginPath(); c.arc(lx, ly + Math.sin(q / 6 * Math.PI) * 6 * S, 2 * S, 0, TAU); c.fill(); }
+        }
+      }
+    }
+    // bomen langs de gracht
+    for (const it of items) if ((it.zone === 'stad' || it.zone === 'kroeg') && this.h(it.i, 8) < .22) this.boom(c, it.x + msp, yM + 2 * S, S, this.mix(tint, [18, 26, 24], .75));
+
+    // het water: een gracht of een sloot, met de lichtjes erin
+    c.fillStyle = this.waterG; c.fillRect(0, yM, W, yW - yM);
+    c.fillStyle = 'rgba(233,220,188,.22)'; c.fillRect(0, yM, W, 1.5 * S);
+    for (const lx of lights) for (let q = 0; q < 3; q++) {
+      const wob = reduce ? 0 : Math.sin(t * .003 + lx * .1 + q) * 2 * S;
+      c.fillStyle = `rgba(255,207,115,${.42 - q * .11})`; c.fillRect(lx - 4 * S + wob, yM + (4 + q * 6) * S, 8 * S - q * 2 * S, 2 * S);
+    }
+    if (mx > 0) for (let q = 0; q < 3; q++) { c.fillStyle = `rgba(246,238,210,${.22 - q * .06})`; c.fillRect(mx - 12 * S + (reduce ? 0 : Math.sin(t * .002 + q) * 3 * S), yM + (5 + q * 5) * S, 24 * S - q * 5 * S, 1.6 * S); }
+    // bruggetjes over de gracht
+    for (const it of items) {
+      if (it.zone !== 'stad' || this.h(it.i, 11) > .16) continue;
+      const bx = it.x + msp * .5, bw = msp * 1.6, deck = yM - 4 * S;
+      c.fillStyle = '#4e2c26'; c.fillRect(bx - bw / 2, deck, bw, yW - deck);
+      c.fillStyle = '#0f1a2c'; c.beginPath(); c.ellipse(bx, yW, bw * .32, (yW - deck) * .75, 0, Math.PI, 0); c.fill();
+      c.fillStyle = '#e9dcbc'; c.fillRect(bx - bw / 2, deck - 1.5 * S, bw, 2 * S);
+      c.strokeStyle = '#16131c'; c.lineWidth = 1.4 * S; c.beginPath(); c.moveTo(bx - bw / 2, deck - 9 * S); c.lineTo(bx + bw / 2, deck - 9 * S);
+      for (let q = 0; q <= 8; q++) { c.moveTo(bx - bw / 2 + q * bw / 8, deck - 9 * S); c.lineTo(bx - bw / 2 + q * bw / 8, deck); }
+      c.stroke();
+      this.fiets(c, bx - bw * .2, deck - 9 * S, S * .7, 'rgba(243,239,219,.55)', -.12);
+    }
+
+    // de kade en het fietspad
+    c.fillStyle = '#141d1c'; c.fillRect(0, yW, W, yP - yW);
+    c.fillStyle = '#5a2e2a'; c.fillRect(0, yP, W, yPb - yP);
+    c.fillStyle = '#7a4640'; c.fillRect(0, yP, W, 2 * S);
+    const dash = 44 * S, off = ((-sy) % dash + dash) % dash;
+    c.fillStyle = 'rgba(243,239,219,.7)'; for (let x = off - dash; x < W; x += dash) c.fillRect(x, yPb - 5 * S, 24 * S, 2.2 * S);
+    c.fillStyle = '#0f1614'; c.fillRect(0, yPb, W, H - yPb);
+
+    // langs het fietspad: lantaarns, bordjes, thuis en de kroeg (die bewegen even snel als jij fietst)
+    const end = this.max;
+    const lsp = 380 * S;
+    for (let i = Math.floor((sy - 100 * S) / lsp); i <= Math.ceil((sy + W + 100 * S) / lsp); i++) { const x = i * lsp - sy + W * .55; if (i * lsp < end) this.lamp(c, x, yP + 2 * S, S); }
+    for (const f of [.16, .44, .72]) { const x = f * end + W * .7 - sy; if (x > -80 * S && x < W + 80 * S) this.bord(c, x, yP + 1 * S, S, `→ Kroeg ${String(((1 - f) * 3.6).toFixed(1)).replace('.', ',')} km`); }
+    const hx = cx - 150 * S - sy; if (hx > -260 * S) this.thuis(c, hx, yP + 1 * S, S);
+    const kx = end + cx + 60 * S - sy; if (kx < W + 40 * S) this.kroeg(c, kx, yP + 1 * S, S, t);
+
+    // jij, op de fiets
+    this.fietser(c, cx, yP + 25 * S, S, t, sy, this.v > .4, `rgb(${this.acc.map(Math.round).join(',')})`);
   }
 };
 
@@ -828,8 +1133,10 @@ const Sky = {
 const Meter = {
   init(){
     const pc = $('#pixcar').getContext('2d');
-    const P = ['....#######.......', '...##.....##......', '.##############...', '#################.', '#.##.#######.##.##', '..##.........##...'];
-    P.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') { pc.fillStyle = (y === 4 && (x === 2 || x === 3 || x === 13 || x === 14)) || y === 5 ? '#f3efdb' : '#d690c9'; pc.fillRect(x, y, 1, 1); } }));
+    // een fietsje in pixels: crème wielen, een lila frame
+    const P = ['......##.....##...', '.......#....#.....', '..###..######.###.', '.#...#.#...#.#...#', '.#..##..#.#..#...#', '..###...##....###.'];
+    const wheel = (x, y) => y >= 2 && ((x >= 1 && x <= 5) || (x >= 13 && x <= 17)) && !(y === 4 && (x === 4 || x === 5));
+    P.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') { pc.fillStyle = wheel(x, y) ? '#f3efdb' : '#d690c9'; pc.fillRect(x, y, 1, 1); } }));
     const odo = document.createElement('div'); odo.className = 'odo';
     odo.innerHTML = Array.from({ length: 4 }, () => `<span class="dg">${'0123456789'.split('').map(n => `<i>${n}</i>`).join('')}</span>`).join('') + '<span class="u">m</span>';
     $('.meter').appendChild(odo); this.odo = odo; this.digits = [...odo.querySelectorAll('.dg')]; this.car = $('#pixcar'); this.last = -1;

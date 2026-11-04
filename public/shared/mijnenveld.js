@@ -4,6 +4,7 @@
 // kaart. Ligt er een mijn op, dan drink je de slokken per mijn en leg je hem ergens anders neer: op een kaart of
 // tussen twee kaarten (dan raakt hij ze allebei). Daarna gok je rood of zwart en draai je de kaart om.
 // Goed: de volgende is aan de beurt. Fout: 2 slokken en je gooit opnieuw. Liggen alle kaarten open, dan is het klaar.
+// Zo speelt ook de online versie van dark-mark.com.
 // Een potje is een gewoon object (JSON) met de seed van de random-generator erin, net als bij Bussen.
 import { SUITS, newDeck, shuffle, rand, cleanNames, NAME_MAX } from './bussen.js';
 
@@ -14,9 +15,8 @@ export const SIDE = 6;                 // 6 bij 6
 export const SIZE = SIDE * SIDE;
 export const MINES = 8;                // zoveel verstopte mijnen aan het begin
 export const WRONG_SIPS = 2;           // fout gegokt
-export const MINE_SIPS = [2, 3, 5];    // slokken per mijn: de host kiest (vroeger 3, 5 of 10)
-export const MINE_DEFAULT = 3;
-export const MAX_SIPS = 6;             // land je op twee mijnen tegelijk, dan nog nooit meer dan dit
+export const MINE_SIPS = [3, 5, 10];   // slokken per mijn: de host kiest
+export const MINE_DEFAULT = 5;
 export const COLORS = ['rood', 'zwart'];
 const LOG_SIZE = 16;
 
@@ -136,7 +136,7 @@ export function roll(g, player, value = null) {
   const found = minesOn(g, target);
   if (found.length) {
     // boem: de mijnen gaan van het veld, en wie erop landde legt ze ergens anders neer
-    const count = found.reduce((n, m) => n + m.count, 0), sips = Math.min(MAX_SIPS, count * g.mineSips);
+    const count = found.reduce((n, m) => n + m.count, 0), sips = count * g.mineSips;
     g.mines = g.mines.filter((m) => !found.includes(m));
     const p = g.players[player];
     p.sips += sips;

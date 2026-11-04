@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rotonde</title>
-<meta name="description" content="Het drankspel Rotonde online: 37 kaarten als een zon op tafel. Kies een kaart, gok rood of zwart. Goed gaat in de pot, fout drink je de kaart plus de pot.">
+<meta name="description" content="Het kroegspel Rotonde online: 37 kaarten als een zon op tafel. Kies een kaart, gok rood of zwart. Goed gaat in de pot, fout krijg je de kaart plus de pot aan strafpunten.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -43,12 +43,12 @@
   --glass:rgba(255,255,255,.08);
   --glass-line:rgba(255,255,255,.24);
   --glow:var(--mag);
-  /* de kleur van de achterkant zegt hoeveel slokken een kaart waard is */
+  /* de kleur van de achterkant zegt hoeveel strafpunten een kaart waard is */
   --v1:#e5484d;
   --v2:#f78a1d;
   --v3:#4a5ae8;
   --v4:#34c25a;
-  --v6:#d63bb5;
+  --v12:#d63bb5;
   --display:"Sofia Sans Extra Condensed","Arial Narrow","Helvetica Neue",sans-serif;
   --mono:"Martian Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
   --s1:11px; --s2:13px; --s3:15px;
@@ -129,7 +129,7 @@ p{margin:0}
 
 /* ---------- de zon van kaarten ----------
    Een vierkant midden op het vilt; elke kaart staat op zijn plek (--x, --y in procenten) en ligt met de lange kant
-   naar het midden (--a). De kleur van de achterkant zegt hoeveel slokken hij waard is. */
+   naar het midden (--a). De kleur van de achterkant zegt hoeveel strafpunten hij waard is. */
 .sun{position:absolute;left:50%;top:47.5%;z-index:2;--S:min(72cqw,62cqh,460px);width:var(--S);height:var(--S);transform:translate(-50%,-50%);--cw:calc(var(--S) * .091)}
 .rc{position:absolute;left:var(--x);top:var(--y);width:var(--cw);height:calc(var(--cw) * 1.4);transform:translate(-50%,-50%) rotate(var(--a));border-radius:calc(var(--cw) * .16);display:grid;place-items:center;transition:transform .2s}
 .rc .rin{position:absolute;inset:0;border-radius:inherit;display:grid;place-items:center}
@@ -325,9 +325,10 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // vaste kleur per stoel aan tafel
 const PC = ['#4f8dff', '#d690c9', '#ff7a00', '#2fbf71', '#f7c548', '#ff4a24', '#a28fe3', '#36c5d6', '#e86aa0', '#9ccf3c'];
 const SUITNAME = { harten: 'Harten', ruiten: 'Ruiten', klaveren: 'Klaveren', schoppen: 'Schoppen' };
-const VALNAME = { 1: 'rood', 2: 'oranje', 3: 'blauw', 4: 'groen', [R.CENTER]: 'paars' };
+const VALNAME = { 1: 'rood', 2: 'oranje', 3: 'blauw', 4: 'groen', 12: 'paars' };
 const ARR = '<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>';
-const GLASS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l-1.6 16.2a2 2 0 0 1-2 1.8H9.6a2 2 0 0 1-2-1.8z"/><path d="M6.6 9h10.8"/></svg>';
+// een strafkaart: zo zie je de strafpunten
+const STRAF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="3" width="11" height="17" rx="2.2" transform="rotate(14 12 11.5)"/><path d="M12.4 8.2v4.4M12.1 15.6v.2" stroke-linecap="round"/></svg>';
 const SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
 const SHOW_MS = 2200;   // zo lang blijft een omgedraaide kaart met de uitslag in beeld
 // waar elke kaart van de zon ligt: in procenten van het vierkant, met de lange kant naar het midden
@@ -526,7 +527,7 @@ function present(ev) {
         if (!ev.ok && ev.player === S.you) buzz([90, 50, 90]);
       }, 350);
       if (!ev.ok && ev.player === S.you) {
-        window.Slok?.drink(ev.sips, `${ev.pot ? `De kaart is ${ev.v} waard en er zat ${ev.pot} in de pot: ${ev.v} + ${ev.pot}` : `De kaart is ${ev.v} waard en de pot was leeg`}${ev.v + ev.pot > ev.sips ? `, maar meer dan ${R.MAX_SIPS} wordt het nooit` : ''}.`, { delay: 1000 });
+        window.Slok?.drink(ev.sips, `${ev.pot ? `De kaart is ${ev.v} waard en er zat ${ev.pot} in de pot: ${ev.v} + ${ev.pot}` : `De kaart is ${ev.v} waard en de pot was leeg`}.`, { delay: 1000 });
       }
       break;
     case 'extra':
@@ -638,7 +639,7 @@ function tableHTML({ order: seatsOrder, people, center = '', seat = () => ({}), 
     const btn = o.kick ? ` type="button" data-act="kickask" data-seat="${i}" aria-label="${esc(p.name)} van tafel halen"` : '';
     const el = btn ? 'button' : 'div';
     const line = p.empty ? '' : p.connected === false ? '<span class="off">weg</span>'
-      : p.sips != null ? `<span class="${p.sips ? '' : 'zero'}" title="Slokken gedronken">${GLASS}${p.sips}</span>` : '';
+      : p.sips != null ? `<span class="${p.sips ? '' : 'zero'}" title="Strafpunten">${STRAF}${p.sips}</span>` : '';
     const isMe = S && i === S.you && !p.empty;
     return `<${el} class="seat${o.now ? ' now' : ''}${p.empty ? ' empty' : ''}${isMe ? ' me' : ''}${p.connected === false ? ' off' : ''}" style="--pc:${PC[i % PC.length]}"${btn}>
       <span class="ava">${p.empty ? '+' : esc(initial(p.name))}</span>
@@ -654,7 +655,7 @@ function tableHTML({ order: seatsOrder, people, center = '', seat = () => ({}), 
 // tijdens het spel zonder het H-rondje van de host: dat zou over de zon vallen
 const gameTable = (center, seat) => tableHTML({ order: order(), people: S.players, center, seat });
 const sheetTop = (title, kick = '', close = true) => `<div class="sheet-top"><div>${kick ? `<p class="kick">${kick}</p>` : ''}<h2 class="sheet-title" id="sheetTitle">${title}</h2></div>${close ? '<button class="xbtn" type="button" data-act="close" aria-label="Sluiten">✕</button>' : ''}</div>`;
-const legend = () => `<div class="legend">${[1, 2, 3, 4, R.CENTER].map((v) => `<span style="--rc:var(--v${v})"><i></i>${VALNAME[v]} ${slok(v)}</span>`).join('')}</div>`;
+const legend = () => `<div class="legend">${[1, 2, 3, 4, 12].map((v) => `<span style="--rc:var(--v${v})"><i></i>${VALNAME[v]} ${slok(v)}</span>`).join('')}</div>`;
 // een dichte zon voor op het startscherm en in de lobby
 const closedSun = () => R.LAYOUT.map((s) => ({ v: s.v }));
 
@@ -667,7 +668,7 @@ function vHome() {
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${R.MIN_PLAYERS} tot ${R.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>37 kaarten liggen als een zon op tafel. Kies een kaart en gok rood of zwart. Goed? De kaart gaat in de pot. Fout? Dan drink jij de kaart plus de hele pot (hooguit ${R.MAX_SIPS}).</p>
+    <p>37 kaarten liggen als een zon op tafel. Kies een kaart en gok rood of zwart. Goed? De kaart gaat in de pot. Fout? Dan krijg jij de kaart plus de hele pot aan strafpunten.</p>
     ${legend()}
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${R.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
@@ -679,7 +680,7 @@ function vHome() {
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
     <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="rotonde"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
-  <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
+  <p class="note">Voor 18+. Wat een strafpunt is, spreken jullie samen af.</p>`;
 }
 
 function vLobby() {
@@ -704,7 +705,7 @@ function vSpel() {
   const sun = sunHTML({ cards: S.cards, can: picking, sel: S.sel, fresh: ev ? { i: ev.i, ok: ev.ok, flip: ui.showFresh } : null });
   const seat = (i) => {
     const o = { now: S.phase !== 'klaar' && i === S.turn };
-    if (ev && i === ev.player) o.tag = ev.ok ? ['', `+${ev.v} pot`] : ['bad', `Drinkt ${ev.sips}`];
+    if (ev && i === ev.player) o.tag = ev.ok ? ['', `+${ev.v} pot`] : ['bad', `Straf ${ev.sips}`];
     return o;
   };
   let dock;
@@ -718,7 +719,7 @@ function vSpel() {
 function resultLine(ev) {
   return ev.ok
     ? `${who(ev.player)} gokte ${ev.color} en het was ${label(ev.card)}. Er ${ev.v === 1 ? 'gaat' : 'gaan'} ${ev.v} in de pot.`
-    : `${who(ev.player)} gokte ${ev.color}, maar het was ${label(ev.card)}: ${ev.v} van de kaart${ev.pot ? ` + ${ev.pot} uit de pot` : ''}${ev.v + ev.pot > ev.sips ? `, maar meer dan ${R.MAX_SIPS} wordt het nooit` : ''}.`;
+    : `${who(ev.player)} gokte ${ev.color}, maar het was ${label(ev.card)}: ${ev.v} van de kaart${ev.pot ? ` + ${ev.pot} uit de pot` : ''}.`;
 }
 
 // Jij bent aan de beurt (of je speelt als host voor iemand die weg is).
@@ -731,39 +732,39 @@ function myDock(actor, ev) {
       <button class="cta hot" type="button" data-act="pass"><span>Doorgeven</span>${ARR}</button>
       <button class="ghostbtn" type="button" data-act="more">Nog eentje gokken</button>`;
   }
-  const head = ev && ev.player === actor && !ev.ok ? `Fout! Drink ${ev.sips}` : S.extra ? 'Je extra gok' : actor === S.you ? 'Jij bent aan de beurt' : `Jij speelt voor ${nameOf(actor)}`;
+  const head = ev && ev.player === actor && !ev.ok ? `Fout! ${slok(ev.sips)}` : S.extra ? 'Je extra gok' : actor === S.you ? 'Jij bent aan de beurt' : `Jij speelt voor ${nameOf(actor)}`;
   if (S.sel < 0) {
     return `${forNote}<div class="ask-h"><h2>${head}</h2>${potChip()}</div>${last}
-      <p class="sub">${ev && ev.player === actor && !ev.ok ? 'Probeer het opnieuw: kies' : 'Kies'} een dichte kaart op tafel. De kleur zegt hoeveel slokken hij waard is.</p>${legendDark()}`;
+      <p class="sub">${ev && ev.player === actor && !ev.ok ? 'Probeer het opnieuw: kies' : 'Kies'} een dichte kaart op tafel. De kleur zegt hoeveel strafpunten hij waard is.</p>${legendDark()}`;
   }
   const v = S.cards[S.sel].v, busy = ui.sent === S.seq ? 'disabled' : '';
   return `${forNote}<div class="ask-h"><h2>Rood of zwart?</h2>${potChip()}</div>
-    <div class="pickinfo"><span class="swatch" style="--rc:var(--v${v})">${v}</span><p class="sub">Deze kaart is <b>${slok(v)}</b> waard. Goed: ${v} in de pot. Fout: jij drinkt <b>${Math.min(R.MAX_SIPS, v + S.pot)}</b>${S.pot ? ` (${v} + de pot${v + S.pot > R.MAX_SIPS ? `, hooguit ${R.MAX_SIPS}` : ''})` : ''}.</p></div>
+    <div class="pickinfo"><span class="swatch" style="--rc:var(--v${v})">${v}</span><p class="sub">Deze kaart is <b>${slok(v)}</b> waard. Goed: ${v} in de pot. Fout: jij krijgt <b>${v + S.pot}</b>${S.pot ? ` (${v} + de pot)` : ''}.</p></div>
     <div class="rz"><button class="red" type="button" data-act="guess" data-c="rood" ${busy}>Rood<small>♥♦</small></button><button class="black" type="button" data-act="guess" data-c="zwart" ${busy}>Zwart<small>♣♠</small></button></div>
     <p class="fine">Tik op een andere kaart om van kaart te wisselen.</p>`;
 }
 
-const legendDark = () => `<p class="fine">Rood 1 · oranje 2 · blauw 3 · groen 4 · paars ${R.CENTER}. Nog ${closedLeft()} kaarten dicht.</p>`;
+const legendDark = () => `<p class="fine">Rood 1 · oranje 2 · blauw 3 · groen 4 · paars 12. Nog ${closedLeft()} kaarten dicht.</p>`;
 
 function waitDock() {
   const t = S.turn;
   const doing = S.phase === 'keuze' ? 'kiest: nog eentje of doorgeven' : S.sel >= 0 ? `gokt op een kaart van ${slok(S.cards[S.sel].v)}` : S.extra ? 'kiest een kaart voor de extra gok' : 'kiest een kaart';
   return `<div class="ask-h"><h2>${nameOf(t)} is aan de beurt</h2>${potChip()}</div>
-    <p class="sub">${nameOf(t)} ${doing}. Fout gokken is de kaart plus de pot drinken.</p>
+    <p class="sub">${nameOf(t)} ${doing}. Fout gokken is de kaart plus de pot aan strafpunten.</p>
     <p class="waitline">Wachten op ${nameOf(t)}</p>${legendDark()}`;
 }
 
 function resultDock(ev) {
   return `<div class="ask-h"><div class="res-h ${ev.ok ? 'good' : 'bad'}"><span class="verdict">${ev.ok ? 'Goed!' : 'Fout!'}</span></div>${potChip()}</div>
     <p class="sub">${resultLine(ev)}</p>
-    ${ev.ok ? '' : `<div class="action">${GLASS}<span>${ev.player === S.you ? 'Jij drinkt' : `${nameOf(ev.player)} drinkt`} ${slok(ev.sips)}</span></div>`}`;
+    ${ev.ok ? '' : `<div class="action">${STRAF}<span>${ev.player === S.you ? 'Jij krijgt' : `${nameOf(ev.player)} krijgt`} ${slok(ev.sips)}</span></div>`}`;
 }
 
 function doneDock() {
   const rows = S.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.sips - a.p.sips).map(({ p, i }) =>
     `<div style="--pc:${PC[i % PC.length]}"><span><i></i>${who(i)}</span><b>${slok(p.sips)}</b></div>`).join('');
   return `<div class="ask-h"><h2>Rotonde leeg!</h2><span class="potchip">Ronde <b>${S.round}</b></span></div>
-    <p class="sub">Alle kaarten liggen open.${S.pot ? ` Er bleef ${S.pot} in de pot: die hoeft niemand te drinken.` : ''}</p>
+    <p class="sub">Alle kaarten liggen open.${S.pot ? ` Er bleef ${S.pot} in de pot: die krijgt niemand.` : ''}</p>
     <div class="standing">${rows}</div>
     ${isHost()
       ? `<button class="cta hot" type="button" data-act="next"><span>Nieuwe rotonde</span>${ARR}</button>`
@@ -791,10 +792,10 @@ function scoreHTML() {
   const rows = S.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.sips - a.p.sips);
   return `${sheetTop('Stand')}
   <div class="scorecard"><table>
-    <thead><tr><th>Speler</th><th>Slokken</th><th>Goed</th><th>Fout</th><th>Grootste</th></tr></thead>
+    <thead><tr><th>Speler</th><th>Strafpunten</th><th>Goed</th><th>Fout</th><th>Grootste</th></tr></thead>
     <tbody>${rows.map(({ p, i }) => `<tr style="--pc:${PC[i % PC.length]}"><td><i></i>${esc(p.name)}</td><td>${p.sips}</td><td>${p.right}</td><td>${p.wrong}</td><td>${p.max}</td></tr>`).join('')}</tbody>
   </table></div>
-  <p class="sub">Slokken: hoeveel iemand moest drinken. Goed en fout: hoe vaak iemand de kleur goed of fout gokte. Grootste: de meeste slokken in één keer.</p>`;
+  <p class="sub">Strafpunten: hoeveel iemand er kreeg. Goed en fout: hoe vaak iemand de kleur goed of fout gokte. Grootste: de meeste strafpunten in één keer.</p>`;
 }
 
 function rulesHTML() {
@@ -804,13 +805,13 @@ function rulesHTML() {
     <p>Iedereen speelt op zijn eigen telefoon. Maak een tafel en deel de code, of doe mee met de code van een ander.</p>
     ${legend()}
     <ol>
-      <li><b>De zon.</b> ${R.SIZE} kaarten liggen dicht op tafel: 16 rode in de buitenste ring, daarbinnen 8 oranje en 4 blauwe, 8 groene rond het midden en een paarse in het midden. De kleur zegt hoeveel slokken een kaart waard is.</li>
+      <li><b>De zon.</b> ${R.SIZE} kaarten liggen dicht op tafel: 16 rode in de buitenste ring, daarbinnen 8 oranje en 4 blauwe, 8 groene rond het midden en een paarse in het midden. De kleur zegt hoeveel strafpunten een kaart waard is.</li>
       <li><b>Kiezen en gokken.</b> Wie aan de beurt is, kiest een dichte kaart en gokt rood (harten, ruiten) of zwart (klaveren, schoppen). De kaart gaat open.</li>
       <li><b>Goed?</b> Dan gaat de waarde van de kaart in de pot. Je mag nog één keer gokken om de pot groter te maken, of doorgeven aan de volgende.</li>
-      <li><b>Fout?</b> Dan drink jij de waarde van de kaart plus de hele pot, maar nooit meer dan ${slok(R.MAX_SIPS)}. De pot is weer leeg en je probeert het opnieuw met een andere kaart.</li>
+      <li><b>Fout?</b> Dan krijg jij de waarde van de kaart plus de hele pot aan strafpunten. De pot is weer leeg en je probeert het opnieuw met een andere kaart.</li>
       <li><b>Klaar.</b> Liggen alle kaarten open, dan is de rotonde leeg. De host kan een nieuwe leggen; de stand blijft staan.</li>
     </ol>
-    <p class="small">Een kaart die open ligt, blijft open. Valt wie aan de beurt is weg, dan is de volgende aan de beurt. Wie later aanschuift, gokt mee als hij aan de beurt komt. Hetzelfde spel heet ook wel Atoombommen, Spinnenwebben of Kernreactor; alleen de vorm verschilt. Drink met mate: water of karnemelk telt ook.</p>
+    <p class="small">Een kaart die open ligt, blijft open. Valt wie aan de beurt is weg, dan is de volgende aan de beurt. Wie later aanschuift, gokt mee als hij aan de beurt komt. Hetzelfde spel heet ook wel Atoombommen, Spinnenwebben of Kernreactor; alleen de vorm verschilt. Wat een strafpunt is, spreken jullie samen af.</p>
   </div>`;
 }
 
@@ -887,8 +888,8 @@ function render() {
     const n = S.players[S.you].sips;
     own.hidden = false;
     own.classList.toggle('zero', !n);
-    own.innerHTML = `${GLASS}${n}`;
-    own.setAttribute('aria-label', `Jij dronk ${slok(n)}`);
+    own.innerHTML = `${STRAF}${n}`;
+    own.setAttribute('aria-label', `Jij hebt ${slok(n)}`);
   } else own.hidden = true;
   if (ui.sheet && ui.sheet.key === 'menu') ui.sheet.html = menuHTML();
   if (ui.sheet && ui.sheet.key === 'score' && S) ui.sheet.html = scoreHTML();
@@ -958,7 +959,7 @@ const actions = {
   next() { Snd.ac(); Net.send({ t: 'next' }); },
   mine() {
     const n = S.players[S.you].sips;
-    toast(n ? `Jij dronk al ${slok(n)}` : 'Jij hebt nog niks hoeven drinken');
+    toast(n ? `Jij hebt al ${slok(n)}` : 'Jij hebt nog geen strafpunten');
   },
   menu() { openSheet('menu', menuHTML()); },
   uitleg() { closeSheet(); window.Uitleg?.open('rotonde'); },
