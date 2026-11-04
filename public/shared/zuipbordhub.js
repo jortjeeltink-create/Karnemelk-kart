@@ -1,5 +1,7 @@
 // Borrelbord (eerst Zuipbord) online: tafels met een groepscode (zie tafels.js), de spelregels in zuipbord.js.
 // Er is niks geheim: iedereen ziet het bord, alle pionnen en wat er op elk vakje gebeurt.
+// De host kiest de versie: licht, middel of extreem. Dat kan in de lobby en na een potje (dan geldt het voor het
+// volgende potje), niet tijdens een potje.
 import * as Z from './zuipbord.js';
 import { TableHub } from './tafels.js';
 
@@ -14,8 +16,13 @@ const zuipbord = {
   maxPlayers: Z.MAX_PLAYERS,
   cleanNames: Z.cleanNames,
 
-  setup() {},
-  settings: () => false,
+  setup(t) { t.mode = Z.MODE_DEFAULT; },
+  settings(t, msg) {
+    if (!Z.MODES.includes(msg.mode) || msg.mode === t.mode || (t.g && t.g.phase !== 'klaar')) return false;
+    t.mode = msg.mode;
+    if (t.g) t.g.mode = msg.mode;
+    return true;
+  },
 
   // nieuwe spelers mogen altijd aanschuiven: ze beginnen op start
   joinBlocked: () => null,
@@ -25,7 +32,7 @@ const zuipbord = {
 
   // de host gooit als eerste
   start(t, seed) {
-    const g = Z.newGame(t.players.map((p) => p.name), { seed });
+    const g = Z.newGame(t.players.map((p) => p.name), { seed, mode: t.mode });
     return Z.begin(g, live(t), t.host) ? g : null;
   },
 
@@ -51,6 +58,7 @@ const zuipbord = {
 
   view(t, me, out) {
     const g = t.g;
+    out.mode = g ? g.mode : t.mode;
     if (!g) return;
     out.phase = g.phase;
     out.players = out.players.map((base, i) => {

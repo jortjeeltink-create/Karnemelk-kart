@@ -566,7 +566,7 @@ function present(ev) {
         if (!S) return;
         Snd.boom(); buzz(ev.player === S.you ? [200, 60, 200] : [120]);
         banner('Boem!', `${ev.player === S.you ? 'Jij krijgt' : `${S.players[ev.player].name} krijgt`} ${B.sipsText(ev.sips)}${ev.count > 1 ? ` (${ev.count} mijnen)` : ''}`, 2200);
-        if (ev.player === S.you) window.Slok?.drink(ev.sips, ev.count > 1 ? `Je landde op ${ev.count} mijnen: ${ev.count} × ${S.mineSips}. Daarna leg jij ze ergens anders neer.` : `Je landde op een mijn. Daarna leg jij hem ergens anders neer.`, { title: `Boem! Drink ${B.sipsText(ev.sips)}`, delay: 1300 });
+        if (ev.player === S.you) window.Slok?.drink(ev.sips, ev.count > 1 ? `Je landde op ${ev.count} mijnen: ${ev.count} × ${S.mineSips}. Daarna leg jij ze ergens anders neer.` : `Je landde op een mijn. Daarna leg jij hem ergens anders neer.`, { title: `Boem! ${B.sipsText(ev.sips)}`, delay: 1300 });
         ui.boom = true;
         clearTimeout(ui.boomTimer);
         ui.boomTimer = setTimeout(() => { ui.boom = false; }, 700);

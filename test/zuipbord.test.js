@@ -244,3 +244,73 @@ test('een potje blijft te doen: gemiddeld zo\'n 15 strafpunten per speler, en ni
     assert.ok(megas >= 300 && megas <= 300 * 3, `${n} spelers: ${megas} mega strafpunten in 300 potjes`);
   }
 });
+
+test('drie versies: licht, middel en extreem; zonder versie is het middel', () => {
+  assert.deepEqual(Z.MODES, ['licht', 'middel', 'extreem']);
+  assert.equal(Z.newGame(names(2)).mode, 'middel');
+  assert.equal(Z.newGame(names(2), { mode: 'onzin' }).mode, 'middel');
+  for (const m of Z.MODES) {
+    const b = Z.boardOf(m);
+    assert.equal(b.length, Z.SIZE + 1, m);
+    assert.deepEqual([b[0].t, b[Z.SIZE].t], ['start', 'finish'], m);
+    assert.equal(b.filter((s) => s.t === 'gans').length, 5, `${m}: vijf ganzen`);
+  }
+  assert.equal(Z.BOARD_LICHT.filter((s) => s.t === 'mega').length, 0, 'licht: geen mega strafpunten');
+  assert.deepEqual(Z.BOARD_EXTREEM.flatMap((s, i) => (s.t === 'mega' ? [i] : [])), [24, 47], 'extreem: op 24 en 47');
+});
+
+test('licht: de winnaar kiest wie er 3 krijgt, de laatste krijgt er 2; geen mega strafpunten', () => {
+  const g = Z.newGame(names(3), { seed: 1, mode: 'licht' });
+  Z.begin(g, seats(3), 0);
+  g.players[1].pos = 10; g.players[2].pos = 20;
+  from(g, 0, 46, 1);
+  assert.deepEqual(last(g, 'vak').drinks, [[0, 2]], 'vakje 47: 2 strafpunten');
+  from(g, 0, 45, 6);
+  assert.deepEqual([g.phase, g.pending], ['kiezen', { kind: 'winst', n: Z.WIN_SIPS }]);
+  const before = g.players[2].sips;
+  Z.choose(g, 0, 2, seats(3));
+  assert.deepEqual(last(g, 'keuze').drinks, [[2, 3]]);
+  assert.equal(g.players[2].sips, before + 3);
+  assert.equal(g.phase, 'klaar');
+  assert.deepEqual(last(g, 'klaar').drinks, [[1, 2]]);
+  assert.ok(g.players.every((p) => p.megas === 0));
+});
+
+test('extreem: mega strafpunten op 24 en 47, bij de doodskop, voor de winnaar en de laatste', () => {
+  const g = Z.newGame(names(3), { seed: 1, mode: 'extreem' });
+  Z.begin(g, seats(3), 0);
+  from(g, 0, 22, 2);
+  assert.deepEqual(last(g, 'vak').megas, [[0, 1]], 'vakje 24');
+  from(g, 1, 44, 2);
+  const dood = last(g, 'vak');
+  assert.deepEqual([dood.t, dood.drinks, dood.megas], ['dood', [[1, 3]], [[1, 1]]], 'de doodskop: 3 strafpunten en een mega strafpunt');
+  assert.equal(g.players[1].pos, 0);
+  g.players[1].pos = 10; g.players[2].pos = 20;
+  from(g, 0, 45, 6);
+  assert.deepEqual(g.pending, { kind: 'mega', n: 1 });
+  Z.choose(g, 0, 2, seats(3));
+  assert.deepEqual(last(g, 'klaar').megas, [[1, 1]], 'de laatste krijgt een mega strafpunt');
+  assert.deepEqual(g.players.map((p) => p.megas), [1, 2, 1]);
+});
+
+test('hoe extremer, hoe meer: licht zo\'n 10, middel zo\'n 15 en extreem zo\'n 25 per speler', () => {
+  const stats = (mode, n) => {
+    let sips = 0, megas = 0;
+    for (let seed = 1; seed <= 200; seed++) {
+      const g = Z.newGame(names(n), { seed, mode });
+      Z.begin(g, seats(n), 0);
+      for (let k = 0; g.phase !== 'klaar' && k < 5000; k++) play(g, n, k);
+      assert.equal(g.phase, 'klaar', `${mode} seed ${seed}`);
+      for (const p of g.players) { sips += p.sips; megas += p.megas; }
+    }
+    return [sips / 200 / n, megas / 200 / n];
+  };
+  for (const n of [3, 6]) {
+    const [l, lm] = stats('licht', n), [m, mm] = stats('middel', n), [e, em] = stats('extreem', n);
+    assert.ok(l >= 7 && l <= 14, `${n} spelers licht: ${l.toFixed(1)}`);
+    assert.ok(m >= 11 && m <= 20, `${n} spelers middel: ${m.toFixed(1)}`);
+    assert.ok(e >= 19 && e <= 32, `${n} spelers extreem: ${e.toFixed(1)}`);
+    assert.equal(lm, 0);
+    assert.ok(em > mm * 2, `${n} spelers: mega strafpunten middel ${mm.toFixed(2)}, extreem ${em.toFixed(2)}`);
+  }
+});

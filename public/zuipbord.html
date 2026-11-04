@@ -205,6 +205,13 @@ button.pl{cursor:pointer}
 .vk span{display:block;font-size:13px;line-height:1.35;color:var(--ink-2)}
 .vk span strong{color:var(--ink)}
 .who{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.modes button{display:grid;align-content:start;gap:3px;padding:9px 9px 10px;border-radius:16px;text-align:left;font-size:12px;line-height:1.25;color:var(--ink-2);box-shadow:inset 0 0 0 2px rgba(58,36,18,.2);background:rgba(255,255,255,.5)}
+.modes button b{font-family:var(--display);font-size:19px;line-height:1.05;color:var(--ink)}
+.modes button[aria-pressed="true"]{box-shadow:inset 0 0 0 3px var(--mc,var(--v-drink));background:#fff}
+.modes button[data-m="licht"]{--mc:var(--v-geef)}.modes button[data-m="middel"]{--mc:var(--v-iedereen)}.modes button[data-m="extreem"]{--mc:var(--v-dood)}
+.modeline{font-size:var(--s1);color:var(--ink-2)}
+.modeline b{color:var(--ink)}
 .who button{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 2px rgba(58,36,18,.15),0 3px 0 rgba(58,36,18,.15);font-weight:900;font-size:15px;color:var(--ink);text-align:left;transition:transform .1s}
 .who button:active{transform:translateY(2px)}
 .who button:disabled{opacity:.5}
@@ -329,6 +336,7 @@ const svg = (inner) => `<svg viewBox="0 0 24 24" aria-hidden="true">${inner}</sv
 const F = 'fill="currentColor"', ST = 'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"';
 // plaatjes voor de vakjes
 const ICON = {
+  winst: svg(`<path ${F} d="M6 3h12v4a6 6 0 0 1-12 0z"/><path ${ST} d="M6 5H3.5a3 3 0 0 0 3 4M18 5h2.5a3 3 0 0 1-3 4M12 13v4M8 21h8M9.5 17h5"/>`),
   drink: svg(`<g transform="rotate(12 12 11.5)"><rect x="6.5" y="3" width="11" height="17" rx="2.4" ${F}/><path fill="rgba(255,255,255,.8)" d="M11 6.5h2v7h-2zM11 15h2v2h-2z"/></g>`),
   geef: svg(`<g transform="rotate(10 7.5 12)"><rect x="3" y="4.5" width="9" height="14" rx="2" ${F}/></g><path ${ST} d="M14 12h7M18 8.5l3.5 3.5L18 15.5"/>`),
   iedereen: svg(`<g ${F}><rect x="2" y="6" width="7.5" height="12" rx="1.6" transform="rotate(-12 5.75 12)"/><rect x="8.25" y="4" width="7.5" height="12" rx="1.6"/><rect x="14.5" y="6" width="7.5" height="12" rx="1.6" transform="rotate(12 18.25 12)"/></g>`),
@@ -349,7 +357,17 @@ const ICON = {
   mega: svg(`<g transform="rotate(12 12 12)"><rect x="5" y="2" width="14" height="20" rx="2.8" ${F}/><path fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" d="M8.6 16V8l3.4 4.6L15.4 8v8"/></g>`),
   finish: svg(`<path ${ST} d="M5 21V3"/><path fill="currentColor" d="M5 3h4v3H5zM13 3h4v3h-4zM9 6h4v3H9zM5 9h4v3H5zM13 9h4v3h-4zM17 6h3v3h-3zM9 3h4v0zM17 3h3v0z"/>`),
 };
-const board = () => Z.BOARD;
+// de versie: licht, middel of extreem (de host kiest)
+const mode = () => (S && S.mode) || Z.MODE_DEFAULT;
+const board = () => Z.boardOf(mode());
+const MODEINFO = {
+  licht: { name: 'Licht', short: "Zo'n 10 strafpunten per potje, zonder mega strafpunten" },
+  middel: { name: 'Middel', short: "Zo'n 15 per potje, en een mega strafpunt op 47 en voor de winnaar" },
+  extreem: { name: 'Extreem', short: "Zo'n 25 per potje, en mega strafpunten op 24, 47, de doodskop en de finish" },
+};
+// wat de winnaar uitdeelt, in woorden
+const winText = () => { const w = Z.rulesOf(mode()).win; return w.kind === 'mega' ? 'een mega strafpunt' : slok(w.n); };
+const lastText = () => { const l = Z.rulesOf(mode()).last; return l.mega ? 'een mega strafpunt' : slok(l.n); };
 // soort vakje -> kleur, plaatje, korte naam en uitleg
 const nOf = (t) => (board().find((s) => s.t === t) || {}).n;
 const KIND = {
@@ -362,7 +380,7 @@ const KIND = {
   gans: { c: 'var(--v-beweeg)', name: 'Gans', lb: () => 'Gans', text: 'Nog een keer zoveel vakjes verder.' },
   brug: { c: 'var(--v-beweeg)', name: 'Brug', lb: () => 'Brug', text: `Over de brug naar vakje ${Z.BRIDGE_TO}.` },
   doolhof: { c: 'var(--v-beweeg)', name: 'Doolhof', lb: () => 'Doolhof', text: `${Z.MAZE_BACK} vakjes terug.` },
-  dood: { c: 'var(--v-dood)', name: 'Doodskop', lb: () => 'Dood', get text() { return `Terug naar start, en je krijgt ${slok(nOf('dood'))}.`; } },
+  dood: { c: 'var(--v-dood)', name: 'Doodskop', lb: () => 'Dood', get text() { return `Terug naar start, en je krijgt ${slok(nOf('dood'))}${(board().find((s) => s.t === 'dood') || {}).mega ? ' en een mega strafpunt' : ''}.`; } },
   cafe: { c: 'var(--v-beweeg)', name: 'Café', lb: () => 'Café', get text() { return `Je krijgt ${slok(nOf('cafe'))} en slaat een beurt over.`; } },
   put: { c: 'var(--v-beweeg)', name: 'Put', lb: () => 'Put', text: 'Je zit vast tot iemand anders erin valt.' },
   vraag: { c: 'var(--v-vraag)', name: 'Vraag', lb: () => 'Vraag', big: '?', text: 'Een vraag of opdracht voor de groep.' },
@@ -373,7 +391,8 @@ const KIND = {
   ruil: { c: 'var(--v-speciaal)', name: 'Ruil', lb: () => 'Ruil', dark: true, text: 'Kies iemand en ruil van plek.' },
   rust: { c: 'var(--v-rust)', name: 'Rust', lb: () => 'Rust', dark: true, text: 'Even niks. Proost!' },
   mega: { c: 'var(--v-dood)', name: 'Mega strafpunt', lb: () => 'Mega!', text: 'Je krijgt een mega strafpunt.' },
-  finish: { c: '#222', name: 'Finish', lb: () => 'Finish', text: 'Wie hier als eerste komt, wint en deelt een mega strafpunt uit.' },
+  finish: { c: '#222', name: 'Finish', lb: () => 'Finish', get text() { return `Wie hier als eerste komt, wint en deelt ${winText()} uit.`; } },
+  winst: { c: 'var(--v-geef)', name: 'Winst', lb: () => 'Winst', text: 'De winnaar kiest wie de strafpunten krijgt.' },
 };
 const SHOW_STEP = 210;   // zo snel loopt een pion van vakje naar vakje
 const THROW_MS = 1300;   // zo lang rolt de steen over het bord
@@ -657,7 +676,7 @@ function present(ev) {
         render();
       };
       // eerst laten zien wie van de winnaar een mega strafpunt krijgt, dan pas wie er wint
-      if (ui.banner && ui.banner.kind === 'mega') setTimeout(after, 1900);
+      if (ui.banner && (ui.banner.kind === 'mega' || ui.banner.kind === 'winst')) setTimeout(after, 1900);
       else afterWalk(after);
       slokFor(ev, 2600);
       clearDiceLater(600);
@@ -687,6 +706,8 @@ function slokFor(ev, delay = 0) {
     const of = megaMe[2] === 'maatje' && megas[0] ? nm(megas[0][0]) : '';
     if (of) Slok.bak(`Jij bent maatje van ${of}: als die iets krijgt, krijg jij het ook.`, { delay });
     else if (ev.type === 'keuze') Slok.bak(`${nm(ev.player)} won en geeft jou een mega strafpunt.`, { delay });
+    else if (ev.type === 'klaar') Slok.bak(`${nm(ev.winner)} won, en jij stond het verst achter.`, { delay });
+    else if (ev.t === 'dood') Slok.bak('Doodskop: terug naar start, en een mega strafpunt.', { delay });
     else Slok.bak(`Vakje ${ev.at}: een mega strafpunt.`, { delay });
   }
   const list = ev.drinks || [];
@@ -700,6 +721,7 @@ function slokFor(ev, delay = 0) {
   }
   let why = '';
   if (ev.type === 'keuze' && ev.kind === 'geef') why = `${nm(ev.player)} geeft jou ${slok(ev.n)}.`;
+  else if (ev.type === 'keuze' && ev.kind === 'winst') why = `${nm(ev.player)} won en geeft jou ${slok(ev.n)}.`;
   else if (ev.type === 'duel') { const me = ev.player === S.you ? ev.a : ev.b, them = ev.player === S.you ? ev.b : ev.a; why = `Duel: jij gooide ${me}, ${nm(ev.player === S.you ? ev.target : ev.player)} gooide ${them}.`; }
   else if (ev.type === 'dubbel') why = ev.r % 2 ? `Dubbel of niks: je gooide ${ev.r}, oneven.` : `Dubbel of niks: ${nm(ev.player)} gooide ${ev.r}, even. De rest krijgt er 1.`;
   else if (ev.type === 'klaar') why = `${nm(ev.winner)} won, en jij stond het verst achter.`;
@@ -719,6 +741,7 @@ function effect(ev) {
   if (hitMe) { buzz([80, 40, 80]); Snd.gulp(); }
   slokFor(ev, 700);
   const nm = (i) => (i === S.you ? 'Jij' : S.players[i].name);
+  if (ev.type === 'keuze' && ev.kind === 'winst') banner(`${ev.n} strafpunten`, ev.target === S.you ? 'Voor jou' : `Voor ${nm(ev.target)}`, 'var(--v-geef)', 2200, 'winst');
   if (ev.type === 'keuze' && ev.kind === 'mega') banner('Mega!', ev.target === S.you ? 'Jij krijgt een mega strafpunt' : `${nm(ev.target)} krijgt een mega strafpunt`, 'var(--v-drink)', 2200, 'mega');
   if (ev.type === 'duel') {
     if (ev.tie) banner('Gelijk!', 'Nog een keer gooien', 'var(--v-speciaal)', 1500);
@@ -728,7 +751,7 @@ function effect(ev) {
   if (ev.type !== 'vak') return;
   const k = KIND[ev.t];
   const big = { gans: 'Gans!', brug: 'Brug!', dood: 'Dood!', put: 'In de put!', cafe: 'Café!', doolhof: 'Doolhof!', mega: 'Mega!', iedereen: 'Iedereen!', dubbel: 'Dubbel of niks', duel: 'Duel!', finish: 'Finish!' }[ev.t];
-  if (big) banner(big, ev.t === 'finish' ? `${S.players[ev.player].name} deelt een mega strafpunt uit` : `${S.players[ev.player].name} · vakje ${ev.at}`, ev.t === 'finish' ? 'var(--v-geef)' : k.c);
+  if (big) banner(big, ev.t === 'finish' ? `${S.players[ev.player].name} deelt ${winText()} uit` : `${S.players[ev.player].name} · vakje ${ev.at}`, ev.t === 'finish' ? 'var(--v-geef)' : k.c);
   if (ev.t === 'gans') Snd.honk();
   if (ev.t === 'dood') Snd.bad();
 }
@@ -900,6 +923,7 @@ function cardText(ev) {
       case 'duel': return [`Duel: ${who(p)} tegen ${whom(ev.target)}`, `Jullie gooien allebei op je eigen telefoon. De laagste krijgt ${slok(n)}.`];
       case 'ruil': return ['Van plek geruild', `${who(p)} en ${t} ruilen van plek.`];
       case 'mega': return [`${who(p)} deelt een mega strafpunt uit`, `${megaLine(ev.megas)}.`];
+      case 'winst': return [`${who(p)} deelt ${n} uit`, `${drinkLine(ev.drinks)}.`];
       default: return ['', ''];
     }
   }
@@ -918,7 +942,7 @@ function cardText(ev) {
     case 'gans': return ['Gans!', `Nog eens ${ui.lastRoll && ui.lastRoll.p === p ? ui.lastRoll.v : ''} vakjes verder, naar vakje ${ev.to}.`];
     case 'brug': return ['Over de brug', `Door naar vakje ${Z.BRIDGE_TO}.`];
     case 'doolhof': return ['Doolhof', `${Z.MAZE_BACK} vakjes terug naar vakje ${ev.to}.`];
-    case 'dood': return ['Doodskop!', `Terug naar start. ${dl}.`];
+    case 'dood': return ['Doodskop!', `Terug naar start. ${dl}.${ev.megas && ev.megas.length ? ` ${megaLine(ev.megas)}.` : ''}`];
     case 'cafe': return ['Café', `${dl}, en ${whoLow(p)} slaat een beurt over.`];
     case 'put': return ['In de put', `${who(p)} zit vast tot iemand anders erin valt.${ev.freed && ev.freed.length ? ` ${andList(ev.freed.map(nameOf))} is weer vrij.` : ''}`];
     case 'vraag': return ['Vraag', esc(Z.VRAGEN[ev.i] || '')];
@@ -926,7 +950,7 @@ function cardText(ev) {
     case 'dubbel': return ['Dubbel of niks', `${who(p)} gooit nog een keer. Even: de rest krijgt er 1. Oneven: ${whoLow(p)} krijgt er ${n}.`];
     case 'rust': return ['Even rust', 'Niks aan de hand. Proost!'];
     case 'mega': return ['Mega strafpunt!', `${megaLine(ev.megas)}.`];
-    case 'finish': return ['Finish!', `${who(p)} staat op de finish en deelt een mega strafpunt uit.`];
+    case 'finish': return ['Finish!', `${who(p)} staat op de finish en deelt ${winText()} uit.`];
     case 'geef': return [`Geef ${n} weg`, `${who(p)} kiest wie er ${n} krijgt.`];
     case 'maatje': return ['Maatje', `${who(p)} kiest een maatje.`];
     case 'duel': return ['Duel!', `${who(p)} kiest een tegenstander.`];
@@ -953,7 +977,7 @@ function vHome() {
   <div class="homeboard">${boardHTML({ pawns: demo })}</div>
   <div class="startcard">
     <div class="chips"><span class="chip">${Z.MIN_PLAYERS} tot ${Z.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>Het kroegspel als ganzenbord. Gooi de steen over het bord, loop met je pion en doe wat er op het vakje staat: strafpunten, uitdelen, een vraag, een duel of een maatje. Op vakje 47 wacht een mega strafpunt, en wie als eerste op de finish staat, deelt er een uit.</p>
+    <p>Het kroegspel als ganzenbord. Gooi de steen over het bord, loop met je pion en doe wat er op het vakje staat: strafpunten, uitdelen, een vraag, een duel of een maatje. De host kiest <b>licht</b>, <b>middel</b> of <b>extreem</b>: hoe extremer, hoe meer strafpunten en mega strafpunten.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${Z.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -967,6 +991,13 @@ function vHome() {
   <p class="note">Voor 18+. Wat een strafpunt is, spreken jullie samen af.</p>`;
 }
 
+// de versie kiezen (de host) of zien welke het is
+function modeHTML(host) {
+  const m = mode();
+  if (!host) return `<p class="modeline">Versie: <b>${MODEINFO[m].name}</b>. ${MODEINFO[m].short}.</p>`;
+  return `<div class="modes" role="group" aria-label="Versie">${Z.MODES.map((k) => `<button type="button" data-act="mode-set" data-m="${k}" aria-pressed="${k === m}"><b>${MODEINFO[k].name}</b>${MODEINFO[k].short}</button>`).join('')}</div>`;
+}
+
 function vLobby() {
   const n = S.players.length, host = isHost(), short = Z.MIN_PLAYERS - liveCount();
   const pawns = S.players.map((p, i) => ({ i, name: p.name, pos: 0, cls: i === S.you ? 'me' : '' }));
@@ -975,6 +1006,7 @@ function vLobby() {
   const dock = `<div class="ask-h"><h2>${host ? 'Jij bent de host' : 'Je zit aan tafel'}</h2><button class="sharebtn" type="button" data-act="share">${SHARE}Uitnodigen</button></div>
     <p class="sub">Vrienden doen mee met code <b>${S.code}</b> of met de link. De host gooit als eerste.</p>
     ${list}
+    ${modeHTML(host)}
     ${host
       ? `<button class="cta green" type="button" data-act="start" ${short > 0 ? 'disabled' : ''}><span>${short > 0 ? `Wacht op ${short} ${short === 1 ? 'speler' : 'spelers'}` : 'Start het spel'}</span>${ARR}</button>
         ${n > 1 ? '<p class="fine">Tik op een speler om die van tafel te halen.</p>' : ''}`
@@ -1024,8 +1056,8 @@ function playDock(walkingNow) {
   }
   if (S.phase === 'kiezen') {
     const k = S.pending.kind, n = S.pending.n;
-    const q = { geef: `Wie krijgt er ${n}?`, maatje: 'Wie wordt je maatje?', duel: 'Met wie duel je?', ruil: 'Met wie ruil je van plek?', mega: 'Wie krijgt het mega strafpunt?' }[k];
-    const doing = { geef: `kiest wie er ${n} krijgt`, maatje: 'kiest een maatje', duel: 'kiest een tegenstander', ruil: 'kiest iemand om mee te ruilen', mega: 'kiest wie het mega strafpunt krijgt' }[k];
+    const q = { geef: `Wie krijgt er ${n}?`, maatje: 'Wie wordt je maatje?', duel: 'Met wie duel je?', ruil: 'Met wie ruil je van plek?', mega: 'Wie krijgt het mega strafpunt?', winst: `Wie krijgt er ${n}?` }[k];
+    const doing = { geef: `kiest wie er ${n} krijgt`, maatje: 'kiest een maatje', duel: 'kiest een tegenstander', ruil: 'kiest iemand om mee te ruilen', mega: 'kiest wie het mega strafpunt krijgt', winst: `kiest wie er ${n} krijgt` }[k];
     if (actor >= 0) {
       const busyBtn = ui.sent === S.seq ? 'disabled' : '';
       const opts = S.players.map((p, i) => ({ p, i })).filter(({ p, i }) => i !== actor && p.connected).map(({ p, i }) =>
@@ -1040,13 +1072,15 @@ function playDock(walkingNow) {
 
 function doneDock() {
   const ev = [...(S.log || [])].reverse().find((e) => e.type === 'klaar');
-  const win = [...(S.log || [])].reverse().find((e) => e.type === 'keuze' && e.kind === 'mega' && (!ev || e.seq < ev.seq));
+  const win = [...(S.log || [])].reverse().find((e) => e.type === 'keuze' && (e.kind === 'mega' || e.kind === 'winst') && (!ev || e.seq < ev.seq));
   const rows = S.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.pos - a.p.pos).map(({ p, i }) =>
     `<div class="${i === S.winner ? 'won' : ''}" style="--pc:${PC[i % PC.length]}"><span><i></i>${who(i)}${i === S.winner ? ' 🏆' : ''}</span><b>vak ${p.pos} · ${slok(p.sips)}${p.megas ? ` · ${p.megas} mega` : ''}</b></div>`).join('');
   return `<div class="ask-h"><h2>${who(S.winner)} wint!</h2><span class="pill">Potje ${S.round}</span></div>
-    ${win ? `<p class="sub">${who(win.player)} gaf ${whom(win.target)} een mega strafpunt.</p>` : ''}
+    ${win ? `<p class="sub">${who(win.player)} gaf ${whom(win.target)} ${win.kind === 'mega' ? 'een mega strafpunt' : slok(win.n)}.</p>` : ''}
     ${ev && ev.drinks && ev.drinks.length ? `<p class="sub">Wie het verst achter staat, krijgt strafpunten: ${drinkLine(ev.drinks)}.</p>` : ''}
+    ${ev && ev.megas && ev.megas.length ? `<p class="sub">Wie het verst achter staat: ${megaLine(ev.megas)}.</p>` : ''}
     <div class="standing">${rows}</div>
+    ${isHost() ? `<p class="modeline">Het volgende potje:</p>${modeHTML(true)}` : modeHTML(false)}
     ${isHost()
       ? `<button class="cta green" type="button" data-act="next"><span>Nog een potje</span>${ARR}</button>`
       : `<p class="waitline">Wachten tot ${nameOf(S.host)} een nieuw potje start</p>`}`;
@@ -1080,7 +1114,7 @@ function scoreHTML() {
 }
 
 function rulesHTML() {
-  const legend = ['drink', 'geef', 'iedereen', 'buren', 'laatste', 'vraag', 'regel', 'duel', 'maatje', 'ruil', 'dubbel', 'gans', 'brug', 'cafe', 'put', 'doolhof', 'dood', 'mega', 'rust', 'finish'].map((t) => {
+  const legend = ['drink', 'geef', 'iedereen', 'buren', 'laatste', 'vraag', 'regel', 'duel', 'maatje', 'ruil', 'dubbel', 'gans', 'brug', 'cafe', 'put', 'doolhof', 'dood', 'mega', 'rust', 'finish'].filter((t) => board().some((s) => s.t === t)).map((t) => {
     const k = KIND[t], sq = board().find((s) => s.t === t) || { t };
     return `<div><span class="sq${k.dark ? ' dark' : ''}" style="--tc:${k.c}">${tileIcon(sq)}</span><span><b>${k.name}</b>. ${k.text}</span></div>`;
   }).join('');
@@ -1089,12 +1123,13 @@ function rulesHTML() {
   <div class="rules">
     <p>Het kroegspel als ganzenbord. Iedereen speelt op zijn eigen telefoon: maak een tafel en deel de code, of doe mee met de code van een ander.</p>
     <p>Je krijgt <b>strafpunten</b>, en soms een <b>mega strafpunt</b>: die telt apart. Wat een strafpunt en een mega strafpunt zijn, spreken jullie samen af.</p>
+    <p class="modeline">De host kiest de versie: <b>licht</b> (${MODEINFO.licht.short.toLowerCase()}), <b>middel</b> (${MODEINFO.middel.short.toLowerCase()}) of <b>extreem</b> (${MODEINFO.extreem.short.toLowerCase()}). ${S ? `Deze tafel speelt <b>${MODEINFO[mode()].name.toLowerCase()}</b>; hieronder staan die regels.` : 'Hieronder staan de regels van middel.'}</p>
     <ol>
       <li><b>Gooien.</b> Om de beurt gooi je de steen: houd de knop vast en laat los. De steen rolt over het bord, bij iedereen, en je pion loopt zoveel vakjes vooruit.</li>
       <li><b>Het vakje.</b> Doe wat er staat. Moet je iemand kiezen, dan doe je dat op je telefoon.</li>
       <li><b>De finish.</b> Gooi je verder dan de finish, dan sta je er ook op.</li>
       <li><b>Duel en dubbel of niks.</b> Bij een duel gooien jullie allebei op je eigen telefoon; de laagste krijgt strafpunten, bij gelijk gooien jullie nog een keer. Bij dubbel of niks gooi je zelf nog een keer.</li>
-      <li><b>Winnen.</b> Wie als eerste op de finish staat, wint en deelt een mega strafpunt uit: kies wie hem krijgt. Wie dan het verst achter staat, krijgt er ${slok(Z.LAST_SIPS)} bij.</li>
+      <li><b>Winnen.</b> Wie als eerste op de finish staat, wint en deelt ${winText()} uit: kies wie ${Z.rulesOf(mode()).win.kind === 'mega' ? 'hem' : 'ze'} krijgt. Wie dan het verst achter staat, krijgt ${lastText()}.</li>
     </ol>
     <div class="legend">${legend}</div>
     <p class="small">Een maatje krijgt mee als jij strafpunten (of een mega strafpunt) krijgt, behalve als iedereen er al een krijgt. Vragen en regels houd je zelf bij; de telefoon telt de rest. Valt wie aan de beurt is weg, dan is de volgende aan de beurt. Wie later aanschuift, begint op start. Wat een strafpunt is, spreken jullie samen af.</p>
@@ -1249,6 +1284,7 @@ const actions = {
   roll() { ui.rolling = true; Snd.ac(); sendOnce({ t: 'roll' }); },
   choose(el) { Snd.chip(); sendOnce({ t: 'choose', target: +el.dataset.target }); },
   next() { Snd.ac(); Net.send({ t: 'next' }); },
+  'mode-set'(el) { Snd.ac(); Net.send({ t: 'settings', mode: el.dataset.m }); },
   mine() {
     const n = S.players[S.you].sips;
     toast(n ? `Jij hebt al ${slok(n)}` : 'Jij hebt nog geen strafpunten');

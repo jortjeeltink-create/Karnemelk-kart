@@ -22,7 +22,7 @@ De Spelkeet is voor een avond met vrienden. Iedereen speelt op zijn eigen telefo
 NEGEN SPELLEN
 
 • Karnemelk Kart: race live tegen tot 10 vrienden over 13 banen door een vrolijk Nederland. Drift door de bochten, spring over sloten, pak een stroopwafel-turbo en schiet met klompen. Spaar punten voor nieuwe karts, hoeden en capes.
-• Borrelbord: het kroegspel als ganzenbord. Gooi de dobbelsteen over het bord en doe wat er op het vakje staat: strafpunten krijgen of uitdelen, een vraag, een duel of een maatje.
+• Borrelbord: het kroegspel als ganzenbord. Gooi de dobbelsteen over het bord en doe wat er op het vakje staat: strafpunten krijgen of uitdelen, een vraag, een duel of een maatje. Kies licht, middel of extreem.
 • Bussen: rood of zwart, hoger of lager, de piramide, en wie de meeste kaarten overhoudt moet de bus in.
 • Boer zoekt vrouw: de boer telt met zijn ogen dicht en de vrouw werkt stiekem een mega strafpunt weg. Raadt de boer wie het was?
 • Mexen: het dobbelspel. De laagste worp krijgt strafpunten, elke Mex verdubbelt.

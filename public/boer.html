@@ -613,7 +613,7 @@ function present(ev) {
       if (ev.ok) { Snd.win(); celebrate(); } else Snd.bad();
       buzz(ev.ok ? [60, 40, 60] : [120, 60, 120]);
       banner(ev.ok ? 'Raak!' : 'Mis!', `${S.players[ev.vrouw].name} was de vrouw`);
-      // het tweede glas: groot op de telefoon van wie hem moet drinken
+      // het tweede glas (een mega strafpunt): groot op de telefoon van wie het krijgt
       if (ev.ok && ev.vrouw === S.you) window.Slok?.bak('De boer raadde dat jij de vrouw was. Jij krijgt ook het tweede mega strafpunt.', { title: 'Nog een mega strafpunt!', delay: 1500 });
       if (!ev.ok && ev.boer === S.you) window.Slok?.bak(`Mis: ${S.players[ev.vrouw].name} was de vrouw. Jij krijgt het tweede mega strafpunt.`, { title: 'Mega strafpunt!', delay: 1500 });
       break;

@@ -150,7 +150,7 @@ Zonder deze koppeling toont de app bovenin een adresbalk.
   - een 18+-poort, met tips voor verantwoord spelen;
   - geen slokken meer: elk spel telt **strafpunten**, en wat vroeger een bak, atje of ad fundum was, heet een **mega strafpunt** en telt apart. Wat een strafpunt is, spreken de spelers zelf af ("Wat een strafpunt is, spreken jullie samen af", op elke strafkaart);
   - de app heet De Spelkeet, met een icoon zonder bier.
-- **Waar Google nog over kan vallen.** De spelregels zijn weer de oorspronkelijke: er zit geen maximum meer op het aantal strafpunten per keer, en Bussen, Borrelbord en Boer zoekt vrouw hebben mega strafpunten. Bij Boer zoekt vrouw staan er nog twee volle glazen op tafel. Ook de naam "Boer zoekt vrouw" (een tv-programma) kan een reden zijn. Wordt de app afgewezen, lees dan de reden en pas alleen dat ene punt aan.
+- **Waar Google nog over kan vallen.** De spelregels zijn weer de oorspronkelijke: er zit geen maximum meer op het aantal strafpunten per keer, en Bussen, Borrelbord (middel en extreem) en Boer zoekt vrouw hebben mega strafpunten. Borrelbord heeft ook een lichte versie zonder mega strafpunten. Bij Boer zoekt vrouw staan er nog twee volle glazen op tafel. Ook de naam "Boer zoekt vrouw" (een tv-programma) kan een reden zijn. Wordt de app afgewezen, lees dan de reden en pas alleen dat ene punt aan.
 - **Je kunt bezwaar maken** via de link in de e-mail. Leg daarin uit dat het een spel voor volwassenen is dat verantwoord drinken stimuleert.
 
 ## Na het publiceren

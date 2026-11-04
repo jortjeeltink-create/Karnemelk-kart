@@ -3,11 +3,14 @@
 // een opdracht: zelf strafpunten, uitdelen, iedereen krijgt er een, je buren, een vraag, een regel, een duel, dubbel of
 // niks, een maatje kiezen of van plek ruilen. Op een gans loop je nog een keer zoveel vakjes verder, de brug brengt je
 // naar 12, in het café sla je een beurt over, in de put zit je vast tot een ander erin valt, het doolhof zet je 5 terug
-// en bij de doodskop ga je terug naar start. Vakje 47 is een mega strafpunt. Gooi je verder dan de finish, dan sta je er
-// ook op. Bij een duel gooien jullie allebei zelf (bij gelijk nog een keer); bij dubbel of niks gooi je zelf nog een
-// keer. Wie als eerste op de finish staat, wint en deelt een mega strafpunt uit. Wie dan het verst achter staat, krijgt
-// er 3 strafpunten bij.
-// Strafpunten en mega strafpunten worden apart geteld (sips en megas). Gemiddeld zo'n 15 strafpunten per speler.
+// en bij de doodskop ga je terug naar start. Gooi je verder dan de finish, dan sta je er ook op. Bij een duel gooien
+// jullie allebei zelf (bij gelijk nog een keer); bij dubbel of niks gooi je zelf nog een keer.
+// Er zijn drie versies, de host kiest:
+// - licht: zo'n 10 strafpunten per speler en geen mega strafpunten. De winnaar kiest wie er 3 krijgt, de laatste krijgt er 2.
+// - middel: zo'n 15 per speler. Vakje 47 is een mega strafpunt, de winnaar deelt er een uit en de laatste krijgt er 3.
+// - extreem: zo'n 25 per speler. Mega strafpunten op 24 en 47, de doodskop kost er ook een, de winnaar deelt er een
+//   uit en de laatste krijgt er een.
+// Strafpunten en mega strafpunten worden apart geteld (sips en megas).
 // Heb je een maatje, dan krijgt die mee als jij iets krijgt (behalve als iedereen iets krijgt: dan al).
 // Een potje is een gewoon object (JSON) met de seed van de random-generator erin, net als bij Bussen.
 import { rand, cleanNames, NAME_MAX } from './bussen.js';
@@ -18,10 +21,25 @@ export const MAX_PLAYERS = 10;
 export const SIZE = 48;
 export const BRIDGE_TO = 12;
 export const MAZE_BACK = 5;
-export const LAST_SIPS = 3;    // wie het verst achter staat als iemand wint
+export const LAST_SIPS = 3;    // middel: wie het verst achter staat als iemand wint
+export const WIN_SIPS = 3;     // licht: zoveel deelt de winnaar uit
+export const MODES = ['licht', 'middel', 'extreem'];
+export const MODE_DEFAULT = 'middel';
 const LOG_SIZE = 20;
 
-// Het bord, vakje voor vakje. t: de soort, n: hoeveel strafpunten. 'mega' is een mega strafpunt.
+// Licht: zo'n 10 strafpunten per speler per potje, zonder mega strafpunten.
+export const BOARD_LICHT = [
+  { t: 'start' },
+  { t: 'drink', n: 1 }, { t: 'geef', n: 1 }, { t: 'vraag' }, { t: 'rust' }, { t: 'gans' }, { t: 'brug' },
+  { t: 'drink', n: 1 }, { t: 'maatje' }, { t: 'vraag' }, { t: 'duel', n: 2 }, { t: 'buren', n: 1 }, { t: 'geef', n: 1 },
+  { t: 'regel' }, { t: 'gans' }, { t: 'drink', n: 1 }, { t: 'vraag' }, { t: 'iedereen', n: 1 }, { t: 'dubbel', n: 2 },
+  { t: 'cafe', n: 1 }, { t: 'geef', n: 1 }, { t: 'vraag' }, { t: 'laatste', n: 1 }, { t: 'gans' }, { t: 'drink', n: 1 },
+  { t: 'ruil' }, { t: 'vraag' }, { t: 'buren', n: 1 }, { t: 'rust' }, { t: 'regel' }, { t: 'duel', n: 2 },
+  { t: 'put' }, { t: 'gans' }, { t: 'regel' }, { t: 'vraag' }, { t: 'drink', n: 1 }, { t: 'ruil' },
+  { t: 'rust' }, { t: 'vraag' }, { t: 'drink', n: 1 }, { t: 'geef', n: 1 }, { t: 'gans' }, { t: 'doolhof' },
+  { t: 'rust' }, { t: 'vraag' }, { t: 'rust' }, { t: 'dood', n: 1 }, { t: 'drink', n: 2 }, { t: 'finish' },
+];
+// Middel: het oude bord, vakje voor vakje. t: de soort, n: hoeveel strafpunten. 'mega' is een mega strafpunt.
 export const BOARD = [
   { t: 'start' },
   { t: 'drink', n: 1 }, { t: 'geef', n: 1 }, { t: 'vraag' }, { t: 'rust' }, { t: 'gans' }, { t: 'brug' },
@@ -33,8 +51,28 @@ export const BOARD = [
   { t: 'rust' }, { t: 'vraag' }, { t: 'drink', n: 1 }, { t: 'geef', n: 3 }, { t: 'gans' }, { t: 'doolhof' },
   { t: 'iedereen', n: 1 }, { t: 'vraag' }, { t: 'drink', n: 2 }, { t: 'dood', n: 2 }, { t: 'mega' }, { t: 'finish' },
 ];
-// vakjes waarop je iemand kiest (en wie de winnaar een mega strafpunt geeft)
-export const CHOOSE = ['geef', 'maatje', 'duel', 'ruil', 'mega'];
+// Extreem: overal meer, mega strafpunten op 24 en 47, en de doodskop kost je een mega strafpunt (mega: true).
+export const BOARD_EXTREEM = [
+  { t: 'start' },
+  { t: 'drink', n: 2 }, { t: 'geef', n: 2 }, { t: 'vraag' }, { t: 'drink', n: 1 }, { t: 'gans' }, { t: 'brug' },
+  { t: 'drink', n: 2 }, { t: 'maatje' }, { t: 'vraag' }, { t: 'duel', n: 3 }, { t: 'buren', n: 2 }, { t: 'geef', n: 3 },
+  { t: 'regel' }, { t: 'gans' }, { t: 'drink', n: 3 }, { t: 'vraag' }, { t: 'iedereen', n: 2 }, { t: 'dubbel', n: 4 },
+  { t: 'cafe', n: 2 }, { t: 'geef', n: 3 }, { t: 'vraag' }, { t: 'laatste', n: 3 }, { t: 'gans' }, { t: 'mega' },
+  { t: 'ruil' }, { t: 'vraag' }, { t: 'buren', n: 2 }, { t: 'drink', n: 2 }, { t: 'geef', n: 3 }, { t: 'duel', n: 3 },
+  { t: 'put' }, { t: 'gans' }, { t: 'regel' }, { t: 'vraag' }, { t: 'drink', n: 3 }, { t: 'maatje' },
+  { t: 'iedereen', n: 2 }, { t: 'vraag' }, { t: 'drink', n: 2 }, { t: 'geef', n: 4 }, { t: 'gans' }, { t: 'doolhof' },
+  { t: 'iedereen', n: 2 }, { t: 'vraag' }, { t: 'drink', n: 3 }, { t: 'dood', n: 3, mega: true }, { t: 'mega' }, { t: 'finish' },
+];
+// per versie: het bord, wat de winnaar uitdeelt (een mega strafpunt, of kies wie er 3 krijgt) en wat de laatste krijgt
+export const RULES = {
+  licht: { board: BOARD_LICHT, win: { kind: 'winst', n: WIN_SIPS }, last: { n: 2 } },
+  middel: { board: BOARD, win: { kind: 'mega', n: 1 }, last: { n: LAST_SIPS } },
+  extreem: { board: BOARD_EXTREEM, win: { kind: 'mega', n: 1 }, last: { mega: true } },
+};
+export const rulesOf = (mode) => RULES[mode] || RULES[MODE_DEFAULT];
+export const boardOf = (mode) => rulesOf(mode).board;
+// vakjes waarop je iemand kiest (en wie de winnaar iets geeft)
+export const CHOOSE = ['geef', 'maatje', 'duel', 'ruil', 'mega', 'winst'];
 
 // Vragen: wie het is, krijgt strafpunten (dat weet de telefoon niet, dus dat doe je zelf).
 export const VRAGEN = [
@@ -98,9 +136,10 @@ function emit(g, ev) {
   return ev;
 }
 
-export function newGame(names, { seed = Date.now() } = {}) {
+export function newGame(names, { seed = Date.now(), mode = MODE_DEFAULT } = {}) {
   return {
     seed: seed >>> 0,
+    mode: MODES.includes(mode) ? mode : MODE_DEFAULT,
     players: cleanNames(names).map(newPlayer),
     // gooien: wie aan de beurt is gooit; kiezen: hij kiest iemand; duel: twee spelers gooien allebei;
     // dubbel: wie aan de beurt is gooit nog een keer (dubbel of niks); klaar: er is een winnaar
@@ -256,7 +295,7 @@ function duelRoll(g, player, live, v) {
 
 // Wat er gebeurt op het vakje waar je staat.
 function land(g, player, v, live, depth) {
-  const p = g.players[player], at = p.pos, sq = BOARD[at];
+  const p = g.players[player], at = p.pos, sq = boardOf(g.mode)[at];
   const base = { type: 'vak', player, at, t: sq.t };
   const others = live.filter((q) => q !== player);
   const done = (extra = {}) => { emit(g, { ...base, ...extra }); return passTurn(g, live); };
@@ -294,7 +333,7 @@ function land(g, player, v, live, depth) {
     }
     case 'dood': {
       p.pos = 0;
-      return done({ from: at, to: 0, n: sq.n, drinks: drink(g, player, sq.n) });
+      return done({ from: at, to: 0, n: sq.n, drinks: drink(g, player, sq.n), ...(sq.mega ? { megas: mega(g, player) } : {}) });
     }
     case 'cafe': {
       p.skip = 1;
@@ -337,7 +376,7 @@ export function choose(g, player, target, live) {
   if (g.phase !== 'kiezen' || player < 0 || player !== g.turn || target === player || !live.includes(target) || !g.players[target]) return null;
   const { kind, n } = g.pending, p = g.players[player], q = g.players[target];
   const ev = { type: 'keuze', player, target, kind, n };
-  if (kind === 'geef') ev.drinks = drink(g, target, n);
+  if (kind === 'geef' || kind === 'winst') ev.drinks = drink(g, target, n);
   else if (kind === 'maatje') p.buddy = target;
   else if (kind === 'ruil') {
     [p.pos, q.pos] = [q.pos, p.pos];
@@ -349,7 +388,7 @@ export function choose(g, player, target, live) {
     // nu gooien jullie allebei (zie duelRoll)
     g.phase = 'duel';
     g.duel = { a: player, b: target, ra: null, rb: null, n };
-  } else if (kind === 'mega') end(g, player, live);
+  } else if (kind === 'mega' || kind === 'winst') end(g, player, live);
   else passTurn(g, live);
   return ev;
 }
@@ -361,22 +400,22 @@ function finish(g, player, live, base) {
   emit(g, { ...base });
   if (!live.some((q) => q !== player)) return end(g, player, live);
   g.phase = 'kiezen';
-  g.pending = { kind: 'mega', n: 1 };
+  g.pending = { ...rulesOf(g.mode).win };
   return true;
 }
 
 // Het potje is klaar: wie het verst achter staat, krijgt strafpunten.
 function end(g, player, live) {
-  const others = live.filter((q) => q !== player);
-  const drinks = [];
+  const others = live.filter((q) => q !== player), last = rulesOf(g.mode).last;
+  const drinks = [], megas = [];
   if (others.length) {
     const min = Math.min(...others.map((q) => g.players[q].pos));
-    for (const q of others) if (g.players[q].pos === min) drink(g, q, LAST_SIPS, drinks);
+    for (const q of others) if (g.players[q].pos === min) { if (last.mega) mega(g, q, megas); else drink(g, q, last.n, drinks); }
   }
   g.phase = 'klaar';
   g.pending = null;
   g.duel = null;
-  return emit(g, { type: 'klaar', winner: player, drinks, round: g.round });
+  return emit(g, { type: 'klaar', winner: player, drinks, megas, round: g.round });
 }
 
 // Nog een potje: iedereen terug naar start, de stand blijft. Na de winnaar is de volgende aan de beurt.

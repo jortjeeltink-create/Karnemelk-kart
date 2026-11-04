@@ -753,7 +753,7 @@ function vSpel() {
   const stack = `<div class="stack">${cardHTML(null)}${cardHTML(null)}${cardHTML(null)}<b>${S.deckLeft}</b></div>`;
   let open, call;
   if (ev) {
-    // de kaart gaat open: wie heeft het goed, wie moet drinken?
+    // de kaart gaat open: wie heeft het goed, wie krijgt strafpunten?
     open = cardHTML(ev.card, { cls: 'hot', reveal: ui.showFresh });
     call = ev.ok
       ? `<div class="callout up">${ev.ok === 1 ? 'Raak!' : 'Goed!'}<small>${ev.drinker === S.you ? 'Jij krijgt' : `${nameOf(ev.drinker)} krijgt`} ${B.sipsText(ev.sips)}</small></div>`
