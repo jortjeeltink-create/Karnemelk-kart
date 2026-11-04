@@ -1,16 +1,14 @@
-// Borrelbord (eerst Zuipbord): het drankspel op een bord, zoals ganzenbord, online met iedereen op zijn eigen telefoon.
+// Borrelbord (eerst Zuipbord): het kroegspel op een bord, zoals ganzenbord, online met iedereen op zijn eigen telefoon.
 // 48 vakjes van start (0) tot de finish (48). Om de beurt gooi je één steen en loop je zoveel vakjes. Elk vakje heeft
-// een opdracht: zelf drinken, uitdelen, iedereen drinkt, je buren drinken, een vraag, een regel, een duel, dubbel of
-// niks, een drinkmaatje kiezen of van plek ruilen. Op een gans loop je nog een keer zoveel vakjes verder, de brug brengt
-// je naar 12, in het café sla je een beurt over, in de put zit je vast tot een ander erin valt, het doolhof zet je 5
-// terug en bij de doodskop ga je terug naar start. Gooi je verder dan de finish, dan sta je er ook op.
-// Bij een duel gooien jullie allebei zelf (bij gelijk nog een keer); bij dubbel of niks gooi je zelf nog een keer.
-// Er zijn twee standen, de host kiest:
-// - stevig: de oude regels. Meer slokken (gemiddeld zo'n 15 per speler), vakje 47 is een ad fundum, en wie als eerste
-//   op de finish staat, mag een bak uitdelen: iemand drinkt zijn glas leeg. Wie dan het verst achter staat, drinkt 3.
-// - rustig: zo'n 10 slokken per speler, geen ad fundum; de winnaar kiest wie er 3 drinkt, de laatste drinkt er 2.
-//   Dit is de stand in de app uit de Play Store (zie zuipbordhub.js).
-// Heb je een drinkmaatje, dan drinkt die mee als jij moet drinken (behalve als iedereen drinkt: dan al).
+// een opdracht: zelf strafpunten, uitdelen, iedereen krijgt er een, je buren, een vraag, een regel, een duel, dubbel of
+// niks, een maatje kiezen of van plek ruilen. Op een gans loop je nog een keer zoveel vakjes verder, de brug brengt je
+// naar 12, in het café sla je een beurt over, in de put zit je vast tot een ander erin valt, het doolhof zet je 5 terug
+// en bij de doodskop ga je terug naar start. Vakje 47 is een mega strafpunt. Gooi je verder dan de finish, dan sta je er
+// ook op. Bij een duel gooien jullie allebei zelf (bij gelijk nog een keer); bij dubbel of niks gooi je zelf nog een
+// keer. Wie als eerste op de finish staat, wint en deelt een mega strafpunt uit. Wie dan het verst achter staat, krijgt
+// er 3 strafpunten bij.
+// Strafpunten en mega strafpunten worden apart geteld (sips en megas). Gemiddeld zo'n 15 strafpunten per speler.
+// Heb je een maatje, dan krijgt die mee als jij iets krijgt (behalve als iedereen iets krijgt: dan al).
 // Een potje is een gewoon object (JSON) met de seed van de random-generator erin, net als bij Bussen.
 import { rand, cleanNames, NAME_MAX } from './bussen.js';
 
@@ -20,28 +18,11 @@ export const MAX_PLAYERS = 10;
 export const SIZE = 48;
 export const BRIDGE_TO = 12;
 export const MAZE_BACK = 5;
-export const WIN_SIPS = 3;     // rustig: de winnaar deelt dit uit
-export const LAST_SIPS = 2;    // rustig: wie het verst achter staat als iemand wint
-export const AD_SIPS = 5;      // stevig: een ad fundum of een bak (glas leeg) telt in de stand als 5 slokken
-export const MODES = ['stevig', 'rustig'];
-export const MODE_DEFAULT = 'stevig';   // in de browser; in de app is het altijd rustig
+export const LAST_SIPS = 3;    // wie het verst achter staat als iemand wint
 const LOG_SIZE = 20;
 
-// Het bord, vakje voor vakje. t: de soort, n: hoeveel slokken.
-// Rustig: zo'n 10 slokken per speler per potje.
+// Het bord, vakje voor vakje. t: de soort, n: hoeveel strafpunten. 'mega' is een mega strafpunt.
 export const BOARD = [
-  { t: 'start' },
-  { t: 'drink', n: 1 }, { t: 'geef', n: 1 }, { t: 'vraag' }, { t: 'rust' }, { t: 'gans' }, { t: 'brug' },
-  { t: 'drink', n: 1 }, { t: 'maatje' }, { t: 'vraag' }, { t: 'duel', n: 2 }, { t: 'buren', n: 1 }, { t: 'geef', n: 1 },
-  { t: 'regel' }, { t: 'gans' }, { t: 'drink', n: 1 }, { t: 'vraag' }, { t: 'iedereen', n: 1 }, { t: 'dubbel', n: 2 },
-  { t: 'cafe', n: 1 }, { t: 'geef', n: 1 }, { t: 'vraag' }, { t: 'laatste', n: 1 }, { t: 'gans' }, { t: 'drink', n: 1 },
-  { t: 'ruil' }, { t: 'vraag' }, { t: 'buren', n: 1 }, { t: 'rust' }, { t: 'regel' }, { t: 'duel', n: 2 },
-  { t: 'put' }, { t: 'gans' }, { t: 'regel' }, { t: 'vraag' }, { t: 'drink', n: 1 }, { t: 'ruil' },
-  { t: 'rust' }, { t: 'vraag' }, { t: 'drink', n: 1 }, { t: 'geef', n: 1 }, { t: 'gans' }, { t: 'doolhof' },
-  { t: 'rust' }, { t: 'vraag' }, { t: 'rust' }, { t: 'dood', n: 1 }, { t: 'drink', n: 2 }, { t: 'finish' },
-];
-// Stevig: het oude bord, met meer slokken en een ad fundum op 47.
-export const BOARD_STEVIG = [
   { t: 'start' },
   { t: 'drink', n: 1 }, { t: 'geef', n: 1 }, { t: 'vraag' }, { t: 'rust' }, { t: 'gans' }, { t: 'brug' },
   { t: 'drink', n: 1 }, { t: 'maatje' }, { t: 'vraag' }, { t: 'duel', n: 2 }, { t: 'buren', n: 1 }, { t: 'geef', n: 2 },
@@ -50,72 +31,65 @@ export const BOARD_STEVIG = [
   { t: 'ruil' }, { t: 'vraag' }, { t: 'buren', n: 1 }, { t: 'rust' }, { t: 'geef', n: 2 }, { t: 'duel', n: 2 },
   { t: 'put' }, { t: 'gans' }, { t: 'regel' }, { t: 'vraag' }, { t: 'drink', n: 2 }, { t: 'maatje' },
   { t: 'rust' }, { t: 'vraag' }, { t: 'drink', n: 1 }, { t: 'geef', n: 3 }, { t: 'gans' }, { t: 'doolhof' },
-  { t: 'iedereen', n: 1 }, { t: 'vraag' }, { t: 'drink', n: 2 }, { t: 'dood', n: 2 }, { t: 'ad' }, { t: 'finish' },
+  { t: 'iedereen', n: 1 }, { t: 'vraag' }, { t: 'drink', n: 2 }, { t: 'dood', n: 2 }, { t: 'mega' }, { t: 'finish' },
 ];
-// per stand: het bord, wat de winnaar uitdeelt (kies wie er drinkt, of een bak) en wat de laatste drinkt
-export const RULES = {
-  rustig: { board: BOARD, win: { kind: 'winst', n: WIN_SIPS }, last: LAST_SIPS },
-  stevig: { board: BOARD_STEVIG, win: { kind: 'bak', n: AD_SIPS }, last: 3 },
-};
-export const rulesOf = (mode) => RULES[mode] || RULES.rustig;
-export const boardOf = (mode) => rulesOf(mode).board;
-// vakjes waarop je iemand kiest (en wie de winnaar laat drinken, of een bak laat trekken)
-export const CHOOSE = ['geef', 'maatje', 'duel', 'ruil', 'winst', 'bak'];
+// vakjes waarop je iemand kiest (en wie de winnaar een mega strafpunt geeft)
+export const CHOOSE = ['geef', 'maatje', 'duel', 'ruil', 'mega'];
 
-// Vragen: wie het is, drinkt (dat weet de telefoon niet, dus dat doe je zelf).
+// Vragen: wie het is, krijgt strafpunten (dat weet de telefoon niet, dus dat doe je zelf).
 export const VRAGEN = [
-  'Wie het laatst op vakantie was, drinkt 2.',
-  'Iedereen met een bril of lenzen drinkt 1.',
-  'De jongste aan tafel drinkt 2.',
-  'Wie single is, drinkt 2.',
-  'Wie een tattoo heeft, drinkt 1.',
-  'Wie ooit een verkeersboete kreeg, drinkt 2.',
-  'Wie het laatst een ex appte, drinkt 2.',
-  'Wie als laatste binnenkwam, drinkt 2.',
-  'Wie ooit voor een examen zakte, drinkt 2.',
-  'De langste aan tafel drinkt 2.',
-  'Iedereen in iets zwarts drinkt 1.',
-  'Wie een huisdier heeft, drinkt 1.',
-  'Wie nog bij zijn ouders woont, drinkt 2.',
-  'Wie dit jaar op een festival was, drinkt 2.',
-  'Wie vandaag nog niks heeft gegeten, drinkt 1. En ga daarna wat eten.',
-  'Wie het oudst is, drinkt 2.',
-  'Wie ooit is ingeslapen in de trein of bus, drinkt 2.',
-  'Wie een broer of zus heeft, drinkt 1.',
-  'Wie deze week nog sportte, deelt 2 slokken uit.',
-  'Wie ooit iemand heeft gezoend aan deze tafel, drinkt 2.',
-  'Zeg iets liefs over de speler links van je, of drink 2.',
-  'Noem 5 automerken in 10 seconden, of drink 2.',
-  'Doe een dansje van 5 seconden, of drink 2.',
-  'Proost met degene tegenover je. Jullie drinken allebei 1.',
-  'Iedereen die zijn telefoon in een hoesje heeft, drinkt 1.',
-  'Wie het eerst zijn neus aanraakt, mag 2 uitdelen. De laatste drinkt 2.',
+  'Wie het laatst op vakantie was, krijgt er 2.',
+  'Iedereen met een bril of lenzen krijgt er 1.',
+  'De jongste aan tafel krijgt er 2.',
+  'Wie single is, krijgt er 2.',
+  'Wie een tattoo heeft, krijgt er 1.',
+  'Wie ooit een verkeersboete kreeg, krijgt er 2.',
+  'Wie het laatst een ex appte, krijgt er 2.',
+  'Wie als laatste binnenkwam, krijgt er 2.',
+  'Wie ooit voor een examen zakte, krijgt er 2.',
+  'De langste aan tafel krijgt er 2.',
+  'Iedereen in iets zwarts krijgt er 1.',
+  'Wie een huisdier heeft, krijgt er 1.',
+  'Wie nog bij zijn ouders woont, krijgt er 2.',
+  'Wie dit jaar op een festival was, krijgt er 2.',
+  'Wie vandaag nog niks heeft gegeten, krijgt er 1. En ga daarna wat eten.',
+  'Wie het oudst is, krijgt er 2.',
+  'Wie ooit is ingeslapen in de trein of bus, krijgt er 2.',
+  'Wie een broer of zus heeft, krijgt er 1.',
+  'Wie deze week nog sportte, deelt 2 strafpunten uit.',
+  'Wie ooit iemand heeft gezoend aan deze tafel, krijgt er 2.',
+  'Zeg iets liefs over de speler links van je, of neem er 2.',
+  'Noem 5 automerken in 10 seconden, of neem er 2.',
+  'Doe een dansje van 5 seconden, of neem er 2.',
+  'Proost met degene tegenover je. Jullie krijgen er allebei 1.',
+  'Iedereen die zijn telefoon in een hoesje heeft, krijgt er 1.',
+  'Wie het eerst zijn neus aanraakt, mag 2 uitdelen. De laatste krijgt er 2.',
   'Iedereen die vandaag water heeft gedronken, mag 1 uitdelen.',
-  'Wie de meeste slokken heeft gehad, mag 2 uitdelen.',
-  'Iedereen met blauwe ogen drinkt 1.',
-  'Wie het laatst gehuild heeft bij een film, drinkt 2.',
-  'Vertel een gênant verhaal, of drink 2.',
+  'Wie de meeste strafpunten heeft, mag er 2 uitdelen.',
+  'Iedereen met blauwe ogen krijgt er 1.',
+  'Wie het laatst gehuild heeft bij een film, krijgt er 2.',
+  'Vertel een gênant verhaal, of neem er 2.',
   'Wie het eerst "proost" roept, deelt 2 uit.',
-  'Wie ooit een feestje te vroeg verliet, drinkt 2.',
-  'Iedereen die vandaag gewerkt of gestudeerd heeft, drinkt 1.',
-  'Wie het verst weg woont, drinkt 2.',
-  'Speel steen-papier-schaar met de speler rechts van je. De verliezer drinkt 2.',
+  'Wie ooit een feestje te vroeg verliet, krijgt er 2.',
+  'Iedereen die vandaag gewerkt of gestudeerd heeft, krijgt er 1.',
+  'Wie het verst weg woont, krijgt er 2.',
+  'Speel steen-papier-schaar met de speler rechts van je. De verliezer krijgt er 2.',
 ];
 // Regels: de speler bedenkt een regel die blijft tot het einde van het potje (hier een voorbeeld).
 export const REGELS = [
-  'Niemand mag nog "drinken" zeggen.',
-  'Je drinkt alleen nog met je linkerhand.',
-  'Voor je drinkt, zeg je "proost" tegen iemand.',
+  'Niemand mag nog "strafpunt" zeggen.',
+  'Je pakt je glas alleen nog met je linkerhand.',
+  'Voor je een strafpunt wegwerkt, zeg je "proost" tegen iemand.',
   'Niemand mag nog iemand bij zijn naam noemen.',
-  'Wie een 6 gooit, mag 1 slok uitdelen.',
-  'Elke keer dat iemand lacht om zijn eigen grap, drinkt hij 1.',
-  'Wie op zijn telefoon kijkt terwijl een ander gooit, drinkt 1.',
+  'Wie een 6 gooit, mag 1 strafpunt uitdelen.',
+  'Elke keer dat iemand lacht om zijn eigen grap, krijgt hij er 1.',
+  'Wie op zijn telefoon kijkt terwijl een ander gooit, krijgt er 1.',
   'Je mag niet meer naar het glas van een ander wijzen.',
-  'Wie vloekt, drinkt 1.',
+  'Wie vloekt, krijgt er 1.',
   'Zeg voor je gooit iets wat rijmt op je naam.',
 ];
 
-const newPlayer = (name) => ({ name, pos: 0, sips: 0, wins: 0, skip: 0, stuck: false, buddy: -1, turns: 0 });
+const newPlayer = (name) => ({ name, pos: 0, sips: 0, megas: 0, wins: 0, skip: 0, stuck: false, buddy: -1, turns: 0 });
 
 function emit(g, ev) {
   ev.seq = ++g.seq;
@@ -124,10 +98,9 @@ function emit(g, ev) {
   return ev;
 }
 
-export function newGame(names, { seed = Date.now(), mode = 'rustig' } = {}) {
+export function newGame(names, { seed = Date.now() } = {}) {
   return {
     seed: seed >>> 0,
-    mode: MODES.includes(mode) ? mode : 'rustig',
     players: cleanNames(names).map(newPlayer),
     // gooien: wie aan de beurt is gooit; kiezen: hij kiest iemand; duel: twee spelers gooien allebei;
     // dubbel: wie aan de beurt is gooit nog een keer (dubbel of niks); klaar: er is een winnaar
@@ -198,7 +171,7 @@ export function begin(g, live, starter) {
   return giveTurn(g, list.includes(starter) ? starter : nextAfter(g, starter, list));
 }
 
-// Iemand drinkt; zijn drinkmaatje drinkt mee. Geeft de lijst terug van wie hoeveel drinkt.
+// Iemand krijgt strafpunten; zijn maatje krijgt ze ook. Geeft de lijst terug van wie hoeveel krijgt.
 function drink(g, p, n, out = [], buddy = true) {
   g.players[p].sips += n;
   out.push([p, n]);
@@ -206,6 +179,18 @@ function drink(g, p, n, out = [], buddy = true) {
   if (buddy && b >= 0 && b !== p && g.players[b]) {
     g.players[b].sips += n;
     out.push([b, n, 'maatje']);
+  }
+  return out;
+}
+
+// Iemand krijgt een mega strafpunt; zijn maatje krijgt er ook een. Geeft de lijst terug: [[speler, 1], [maatje, 1, 'maatje']].
+function mega(g, p, out = []) {
+  g.players[p].megas++;
+  out.push([p, 1]);
+  const b = g.players[p].buddy;
+  if (b >= 0 && b !== p && g.players[b]) {
+    g.players[b].megas++;
+    out.push([b, 1, 'maatje']);
   }
   return out;
 }
@@ -240,7 +225,7 @@ export function roll(g, player, live, value) {
   return ev;
 }
 
-// Dubbel of niks: even, dan drinkt de rest 1; oneven, dan drink jij n.
+// Dubbel of niks: even, dan krijgt de rest 1 strafpunt; oneven, dan krijg jij er n.
 function doubleRoll(g, player, live, r) {
   if (player < 0 || player !== g.turn) return null;
   const n = g.pending.n, drinks = [];
@@ -251,7 +236,7 @@ function doubleRoll(g, player, live, r) {
   return ev;
 }
 
-// Een duel: allebei gooien; de laagste drinkt n. Gelijk? Dan gooien jullie allebei nog een keer.
+// Een duel: allebei gooien; de laagste krijgt n strafpunten. Gelijk? Dan gooien jullie allebei nog een keer.
 function duelRoll(g, player, live, v) {
   const d = g.duel;
   if (!duelWaiting(g).includes(player)) return null;
@@ -271,7 +256,7 @@ function duelRoll(g, player, live, v) {
 
 // Wat er gebeurt op het vakje waar je staat.
 function land(g, player, v, live, depth) {
-  const p = g.players[player], at = p.pos, sq = boardOf(g.mode)[at];
+  const p = g.players[player], at = p.pos, sq = BOARD[at];
   const base = { type: 'vak', player, at, t: sq.t };
   const others = live.filter((q) => q !== player);
   const done = (extra = {}) => { emit(g, { ...base, ...extra }); return passTurn(g, live); };
@@ -332,7 +317,7 @@ function land(g, player, v, live, depth) {
       g.pending = { kind: 'dubbel', n: sq.n };
       return true;
     }
-    case 'ad': return done({ drinks: drink(g, player, AD_SIPS) });
+    case 'mega': return done({ megas: mega(g, player) });
     case 'finish': return finish(g, player, live, base);
     case 'geef': case 'maatje': case 'duel': case 'ruil': {
       if (!others.length) return done();
@@ -345,8 +330,8 @@ function land(g, player, v, live, depth) {
   }
 }
 
-// Wie aan de beurt is kiest iemand: om te laten drinken, als drinkmaatje, voor een duel, om mee te ruilen, of (de
-// winnaar) wie er drinkt.
+// Wie aan de beurt is kiest iemand: om strafpunten te geven, als maatje, voor een duel, om mee te ruilen, of (de
+// winnaar) wie er een mega strafpunt krijgt.
 export function choose(g, player, target, live) {
   live = uniq(live);
   if (g.phase !== 'kiezen' || player < 0 || player !== g.turn || target === player || !live.includes(target) || !g.players[target]) return null;
@@ -357,36 +342,36 @@ export function choose(g, player, target, live) {
   else if (kind === 'ruil') {
     [p.pos, q.pos] = [q.pos, p.pos];
     [p.stuck, q.stuck] = [q.stuck, p.stuck];
-  } else if (kind === 'winst' || kind === 'bak') ev.drinks = drink(g, target, n);
+  } else if (kind === 'mega') ev.megas = mega(g, target);
   g.pending = null;
   emit(g, ev);
   if (kind === 'duel') {
     // nu gooien jullie allebei (zie duelRoll)
     g.phase = 'duel';
     g.duel = { a: player, b: target, ra: null, rb: null, n };
-  } else if (kind === 'winst' || kind === 'bak') end(g, player, live);
+  } else if (kind === 'mega') end(g, player, live);
   else passTurn(g, live);
   return ev;
 }
 
-// Op de finish: gewonnen. De winnaar kiest eerst wie er drinkt, of (stevig) wie er een bak trekt, als er iemand anders is.
+// Op de finish: gewonnen. De winnaar kiest eerst wie er een mega strafpunt krijgt (als er iemand anders is).
 function finish(g, player, live, base) {
   g.players[player].wins++;
   g.winner = player;
   emit(g, { ...base });
   if (!live.some((q) => q !== player)) return end(g, player, live);
   g.phase = 'kiezen';
-  g.pending = { ...rulesOf(g.mode).win };
+  g.pending = { kind: 'mega', n: 1 };
   return true;
 }
 
-// Het potje is klaar: wie het verst achter staat, drinkt.
+// Het potje is klaar: wie het verst achter staat, krijgt strafpunten.
 function end(g, player, live) {
   const others = live.filter((q) => q !== player);
   const drinks = [];
   if (others.length) {
     const min = Math.min(...others.map((q) => g.players[q].pos));
-    for (const q of others) if (g.players[q].pos === min) drink(g, q, rulesOf(g.mode).last, drinks);
+    for (const q of others) if (g.players[q].pos === min) drink(g, q, LAST_SIPS, drinks);
   }
   g.phase = 'klaar';
   g.pending = null;

@@ -11,7 +11,7 @@ Op de site staat al klaar:
   - `/melden` (spelers of namen melden).
 - **Gegevens wissen.** In Karnemelk Kart: *Instellingen → Mijn gegevens wissen*.
 - **Een namenfilter.** Grove namen en uitdagingen worden geweigerd. De host kan spelers van tafel halen.
-- **Uitleg met plaatjes** bij elk spel, en een **slokkenkaart** die op je eigen telefoon groot laat zien hoeveel jij moet drinken.
+- **Uitleg met plaatjes** bij elk spel, en een **strafkaart** die op je eigen telefoon groot laat zien hoeveel strafpunten (of een mega strafpunt) jij krijgt.
 - **Spelen op een iPhone** (`/iphone`). De Spelkeet staat niet in de App Store. Vrienden met een iPhone spelen gewoon mee in Safari, en op deze pagina zien ze hoe ze De Spelkeet op hun beginscherm zetten. In de app (en op de hoofdpagina) staat een knop om die link te delen.
 - **Een offline-pagina** (service worker `/sw.js`).
 - **Het app-manifest** (`/speelhal.webmanifest`), met iconen voor Android.
@@ -63,7 +63,7 @@ Meldingen komen ook in de logboeken van Render ("melding: …"). Op het gratis p
 2. Kies **Package for stores → Android → Generate package**. Vul in:
    - **Package ID**: bijvoorbeeld `nl.spelkeet.app`. Hij moet uniek zijn en kan later **nooit** meer veranderen.
    - **App name** en **Launcher name**: `De Spelkeet`.
-   - **Start URL**: `/?app=play`. Daaraan herkent De Spelkeet dat het de app is: Borrelbord speelt dan alleen met de rustige regels (in de browser kan ook stevig).
+   - **Start URL**: `/`.
    - **Display mode**: Standalone. **Orientation**: Default (de kartgame kan dan ook liggend).
    - **Signing key**: *Create new*.
 3. Download het zip-bestand. Daarin zitten:
@@ -112,11 +112,11 @@ Zonder deze koppeling toont de app bovenin een adresbalk.
 | Overheid, financiën, gezondheid, nieuws | Nee |
 
 **Contentclassificatie**: categorie *Game*. Beantwoord eerlijk:
-- **Alcohol: ja.** Er zijn drankspellen; drinken wordt genoemd en geteld in slokken.
+- **Alcohol: ja.** Het zijn kroegspellen. De app telt strafpunten en mega strafpunten; wat dat is, spreken de spelers zelf af, en een glas wordt soms genoemd (Boer zoekt vrouw). Zeg hier eerlijk ja.
 - **Geweld: alleen fantasie, zonder bloed.** Karts die met klompen schieten (tekenfilmachtig).
 - **Gokken: nee.**
   - Er is geen echt geld en geen casino.
-  - Bij Paardenrace zet je slokken in, geen geld.
+  - Bij Paardenrace zet je strafpunten in, geen geld.
   - De punten in Karnemelk Kart zijn nep.
 - **Spelers kunnen met elkaar omgaan: ja.** Namen die anderen aan tafel zien; de host kan een korte uitdaging typen. Er is geen chat.
 - **Aankopen in de app: nee.**
@@ -146,21 +146,12 @@ Zonder deze koppeling toont de app bovenin een adresbalk.
 ## Als Google de app afwijst
 
 - **Lees de reden in de e-mail.** Meestal gaat het over het beleid voor *alcohol* of *inhoud van gebruikers*.
-- **Wat er al gedaan is volgens het beleid van Google Play over alcohol.** Google verbiedt apps die "overmatig drinken positief neerzetten, zoals overmatig drinken, comazuipen of drinken als wedstrijd". Daarom:
+- **Wat er nu in de app zit.** Google verbiedt apps die "overmatig drinken positief neerzetten, zoals overmatig drinken, comazuipen of drinken als wedstrijd". De Spelkeet heeft:
   - een 18+-poort, met tips voor verantwoord spelen;
-  - "een slok mag ook water, fris of karnemelk zijn", op elke drinkmelding;
-  - geen bak of ad fundum (een glas in één keer leeg) in Bussen, en in de app ook niet in Borrelbord: de app speelt Borrelbord alleen met de rustige regels. De stevige regels (met ad fundum en een bak) zijn er alleen op de website, en wie de app gebruikt, kan niet aanschuiven aan een stevige tafel;
-  - een maximum aantal slokken per keer in elk spel:
-    - Mexen: 6;
-    - Pak de dealer: 5;
-    - Paardenrace: 8;
-    - Rotonde: 8;
-    - Mijnenveld: 6;
-    - Bussen: de bus stopt bij 10;
-  - de app heet De Spelkeet (ATJE betekende een glas in één keer leeg), met een icoon zonder bier.
-- **Waar Google nog over kan vallen.** Boer zoekt vrouw is bewust niet aangepast: de vrouw drinkt snel een glas leeg, en wie verliest drinkt het tweede glas. Dat is precies "snel drinken". Ook de naam "Boer zoekt vrouw" (een tv-programma) kan een reden zijn. Wordt de app daarom afgewezen, pas dan dat spel aan of haal het eruit.
+  - geen slokken meer: elk spel telt **strafpunten**, en wat vroeger een bak, atje of ad fundum was, heet een **mega strafpunt** en telt apart. Wat een strafpunt is, spreken de spelers zelf af ("Wat een strafpunt is, spreken jullie samen af", op elke strafkaart);
+  - de app heet De Spelkeet, met een icoon zonder bier.
+- **Waar Google nog over kan vallen.** De spelregels zijn weer de oorspronkelijke: er zit geen maximum meer op het aantal strafpunten per keer, en Bussen, Borrelbord en Boer zoekt vrouw hebben mega strafpunten. Bij Boer zoekt vrouw staan er nog twee volle glazen op tafel. Ook de naam "Boer zoekt vrouw" (een tv-programma) kan een reden zijn. Wordt de app afgewezen, lees dan de reden en pas alleen dat ene punt aan.
 - **Je kunt bezwaar maken** via de link in de e-mail. Leg daarin uit dat het een spel voor volwassenen is dat verantwoord drinken stimuleert.
-- **Nog een stap verder?** Laat de app standaard "punten" tellen in plaats van slokken. Dat is te bouwen als het nodig blijkt.
 
 ## Na het publiceren
 

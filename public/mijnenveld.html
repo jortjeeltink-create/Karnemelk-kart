@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mijnenveld</title>
-<meta name="description" content="Het drankspel Mijnenveld online: gooi de steen naar een kaart in het veld van 6 bij 6, ontwijk de mijnen en gok rood of zwart.">
+<meta name="description" content="Het kroegspel Mijnenveld online: gooi de steen naar een kaart in het veld van 6 bij 6, ontwijk de mijnen en gok rood of zwart.">
 <meta name="theme-color" content="#150b18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -348,7 +348,8 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const PC = ['#4f8dff', '#d690c9', '#ff7a00', '#2fbf71', '#f7c548', '#ff4a24', '#a28fe3', '#36c5d6', '#e86aa0', '#9ccf3c'];
 const SUITNAME = { harten: 'Harten', ruiten: 'Ruiten', klaveren: 'Klaveren', schoppen: 'Schoppen' };
 const ARR = '<span class="arr"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>';
-const GLASS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l-1.6 16.2a2 2 0 0 1-2 1.8H9.6a2 2 0 0 1-2-1.8z"/><path d="M6.6 9h10.8"/></svg>';
+// een strafkaart: zo zie je de strafpunten
+const STRAF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="3" width="11" height="17" rx="2.2" transform="rotate(14 12 11.5)"/><path d="M12.4 8.2v4.4M12.1 15.6v.2" stroke-linecap="round"/></svg>';
 const SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
 const BOMB = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="14" r="7.5" fill="#1d1418" stroke="#ff9a3c" stroke-width="1.2"/><circle cx="8" cy="11.5" r="2" fill="#fff" opacity=".35"/><path d="M15.5 8.5l2-2" stroke="#6b4f3a" stroke-width="2.2" stroke-linecap="round"/><path d="M17.5 6.5c1-1.5 2.5-1.5 3-3" stroke="#c9a46a" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="20.6" cy="3.4" r="1.8" fill="#ffd36b"/></svg>';
 const SHOW_MS = 2200;   // zo lang blijft een omgedraaide kaart met de uitslag in beeld
@@ -564,8 +565,8 @@ function present(ev) {
       setTimeout(() => {
         if (!S) return;
         Snd.boom(); buzz(ev.player === S.you ? [200, 60, 200] : [120]);
-        banner('Boem!', `${ev.player === S.you ? 'Jij drinkt' : `${S.players[ev.player].name} drinkt`} ${B.sipsText(ev.sips)}${ev.count > 1 ? ` (${ev.count} mijnen)` : ''}`, 2200);
-        if (ev.player === S.you) window.Slok?.drink(ev.sips, ev.count > 1 ? `Je landde op ${ev.count} mijnen: ${ev.count} × ${S.mineSips}${ev.count * S.mineSips > ev.sips ? `, maar meer dan ${M.MAX_SIPS} wordt het nooit` : ''}. Daarna leg jij ze ergens anders neer.` : `Je landde op een mijn. Daarna leg jij hem ergens anders neer.`, { title: `Boem! Drink ${B.sipsText(ev.sips)}`, delay: 1300 });
+        banner('Boem!', `${ev.player === S.you ? 'Jij krijgt' : `${S.players[ev.player].name} krijgt`} ${B.sipsText(ev.sips)}${ev.count > 1 ? ` (${ev.count} mijnen)` : ''}`, 2200);
+        if (ev.player === S.you) window.Slok?.drink(ev.sips, ev.count > 1 ? `Je landde op ${ev.count} mijnen: ${ev.count} × ${S.mineSips}. Daarna leg jij ze ergens anders neer.` : `Je landde op een mijn. Daarna leg jij hem ergens anders neer.`, { title: `Boem! Drink ${B.sipsText(ev.sips)}`, delay: 1300 });
         ui.boom = true;
         clearTimeout(ui.boomTimer);
         ui.boomTimer = setTimeout(() => { ui.boom = false; }, 700);
@@ -743,7 +744,7 @@ function tableHTML({ order: seatsOrder, people, center = '', seat = () => ({}), 
     const btn = o.kick ? ` type="button" data-act="kickask" data-seat="${i}" aria-label="${esc(p.name)} van tafel halen"` : '';
     const el = btn ? 'button' : 'div';
     const line = p.empty ? '' : p.connected === false ? '<span class="off">weg</span>'
-      : p.sips != null ? `<span class="${p.sips ? '' : 'zero'}" title="Slokken gedronken">${GLASS}${p.sips}</span>` : '';
+      : p.sips != null ? `<span class="${p.sips ? '' : 'zero'}" title="Strafpunten">${STRAF}${p.sips}</span>` : '';
     const isMe = S && i === S.you && !p.empty;
     return `<${el} class="seat${o.now ? ' now' : ''}${p.empty ? ' empty' : ''}${isMe ? ' me' : ''}${p.connected === false ? ' off' : ''}" style="--pc:${PC[i % PC.length]}"${btn}>
       <span class="ava">${p.empty ? '+' : esc(initial(p.name))}</span>
@@ -760,7 +761,7 @@ function tableHTML({ order: seatsOrder, people, center = '', seat = () => ({}), 
 const gameTable = (center, seat, cls = '') => tableHTML({ order: order(), people: S.players, center, seat, cls });
 const sheetTop = (title, kick = '', close = true) => `<div class="sheet-top"><div>${kick ? `<p class="kick">${kick}</p>` : ''}<h2 class="sheet-title" id="sheetTitle">${title}</h2></div>${close ? '<button class="xbtn" type="button" data-act="close" aria-label="Sluiten">✕</button>' : ''}</div>`;
 // de slokken per mijn: de host kiest, in de lobby en als een veld klaar is
-const mineSeg = () => `<div class="seg" role="group" aria-label="Slokken per mijn">${M.MINE_SIPS.map((n) => `<button type="button" data-act="minesips" data-n="${n}" aria-pressed="${S.mineSips === n}">${n}</button>`).join('')}</div>`;
+const mineSeg = () => `<div class="seg" role="group" aria-label="Strafpunten per mijn">${M.MINE_SIPS.map((n) => `<button type="button" data-act="minesips" data-n="${n}" aria-pressed="${S.mineSips === n}">${n}</button>`).join('')}</div>`;
 
 /* ================= SCHERMEN ================= */
 function vHome() {
@@ -772,7 +773,7 @@ function vHome() {
   ${table}
   <div class="startcard cream">
     <div class="chips"><span class="chip">${M.MIN_PLAYERS} tot ${M.MAX_PLAYERS} spelers</span><span class="chip line">Ieder op eigen telefoon</span></div>
-    <p>36 kaarten in een veld van 6 bij 6, met ${M.MINES} verstopte mijnen. Gooi de steen twee keer: eerst voor de kolom, dan voor de rij. Land je op een mijn, dan drink je ${M.MINE_SIPS.join(', ').replace(/, (?=[^,]*$)/, ' of ')} slokken (de host kiest, hooguit ${M.MAX_SIPS} in één keer) en leg je hem ergens anders neer. Daarna gok je rood of zwart: fout is ${slok(M.WRONG_SIPS)}.</p>
+    <p>36 kaarten in een veld van 6 bij 6, met ${M.MINES} verstopte mijnen. Gooi de steen twee keer: eerst voor de kolom, dan voor de rij. Land je op een mijn, dan krijg je ${M.MINE_SIPS.join(', ').replace(/, (?=[^,]*$)/, ' of ')} strafpunten (de host kiest) en leg je hem ergens anders neer. Daarna gok je rood of zwart: fout is ${slok(M.WRONG_SIPS)}.</p>
     <label class="fld">Jouw naam<input class="inp" id="nameIn" maxlength="${M.NAME_MAX}" placeholder="Bijvoorbeeld Sanne" autocomplete="nickname" enterkeyhint="next" value="${esc(ui.name)}"></label>
     <form class="addrow" id="joinForm" autocomplete="off">
       <input class="inp code" id="codeIn" maxlength="4" placeholder="CODE" aria-label="Code van de tafel" autocapitalize="characters" spellcheck="false" enterkeyhint="go" value="${esc(ui.code)}">
@@ -783,7 +784,7 @@ function vHome() {
     ${ui.error ? `<p class="errline">${esc(ui.error)}</p>` : ''}
     <div class="howrow"><button class="ghostbtn" type="button" data-uitleg="mijnenveld"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px;margin-right:6px"><path d="M7 4.5v15l13-7.5z" fill="currentColor"/></svg>Uitleg</button><button class="ghostbtn" type="button" data-act="rules">Spelregels</button></div>
   </div>
-  <p class="note">Drink met mate. Water of karnemelk telt ook.</p>`;
+  <p class="note">Voor 18+. Wat een strafpunt is, spreken jullie samen af.</p>`;
 }
 
 function vLobby() {
@@ -795,7 +796,7 @@ function vLobby() {
   });
   const dock = `<div class="ask-h"><h2>${host ? 'Jij bent de host' : 'Je zit aan tafel'}</h2><button class="sharebtn" type="button" data-act="share">${SHARE}Uitnodigen</button></div>
     <p class="sub">Vrienden doen mee met code <b>${S.code}</b> of met de link. De host gooit als eerste.</p>
-    ${host ? `<div class="optrow"><span>Slokken per mijn</span>${mineSeg()}</div>` : `<p class="sub">Een mijn is <b>${slok(S.mineSips)}</b>, fout gokken ${slok(M.WRONG_SIPS)}.</p>`}
+    ${host ? `<div class="optrow"><span>Strafpunten per mijn</span>${mineSeg()}</div>` : `<p class="sub">Een mijn is <b>${slok(S.mineSips)}</b>, fout gokken ${slok(M.WRONG_SIPS)}.</p>`}
     ${host
       ? `<button class="cta" type="button" data-act="start" ${short > 0 ? 'disabled' : ''}><span>${short > 0 ? `Wacht op ${short} ${short === 1 ? 'speler' : 'spelers'}` : 'Start het spel'}</span>${ARR}</button>
         ${n > 1 ? '<p class="fine">Tik op een speler om die van tafel te halen.</p>' : ''}`
@@ -814,7 +815,7 @@ function vSpel() {
   const boom = boomNow();
   const seat = (i) => {
     const o = { now: S.phase !== 'klaar' && i === S.turn };
-    if (ev && i === ev.player) o.tag = ev.ok ? ['', 'Goed!'] : ['bad', `Drinkt ${ev.sips}`];
+    if (ev && i === ev.player) o.tag = ev.ok ? ['', 'Goed!'] : ['bad', `Straf ${ev.sips}`];
     else if (boom && i === boom.player && aiming) o.tag = ['bad', `Boem! ${boom.sips}`];
     return o;
   };
@@ -835,7 +836,7 @@ function myDock(actor, ev) {
   const busy = ui.sent === S.seq ? 'disabled' : '';
   if (S.phase === 'gooien') {
     const fout = ev && ev.player === actor && !ev.ok;
-    return `${forNote}<div class="ask-h"><h2 class="${fout ? 'boom-h' : ''}">${fout ? `Fout! Drink ${ev.sips}` : actor === S.you ? 'Jij gooit' : `Jij gooit voor ${nameOf(actor)}`}</h2>${mineChip()}</div>
+    return `${forNote}<div class="ask-h"><h2 class="${fout ? 'boom-h' : ''}">${fout ? `Fout! ${slok(ev.sips)}` : actor === S.you ? 'Jij gooit' : `Jij gooit voor ${nameOf(actor)}`}</h2>${mineChip()}</div>
       ${fout ? `<p class="sub">${resultLine(ev)} Probeer het opnieuw: gooi nog een keer.</p>` : '<p class="sub">Eerst gooi je voor de kolom, dan voor de rij. Ligt op die kaart een mijn, dan ontploft hij.</p>'}
       <button class="cta hot" type="button" data-act="roll" ${busy}><span>Gooi voor de kolom</span>${ARR}</button>`;
   }
@@ -847,7 +848,7 @@ function myDock(actor, ev) {
   const dice = `<div class="dicewrap">${diceHTML(S.dice)}<p class="sub">${aimLine()}</p></div>`;
   if (S.phase === 'plaatsen') {
     const boom = boomNow();
-    return `${forNote}<div class="ask-h"><h2 class="boom-h">Boem!${boom ? ` Drink ${boom.sips}` : ''}</h2>${mineChip()}</div>${dice}
+    return `${forNote}<div class="ask-h"><h2 class="boom-h">Boem!${boom ? ` ${slok(boom.sips)}` : ''}</h2>${mineChip()}</div>${dice}
       <p class="sub">Leg de mijn ergens anders neer: tik op een kaart, of tussen twee kaarten (dan raakt hij ze allebei).${S.hit > 1 ? ` Nog <b>${S.hit}</b> mijnen.` : ''}</p>`;
   }
   return `${forNote}<div class="ask-h"><h2>Rood of zwart?</h2>${mineChip()}</div>${dice}
@@ -866,7 +867,7 @@ function waitDock() {
 function resultDock(ev) {
   return `<div class="ask-h"><div class="res-h ${ev.ok ? 'good' : 'bad'}"><span class="verdict">${ev.ok ? 'Goed!' : 'Fout!'}</span></div>${mineChip()}</div>
     <p class="sub">${resultLine(ev)}</p>
-    ${ev.ok ? '' : `<div class="action">${GLASS}<span>${ev.player === S.you ? 'Jij drinkt' : `${nameOf(ev.player)} drinkt`} ${slok(ev.sips)}</span></div>`}`;
+    ${ev.ok ? '' : `<div class="action">${STRAF}<span>${ev.player === S.you ? 'Jij krijgt' : `${nameOf(ev.player)} krijgt`} ${slok(ev.sips)}</span></div>`}`;
 }
 
 function doneDock() {
@@ -876,7 +877,7 @@ function doneDock() {
     <p class="sub">Alle kaarten liggen open en alle mijnen zijn ontploft.</p>
     <div class="standing">${rows}</div>
     ${isHost()
-      ? `<div class="optrow"><span>Slokken per mijn</span>${mineSeg()}</div><button class="cta hot" type="button" data-act="next"><span>Nieuw mijnenveld</span>${ARR}</button>`
+      ? `<div class="optrow"><span>Strafpunten per mijn</span>${mineSeg()}</div><button class="cta hot" type="button" data-act="next"><span>Nieuw mijnenveld</span>${ARR}</button>`
       : `<p class="waitline">Wachten tot ${nameOf(S.host)} een nieuw veld legt</p>`}`;
 }
 
@@ -901,10 +902,10 @@ function scoreHTML() {
   const rows = S.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.sips - a.p.sips);
   return `${sheetTop('Stand')}
   <div class="scorecard"><table>
-    <thead><tr><th>Speler</th><th>Slokken</th><th>Mijnen</th><th>Goed</th><th>Fout</th></tr></thead>
+    <thead><tr><th>Speler</th><th>Strafpunten</th><th>Mijnen</th><th>Goed</th><th>Fout</th></tr></thead>
     <tbody>${rows.map(({ p, i }) => `<tr style="--pc:${PC[i % PC.length]}"><td><i></i>${esc(p.name)}</td><td>${p.sips}</td><td>${p.mines}</td><td>${p.right}</td><td>${p.wrong}</td></tr>`).join('')}</tbody>
   </table></div>
-  <p class="sub">Slokken: hoeveel iemand moest drinken. Mijnen: op hoeveel mijnen iemand landde. Goed en fout: hoe vaak iemand de kleur goed of fout gokte.</p>`;
+  <p class="sub">Strafpunten: hoeveel iemand er kreeg. Mijnen: op hoeveel mijnen iemand landde. Goed en fout: hoe vaak iemand de kleur goed of fout gokte.</p>`;
 }
 
 function rulesHTML() {
@@ -916,11 +917,11 @@ function rulesHTML() {
     <ol>
       <li><b>Het veld.</b> ${M.SIZE} kaarten liggen dicht in een veld van 6 bij 6. Ertussen liggen ${M.MINES} verstopte mijnen.</li>
       <li><b>Gooien.</b> Wie aan de beurt is, gooit de steen twee keer: eerst (blauw) voor de kolom van links, dan (goud) voor de rij van boven. Ligt die kaart al open, dan wordt het de eerstvolgende dichte kaart.</li>
-      <li><b>Boem.</b> Ligt er een mijn op die kaart, dan drink je ${slok(mine)} per mijn. Daarna leg je de mijn ergens anders neer: op een kaart, of tussen twee kaarten (dan raakt hij ze allebei). Verlegde mijnen ziet iedereen.</li>
-      <li><b>Gokken.</b> Daarna gok je of de kaart rood of zwart is, en de kaart gaat open. Goed: de volgende is aan de beurt. Fout: je drinkt ${slok(M.WRONG_SIPS)} en gooit opnieuw.</li>
+      <li><b>Boem.</b> Ligt er een mijn op die kaart, dan krijg je ${slok(mine)} per mijn. Daarna leg je de mijn ergens anders neer: op een kaart, of tussen twee kaarten (dan raakt hij ze allebei). Verlegde mijnen ziet iedereen.</li>
+      <li><b>Gokken.</b> Daarna gok je of de kaart rood of zwart is, en de kaart gaat open. Goed: de volgende is aan de beurt. Fout: je krijgt ${slok(M.WRONG_SIPS)} en gooit opnieuw.</li>
       <li><b>Klaar.</b> Liggen alle kaarten open, dan is het veld leeg. De host kan een nieuw veld leggen; de stand blijft staan.</li>
     </ol>
-    <p class="small">De host kiest in de lobby hoeveel slokken een mijn is: ${M.MINE_SIPS.join(', ').replace(/, (?=[^,]*$)/, ' of ')}. Twee mijnen tegelijk zijn samen hooguit ${slok(M.MAX_SIPS)}. Valt wie aan de beurt is weg, dan is de volgende aan de beurt; moest hij nog een mijn leggen, dan legt de server die. Drink met mate: water of karnemelk telt ook.</p>
+    <p class="small">De host kiest in de lobby hoeveel strafpunten een mijn is: 3, 5 of 10. Zo speelt ook de online versie van dark-mark.com. Valt wie aan de beurt is weg, dan is de volgende aan de beurt; moest hij nog een mijn leggen, dan legt de server die. Wat een strafpunt is, spreken jullie samen af.</p>
   </div>`;
 }
 
@@ -999,8 +1000,8 @@ function render() {
     const n = S.players[S.you].sips;
     own.hidden = false;
     own.classList.toggle('zero', !n);
-    own.innerHTML = `${GLASS}${n}`;
-    own.setAttribute('aria-label', `Jij dronk ${slok(n)}`);
+    own.innerHTML = `${STRAF}${n}`;
+    own.setAttribute('aria-label', `Jij hebt ${slok(n)}`);
   } else own.hidden = true;
   if (ui.sheet && ui.sheet.key === 'menu') ui.sheet.html = menuHTML();
   if (ui.sheet && ui.sheet.key === 'score' && S) ui.sheet.html = scoreHTML();
@@ -1071,7 +1072,7 @@ const actions = {
   next() { Snd.ac(); Net.send({ t: 'next' }); },
   mine() {
     const n = S.players[S.you].sips;
-    toast(n ? `Jij dronk al ${slok(n)}` : 'Jij hebt nog niks hoeven drinken');
+    toast(n ? `Jij hebt al ${slok(n)}` : 'Jij hebt nog geen strafpunten');
   },
   menu() { openSheet('menu', menuHTML()); },
   uitleg() { closeSheet(); window.Uitleg?.open('mijnenveld'); },

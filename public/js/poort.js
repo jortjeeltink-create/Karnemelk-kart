@@ -1,15 +1,10 @@
 // De poort van De Spelkeet, op elke speelpagina: de eerste keer vraagt hij of je 18 of ouder bent (er zitten drankspellen
 // in), met een paar regels over verantwoord spelen en de voorwaarden. Daarna onthoudt deze telefoon het.
-// Ook meldt hij de service worker aan, voor een nette pagina als je geen internet hebt (/sw.js), en onthoudt hij of je
-// in de app uit de Play Store speelt (die opent met /?app=play): dan speelt Borrelbord alleen met de rustige regels.
+// Ook meldt hij de service worker aan, voor een nette pagina als je geen internet hebt (/sw.js).
 (() => {
   'use strict';
   const KEY = 'spelkeet-18';
   const VERSION = '1';   // ophogen als de voorwaarden flink veranderen: dan vraagt hij het opnieuw
-
-  try {
-    if (/[?&]app=play\b/.test(location.search) || document.referrer.startsWith('android-app://')) sessionStorage.setItem('spelkeet-play', '1');
-  } catch (e) { /* geen opslag: dan niet */ }
 
   if ('serviceWorker' in navigator && window.isSecureContext) {
     addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
@@ -44,11 +39,11 @@
 
   const welcome = `
     <div class="t"><b>18+</b><h2 id="rpoort-h">Welkom in De Spelkeet</h2></div>
-    <p>De Spelkeet is voor een avond met vrienden. Er zitten drankspellen in, daarom is De Spelkeet alleen voor mensen van <strong>18 jaar en ouder</strong>.</p>
+    <p>De Spelkeet is voor een avond met vrienden. Er zitten kroegspellen met strafpunten in, daarom is De Spelkeet alleen voor mensen van <strong>18 jaar en ouder</strong>.</p>
     <ul>
-      <li>Een slok mag ook water, fris of karnemelk zijn.</li>
+      <li>Wat een strafpunt of een mega strafpunt is, spreken jullie samen af. Water, fris of karnemelk mag altijd.</li>
       <li>Drink nooit als je nog moet rijden.</li>
-      <li>Niemand hoeft mee te drinken. Genoeg gehad? Stop gewoon.</li>
+      <li>Niemand hoeft mee te doen. Genoeg gehad? Stop gewoon.</li>
     </ul>
     <p class="s">Door verder te gaan ga je akkoord met de <a href="/voorwaarden">voorwaarden</a> en het <a href="/privacy">privacybeleid</a>. Kies een nette naam: anderen aan tafel zien hem.</p>
     <button class="ja" type="button" data-poort="ja">Ik ben 18 of ouder</button>

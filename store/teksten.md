@@ -11,7 +11,7 @@ De Spelkeet: partyspellen
 ## Korte beschrijving (max. 80 tekens)
 
 ```
-Kaart-, dobbel- en drankspellen met vrienden, ieder op zijn eigen telefoon. 18+
+Kaart-, dobbel- en kroegspellen met vrienden, ieder op zijn eigen telefoon. 18+
 ```
 
 ## Volledige beschrijving (max. 4000 tekens)
@@ -22,10 +22,10 @@ De Spelkeet is voor een avond met vrienden. Iedereen speelt op zijn eigen telefo
 NEGEN SPELLEN
 
 • Karnemelk Kart: race live tegen tot 10 vrienden over 13 banen door een vrolijk Nederland. Drift door de bochten, spring over sloten, pak een stroopwafel-turbo en schiet met klompen. Spaar punten voor nieuwe karts, hoeden en capes.
-• Borrelbord: het drankspel als ganzenbord. Gooi de dobbelsteen over het bord en doe wat er op het vakje staat: drinken, uitdelen, een vraag, een duel of een drinkmaatje.
+• Borrelbord: het kroegspel als ganzenbord. Gooi de dobbelsteen over het bord en doe wat er op het vakje staat: strafpunten krijgen of uitdelen, een vraag, een duel of een maatje.
 • Bussen: rood of zwart, hoger of lager, de piramide, en wie de meeste kaarten overhoudt moet de bus in.
-• Boer zoekt vrouw: de boer telt met zijn ogen dicht en de vrouw drinkt stiekem een glas leeg. Raadt de boer wie het was?
-• Mexen: het dobbelspel. De laagste worp drinkt, elke Mex verdubbelt.
+• Boer zoekt vrouw: de boer telt met zijn ogen dicht en de vrouw werkt stiekem een mega strafpunt weg. Raadt de boer wie het was?
+• Mexen: het dobbelspel. De laagste worp krijgt strafpunten, elke Mex verdubbelt.
 • Pak de dealer: raad de kaart die alleen de dealer ziet.
 • Paardenrace: de vier azen racen tegen elkaar. Op welk paard zet jij?
 • Rotonde: 37 kaarten als een zon op tafel. Gok rood of zwart en laat de pot groeien.
@@ -34,12 +34,12 @@ NEGEN SPELLEN
 ZO WERKT HET
 • Maak een tafel en deel de code of de link. Iedereen ziet live wat er gebeurt.
 • Je kaarten en geheime rollen zie je alleen op je eigen telefoon.
-• Bij elk spel staat een uitleg met plaatjes, en je ziet altijd hoeveel slokken je moet drinken.
-• Elk spel heeft een maximum aantal slokken per keer: het gaat om de lol, niet om veel drinken.
+• Bij elk spel staat een uitleg met plaatjes, en op je eigen telefoon zie je groot hoeveel strafpunten je krijgt.
+• Een bak of atje heet hier een mega strafpunt, en telt apart. Wat een strafpunt is, spreken jullie samen af.
 • Vrienden met een iPhone spelen gewoon mee via de link.
 
 ALLEEN VOOR 18+
-De Spelkeet bevat drankspellen en is alleen voor 18 jaar en ouder. Drinken is nooit verplicht: een slok mag ook water, fris of karnemelk zijn. Drink nooit als je nog moet rijden.
+De Spelkeet bevat kroegspellen en is alleen voor 18 jaar en ouder. Niks is verplicht: water, fris of karnemelk mag altijd. Drink nooit als je nog moet rijden.
 
 De Spelkeet heeft internet nodig: je speelt live met je vrienden aan tafel.
 ```

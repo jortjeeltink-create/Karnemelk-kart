@@ -104,31 +104,14 @@ test('een duel: allebei gooien op je eigen telefoon; wie weggaat, daarvoor gooit
   assert.ok(phones[2].state().log.some((e) => e.type === 'duel' && e.drinks));
 });
 
-test('de regels: stevig in de browser, rustig in de app; met de app schuif je niet aan bij stevig', () => {
-  const hub = new ZuipbordHub({ now, log: () => {}, build: 'z1', random: () => 0.5 });
-  const [a, b] = [1, 2].map((n) => phone(hub, n));
-  // in de browser: stevig, en de host kan wisselen
-  a.say({ t: 'create', name: 'Jort', token: a.token });
-  assert.equal(a.state().mode, 'stevig');
-  a.say({ t: 'settings', mode: 'rustig' });
-  assert.equal(a.state().mode, 'rustig');
-  a.say({ t: 'settings', mode: 'stevig' });
-  const code = a.state().code;
-  // met de app aan een stevige tafel: nee
-  b.say({ t: 'join', code, name: 'Meke', token: b.token, play: true });
-  assert.match(b.last.joinFailed.msg, /stevige regels/);
-  // naar rustig, dan mag de app erbij; dan kan de host niet meer naar stevig
-  a.say({ t: 'settings', mode: 'rustig' });
-  b.say({ t: 'join', code, name: 'Meke', token: b.token, play: true });
-  assert.equal(b.state().players.length, 2);
-  assert.equal(a.state().canStevig, false);
-  a.say({ t: 'settings', mode: 'stevig' });
-  assert.equal(a.state().mode, 'rustig', 'niet met de app aan tafel');
-  a.say({ t: 'start' });
-  assert.equal(hub.tables.get(code).g.mode, 'rustig');
-  // een tafel uit de app is rustig (op een andere server: deze geeft steeds dezelfde code)
-  const hub2 = new ZuipbordHub({ now, log: () => {}, build: 'z1', random: () => 0.5 });
-  const d = phone(hub2, 4);
-  d.say({ t: 'create', name: 'Sim', token: d.token, play: true });
-  assert.equal(d.state().mode, 'rustig');
+test('één bord voor iedereen: geen standen meer, en de mega strafpunten staan apart in de stand', () => {
+  const { phones, t } = table(['Jort', 'Meke']);
+  const s = phones[0].state();
+  assert.equal(s.mode, undefined, 'geen keuze tussen standen');
+  phones[0].say({ t: 'start' });
+  assert.equal(phones[1].state().players[0].megas, 0);
+  t.g.players[0].pos = 46; t.g.turn = 0; t.g.phase = 'gooien';
+  for (let n = 0; t.g.players[0].pos !== 47 && n < 50; n++) { t.g.players[0].pos = 46; t.g.turn = 0; t.g.phase = 'gooien'; phones[0].say({ t: 'roll' }); }
+  assert.equal(t.g.players[0].pos, 47);
+  assert.equal(phones[1].state().players[0].megas, 1, 'vakje 47: iedereen ziet het mega strafpunt');
 });

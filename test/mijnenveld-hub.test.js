@@ -26,10 +26,10 @@ function table(names) {
 
 test('de host kiest de slokken per mijn en begint; verstopte mijnen en dichte kaarten blijven geheim', () => {
   const { phones, t } = table(['Jort', 'Meke', 'Sim']);
-  phones[1].say({ t: 'settings', mineSips: 5 });
-  assert.equal(phones[0].state().mineSips, 3, 'alleen de host');
-  phones[0].say({ t: 'settings', mineSips: 5 });
-  assert.equal(phones[2].state().mineSips, 5);
+  phones[1].say({ t: 'settings', mineSips: 10 });
+  assert.equal(phones[0].state().mineSips, 5, 'alleen de host');
+  phones[0].say({ t: 'settings', mineSips: 10 });
+  assert.equal(phones[2].state().mineSips, 10);
   phones[0].say({ t: 'start' });
   const s = phones[1].state();
   assert.deepEqual([s.phase, s.turn, s.hiddenMines, s.mines.length], ['gooien', 0, 8, 0]);
@@ -60,7 +60,7 @@ test('de host kiest de slokken per mijn en begint; verstopte mijnen en dichte ka
   phones[1].say({ t: 'roll' });
   const boem = phones[0].state();
   assert.equal(boem.phase, 'plaatsen');
-  assert.equal(boem.players[1].sips, 5, 'de host koos 5 slokken per mijn');
+  assert.equal(boem.players[1].sips, 10, 'de host koos 10 slokken per mijn');
   assert.equal(boem.hiddenMines, 3);
   const spot = dicht.find((i) => i !== boem.target);
   phones[1].say({ t: 'place', cells: [spot] });
