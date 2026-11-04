@@ -1,11 +1,13 @@
 # Render.com blueprint (Dashboard -> New -> Blueprint -> kies je repository)
 # Je hoeft niks in te vullen: MP-punten staan als ondertekende reservekopie op ieders telefoon
-# en komen vanzelf terug als de gratis server opnieuw opstart.
+# en komen vanzelf terug als de server opnieuw opstart.
 services:
   - type: web
     name: spelkeet      # het adres wordt https://spelkeet.onrender.com
     runtime: node
-    plan: free
+    # Starter (betaald, ongeveer $7 per maand): de server valt niet in slaap, zodat de app meteen opent.
+    # Op het gratis plan slaapt hij na 15 minuten zonder bezoekers en wacht de eerste speler bijna een minuut.
+    plan: starter
     region: frankfurt   # dichtbij Nederland: minder vertraging in de race
     buildCommand: npm install --omit=dev
     startCommand: npm start

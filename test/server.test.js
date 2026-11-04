@@ -595,3 +595,18 @@ test('verhuisd: met REDIRECT_TO stuurt de oude server alles door naar het nieuwe
     await srv.stop();
   }
 });
+
+test('verhuisd: de oude service karnemelk-kart stuurt vanzelf door naar spelkeet.onrender.com', async () => {
+  const old = await startServer({ env: { RENDER_EXTERNAL_HOSTNAME: 'karnemelk-kart.onrender.com' } });
+  const nu = await startServer({ env: { RENDER_EXTERNAL_HOSTNAME: 'spelkeet.onrender.com' } });
+  try {
+    const r = await fetch(old.url + '/borrelbord/ABCD', { redirect: 'manual' });
+    assert.equal(r.status, 301);
+    assert.equal(r.headers.get('location'), 'https://spelkeet.onrender.com/borrelbord/ABCD');
+    assert.equal((await fetch(old.url + '/health')).status, 200);
+    assert.equal((await fetch(nu.url + '/', { redirect: 'manual' })).status, 200, 'het nieuwe adres stuurt niet door');
+  } finally {
+    await old.stop();
+    await nu.stop();
+  }
+});
