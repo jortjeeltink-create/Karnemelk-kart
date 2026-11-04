@@ -25,6 +25,15 @@ test('aan tafel: een grove naam mag niet meedoen', () => {
   assert.equal(got.state.players[0].name, 'Sanne');
 });
 
+test('de server: zonder CONTACT_EMAIL staat het adres van de maker op het privacybeleid', async () => {
+  const srv = await startServer({ env: { CONTACT_EMAIL: '' } });
+  try {
+    for (const path of ['/privacy', '/voorwaarden', '/melden']) assert.ok((await (await fetch(srv.url + path)).text()).includes('jort.jeeltink@gmail.com'), path);
+  } finally {
+    await srv.stop();
+  }
+});
+
 test('de server: privacybeleid, voorwaarden, melden, offline-pagina en de poort op elke speelpagina', async () => {
   const srv = await startServer({ env: { CONTACT_EMAIL: 'hallo@voorbeeld.nl', MELD_SLEUTEL: 'geheim123', ANDROID_PACKAGE: '', ANDROID_SHA256: '' } });
   try {
