@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Beheer · De Spelkeet</title>
+<meta name="theme-color" content="#150b18">
+<link rel="icon" href="/img/speelhal.svg" type="image/svg+xml">
+<style>
+/* Alleen voor de maker: alle meldingen en reviews, via de geheime link /beheer/<code>. Alles wat spelers schreven
+   wordt als tekst getoond (nooit als HTML). */
+:root{color-scheme:dark;--bg:#150b18;--card:#21122a;--line:rgba(243,239,219,.12);--ink:#f3efdb;--soft:#cdbfd0;--acc:#f2c230;--bad:#e5483b;--good:#2fbf71}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{min-height:100svh;padding:0 16px calc(40px + env(safe-area-inset-bottom,0px));background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{width:min(100%,760px);margin:0 auto}
+header{padding:26px 0 10px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{margin:0;font-size:clamp(28px,7vw,40px);line-height:1}
+h1 small{display:block;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin-bottom:6px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border:0;border-radius:12px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);font:700 15px system-ui,sans-serif;text-decoration:none;cursor:pointer}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.tile{padding:14px;border-radius:16px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.tile b{display:block;font-size:30px;line-height:1.1}
+.tile span{color:var(--soft);font-size:13px}
+.note{margin:0 0 14px;padding:12px 14px;border-radius:14px;font-size:14px;background:rgba(242,194,48,.1);box-shadow:inset 0 0 0 1px rgba(242,194,48,.35)}
+.note.ok{background:rgba(47,191,113,.1);box-shadow:inset 0 0 0 1px rgba(47,191,113,.35)}
+.tabs{display:flex;gap:8px;margin:6px 0 12px}
+.tabs button{flex:1;min-height:48px;border:0;border-radius:14px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px var(--line);color:var(--soft);font:800 16px system-ui,sans-serif;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--ink);color:#2b1531}
+.list{display:grid;gap:10px}
+.item{padding:14px 16px;border-radius:16px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;font-size:13px;color:var(--soft)}
+.chip{padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.08);color:var(--ink);font-weight:700}
+.chip.bad{background:rgba(229,72,59,.2)}
+.stars{color:var(--acc);font-size:18px;letter-spacing:2px}
+.stars i{font-style:normal;color:#5d4c63}
+.text{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.text.none{color:var(--soft);font-style:italic}
+.empty{padding:28px 16px;text-align:center;color:var(--soft);border-radius:16px;box-shadow:inset 0 0 0 1px var(--line)}
+@media (max-width:420px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.tile b{font-size:24px}}
+</style>
+</head>
+<body>
+<main id="app"><header><h1><small>De Spelkeet</small>Beheer</h1></header><p class="empty">Laden…</p></main>
+<script>
+(() => {
+  'use strict';
+  const app = document.getElementById('app');
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const key = (location.pathname.match(/^\/beheer\/([A-Za-z0-9_-]{20,64})$/) || [])[1] || '';
+  const NAMES = { kart: 'Karnemelk Kart', bussen: 'Bussen', boer: 'Boer zoekt vrouw', mexen: 'Mexen', dealer: 'Pak de dealer', paardenrace: 'Paardenrace', rotonde: 'Rotonde', mijnenveld: 'Mijnenveld', borrelbord: 'Borrelbord', anders: 'Iets anders', alles: 'Meerdere spellen' };
+  const when = (iso) => { try { return new Date(iso).toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return iso; } };
+  const starsOf = (n) => `<span class="stars" aria-label="${n} van de 5 sterren">${'★'.repeat(n)}<i>${'★'.repeat(5 - n)}</i></span>`;
+  let data = null, tab = location.hash === '#reviews' ? 'reviews' : 'meldingen';
+
+  async function load() {
+    if (!key) { app.innerHTML = '<header><h1><small>De Spelkeet</small>Beheer</h1></header><p class="empty">Deze pagina werkt alleen met je geheime link.</p>'; return; }
+    try {
+      const r = await fetch(`/api/beheer?sleutel=${encodeURIComponent(key)}`, { cache: 'no-store' });
+      if (!r.ok) { app.innerHTML = '<header><h1><small>De Spelkeet</small>Beheer</h1></header><p class="empty">Deze link klopt niet (meer).</p>'; return; }
+      data = await r.json();
+      render();
+    } catch (e) {
+      app.innerHTML = '<header><h1><small>De Spelkeet</small>Beheer</h1></header><p class="empty">Geen verbinding met de server. Probeer het zo nog eens.</p>';
+    }
+  }
+
+  function melding(m) {
+    const chips = [m.spel && `<span class="chip">${esc(NAMES[m.spel] || m.spel)}</span>`, m.code && `<span class="chip">Tafel ${esc(m.code)}</span>`, m.naam && `<span class="chip bad">Over: ${esc(m.naam)}</span>`].filter(Boolean).join('');
+    return `<article class="item"><div class="meta">${chips}<span>${esc(when(m.at))}</span></div><p class="text">${esc(m.wat)}</p></article>`;
+  }
+  function review(r) {
+    const chips = [r.spel && `<span class="chip">${esc(NAMES[r.spel] || r.spel)}</span>`, r.naam && `<span class="chip">${esc(r.naam)}</span>`].filter(Boolean).join('');
+    return `<article class="item"><div class="meta">${starsOf(Math.max(1, Math.min(5, r.sterren | 0)))}${chips}<span>${esc(when(r.at))}</span></div>${r.tekst ? `<p class="text">${esc(r.tekst)}</p>` : '<p class="text none">Geen tekst, alleen sterren.</p>'}</article>`;
+  }
+
+  function render() {
+    const M = data.meldingen || [], R = data.reviews || [];
+    const avg = R.length ? (R.reduce((s, r) => s + (r.sterren | 0), 0) / R.length).toFixed(1).replace('.', ',') : '–';
+    const list = tab === 'reviews' ? R : M;
+    app.innerHTML = `<header><h1><small>De Spelkeet</small>Beheer</h1>
+        <div class="actions"><button class="btn" type="button" id="again">Vernieuwen</button><a class="btn" href="/statistieken/${esc(key)}">Statistieken →</a></div></header>
+      <div class="tiles">
+        <div class="tile"><b>${M.length}</b><span>meldingen</span></div>
+        <div class="tile"><b>${R.length}</b><span>reviews</span></div>
+        <div class="tile"><b>${avg}${R.length ? ' ★' : ''}</b><span>gemiddeld</span></div>
+      </div>
+      ${data.mail ? '<p class="note ok">Bij elke nieuwe melding of review krijg je ook een mail.</p>' : '<p class="note">Mail staat nog uit: zet RESEND_API_KEY in Render (Environment) om bij elke melding en review een mail te krijgen.</p>'}
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" data-tab="meldingen" aria-selected="${tab === 'meldingen'}">Meldingen (${M.length})</button>
+        <button type="button" role="tab" data-tab="reviews" aria-selected="${tab === 'reviews'}">Reviews (${R.length})</button>
+      </div>
+      <section class="list">${list.length ? list.map(tab === 'reviews' ? review : melding).join('') : `<p class="empty">${tab === 'reviews' ? 'Nog geen reviews. Ze komen binnen via spelkeet.onrender.com/review.' : 'Nog geen meldingen. Mooi zo.'}</p>`}</section>
+      <p class="empty" style="margin-top:14px;font-size:13px">Meldingen en reviews blijven hooguit 90 dagen bewaard.</p>`;
+    document.getElementById('again').addEventListener('click', load);
+    app.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => { tab = b.dataset.tab; history.replaceState(null, '', tab === 'reviews' ? '#reviews' : location.pathname); render(); }));
+  }
+  load();
+})();
+</script>
+</body>
+</html>

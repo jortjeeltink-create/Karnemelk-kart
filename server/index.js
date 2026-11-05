@@ -20,6 +20,7 @@ import { ZuipbordHub } from '../public/shared/zuipbordhub.js';
 import { createStore, randomString, loadSecret, makeSigner, makeSecretCheck } from './store.js';
 import { createStats } from './stats.js';
 import { isDeviceToken, RETENTION_DAYS } from '../public/shared/profiles.js';
+import { isOffensive } from '../public/shared/namen.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = +(process.env.PORT || 3000);
@@ -62,7 +63,7 @@ const CONTACT_EMAIL = (process.env.CONTACT_EMAIL || '').trim() || 'despelkeet@gm
 // RENDER_EXTERNAL_URL zelf; elders kan het met PUBLIC_URL. Zonder adres wordt het een gewoon pad.
 const SITE_URL = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/+$/, '');
 const FILL = { '{{CONTACT_EMAIL}}': CONTACT_EMAIL, '{{SITE_URL}}': /^https?:\/\/[\w.:-]+$/.test(SITE_URL) ? SITE_URL : '' };
-for (const page of ['/privacy.html', '/voorwaarden.html', '/melden.html', '/speelhal.html', '/iphone.html']) {
+for (const page of ['/privacy.html', '/voorwaarden.html', '/melden.html', '/review.html', '/speelhal.html', '/iphone.html']) {
   const f = files.get(page);
   if (!f) continue;
   let text = f.body.toString('utf8');
@@ -135,7 +136,17 @@ const STATS_LINKS = new Set([
   '2b7add274496ed71e7c6b7f0357aa6f60ef701d0acb036ee742991755954bd8b',
   ...(process.env.STATS_LINK_HASH || '').split(',').map((x) => x.trim().toLowerCase()).filter((x) => /^[0-9a-f]{64}$/.test(x)),
 ]);
-const statsKeyOk = (k) => !!k && ((!!process.env.MELD_SLEUTEL && k === process.env.MELD_SLEUTEL) || STATS_LINKS.has(createHash('sha256').update(k).digest('hex')));
+// De beheerlink /beheer/<code> toont alle meldingen en reviews (en opent ook de statistieken). Ook hier alleen de
+// vingerafdruk; een extra beheerlink kan met BEHEER_LINK_HASH.
+const BEHEER_LINKS = new Set([
+  'bb7da2b860c4b7cfff650df43dcc664561ac889525c35f4c8b5ed458fd5b18df',
+  ...(process.env.BEHEER_LINK_HASH || '').split(',').map((x) => x.trim().toLowerCase()).filter((x) => /^[0-9a-f]{64}$/.test(x)),
+]);
+for (const h of BEHEER_LINKS) STATS_LINKS.add(h);
+const hashOf = (k) => createHash('sha256').update(String(k)).digest('hex');
+const isMeldSleutel = (k) => !!process.env.MELD_SLEUTEL && k === process.env.MELD_SLEUTEL;
+const statsKeyOk = (k) => !!k && (isMeldSleutel(k) || STATS_LINKS.has(hashOf(k)));
+const beheerKeyOk = (k) => !!k && (isMeldSleutel(k) || BEHEER_LINKS.has(hashOf(k)));
 const statsTimer = stats.start();
 const stat = (kind, id) => stats.game(kind, id);
 const busHub = new BusHub({ log, stat, build: buildOf('/bussen.html') });
@@ -196,8 +207,10 @@ async function cleanupOld() {
     const r = await store.cleanup({ days: RETENTION_DAYS });
     const before = (await store.kv.get('meldingen')) || [], after = recentMeldingen(before);
     if (after.length !== before.length) await store.kv.set('meldingen', after);
+    const rBefore = (await store.kv.get('reviews')) || [], rAfter = recentMeldingen(rBefore);
+    if (rAfter.length !== rBefore.length) await store.kv.set('reviews', rAfter);
     if (store.kv.flush) store.kv.flush();
-    log(`opgeruimd (ouder dan ${RETENTION_DAYS} dagen): ${r.profiles} profielen, ${r.devices} telefoons, ${r.transfers} codes, ${r.gone} aantekeningen, ${before.length - after.length} meldingen`);
+    log(`opgeruimd (ouder dan ${RETENTION_DAYS} dagen): ${r.profiles} profielen, ${r.devices} telefoons, ${r.transfers} codes, ${r.gone} aantekeningen, ${before.length - after.length} meldingen, ${rBefore.length - rAfter.length} reviews`);
   } catch (e) {
     log('opruimen mislukt:', e.message);
   }
@@ -211,21 +224,17 @@ const MAIL_KEY = (process.env.RESEND_API_KEY || '').trim();
 const MAIL_TO = (process.env.MELD_MAIL || '').trim() || CONTACT_EMAIL;
 const MAIL_FROM = (process.env.RESEND_FROM || '').trim() || 'De Spelkeet <onboarding@resend.dev>';
 const MAIL_URL = (process.env.RESEND_URL || '').trim() || 'https://api.resend.com/emails';
-async function mailMelding(m) {
-  if (!MAIL_KEY || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(MAIL_TO)) return;
+const ALL_LINE = 'Alle meldingen en reviews staan op je beheerpagina (je geheime link /beheer/...).';
+function mailMelding(m) {
   const subject = `Melding${m.spel ? ` bij ${m.spel}` : ''}${m.naam ? ` over ${m.naam}` : ''}`;
-  const text = [
-    'Er is iets gemeld in De Spelkeet.',
-    '',
-    `Wanneer: ${m.at}`,
-    `Spel: ${m.spel || '-'}`,
-    `Tafel: ${m.code || '-'}`,
-    `Over: ${m.naam || '-'}`,
-    '',
-    m.wat,
-    '',
-    `Alle meldingen: ${SITE_URL || ''}/api/meldingen?sleutel=(je MELD_SLEUTEL)`,
-  ].join('\n');
+  return sendMail(subject, ['Er is iets gemeld in De Spelkeet.', '', `Wanneer: ${m.at}`, `Spel: ${m.spel || '-'}`, `Tafel: ${m.code || '-'}`, `Over: ${m.naam || '-'}`, '', m.wat, '', ALL_LINE].join('\n'), 'melding');
+}
+function mailReview(r) {
+  const subject = `Review: ${'★'.repeat(r.sterren)}${'☆'.repeat(5 - r.sterren)}${r.spel ? ` (${r.spel})` : ''}`;
+  return sendMail(subject, ['Er is een review gegeven in De Spelkeet.', '', `Wanneer: ${r.at}`, `Sterren: ${r.sterren} van de 5`, `Spel: ${r.spel || '-'}`, `Naam: ${r.naam || '-'}`, '', r.tekst || '(geen tekst)', '', ALL_LINE].join('\n'), 'review');
+}
+async function sendMail(subject, text, kind) {
+  if (!MAIL_KEY || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(MAIL_TO)) return;
   try {
     const r = await fetch(MAIL_URL, {
       method: 'POST',
@@ -233,9 +242,9 @@ async function mailMelding(m) {
       body: JSON.stringify({ from: MAIL_FROM, to: [MAIL_TO], subject, text }),
       signal: AbortSignal.timeout(10_000),
     });
-    if (!r.ok) log(`melding: mail niet verstuurd (${r.status})`);
+    if (!r.ok) log(`${kind}: mail niet verstuurd (${r.status})`);
   } catch (e) {
-    log(`melding: mail niet verstuurd (${e.message})`);
+    log(`${kind}: mail niet verstuurd (${e.message})`);
   }
 }
 async function melden(req, res) {
@@ -254,10 +263,39 @@ async function melden(req, res) {
   return send(200, { ok: true });
 }
 
+// ---------- reviews (Wat vind je ervan?): sterren en een opmerking ----------
+const REVIEW_SPELLEN = new Set(['kart', 'bussen', 'boer', 'mexen', 'dealer', 'paardenrace', 'rotonde', 'mijnenveld', 'borrelbord', 'alles']);
+async function review(req, res) {
+  const send = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)); };
+  const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+  if (!meldAllowed(ip)) return send(429, { ok: false, msg: 'Je hebt al veel verstuurd. Probeer het over een uur nog eens.' });
+  const b = await readJson(req);
+  const sterren = b && Number(b.sterren);
+  if (!Number.isInteger(sterren) || sterren < 1 || sterren > 5) return send(400, { ok: false, msg: 'Kies hoeveel sterren je geeft.' });
+  const spel = REVIEW_SPELLEN.has(clip(b.spel, 20)) ? clip(b.spel, 20) : '';
+  const r = { at: new Date().toISOString(), sterren, spel, naam: clip(b.naam, 40), tekst: clip(b.tekst, 1000) };
+  if (r.naam && isOffensive(r.naam)) r.naam = '';
+  const list = recentMeldingen((await store.kv.get('reviews')) || []);
+  list.unshift(r);
+  await store.kv.set('reviews', list.slice(0, MELD_MAX));
+  log(`review: ${sterren}/5 ${spel || '-'}${r.tekst ? `: ${r.tekst.slice(0, 80)}` : ''}`);
+  mailReview(r);
+  return send(200, { ok: true });
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://x');
   let path = decodeURIComponent(url.pathname);
   if (path === '/api/melden' && req.method === 'POST') { melden(req, res); return; }
+  if (path === '/api/review' && req.method === 'POST') { review(req, res); return; }
+  if (path === '/api/beheer') {
+    if (!beheerKeyOk(url.searchParams.get('sleutel'))) { res.writeHead(404); return res.end(); }
+    Promise.all([store.kv.get('meldingen'), store.kv.get('reviews')]).then(([m, r]) => {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ meldingen: recentMeldingen(m || []), reviews: recentMeldingen(r || []), mail: !!MAIL_KEY }));
+    });
+    return;
+  }
   if (path === '/api/meldingen') {
     const key = process.env.MELD_SLEUTEL;
     if (!key || url.searchParams.get('sleutel') !== key) { res.writeHead(404); return res.end(); }
@@ -295,6 +333,8 @@ const server = http.createServer((req, res) => {
   else if (path === '/') path = '/speelhal.html';
   else if (path === '/privacy' || path === '/voorwaarden' || path === '/melden' || path === '/iphone' || path === '/statistieken') path += '.html';
   else if (/^\/statistieken\/[A-Za-z0-9_-]{20,64}$/.test(path)) path = '/statistieken.html';   // de geheime link (de pagina vraagt de cijfers op)
+  else if (/^\/beheer\/[A-Za-z0-9_-]{20,64}$/.test(path)) path = '/beheer.html';   // de geheime beheerlink
+  else if (path === '/review') path = '/review.html';
   else if (path === '/bussen' || path === '/bussen/' || /^\/bussen\/[A-Za-z]{4}$/.test(path)) path = '/bussen.html';
   else if (path === '/boer' || path === '/boer/' || /^\/boer\/[A-Za-z]{4}$/.test(path)) path = '/boer.html';
   else if (path === '/mexen' || path === '/mexen/' || /^\/mexen\/[A-Za-z]{4}$/.test(path)) path = '/mexen.html';
