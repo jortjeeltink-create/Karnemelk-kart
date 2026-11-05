@@ -180,3 +180,49 @@ test('in de Android-app (WebView) gaat delen via de brug van de app', () => {
     assert.deepEqual(calls, [['De Spelkeet', 'Doe mee: ABCD', 'https://spelkeet.onrender.com/mexen?code=ABCD']]);
   });
 });
+
+test('reviews: sterren en een opmerking, met een mail; de beheerlink toont meldingen en reviews', async () => {
+  const { createHash } = await import('node:crypto');
+  const code = 'beheertest_' + 'z'.repeat(24);
+  const got = [];
+  const fake = http.createServer((req, res) => {
+    let body = '';
+    req.on('data', (c) => { body += c; });
+    req.on('end', () => { got.push(JSON.parse(body)); res.writeHead(200, { 'Content-Type': 'application/json' }); res.end('{"id":"x"}'); });
+  });
+  await new Promise((r) => fake.listen(0, '127.0.0.1', r));
+  const srv = await startServer({ env: { BEHEER_LINK_HASH: createHash('sha256').update(code).digest('hex'), RESEND_API_KEY: 're_test', RESEND_URL: `http://127.0.0.1:${fake.address().port}/emails` } });
+  const post = (path, body) => fetch(srv.url + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  try {
+    // de pagina
+    const page = await (await fetch(srv.url + '/review')).text();
+    assert.match(page, /Wat vind je ervan\?/);
+    assert.doesNotMatch(page, /\{\{CONTACT_EMAIL\}\}/, 'het contactadres is ingevuld');
+    // zonder sterren of met rare sterren niet
+    assert.equal((await post('/api/review', { tekst: 'leuk' })).status, 400);
+    assert.equal((await post('/api/review', { sterren: 6 })).status, 400);
+    assert.equal((await post('/api/review', { sterren: 2.5 })).status, 400);
+    // goed: alleen sterren, en sterren met alles erbij (een onbekend spel en een grove naam vallen weg)
+    assert.equal((await post('/api/review', { sterren: 4 })).status, 200);
+    assert.equal((await post('/api/review', { sterren: 5, spel: 'bussen', naam: 'Sanne', tekst: 'Bussen is top!\n<b>echt</b>' })).status, 200);
+    assert.equal((await post('/api/review', { sterren: 3, spel: 'hacker', naam: 'kanker' })).status, 200);
+    assert.equal((await post('/api/melden', { spel: 'mexen', wat: 'Iemand scheldt' })).status, 200);
+    for (let i = 0; i < 40 && got.length < 4; i++) await new Promise((res) => setTimeout(res, 50));
+    assert.ok(got.some((m) => m.subject === 'Review: ★★★★★ (bussen)' && /Bussen is top!/.test(m.text)), 'een mail bij de review');
+    // de beheerlink: de pagina, en de lijsten (nieuwste eerst)
+    assert.equal((await fetch(srv.url + '/beheer/' + code)).status, 200);
+    assert.equal((await fetch(srv.url + '/api/beheer')).status, 404);
+    assert.equal((await fetch(srv.url + '/api/beheer?sleutel=' + code.slice(0, -1) + 'q')).status, 404);
+    const b = await (await fetch(srv.url + '/api/beheer?sleutel=' + code)).json();
+    assert.equal(b.mail, true);
+    assert.deepEqual(b.reviews.map((r) => r.sterren), [3, 5, 4]);
+    assert.deepEqual([b.reviews[0].spel, b.reviews[0].naam], ['', ''], 'onbekend spel en grove naam weg');
+    assert.equal(b.reviews[1].tekst, 'Bussen is top! <b>echt</b>', 'als tekst bewaard; de pagina toont het als tekst');
+    assert.equal(b.meldingen[0].wat, 'Iemand scheldt');
+    // dezelfde code opent ook de statistieken
+    assert.equal((await fetch(srv.url + '/api/statistieken?sleutel=' + code)).status, 200);
+  } finally {
+    await srv.stop();
+    fake.close();
+  }
+});

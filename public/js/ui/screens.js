@@ -593,7 +593,7 @@ function profileSettings(app) {
         if (confirm('Weet je het zeker? Je naam, MP-punten en spullen worden gewist, ook op de server. Dat kan niet ongedaan worden.')) app.send({ t: 'erase' });
       },
     }, 'Mijn gegevens wissen'),
-    h('p', { class: 'muted small' }, h('a', { href: '/privacy' }, 'Privacybeleid'), ' · ', h('a', { href: '/voorwaarden' }, 'Voorwaarden'), ' · ', h('a', { href: '/melden' }, 'Iets melden')));
+    h('p', { class: 'muted small' }, h('a', { href: '/privacy' }, 'Privacybeleid'), ' · ', h('a', { href: '/voorwaarden' }, 'Voorwaarden'), ' · ', h('a', { href: '/melden' }, 'Iets melden'), ' · ', h('a', { href: '/review?spel=kart' }, 'Wat vind je ervan?')));
 }
 
 // ---------------- uitleg ----------------
