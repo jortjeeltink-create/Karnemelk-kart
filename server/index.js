@@ -18,7 +18,8 @@ import { RotondeHub } from '../public/shared/rotondehub.js';
 import { MijnenveldHub } from '../public/shared/mijnenveldhub.js';
 import { ZuipbordHub } from '../public/shared/zuipbordhub.js';
 import { createStore, randomString, loadSecret, makeSigner, makeSecretCheck } from './store.js';
-import { isDeviceToken } from '../public/shared/profiles.js';
+import { createStats } from './stats.js';
+import { isDeviceToken, RETENTION_DAYS } from '../public/shared/profiles.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = +(process.env.PORT || 3000);
@@ -107,8 +108,8 @@ function readCookie(req) {
 function deviceCookie(req) {
   const token = readCookie(req) || randomString(32);
   const https = req.headers['x-forwarded-proto'] === 'https' || req.socket.encrypted;
-  // 400 dagen is het maximum dat browsers toestaan; bij elk bezoek opnieuw verlengd
-  return `${COOKIE}=${token}; Path=/; Max-Age=34560000; HttpOnly; SameSite=Lax${https ? '; Secure' : ''}`;
+  // 90 dagen, bij elk bezoek opnieuw verlengd (zo lang bewaren we ook je profiel als je niet speelt)
+  return `${COOKIE}=${token}; Path=/; Max-Age=${RETENTION_DAYS * 86400}; HttpOnly; SameSite=Lax${https ? '; Secure' : ''}`;
 }
 
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
@@ -123,14 +124,21 @@ const checkSecret = makeSecretCheck(process.env.KK_SECRET_HASH || undefined);
 const hub = new Hub({ store, log, signer, checkSecret, laps: process.env.KK_LAPS ? +process.env.KK_LAPS : null });
 // versie van een tafelspel: verandert de pagina of de spelregels, dan laden telefoons die nog openstaan zichzelf opnieuw
 const buildOf = (page) => createHash('sha1').update([...files].filter(([k]) => k === page || k.startsWith('/shared/')).map(([, f]) => f.etag).join('')).digest('base64url').slice(0, 12);
-const busHub = new BusHub({ log, build: buildOf('/bussen.html') });
-const boerHub = new BoerHub({ log, build: buildOf('/boer.html') });
-const mexHub = new MexHub({ log, build: buildOf('/mexen.html') });
-const dealerHub = new DealerHub({ log, build: buildOf('/dealer.html') });
-const paardHub = new PaardHub({ log, build: buildOf('/paardenrace.html') });
-const rotondeHub = new RotondeHub({ log, build: buildOf('/rotonde.html') });
-const mijnHub = new MijnenveldHub({ log, build: buildOf('/mijnenveld.html') });
-const bordHub = new ZuipbordHub({ log, build: buildOf('/zuipbord.html') });
+// de statistieken: bezoekers per dag en per uur, en welke spellen er gespeeld worden (zie stats.js)
+const stats = await createStats({ kv: store.kv });
+const statsTimer = stats.start();
+const stat = (kind, id) => stats.game(kind, id);
+const busHub = new BusHub({ log, stat, build: buildOf('/bussen.html') });
+const boerHub = new BoerHub({ log, stat, build: buildOf('/boer.html') });
+const mexHub = new MexHub({ log, stat, build: buildOf('/mexen.html') });
+const dealerHub = new DealerHub({ log, stat, build: buildOf('/dealer.html') });
+const paardHub = new PaardHub({ log, stat, build: buildOf('/paardenrace.html') });
+const rotondeHub = new RotondeHub({ log, stat, build: buildOf('/rotonde.html') });
+const mijnHub = new MijnenveldHub({ log, stat, build: buildOf('/mijnenveld.html') });
+const bordHub = new ZuipbordHub({ log, stat, build: buildOf('/zuipbord.html') });
+// welke pagina's we tellen, met een korte naam
+const PAGE_NAMES = { '/speelhal.html': 'hoofdpagina', '/index.html': 'kart', '/bussen.html': 'bussen', '/boer.html': 'boer', '/mexen.html': 'mexen', '/dealer.html': 'dealer', '/paardenrace.html': 'paardenrace', '/rotonde.html': 'rotonde', '/mijnenveld.html': 'mijnenveld', '/zuipbord.html': 'borrelbord', '/iphone.html': 'iphone', '/privacy.html': 'privacy', '/voorwaarden.html': 'voorwaarden', '/melden.html': 'melden' };
+const clientIp = (req) => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 
 // Een spel met een nieuwe naam (Zuipbord heet nu Borrelbord), en spellen die van de site af zijn (Weerwolven, Mega
 // Ball, Stock Market, Rode Zone): wie nog een oude link heeft, komt op de goede plek.
@@ -168,6 +176,23 @@ function readJson(req, max = 4096) {
     req.on('error', () => resolve(null));
   });
 }
+// meldingen bewaren we hooguit 90 dagen
+const recentMeldingen = (list, now = Date.now()) => (Array.isArray(list) ? list : []).filter((m) => now - Date.parse(m.at) <= RETENTION_DAYS * 86400000);
+
+// Elke dag opruimen wat ouder is dan 90 dagen: profielen waarmee niet meer gespeeld is, koppelingen van telefoons,
+// verlopen codes en oude meldingen. De statistieken ruimen zichzelf op (stats.js).
+async function cleanupOld() {
+  try {
+    const r = await store.cleanup({ days: RETENTION_DAYS });
+    const before = (await store.kv.get('meldingen')) || [], after = recentMeldingen(before);
+    if (after.length !== before.length) await store.kv.set('meldingen', after);
+    if (store.kv.flush) store.kv.flush();
+    log(`opgeruimd (ouder dan ${RETENTION_DAYS} dagen): ${r.profiles} profielen, ${r.devices} telefoons, ${r.transfers} codes, ${r.gone} aantekeningen, ${before.length - after.length} meldingen`);
+  } catch (e) {
+    log('opruimen mislukt:', e.message);
+  }
+}
+
 // Bij elke melding een mail, via Resend (resend.com, gratis tot 100 mails per dag). Zet daarvoor RESEND_API_KEY op
 // Render. De mail gaat naar MELD_MAIL, of anders naar het contactadres. Zonder sleutel gaat er geen mail; de melding
 // staat dan nog steeds in de opslag en in het logboek. Met RESEND_FROM kies je een eigen afzender (dan moet je domein
@@ -211,7 +236,7 @@ async function melden(req, res) {
   const wat = clip(b && b.wat, 1000);
   if (!b || wat.length < 5) return send(400, { ok: false, msg: 'Schrijf kort wat er aan de hand is.' });
   const melding = { at: new Date().toISOString(), spel: clip(b.spel, 20), code: clip(b.code, 6).toUpperCase(), naam: clip(b.naam, 40), wat };
-  const list = (await store.kv.get('meldingen')) || [];
+  const list = recentMeldingen((await store.kv.get('meldingen')) || []);
   list.unshift(melding);
   await store.kv.set('meldingen', list.slice(0, MELD_MAX));
   log(`melding: ${melding.spel || '-'} ${melding.code || ''} ${melding.naam ? `over ${melding.naam}` : ''}: ${wat.slice(0, 80)}`);
@@ -228,6 +253,14 @@ const server = http.createServer((req, res) => {
     if (!key || url.searchParams.get('sleutel') !== key) { res.writeHead(404); return res.end(); }
     store.kv.get('meldingen').then((list) => { res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(list || [], null, 2)); });
     return;
+  }
+  if (path === '/api/statistieken') {
+    const key = process.env.MELD_SLEUTEL;
+    if (!key || url.searchParams.get('sleutel') !== key) { res.writeHead(404); return res.end(); }
+    const days = Math.max(1, Math.min(120, Number(url.searchParams.get('dagen')) || 30));
+    const inGame = [wss, ...tableChannels].reduce((n, ch) => n + ch.clients.size, 0);
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ ...stats.summary(days), inGame }));
   }
   if (path === '/.well-known/assetlinks.json') {
     if (!ASSET_LINKS) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('Niet ingesteld (ANDROID_PACKAGE en ANDROID_SHA256)'); }
@@ -251,7 +284,7 @@ const server = http.createServer((req, res) => {
   // De Spelkeet is de hoofdpagina; uitnodigingen (/?room=, /join/) gaan nog steeds naar de kartgame
   if (path === '/kart' || path === '/kart/' || path.startsWith('/join/') || (path === '/' && url.searchParams.has('room'))) path = '/index.html';
   else if (path === '/') path = '/speelhal.html';
-  else if (path === '/privacy' || path === '/voorwaarden' || path === '/melden' || path === '/iphone') path += '.html';
+  else if (path === '/privacy' || path === '/voorwaarden' || path === '/melden' || path === '/iphone' || path === '/statistieken') path += '.html';
   else if (path === '/bussen' || path === '/bussen/' || /^\/bussen\/[A-Za-z]{4}$/.test(path)) path = '/bussen.html';
   else if (path === '/boer' || path === '/boer/' || /^\/boer\/[A-Za-z]{4}$/.test(path)) path = '/boer.html';
   else if (path === '/mexen' || path === '/mexen/' || /^\/mexen\/[A-Za-z]{4}$/.test(path)) path = '/mexen.html';
@@ -266,6 +299,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     return res.end('Niet gevonden');
   }
+  if (req.method === 'GET' && PAGE_NAMES[path]) stats.pageview(PAGE_NAMES[path], { ip: clientIp(req), ua: String(req.headers['user-agent'] || '') });
   const headers = { 'Content-Type': f.type, ETag: f.etag, 'Cache-Control': 'no-cache', Vary: 'Accept-Encoding', 'X-Content-Type-Options': 'nosniff' };
   if (path === '/index.html') headers['Set-Cookie'] = deviceCookie(req);
   if (req.headers['if-none-match'] === f.etag) { res.writeHead(304, headers); return res.end(); }
@@ -355,6 +389,10 @@ function sweep(clients) {
 }
 const tableChannels = [busWss, boerWss, mexWss, dealerWss, paardWss, rotondeWss, mijnWss, bordWss];
 const heartbeat = setInterval(() => sweep(wss.clients), 15000);
+// opruimen: kort na het starten, en daarna elke dag
+const cleanupFirst = setTimeout(cleanupOld, 60 * 1000);
+const cleanupTimer = setInterval(cleanupOld, 24 * 3600 * 1000);
+cleanupFirst.unref?.(); cleanupTimer.unref?.();
 const tableBeat = setInterval(() => { for (const channel of tableChannels) sweep(channel.clients); }, 4000);
 
 const tickTimer = setInterval(() => hub.tick(), 1000 / 60);
@@ -375,6 +413,10 @@ function shutdown() {
   clearInterval(tableBeat);
   clearInterval(tickTimer);
   clearInterval(busTimer);
+  clearInterval(statsTimer);
+  clearTimeout(cleanupFirst);
+  clearInterval(cleanupTimer);
+  stats.flush().catch(() => {});
   try { store.flush(); } catch (e) { console.error(e); }
   server.close();
   setTimeout(() => process.exit(0), 300);
@@ -382,4 +424,4 @@ function shutdown() {
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
-export { server, hub };
+export { server, hub, cleanupOld };

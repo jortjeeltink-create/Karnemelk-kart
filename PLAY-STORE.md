@@ -134,6 +134,7 @@ Zonder deze koppeling toont de app bovenin een adresbalk.
   - *Apparaat- of andere ID's*: een willekeurige sleutel om je terug te laten komen op je plek, voor de werking van de app.
   - *App-activiteit → Andere door de gebruiker gemaakte content*: de uitdagingstekst en meldingen.
   - *App-activiteit → Andere acties*: punten en spullen in Karnemelk Kart.
+  - *App-activiteit → App-interacties*: welke pagina's en spellen geopend worden, alleen als tellingen per dag en per uur (zonder cookies, zonder IP-adressen), voor analyse.
 - **Niet gedeeld met derden, niet verkocht.**
 - **Versleuteld tijdens verzending: ja** (HTTPS).
 - **Gebruikers kunnen vragen gegevens te verwijderen: ja.**

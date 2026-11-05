@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Statistieken · De Spelkeet</title>
+<meta name="theme-color" content="#150b18">
+<link rel="icon" href="/img/speelhal.svg" type="image/svg+xml">
+<style>
+/* Alleen voor de maker: hoeveel bezoekers De Spelkeet heeft en wanneer. De cijfers komen van /api/statistieken,
+   met de sleutel uit MELD_SLEUTEL. Er staan geen persoonsgegevens in, alleen tellingen. */
+:root{
+  color-scheme:dark;
+  --bg:#150b18;
+  --surface-1:#21122a;
+  --surface-2:#2b1836;
+  --line:rgba(243,239,219,.12);
+  --text-primary:#f3efdb;
+  --text-secondary:#cdbfd0;
+  --text-muted:#9c8aa3;
+  --series-1:#f2c230;
+  --series-1-soft:rgba(242,194,48,.18);
+  --accent:#d690c9;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--text-primary);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;padding:calc(20px + env(safe-area-inset-top,0px)) 16px 48px}
+main{max-width:1000px;margin:0 auto;display:grid;gap:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-size:26px;line-height:1.1;font-weight:900}
+h1 small{display:block;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.seg{display:inline-flex;padding:4px;border-radius:999px;background:var(--surface-1);box-shadow:inset 0 0 0 1px var(--line)}
+.seg button{border:0;background:none;color:var(--text-secondary);font:700 14px/1 system-ui,sans-serif;padding:9px 14px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--text-primary);color:#21122a}
+.seg button:focus-visible,.card button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface-1);border-radius:18px;padding:14px 16px;box-shadow:inset 0 0 0 1px var(--line)}
+.tile p{font-size:13px;color:var(--text-secondary)}
+.tile b{display:block;font-size:34px;line-height:1.1;font-weight:900;font-variant-numeric:tabular-nums;margin-top:2px}
+.tile span{font-size:12px;color:var(--text-muted)}
+.tile.live b::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:#3ee07f;margin-right:8px;vertical-align:6px;box-shadow:0 0 0 4px rgba(62,224,127,.18)}
+.card{background:var(--surface-1);border-radius:20px;padding:16px;box-shadow:inset 0 0 0 1px var(--line)}
+.card h2{font-size:17px;font-weight:800}
+.card .note{font-size:13px;color:var(--text-muted);margin-top:2px}
+.chart{position:relative;margin-top:12px;overflow:visible}
+main{overflow-x:clip}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .grid line{stroke:var(--line);stroke-width:1}
+.chart .axis text{fill:var(--text-muted);font-size:11px}
+.chart .bar{fill:var(--series-1)}
+.chart .hit{fill:transparent;cursor:default}
+.chart .hit:hover+.bar,.chart .bar.on{fill:#ffd85c}
+.tip{position:absolute;pointer-events:none;background:var(--text-primary);color:#21122a;border-radius:10px;padding:7px 10px;font-size:13px;line-height:1.3;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4);transform:translate(-50%,-100%);opacity:0;transition:opacity .1s}
+.tip b{font-weight:800}
+.tip.on{opacity:1}
+details{margin-top:10px;font-size:13px;color:var(--text-secondary)}
+summary{cursor:pointer;color:var(--text-secondary)}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:8px 6px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+th{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
+td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;background:var(--c)}
+.empty{color:var(--text-muted);font-size:14px;padding:18px 0}
+form.key{display:grid;gap:10px;max-width:420px}
+form.key input{font:inherit;padding:12px 14px;border-radius:12px;border:0;background:var(--surface-2);color:var(--text-primary);box-shadow:inset 0 0 0 1px var(--line)}
+form.key button{font:800 16px/1 system-ui,sans-serif;padding:14px;border:0;border-radius:12px;background:var(--text-primary);color:#21122a;cursor:pointer}
+.err{color:#ff8a7d;font-size:14px}
+.foot{font-size:12px;color:var(--text-muted);text-align:center}
+</style>
+</head>
+<body>
+<main id="app">
+  <header>
+    <h1><small>De Spelkeet</small>Statistieken</h1>
+  </header>
+  <p class="empty">Laden…</p>
+</main>
+<script>
+(() => {
+'use strict';
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const app = $('#app');
+const GAMES = { kart: ['Karnemelk Kart', '#ff7a00'], bussen: ['Bussen', '#4f8dff'], boer: ['Boer zoekt vrouw', '#ff6b8b'], mexen: ['Mexen', '#36c5d6'], dealer: ['Pak de dealer', '#a28fe3'], ftd: ['Pak de dealer', '#a28fe3'], paardenrace: ['Paardenrace', '#a6d83c'], paard: ['Paardenrace', '#a6d83c'], rotonde: ['Rotonde', '#d63bb5'], mijnenveld: ['Mijnenveld', '#c9803a'], borrelbord: ['Borrelbord', '#f2c230'], zuipbord: ['Borrelbord', '#f2c230'] };
+const DAG = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+const MAAND = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+const dateOf = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+const shortDay = (s) => { const d = dateOf(s); return `${d.getUTCDate()} ${MAAND[d.getUTCMonth()]}`; };
+const longDay = (s) => { const d = dateOf(s); return `${DAG[d.getUTCDay()]} ${d.getUTCDate()} ${MAAND[d.getUTCMonth()]}`; };
+const nf = new Intl.NumberFormat('nl-NL');
+
+let key = new URLSearchParams(location.search).get('sleutel') || '';
+try { if (!key) key = sessionStorage.getItem('spelkeet-stats') || ''; } catch (e) { /* privémodus */ }
+let days = 30, data = null;
+
+function askKey(msg = '') {
+  app.innerHTML = `<header><h1><small>De Spelkeet</small>Statistieken</h1></header>
+  <section class="card"><h2>Sleutel</h2><p class="note">Dezelfde sleutel als voor de meldingen: <b>MELD_SLEUTEL</b>, die staat in Render bij Environment.</p>
+  <form class="key" id="keyForm"><input id="keyIn" type="password" autocomplete="current-password" placeholder="Je sleutel" aria-label="Sleutel"><button type="submit">Bekijk de statistieken</button>${msg ? `<p class="err">${esc(msg)}</p>` : ''}</form></section>`;
+  $('#keyForm').addEventListener('submit', (e) => { e.preventDefault(); key = $('#keyIn').value.trim(); load(); });
+}
+
+async function load() {
+  if (!key) return askKey();
+  try {
+    const r = await fetch(`/api/statistieken?sleutel=${encodeURIComponent(key)}&dagen=${days}`, { cache: 'no-store' });
+    if (!r.ok) { try { sessionStorage.removeItem('spelkeet-stats'); } catch (e) {} return askKey('Die sleutel klopt niet.'); }
+    data = await r.json();
+    try { sessionStorage.setItem('spelkeet-stats', key); } catch (e) {}
+    if (location.search) history.replaceState(null, '', location.pathname);   // de sleutel niet in de adresbalk laten staan
+    render();
+  } catch (e) { askKey('Geen verbinding met de server.'); }
+}
+
+const sum = (list, f) => list.reduce((t, d) => t + f(d), 0);
+
+// een staafdiagram: één reeks, dunne staven met een afgerond bovenkantje, rustige lijnen, en een tooltip per staaf
+function bars(id, items, { label, height = 200, tickEvery = 1, tip }) {
+  // zo breed als de kaart echt is, zodat de cijfers langs de assen op elk scherm even groot zijn
+  const W = Math.max(280, Math.min(960, (app.clientWidth || 960) - 32)), H = height, padL = 34, padB = 26, padT = 10, n = items.length;
+  const max = Math.max(1, ...items.map((d) => d.v));
+  const step = niceStep(max), top = Math.ceil(max / step) * step;
+  const bw = (W - padL) / n, gap = Math.min(6, bw * .25), r = Math.min(4, (bw - gap) / 2);
+  const y = (v) => padT + (H - padT - padB) * (1 - v / top);
+  let grid = '', axis = '', marks = '';
+  for (let v = 0; v <= top; v += step) grid += `<line x1="${padL}" x2="${W}" y1="${y(v)}" y2="${y(v)}"/>`, axis += `<text x="${padL - 6}" y="${y(v) + 4}" text-anchor="end">${nf.format(v)}</text>`;
+  items.forEach((d, i) => {
+    const x = padL + i * bw + gap / 2, w = bw - gap, h = Math.max(0, y(0) - y(d.v)), yy = y(d.v);
+    const path = h > 0 ? `M${x},${y(0)}V${yy + Math.min(r, h)}Q${x},${yy} ${x + Math.min(r, w / 2)},${yy}H${x + w - Math.min(r, w / 2)}Q${x + w},${yy} ${x + w},${yy + Math.min(r, h)}V${y(0)}Z` : '';
+    marks += `<rect class="hit" data-i="${i}" x="${padL + i * bw}" y="${padT}" width="${bw}" height="${H - padT - padB}"/>${path ? `<path class="bar" d="${path}"/>` : ''}`;
+    if (i % tickEvery === 0) axis += `<text x="${x + w / 2}" y="${H - 8}" text-anchor="middle">${esc(d.k)}</text>`;
+  });
+  setTimeout(() => {
+    const root = document.getElementById(id); if (!root) return;
+    const tipEl = root.querySelector('.tip'), svg = root.querySelector('svg');
+    root.querySelectorAll('.hit').forEach((el) => {
+      const show = () => {
+        const i = +el.dataset.i, d = items[i], box = svg.getBoundingClientRect(), s = box.width / W;
+        tipEl.innerHTML = tip(d);
+        // binnen de grafiek houden, ook bij de staven helemaal links of rechts
+        const half = tipEl.offsetWidth / 2, x = (padL + (i + .5) * bw) * s;
+        tipEl.style.left = `${Math.max(half, Math.min(box.width - half, x))}px`;
+        tipEl.style.top = `${Math.max(0, y(d.v) * s - 8)}px`;
+        tipEl.classList.add('on');
+      };
+      el.addEventListener('mouseenter', show);
+      el.addEventListener('touchstart', show, { passive: true });
+      el.addEventListener('mouseleave', () => tipEl.classList.remove('on'));
+    });
+  });
+  return `<div class="chart" id="${id}"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}"><g class="grid">${grid}</g><g class="axis">${axis}</g>${marks}</svg><div class="tip"></div></div>`;
+}
+function niceStep(max) {
+  const raw = max / 4, p = 10 ** Math.floor(Math.log10(raw)), f = raw / p;
+  return Math.max(1, (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p);
+}
+
+function render() {
+  const list = data.days, today = list[list.length - 1] || { views: 0, visitors: 0 };
+  const last7 = list.slice(-7);
+  // per uur: de laatste 7 dagen bij elkaar
+  const hours = Array.from({ length: 24 }, (_, h) => ({ k: String(h), v: sum(last7, (d) => d.hours[h] || 0) }));
+  const busiest = hours.reduce((a, b) => (b.v > a.v ? b : a), hours[0]);
+  // per spel
+  const games = {};
+  for (const d of list) {
+    for (const [g, n] of Object.entries(d.pages || {})) { const k = g === 'hoofdpagina' || !GAMES[g] ? null : GAMES[g][0]; if (k) (games[k] ||= { pages: 0, tables: 0, starts: 0, c: GAMES[g][1] }).pages += n; }
+    for (const [g, n] of Object.entries(d.tables || {})) { const m = GAMES[g]; if (m) (games[m[0]] ||= { pages: 0, tables: 0, starts: 0, c: m[1] }).tables += n; }
+    for (const [g, n] of Object.entries(d.starts || {})) { const m = GAMES[g]; if (m) (games[m[0]] ||= { pages: 0, tables: 0, starts: 0, c: m[1] }).starts += n; }
+  }
+  const gameRows = Object.entries(games).sort((a, b) => b[1].starts - a[1].starts || b[1].pages - a[1].pages);
+  const perDay = list.map((d) => ({ k: shortDay(d.day), day: d.day, v: d.visitors, views: d.views }));
+  const tick = days <= 7 ? 1 : days <= 30 ? 5 : 15;
+  app.innerHTML = `
+  <header>
+    <h1><small>De Spelkeet</small>Statistieken</h1>
+    <div class="seg" role="group" aria-label="Periode">${[7, 30, 90].map((n) => `<button type="button" data-d="${n}" aria-pressed="${n === days}">${n} dagen</button>`).join('')}</div>
+  </header>
+  <section class="tiles">
+    <div class="tile live"><p>Nu op de site</p><b>${nf.format(data.online)}</b><span>de laatste 5 minuten</span></div>
+    <div class="tile"><p>Nu in een spel</p><b>${nf.format(data.inGame)}</b><span>telefoons verbonden</span></div>
+    <div class="tile"><p>Bezoekers vandaag</p><b>${nf.format(today.visitors)}</b><span>${nf.format(today.views)} keer een pagina geopend</span></div>
+    <div class="tile"><p>Bezoekers ${days} dagen</p><b>${nf.format(sum(list, (d) => d.visitors))}</b><span>per dag opgeteld</span></div>
+  </section>
+  <section class="card">
+    <h2>Bezoekers per dag</h2>
+    <p class="note">De laatste ${days} dagen. Iemand die op twee dagen komt, telt op allebei de dagen.</p>
+    ${bars('perDag', perDay, { label: `Bezoekers per dag, de laatste ${days} dagen`, tickEvery: tick, tip: (d) => `<b>${longDay(d.day)}</b><br>${nf.format(d.v)} bezoekers · ${nf.format(d.views)} pagina's` })}
+    <details><summary>Als tabel</summary><table><thead><tr><th>Dag</th><th>Bezoekers</th><th>Pagina's</th></tr></thead><tbody>${[...perDay].reverse().map((d) => `<tr><td>${longDay(d.day)}</td><td>${nf.format(d.v)}</td><td>${nf.format(d.views)}</td></tr>`).join('')}</tbody></table></details>
+  </section>
+  <section class="card">
+    <h2>Wanneer zitten mensen op de site?</h2>
+    <p class="note">Pagina's geopend per uur van de dag, de laatste 7 dagen bij elkaar (Nederlandse tijd).${busiest.v ? ` Het drukst rond <b>${busiest.k}:00</b>.` : ''}</p>
+    ${bars('perUur', hours, { label: 'Pagina\'s per uur van de dag, de laatste 7 dagen', height: 180, tickEvery: 3, tip: (d) => `<b>${d.k}:00 – ${d.k}:59</b><br>${nf.format(d.v)} pagina's` })}
+  </section>
+  <section class="card">
+    <h2>Spellen</h2>
+    <p class="note">De laatste ${days} dagen.</p>
+    ${gameRows.length ? `<table><thead><tr><th>Spel</th><th>Bezocht</th><th>Tafels</th><th>Potjes</th></tr></thead><tbody>${gameRows.map(([name, g]) => `<tr><td style="--c:${g.c}"><i></i>${esc(name)}</td><td>${nf.format(g.pages)}</td><td>${name === 'Karnemelk Kart' ? '–' : nf.format(g.tables)}</td><td>${name === 'Karnemelk Kart' ? '–' : nf.format(g.starts)}</td></tr>`).join('')}</tbody></table>` : '<p class="empty">Nog geen spellen gespeeld in deze periode.</p>'}
+  </section>
+  <p class="foot">Zonder cookies en zonder IP-adressen: alleen tellingen per dag en per uur. Ververst elke minuut.</p>`;
+  app.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => { days = +b.dataset.d; load(); }));
+}
+
+let rz = 0;
+addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { if (data) render(); }, 200); });
+load();
+setInterval(() => { if (data && document.visibilityState === 'visible') load(); }, 60000);
+})();
+</script>
+</body>
+</html>

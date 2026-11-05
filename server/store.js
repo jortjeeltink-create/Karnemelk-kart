@@ -29,6 +29,7 @@ export class FileKV {
   }
   async get(key) { return this.data[key] ?? null; }
   async set(key, value) { this.data[key] = value; this.schedule(); }
+  async keys(prefix = '') { return Object.keys(this.data).filter((k) => k.startsWith(prefix)); }
   async del(key) { delete this.data[key]; this.schedule(); }
   schedule() {
     if (this.timer) return;
@@ -69,6 +70,17 @@ export class UpstashKV {
   }
   async set(key, value) { await this.cmd(['SET', 'kk:' + key, JSON.stringify(value)]); }
   async del(key) { await this.cmd(['DEL', 'kk:' + key]); }
+  // alle sleutels die met prefix beginnen (met SCAN, zodat het ook bij veel sleutels werkt)
+  async keys(prefix = '') {
+    const out = [];
+    let cursor = '0';
+    do {
+      const [next, list] = await this.cmd(['SCAN', cursor, 'MATCH', `kk:${prefix}*`, 'COUNT', '500']);
+      cursor = String(next);
+      for (const k of list || []) out.push(k.slice(3));
+    } while (cursor !== '0');
+    return out;
+  }
   flush() {}
 }
 
