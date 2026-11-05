@@ -1,6 +1,6 @@
 # De Spelkeet in de Google Play Store
 
-De Spelkeet is een website (een PWA). In de Play Store komt hij als **Trusted Web Activity**: een kleine Android-app die de site schermvullend opent, zonder adresbalk. De spellen blijven op de server draaien. Een update van de site is dus meteen ook een update van de app.
+De Spelkeet is een website (een PWA). In de Play Store komt hij als een kleine Android-app met een eigen **WebView** die de site schermvullend toont (sinds versie 1.1.0; de code staat in [`android/`](android/LEESMIJ.md)). De spellen blijven op de server draaien. Een update van de site is dus meteen ook een update van de app.
 
 Op de site staat al klaar:
 
@@ -59,6 +59,8 @@ Meldingen komen ook in de logboeken van Render ("melding: …"). Op het gratis p
 4. **Let op:** een nieuw persoonlijk account moet eerst een **gesloten test** doen met **minstens 12 testers, 14 dagen achter elkaar**, voordat je naar productie mag (stap 6). Zoek dus alvast 12 vrienden met een Android-telefoon.
 
 ## 3. De Android-app maken (zonder programmeren)
+
+**Let op:** de stappen hieronder gaan over de eerste versie (1.0.0, Bubblewrap). Nieuwe versies bouw je met het project in [`android/`](android/LEESMIJ.md).
 
 **Al gedaan:** Claude heeft de app gebouwd met Bubblewrap (`De-Spelkeet-1.0.0.aab`, pakketnaam `nl.spelkeet.app`, versie 1.0.0) en je de uploadsleutel met het wachtwoord gestuurd. Bewaar die goed. Wil je hem ooit zelf opnieuw maken, dan kan het zo:
 

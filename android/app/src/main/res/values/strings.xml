@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">De Spelkeet</string>
+    <string name="share_title">Delen via</string>
+    <string name="no_app">Geen app gevonden om dit te openen</string>
+</resources>

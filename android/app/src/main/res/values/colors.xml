@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- de donkere avondkleur van de site -->
+    <color name="bg">#150B18</color>
+    <color name="nav">#000000</color>
+</resources>

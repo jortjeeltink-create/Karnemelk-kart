@@ -3,6 +3,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import vm from 'node:vm';
+import { readFileSync } from 'node:fs';
 import { startServer } from './helpers.js';
 import { isOffensive } from '../public/shared/namen.js';
 import { cleanChallenge } from '../public/shared/challenges.js';
@@ -157,4 +159,24 @@ test('zonder RESEND_API_KEY gaat er geen mail, maar de melding lukt wel', async 
   } finally {
     await srv.stop();
   }
+});
+
+test('in de Android-app (WebView) gaat delen via de brug van de app', () => {
+  const src = readFileSync(new URL('../public/js/poort.js', import.meta.url), 'utf8');
+  const run = (extra) => {
+    const navigator = {};
+    const win = { navigator, isSecureContext: false, addEventListener() {}, localStorage: { removeItem() {} }, ...extra };
+    win.window = win;
+    vm.runInNewContext(src, win);
+    return navigator;
+  };
+  // in een gewone browser zonder navigator.share: niets veranderen (dan kopieert de site de link)
+  assert.equal(run({}).share, undefined);
+  // in de app: navigator.share roept SpelkeetApp.share aan met titel, tekst en link
+  const calls = [];
+  const nav = run({ SpelkeetApp: { share: (...a) => calls.push(a) } });
+  assert.equal(typeof nav.share, 'function');
+  return nav.share({ title: 'De Spelkeet', text: 'Doe mee: ABCD', url: 'https://spelkeet.onrender.com/mexen?code=ABCD' }).then(() => {
+    assert.deepEqual(calls, [['De Spelkeet', 'Doe mee: ABCD', 'https://spelkeet.onrender.com/mexen?code=ABCD']]);
+  });
 });
