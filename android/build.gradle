@@ -1,0 +1,17 @@
+// De Spelkeet als Android-app: een eigen WebView die https://spelkeet.onrender.com toont.
+buildscript {
+    repositories {
+        google()
+        jcenter() // dezelfde bronnen als waarmee de eerste versie (Bubblewrap) gebouwd is
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.9.1'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
+}
