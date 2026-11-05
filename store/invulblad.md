@@ -45,12 +45,15 @@ Klik op **App maken**. Je komt op het *Dashboard* met een lijst taken. Die doe j
 
 ## 3. De koppeling met de site (belangrijk)
 
-*Testen en releasen → Instellingen → **App-integriteit** → tab **App-ondertekening***
+*Beveiligd met Play → **Play Store-beveiliging** → **App-ondertekening*** (vroeger: Testen en releasen → App-integriteit)
 
-Kopieer de **SHA-256-vingerafdruk** onder *Certificaat van app-ondertekeningssleutel* en **stuur die naar Claude**. Claude zet hem in de site. Zonder deze stap zie je in de app bovenin een adresbalk.
+**Klaar.** De vingerafdrukken staan in de site (`APP_PRINTS` in `server/index.js`), dus de app opent zonder adresbalk:
 
-(De vingerafdruk van de uploadsleutel staat al in de site:
-`CE:61:C5:3A:25:3C:74:BE:0E:00:D0:30:54:19:D0:C1:28:30:48:F6:48:DA:1F:4D:19:51:22:4E:75:95:AB:4B`)
+- uploadsleutel: `CE:61:C5:3A:25:3C:74:BE:0E:00:D0:30:54:19:D0:C1:28:30:48:F6:48:DA:1F:4D:19:51:22:4E:75:95:AB:4B`
+- app-ondertekeningssleutel van Google Play: `83:68:BB:D7:CE:82:A8:E2:DE:CB:6E:72:26:6E:3E:54:1B:9B:36:69:66:A4:D8:EE:FB:CA:83:37:35:32:D0:21`
+- plus de twee hybride certificaten uit *Certificaten downloaden* (klassiek en PQC).
+
+Wijzigt Google ooit de sleutel (*Sleutel wijzigen*), download dan de certificaten opnieuw en stuur ze naar Claude.
 
 ## 4. De Store-pagina
 

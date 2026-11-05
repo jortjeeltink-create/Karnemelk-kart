@@ -82,6 +82,9 @@ for (const page of ['/privacy.html', '/voorwaarden.html', '/melden.html', '/spee
 const APP_PACKAGE = 'nl.spelkeet.app';
 const APP_PRINTS = [
   'CE:61:C5:3A:25:3C:74:BE:0E:00:D0:30:54:19:D0:C1:28:30:48:F6:48:DA:1F:4D:19:51:22:4E:75:95:AB:4B', // uploadsleutel
+  '83:68:BB:D7:CE:82:A8:E2:DE:CB:6E:72:26:6E:3E:54:1B:9B:36:69:66:A4:D8:EE:FB:CA:83:37:35:32:D0:21', // app-ondertekeningssleutel van Google Play
+  '42:91:BA:E0:A7:FB:47:21:C4:1B:C2:A0:1E:41:B2:E5:30:93:F0:05:43:75:48:9C:94:9D:79:19:83:69:F7:FB', // Google Play, hybride (klassiek)
+  'B0:86:52:64:C7:BB:DF:00:02:CF:8C:67:07:A9:15:3A:37:49:A2:99:8A:47:66:BE:FA:03:EB:41:0D:F6:B6:4C', // Google Play, hybride (PQC)
 ];
 const ASSET_LINKS = (() => {
   const pkg = (process.env.ANDROID_PACKAGE || '').trim() || APP_PACKAGE;
