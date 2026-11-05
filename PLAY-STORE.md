@@ -97,7 +97,7 @@ Zonder deze koppeling toont de app bovenin een adresbalk.
    - `ANDROID_PACKAGE`: je Package ID.
 5. Controleer dat `https://jouw-adres/.well-known/assetlinks.json` je pakketnaam en vingerafdrukken toont.
 
-**Makkelijker:** stuur de vingerafdruk van de app-ondertekeningssleutel naar Claude. Die zet hem bij `APP_PRINTS` in `server/index.js`; dan hoef je in Render niks in te vullen. De uploadsleutel staat er al in. Het hele invulblad voor de Play Console staat in [`store/invulblad.md`](store/invulblad.md).
+**Makkelijker:** de vingerafdrukken van de uploadsleutel en van de app-ondertekeningssleutel van Google Play staan al bij `APP_PRINTS` in `server/index.js`; in Render hoef je niks in te vullen. Het hele invulblad voor de Play Console staat in [`store/invulblad.md`](store/invulblad.md).
 
 ## 5. Alles invullen in de Play Console
 
