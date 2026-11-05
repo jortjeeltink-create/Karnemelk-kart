@@ -129,6 +129,13 @@ const hub = new Hub({ store, log, signer, checkSecret, laps: process.env.KK_LAPS
 const buildOf = (page) => createHash('sha1').update([...files].filter(([k]) => k === page || k.startsWith('/shared/')).map(([, f]) => f.etag).join('')).digest('base64url').slice(0, 12);
 // de statistieken: bezoekers per dag en per uur, en welke spellen er gespeeld worden (zie stats.js)
 const stats = await createStats({ kv: store.kv });
+// Wie mag ze zien: met MELD_SLEUTEL, of via de geheime link /statistieken/<code>. Van die code staat hier alleen de
+// vingerafdruk (SHA-256), niet de code zelf; Jort heeft de link. Een extra link kan met STATS_LINK_HASH (komma's ertussen).
+const STATS_LINKS = new Set([
+  '2b7add274496ed71e7c6b7f0357aa6f60ef701d0acb036ee742991755954bd8b',
+  ...(process.env.STATS_LINK_HASH || '').split(',').map((x) => x.trim().toLowerCase()).filter((x) => /^[0-9a-f]{64}$/.test(x)),
+]);
+const statsKeyOk = (k) => !!k && ((!!process.env.MELD_SLEUTEL && k === process.env.MELD_SLEUTEL) || STATS_LINKS.has(createHash('sha256').update(k).digest('hex')));
 const statsTimer = stats.start();
 const stat = (kind, id) => stats.game(kind, id);
 const busHub = new BusHub({ log, stat, build: buildOf('/bussen.html') });
@@ -258,8 +265,7 @@ const server = http.createServer((req, res) => {
     return;
   }
   if (path === '/api/statistieken') {
-    const key = process.env.MELD_SLEUTEL;
-    if (!key || url.searchParams.get('sleutel') !== key) { res.writeHead(404); return res.end(); }
+    if (!statsKeyOk(url.searchParams.get('sleutel'))) { res.writeHead(404); return res.end(); }
     const days = Math.max(1, Math.min(120, Number(url.searchParams.get('dagen')) || 30));
     const inGame = [wss, ...tableChannels].reduce((n, ch) => n + ch.clients.size, 0);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -288,6 +294,7 @@ const server = http.createServer((req, res) => {
   if (path === '/kart' || path === '/kart/' || path.startsWith('/join/') || (path === '/' && url.searchParams.has('room'))) path = '/index.html';
   else if (path === '/') path = '/speelhal.html';
   else if (path === '/privacy' || path === '/voorwaarden' || path === '/melden' || path === '/iphone' || path === '/statistieken') path += '.html';
+  else if (/^\/statistieken\/[A-Za-z0-9_-]{20,64}$/.test(path)) path = '/statistieken.html';   // de geheime link (de pagina vraagt de cijfers op)
   else if (path === '/bussen' || path === '/bussen/' || /^\/bussen\/[A-Za-z]{4}$/.test(path)) path = '/bussen.html';
   else if (path === '/boer' || path === '/boer/' || /^\/boer\/[A-Za-z]{4}$/.test(path)) path = '/boer.html';
   else if (path === '/mexen' || path === '/mexen/' || /^\/mexen\/[A-Za-z]{4}$/.test(path)) path = '/mexen.html';

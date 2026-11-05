@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
 <title>Statistieken · De Spelkeet</title>
 <meta name="theme-color" content="#150b18">
 <link rel="icon" href="/img/speelhal.svg" type="image/svg+xml">
 <style>
 /* Alleen voor de maker: hoeveel bezoekers De Spelkeet heeft en wanneer. De cijfers komen van /api/statistieken,
-   met de sleutel uit MELD_SLEUTEL. Er staan geen persoonsgegevens in, alleen tellingen. */
+   met de sleutel uit MELD_SLEUTEL of via de geheime link. Er staan geen persoonsgegevens in, alleen tellingen. */
 :root{
   color-scheme:dark;
   --bg:#150b18;
@@ -89,7 +90,8 @@ const shortDay = (s) => { const d = dateOf(s); return `${d.getUTCDate()} ${MAAND
 const longDay = (s) => { const d = dateOf(s); return `${DAG[d.getUTCDay()]} ${d.getUTCDate()} ${MAAND[d.getUTCMonth()]}`; };
 const nf = new Intl.NumberFormat('nl-NL');
 
-let key = new URLSearchParams(location.search).get('sleutel') || '';
+// de sleutel: uit de geheime link (/statistieken/<code>), uit ?sleutel=, of eerder ingevuld
+let key = (location.pathname.match(/^\/statistieken\/([A-Za-z0-9_-]{20,64})$/) || [])[1] || new URLSearchParams(location.search).get('sleutel') || '';
 try { if (!key) key = sessionStorage.getItem('spelkeet-stats') || ''; } catch (e) { /* privémodus */ }
 let days = 30, data = null;
 

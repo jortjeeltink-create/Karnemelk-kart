@@ -97,3 +97,19 @@ test('de server: /api/statistieken alleen met de sleutel; een browser telt mee, 
     await srv.stop();
   }
 });
+
+test('de geheime link: /statistieken/<code> toont de pagina, en de code werkt als sleutel (ook zonder MELD_SLEUTEL)', async () => {
+  const { createHash } = await import('node:crypto');
+  const code = 'testlink_' + 'x'.repeat(24);
+  const srv = await startServer({ env: { STATS_LINK_HASH: createHash('sha256').update(code).digest('hex') } });
+  try {
+    const page = await fetch(srv.url + '/statistieken/' + code);
+    assert.equal(page.status, 200);
+    assert.match(await page.text(), /<title>Statistieken · De Spelkeet<\/title>/);
+    assert.equal((await fetch(srv.url + '/api/statistieken?sleutel=' + code)).status, 200);
+    assert.equal((await fetch(srv.url + '/api/statistieken?sleutel=' + code.slice(0, -1) + 'y')).status, 404, 'een andere code niet');
+    assert.equal((await fetch(srv.url + '/api/statistieken?sleutel=')).status, 404, 'zonder MELD_SLEUTEL telt een lege sleutel niet');
+  } finally {
+    await srv.stop();
+  }
+});
