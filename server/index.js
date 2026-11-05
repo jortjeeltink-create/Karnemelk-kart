@@ -19,7 +19,7 @@ import { MijnenveldHub } from '../public/shared/mijnenveldhub.js';
 import { ZuipbordHub } from '../public/shared/zuipbordhub.js';
 import { createStore, randomString, loadSecret, makeSigner, makeSecretCheck } from './store.js';
 import { createStats } from './stats.js';
-import { isDeviceToken } from '../public/shared/profiles.js';
+import { isDeviceToken, RETENTION_DAYS } from '../public/shared/profiles.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = +(process.env.PORT || 3000);
@@ -108,8 +108,8 @@ function readCookie(req) {
 function deviceCookie(req) {
   const token = readCookie(req) || randomString(32);
   const https = req.headers['x-forwarded-proto'] === 'https' || req.socket.encrypted;
-  // 400 dagen is het maximum dat browsers toestaan; bij elk bezoek opnieuw verlengd
-  return `${COOKIE}=${token}; Path=/; Max-Age=34560000; HttpOnly; SameSite=Lax${https ? '; Secure' : ''}`;
+  // 90 dagen, bij elk bezoek opnieuw verlengd (zo lang bewaren we ook je profiel als je niet speelt)
+  return `${COOKIE}=${token}; Path=/; Max-Age=${RETENTION_DAYS * 86400}; HttpOnly; SameSite=Lax${https ? '; Secure' : ''}`;
 }
 
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
@@ -176,6 +176,23 @@ function readJson(req, max = 4096) {
     req.on('error', () => resolve(null));
   });
 }
+// meldingen bewaren we hooguit 90 dagen
+const recentMeldingen = (list, now = Date.now()) => (Array.isArray(list) ? list : []).filter((m) => now - Date.parse(m.at) <= RETENTION_DAYS * 86400000);
+
+// Elke dag opruimen wat ouder is dan 90 dagen: profielen waarmee niet meer gespeeld is, koppelingen van telefoons,
+// verlopen codes en oude meldingen. De statistieken ruimen zichzelf op (stats.js).
+async function cleanupOld() {
+  try {
+    const r = await store.cleanup({ days: RETENTION_DAYS });
+    const before = (await store.kv.get('meldingen')) || [], after = recentMeldingen(before);
+    if (after.length !== before.length) await store.kv.set('meldingen', after);
+    if (store.kv.flush) store.kv.flush();
+    log(`opgeruimd (ouder dan ${RETENTION_DAYS} dagen): ${r.profiles} profielen, ${r.devices} telefoons, ${r.transfers} codes, ${r.gone} aantekeningen, ${before.length - after.length} meldingen`);
+  } catch (e) {
+    log('opruimen mislukt:', e.message);
+  }
+}
+
 // Bij elke melding een mail, via Resend (resend.com, gratis tot 100 mails per dag). Zet daarvoor RESEND_API_KEY op
 // Render. De mail gaat naar MELD_MAIL, of anders naar het contactadres. Zonder sleutel gaat er geen mail; de melding
 // staat dan nog steeds in de opslag en in het logboek. Met RESEND_FROM kies je een eigen afzender (dan moet je domein
@@ -219,7 +236,7 @@ async function melden(req, res) {
   const wat = clip(b && b.wat, 1000);
   if (!b || wat.length < 5) return send(400, { ok: false, msg: 'Schrijf kort wat er aan de hand is.' });
   const melding = { at: new Date().toISOString(), spel: clip(b.spel, 20), code: clip(b.code, 6).toUpperCase(), naam: clip(b.naam, 40), wat };
-  const list = (await store.kv.get('meldingen')) || [];
+  const list = recentMeldingen((await store.kv.get('meldingen')) || []);
   list.unshift(melding);
   await store.kv.set('meldingen', list.slice(0, MELD_MAX));
   log(`melding: ${melding.spel || '-'} ${melding.code || ''} ${melding.naam ? `over ${melding.naam}` : ''}: ${wat.slice(0, 80)}`);
@@ -372,6 +389,10 @@ function sweep(clients) {
 }
 const tableChannels = [busWss, boerWss, mexWss, dealerWss, paardWss, rotondeWss, mijnWss, bordWss];
 const heartbeat = setInterval(() => sweep(wss.clients), 15000);
+// opruimen: kort na het starten, en daarna elke dag
+const cleanupFirst = setTimeout(cleanupOld, 60 * 1000);
+const cleanupTimer = setInterval(cleanupOld, 24 * 3600 * 1000);
+cleanupFirst.unref?.(); cleanupTimer.unref?.();
 const tableBeat = setInterval(() => { for (const channel of tableChannels) sweep(channel.clients); }, 4000);
 
 const tickTimer = setInterval(() => hub.tick(), 1000 / 60);
@@ -393,6 +414,8 @@ function shutdown() {
   clearInterval(tickTimer);
   clearInterval(busTimer);
   clearInterval(statsTimer);
+  clearTimeout(cleanupFirst);
+  clearInterval(cleanupTimer);
   stats.flush().catch(() => {});
   try { store.flush(); } catch (e) { console.error(e); }
   server.close();
@@ -401,4 +424,4 @@ function shutdown() {
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
-export { server, hub };
+export { server, hub, cleanupOld };

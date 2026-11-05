@@ -1,5 +1,6 @@
 // Hulpjes voor de tests: server starten en nep-spelers laten verbinden.
 import { spawn } from 'node:child_process';
+import net from 'node:net';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
@@ -7,9 +8,19 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+// een vrije poort van het systeem, zodat twee tests (die tegelijk draaien) nooit dezelfde server raken
+function freePort() {
+  return new Promise((resolve, reject) => {
+    const s = net.createServer();
+    s.unref();
+    s.on('error', reject);
+    s.listen(0, '127.0.0.1', () => { const { port } = s.address(); s.close(() => resolve(port)); });
+  });
+}
+
 export async function startServer({ port, dataDir, env = {} } = {}) {
   dataDir = dataDir || mkdtempSync(join(tmpdir(), 'kk-test-'));
-  port = port || 4100 + Math.floor(Math.random() * 800);
+  port = port || await freePort();
   const proc = spawn(process.execPath, ['server/index.js'], {
     cwd: ROOT, env: { ...process.env, PORT: String(port), DATA_DIR: dataDir, HOST: '127.0.0.1', ...env }, stdio: ['ignore', 'pipe', 'pipe'],
   });

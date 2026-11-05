@@ -22,6 +22,10 @@ export function dayKey(ms) {
   }
 }
 
+// Na zoveel tijd zonder te spelen wissen we een profiel (en wat erbij hoort) vanzelf.
+export const RETENTION_DAYS = 90;
+const DAY = 86400000;
+
 export class Profiles {
   // randomBytes(n) -> string met willekeurige url-veilige tekens
   constructor(kv, { randomString, now = () => Date.now() }) {
@@ -60,7 +64,51 @@ export class Profiles {
   async byDevice(token) {
     if (!isDeviceToken(token)) return null;
     const d = await this.kv.get('d:' + token);
-    return d && d.key ? this.get(d.key) : null;
+    if (!d || !d.key) return null;
+    // de koppeling is weer gebruikt: de 90 dagen beginnen opnieuw
+    if (this.now() - (d.at || 0) > DAY) await this.kv.set('d:' + token, { ...d, at: this.now() });
+    return this.get(d.key);
+  }
+
+  // je speelde net: onthoud wanneer (hooguit één keer per dag opgeslagen), zodat het profiel blijft bestaan
+  async touch(profile) {
+    if (!profile || this.now() - (profile.seen || 0) < DAY) return;
+    profile.seen = this.now();
+    this.cache.set(profile.key, profile);
+    await this.kv.set('p:' + profile.key, profile);
+  }
+
+  // Ruim op wat ouder is dan RETENTION_DAYS: profielen waarmee niemand meer speelde, koppelingen van telefoons,
+  // verlopen overdrachtscodes en de aantekeningen van gewiste profielen. Geeft terug hoeveel er weg is.
+  async cleanup({ days = RETENTION_DAYS } = {}) {
+    const out = { profiles: 0, devices: 0, transfers: 0, gone: 0 };
+    if (!this.kv.keys) return out;
+    const now = this.now(), old = (t) => now - (t || 0) > days * DAY, alive = new Set();
+    for (const k of await this.kv.keys('p:')) {
+      const p = await this.kv.get(k);
+      if (!p) continue;
+      // profielen van voor deze regel hebben nog geen datum: die krijgen vandaag, en dus 90 dagen de tijd
+      if (!p.seen) { p.seen = now; await this.kv.set(k, p); alive.add(p.key); continue; }
+      if (old(p.seen)) {
+        if (p.transfer) await this.kv.del('x:' + p.transfer);
+        await this.kv.del(k);
+        this.cache.delete(p.key);
+        out.profiles++;
+      } else alive.add(p.key);
+    }
+    for (const k of await this.kv.keys('d:')) {
+      const d = await this.kv.get(k);
+      if (!d || old(d.at) || !alive.has(d.key)) { await this.kv.del(k); out.devices++; }
+    }
+    for (const k of await this.kv.keys('x:')) {
+      const x = await this.kv.get(k);
+      if (!x || x.until < now) { await this.kv.del(k); out.transfers++; }
+    }
+    for (const k of await this.kv.keys('gone:')) {
+      const g = await this.kv.get(k);
+      if (!g || old(g.at)) { await this.kv.del(k); out.gone++; }
+    }
+    return out;
   }
 
   async linkDevice(token, key) {

@@ -1,11 +1,11 @@
 // De teller van De Spelkeet: hoeveel bezoekers er zijn en wanneer, en welke spellen er gespeeld worden.
 // Zonder cookies en zonder IP-adressen te bewaren. Een bezoeker herkennen we alleen binnen één dag, aan een hash van
 // het IP-adres en de browser met een geheim dat elke dag nieuw is en alleen in het geheugen staat; die hashes
-// worden nooit opgeslagen. Wat blijft, zijn alleen tellingen per dag en per uur (tijdzone Amsterdam).
+// worden nooit opgeslagen. Wat blijft, zijn alleen tellingen per dag en per uur (tijdzone Amsterdam), 90 dagen lang.
 import { createHash, randomBytes } from 'node:crypto';
 
 const TZ = 'Europe/Amsterdam';
-const DAYS_KEPT = 120;                 // zo lang bewaren we de tellingen per dag
+const DAYS_KEPT = 90;                  // zo lang bewaren we de tellingen per dag
 const ONLINE_MS = 5 * 60 * 1000;       // wie de afgelopen 5 minuten een pagina opende, telt als "nu op de site"
 const FLUSH_MS = 60 * 1000;            // zo vaak gaan de tellingen naar de opslag
 // geen mensen: zoekmachines, linkvoorbeelden in WhatsApp en zo, monitors en testprogramma's

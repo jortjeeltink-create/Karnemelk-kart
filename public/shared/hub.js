@@ -144,6 +144,8 @@ export class Hub {
     }
     // beide sleutels naar hetzelfde profiel laten wijzen (als de ene ooit kwijtraakt)
     if (profile) for (const t of cands) if (t !== device) await this.store.linkDevice(t, profile.key);
+    // onthouden dat je net speelde: profielen waarmee 90 dagen niet gespeeld is, worden gewist
+    if (profile && this.store.touch) await this.store.touch(profile);
     session.device = device;
     session.profile = profile;
     return profile;

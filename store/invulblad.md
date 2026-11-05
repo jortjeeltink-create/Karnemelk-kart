@@ -100,7 +100,7 @@ E-mailadres: `despelkeet@gmail.com`. Categorie: **Game**. Beantwoord eerlijk:
 | Digitale aankopen | Nee |
 
 ### Gegevensveiligheid
-*Verzamelt of deelt je app gegevens?* **Ja**. *Worden alle gegevens versleuteld verzonden?* **Ja**. *Kunnen gebruikers vragen hun gegevens te verwijderen?* **Ja**.
+*Verzamelt of deelt je app gegevens?* **Ja**. *Worden alle gegevens versleuteld verzonden?* **Ja**. *Kunnen gebruikers vragen hun gegevens te verwijderen?* **Ja** (in Karnemelk Kart: Instellingen → Mijn gegevens wissen, of via despelkeet@gmail.com). Daarnaast wist de server alles vanzelf 90 dagen nadat iemand voor het laatst speelde; kies toch **Ja** en niet "binnen 90 dagen automatisch verwijderd", want wie blijft spelen, houdt zijn profiel langer.
 
 | Soort gegevens | Verzameld | Gedeeld | Waarvoor |
 |---|---|---|---|
