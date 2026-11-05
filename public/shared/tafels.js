@@ -23,11 +23,13 @@ const TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/;
 
 export class TableHub {
   // build: versie van de pagina en de spelregels; telefoons met een andere versie laden zichzelf opnieuw
-  constructor({ game, now = () => Date.now(), random = Math.random, log = () => {}, build = null }) {
+  // stat: telt mee voor de statistieken ('tafel' als er een tafel gemaakt wordt, 'potje' als er een potje begint)
+  constructor({ game, now = () => Date.now(), random = Math.random, log = () => {}, build = null, stat = () => {} }) {
     this.game = game;
     this.now = now;
     this.random = random;
     this.log = log;
+    this.stat = stat;
     this.build = build;
     this.tables = new Map();
     this.sessions = new Set();
@@ -86,6 +88,7 @@ export class TableHub {
         table = new Table(this, this.newCode());
         this.tables.set(table.code, table);
         this.log(`${this.game.id}: tafel ${table.code} gemaakt`);
+        this.stat('tafel', this.game.id);
       } else {
         const code = typeof msg.code === 'string' ? msg.code.toUpperCase().replace(/[^A-Z]/g, '') : '';
         table = this.tables.get(code);
@@ -242,6 +245,7 @@ class Table {
         if (!g) return this.hub.sendTo(s, { t: 'err', msg: `Er zijn minstens ${min} spelers nodig.` });
         this.g = g;
         this.hub.log(`${this.game.id}: potje gestart aan tafel ${this.code} met ${this.players.length} spelers`);
+        this.hub.stat('potje', this.game.id);
         return this.broadcast();
       }
       case 'again': {

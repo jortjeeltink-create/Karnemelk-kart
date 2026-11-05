@@ -18,6 +18,7 @@ import { RotondeHub } from '../public/shared/rotondehub.js';
 import { MijnenveldHub } from '../public/shared/mijnenveldhub.js';
 import { ZuipbordHub } from '../public/shared/zuipbordhub.js';
 import { createStore, randomString, loadSecret, makeSigner, makeSecretCheck } from './store.js';
+import { createStats } from './stats.js';
 import { isDeviceToken } from '../public/shared/profiles.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -123,14 +124,21 @@ const checkSecret = makeSecretCheck(process.env.KK_SECRET_HASH || undefined);
 const hub = new Hub({ store, log, signer, checkSecret, laps: process.env.KK_LAPS ? +process.env.KK_LAPS : null });
 // versie van een tafelspel: verandert de pagina of de spelregels, dan laden telefoons die nog openstaan zichzelf opnieuw
 const buildOf = (page) => createHash('sha1').update([...files].filter(([k]) => k === page || k.startsWith('/shared/')).map(([, f]) => f.etag).join('')).digest('base64url').slice(0, 12);
-const busHub = new BusHub({ log, build: buildOf('/bussen.html') });
-const boerHub = new BoerHub({ log, build: buildOf('/boer.html') });
-const mexHub = new MexHub({ log, build: buildOf('/mexen.html') });
-const dealerHub = new DealerHub({ log, build: buildOf('/dealer.html') });
-const paardHub = new PaardHub({ log, build: buildOf('/paardenrace.html') });
-const rotondeHub = new RotondeHub({ log, build: buildOf('/rotonde.html') });
-const mijnHub = new MijnenveldHub({ log, build: buildOf('/mijnenveld.html') });
-const bordHub = new ZuipbordHub({ log, build: buildOf('/zuipbord.html') });
+// de statistieken: bezoekers per dag en per uur, en welke spellen er gespeeld worden (zie stats.js)
+const stats = await createStats({ kv: store.kv });
+const statsTimer = stats.start();
+const stat = (kind, id) => stats.game(kind, id);
+const busHub = new BusHub({ log, stat, build: buildOf('/bussen.html') });
+const boerHub = new BoerHub({ log, stat, build: buildOf('/boer.html') });
+const mexHub = new MexHub({ log, stat, build: buildOf('/mexen.html') });
+const dealerHub = new DealerHub({ log, stat, build: buildOf('/dealer.html') });
+const paardHub = new PaardHub({ log, stat, build: buildOf('/paardenrace.html') });
+const rotondeHub = new RotondeHub({ log, stat, build: buildOf('/rotonde.html') });
+const mijnHub = new MijnenveldHub({ log, stat, build: buildOf('/mijnenveld.html') });
+const bordHub = new ZuipbordHub({ log, stat, build: buildOf('/zuipbord.html') });
+// welke pagina's we tellen, met een korte naam
+const PAGE_NAMES = { '/speelhal.html': 'hoofdpagina', '/index.html': 'kart', '/bussen.html': 'bussen', '/boer.html': 'boer', '/mexen.html': 'mexen', '/dealer.html': 'dealer', '/paardenrace.html': 'paardenrace', '/rotonde.html': 'rotonde', '/mijnenveld.html': 'mijnenveld', '/zuipbord.html': 'borrelbord', '/iphone.html': 'iphone', '/privacy.html': 'privacy', '/voorwaarden.html': 'voorwaarden', '/melden.html': 'melden' };
+const clientIp = (req) => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 
 // Een spel met een nieuwe naam (Zuipbord heet nu Borrelbord), en spellen die van de site af zijn (Weerwolven, Mega
 // Ball, Stock Market, Rode Zone): wie nog een oude link heeft, komt op de goede plek.
@@ -229,6 +237,14 @@ const server = http.createServer((req, res) => {
     store.kv.get('meldingen').then((list) => { res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(list || [], null, 2)); });
     return;
   }
+  if (path === '/api/statistieken') {
+    const key = process.env.MELD_SLEUTEL;
+    if (!key || url.searchParams.get('sleutel') !== key) { res.writeHead(404); return res.end(); }
+    const days = Math.max(1, Math.min(120, Number(url.searchParams.get('dagen')) || 30));
+    const inGame = [wss, ...tableChannels].reduce((n, ch) => n + ch.clients.size, 0);
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+    return res.end(JSON.stringify({ ...stats.summary(days), inGame }));
+  }
   if (path === '/.well-known/assetlinks.json') {
     if (!ASSET_LINKS) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('Niet ingesteld (ANDROID_PACKAGE en ANDROID_SHA256)'); }
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' });
@@ -251,7 +267,7 @@ const server = http.createServer((req, res) => {
   // De Spelkeet is de hoofdpagina; uitnodigingen (/?room=, /join/) gaan nog steeds naar de kartgame
   if (path === '/kart' || path === '/kart/' || path.startsWith('/join/') || (path === '/' && url.searchParams.has('room'))) path = '/index.html';
   else if (path === '/') path = '/speelhal.html';
-  else if (path === '/privacy' || path === '/voorwaarden' || path === '/melden' || path === '/iphone') path += '.html';
+  else if (path === '/privacy' || path === '/voorwaarden' || path === '/melden' || path === '/iphone' || path === '/statistieken') path += '.html';
   else if (path === '/bussen' || path === '/bussen/' || /^\/bussen\/[A-Za-z]{4}$/.test(path)) path = '/bussen.html';
   else if (path === '/boer' || path === '/boer/' || /^\/boer\/[A-Za-z]{4}$/.test(path)) path = '/boer.html';
   else if (path === '/mexen' || path === '/mexen/' || /^\/mexen\/[A-Za-z]{4}$/.test(path)) path = '/mexen.html';
@@ -266,6 +282,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     return res.end('Niet gevonden');
   }
+  if (req.method === 'GET' && PAGE_NAMES[path]) stats.pageview(PAGE_NAMES[path], { ip: clientIp(req), ua: String(req.headers['user-agent'] || '') });
   const headers = { 'Content-Type': f.type, ETag: f.etag, 'Cache-Control': 'no-cache', Vary: 'Accept-Encoding', 'X-Content-Type-Options': 'nosniff' };
   if (path === '/index.html') headers['Set-Cookie'] = deviceCookie(req);
   if (req.headers['if-none-match'] === f.etag) { res.writeHead(304, headers); return res.end(); }
@@ -375,6 +392,8 @@ function shutdown() {
   clearInterval(tableBeat);
   clearInterval(tickTimer);
   clearInterval(busTimer);
+  clearInterval(statsTimer);
+  stats.flush().catch(() => {});
   try { store.flush(); } catch (e) { console.error(e); }
   server.close();
   setTimeout(() => process.exit(0), 300);

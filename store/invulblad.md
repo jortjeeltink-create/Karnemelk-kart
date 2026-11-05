@@ -108,6 +108,7 @@ E-mailadres: `despelkeet@gmail.com`. Categorie: **Game**. Beantwoord eerlijk:
 | Apparaat- of andere id's (een willekeurige sleutel) | Ja | Nee | App-functionaliteit |
 | App-activiteit → **Andere door gebruikers gegenereerde content** (uitdaging bij Kart, meldingen) | Ja | Nee | App-functionaliteit |
 | App-activiteit → **Andere acties** (punten en spullen in Karnemelk Kart) | Ja | Nee | App-functionaliteit |
+| App-activiteit → **App-interacties** (welke pagina's en spellen geopend worden, alleen als tellingen) | Ja | Nee | Analyse |
 
 Geen locatie, contacten, foto's, berichten of betalingen. Als URL om gegevens te laten verwijderen: `https://spelkeet.onrender.com/privacy`
 
