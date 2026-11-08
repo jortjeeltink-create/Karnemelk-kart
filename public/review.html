@@ -31,7 +31,7 @@ form{display:grid;gap:14px;margin:8px 0 0}
 label{display:grid;gap:6px;font-weight:700}
 label small{font-weight:400;color:var(--soft)}
 input,select,textarea{width:100%;min-height:48px;padding:12px 14px;border:0;border-radius:14px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px var(--line);color:var(--ink);font:16px/1.4 system-ui,sans-serif}
-textarea{min-height:130px;resize:vertical}
+textarea{min-height:96px;resize:vertical}
 input:focus,select:focus,textarea:focus{outline:3px solid #f2c230;outline-offset:1px}
 select option{color:#1b1220}
 button{min-height:52px;border:0;border-radius:16px;background:#e5483b;color:#fff;font:800 17px/1 system-ui,sans-serif;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18);cursor:pointer}
@@ -54,7 +54,7 @@ legend{font-weight:700;margin-bottom:4px}
   <a class="back" href="/">← De Spelkeet</a>
   <h1>Wat vind je ervan?</h1>
 </header>
-<p>De Spelkeet is een hobbyproject en wordt elke week beter. Hoeveel sterren geef je, en wat vond je leuk of wat kan beter? Elke review wordt gelezen.</p>
+<p>De Spelkeet is een hobbyproject en wordt elke week beter. Hoeveel sterren geef je, wat ging goed en wat ging fout? Elke review wordt gelezen.</p>
 <form id="f" novalidate>
   <fieldset>
     <legend>Hoeveel sterren?</legend>
@@ -81,8 +81,11 @@ legend{font-weight:700;margin-bottom:4px}
       <option value="borrelbord">Borrelbord</option>
     </select>
   </label>
-  <label>Wat vond je leuk, of wat kan beter? <small>(mag leeg)</small>
-    <textarea id="tekst" name="tekst" maxlength="1000" placeholder="Bijvoorbeeld: Bussen is top, maar ik mis een spel als Kingsen."></textarea>
+  <label>Wat ging goed? <small>(mag leeg)</small>
+    <textarea id="goed" name="goed" maxlength="500" placeholder="Bijvoorbeeld: Bussen is top, snel uitgelegd."></textarea>
+  </label>
+  <label>Wat ging fout, of wat kan beter? <small>(mag leeg)</small>
+    <textarea id="fout" name="fout" maxlength="500" placeholder="Bijvoorbeeld: ik mis een spel als Kingsen."></textarea>
   </label>
   <label>Je naam <small>(mag leeg)</small>
     <input id="naam" name="naam" maxlength="40" autocomplete="off">
@@ -107,7 +110,7 @@ legend{font-weight:700;margin-bottom:4px}
   $('f').addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!sterren) { say('Kies eerst hoeveel sterren je geeft.', false); stars[4].focus(); return; }
-    const body = { sterren, spel: $('spel').value, tekst: $('tekst').value.trim(), naam: $('naam').value.trim() };
+    const body = { sterren, spel: $('spel').value, goed: $('goed').value.trim(), fout: $('fout').value.trim(), naam: $('naam').value.trim() };
     $('go').disabled = true;
     try {
       const r = await fetch('/api/review', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });

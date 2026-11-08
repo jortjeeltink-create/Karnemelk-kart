@@ -394,6 +394,7 @@ button.pickcard:active .card{transform:scale(.95)}
 </style>
 <script src="/js/poort.js" defer></script>
 <script src="/js/uitleg.js" defer></script>
+<script src="/js/review.js" defer></script>
 </head>
 <body>
 <div class="glow" aria-hidden="true"></div>
@@ -575,6 +576,7 @@ function onState(m) {
   }
   const first = !S || S.code !== m.code;
   S = m;
+  if (window.SpelkeetReview) SpelkeetReview.stand('bussen', m.phase, m.phase === 'klaar' ? 2 : 0);   // na een potje: hoe vond je het?
   ui.joining = false; ui.error = '';
   store.set(KEY.table, { code: m.code });
   Net.want = { t: 'join', code: m.code, name: me.name, token: me.token };
@@ -592,6 +594,7 @@ function onState(m) {
 }
 
 function leaveLocal(reason) {
+  if (window.SpelkeetReview) SpelkeetReview.stand('bussen', null, 0);
   Net.stop();
   store.del(KEY.table);
   S = null; ui.show = null; ui.banner = null; ui.sheet = null; ui.draft = null; ui.code = '';

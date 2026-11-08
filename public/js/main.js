@@ -261,6 +261,8 @@ class App {
     if (first && !m.practice) this.sound.play('box');
     if (m.state === 'lobby') {
       if (this.race) this.endRace();
+      // terug in de lobby na de uitslag (en na het rad): een rustig moment voor de review-vraag
+      if (this.screenName === 'results' && window.SpelkeetReview) window.SpelkeetReview.stand('kart', 'uitslag', 1);
       if (this.screenName !== 'shop' && this.screenName !== 'settings') this.show('lobby');
     } else if (m.state === 'results') {
       if (this.screenName === 'results') return;
@@ -279,6 +281,7 @@ class App {
     this.render(h('div'));
     this.screenName = 'race';
     document.body.classList.add('racing');
+    if (window.SpelkeetReview) window.SpelkeetReview.stand('kart', 'race', 0);
     try {
       this.race = new RaceClient(this, m);
       this.engine.setView(this.race);

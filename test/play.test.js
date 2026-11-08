@@ -206,8 +206,12 @@ test('reviews: sterren en een opmerking, met een mail; de beheerlink toont meldi
     assert.equal((await post('/api/review', { sterren: 4 })).status, 200);
     assert.equal((await post('/api/review', { sterren: 5, spel: 'bussen', naam: 'Sanne', tekst: 'Bussen is top!\n<b>echt</b>' })).status, 200);
     assert.equal((await post('/api/review', { sterren: 3, spel: 'hacker', naam: 'kanker' })).status, 200);
+    // na een potje, vanuit de Android-app: sterren met wat goed en wat fout ging
+    const app = await fetch(srv.url + '/api/review', { method: 'POST', headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (Linux; Android 14) Chrome/130 Mobile SpelkeetApp/1.1.0' }, body: JSON.stringify({ sterren: 2, spel: 'mexen', goed: 'Snel uitgelegd', fout: 'Mijn scherm\nbleef hangen', bron: 'na-spel' }) });
+    assert.equal(app.status, 200);
     assert.equal((await post('/api/melden', { spel: 'mexen', wat: 'Iemand scheldt' })).status, 200);
-    for (let i = 0; i < 40 && got.length < 4; i++) await new Promise((res) => setTimeout(res, 50));
+    for (let i = 0; i < 40 && got.length < 5; i++) await new Promise((res) => setTimeout(res, 50));
+    assert.ok(got.some((m) => m.subject === 'Review: ★★☆☆☆ (mexen)' && /Wat ging goed: Snel uitgelegd/.test(m.text) && /Wat ging fout: Mijn scherm bleef hangen/.test(m.text) && /na een potje, in de Android-app/.test(m.text)), 'een mail met goed en fout');
     assert.ok(got.some((m) => m.subject === 'Review: ★★★★★ (bussen)' && /Bussen is top!/.test(m.text)), 'een mail bij de review');
     // de beheerlink: de pagina, en de lijsten (nieuwste eerst)
     assert.equal((await fetch(srv.url + '/beheer/' + code)).status, 200);
@@ -215,9 +219,10 @@ test('reviews: sterren en een opmerking, met een mail; de beheerlink toont meldi
     assert.equal((await fetch(srv.url + '/api/beheer?sleutel=' + code.slice(0, -1) + 'q')).status, 404);
     const b = await (await fetch(srv.url + '/api/beheer?sleutel=' + code)).json();
     assert.equal(b.mail, true);
-    assert.deepEqual(b.reviews.map((r) => r.sterren), [3, 5, 4]);
-    assert.deepEqual([b.reviews[0].spel, b.reviews[0].naam], ['', ''], 'onbekend spel en grove naam weg');
-    assert.equal(b.reviews[1].tekst, 'Bussen is top! <b>echt</b>', 'als tekst bewaard; de pagina toont het als tekst');
+    assert.deepEqual(b.reviews.map((r) => r.sterren), [2, 3, 5, 4]);
+    assert.deepEqual([b.reviews[0].goed, b.reviews[0].fout, b.reviews[0].bron, b.reviews[0].waar], ['Snel uitgelegd', 'Mijn scherm bleef hangen', 'na-spel', 'app']);
+    assert.deepEqual([b.reviews[1].spel, b.reviews[1].naam, b.reviews[1].bron, b.reviews[1].waar], ['', '', 'pagina', 'web'], 'onbekend spel en grove naam weg');
+    assert.equal(b.reviews[2].tekst, 'Bussen is top! <b>echt</b>', 'als tekst bewaard; de pagina toont het als tekst');
     assert.equal(b.meldingen[0].wat, 'Iemand scheldt');
     // dezelfde code opent ook de statistieken
     assert.equal((await fetch(srv.url + '/api/statistieken?sleutel=' + code)).status, 200);

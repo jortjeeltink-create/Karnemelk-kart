@@ -298,6 +298,7 @@ button.pl{cursor:pointer}
 <script src="/js/poort.js" defer></script>
 <script src="/js/slok.js" defer></script>
 <script src="/js/uitleg.js" defer></script>
+<script src="/js/review.js" defer></script>
 </head>
 <body>
 <div class="app">
@@ -544,6 +545,7 @@ function onState(m) {
   }
   const first = !S || S.code !== m.code;
   S = m;
+  if (window.SpelkeetReview) SpelkeetReview.stand('borrelbord', m.phase, m.phase === 'klaar' ? 2 : 0);   // na een potje: hoe vond je het?
   ui.joining = false; ui.error = '';
   store.set(KEY.table, { code: m.code });
   Net.want = { t: 'join', code: m.code, name: me.name, token: me.token };
@@ -571,6 +573,7 @@ function onState(m) {
 }
 
 function leaveLocal(reason) {
+  if (window.SpelkeetReview) SpelkeetReview.stand('borrelbord', null, 0);
   Net.stop();
   store.del(KEY.table);
   S = null; ui.banner = null; ui.sheet = null; ui.card = null; ui.queue = []; stopWalk(); Dice.clear(true); ui.code = '';
