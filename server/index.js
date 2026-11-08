@@ -231,7 +231,8 @@ function mailMelding(m) {
 }
 function mailReview(r) {
   const subject = `Review: ${'★'.repeat(r.sterren)}${'☆'.repeat(5 - r.sterren)}${r.spel ? ` (${r.spel})` : ''}`;
-  return sendMail(subject, ['Er is een review gegeven in De Spelkeet.', '', `Wanneer: ${r.at}`, `Sterren: ${r.sterren} van de 5`, `Spel: ${r.spel || '-'}`, `Naam: ${r.naam || '-'}`, '', r.tekst || '(geen tekst)', '', ALL_LINE].join('\n'), 'review');
+  const body = [r.goed && `Wat ging goed: ${r.goed}`, r.fout && `Wat ging fout: ${r.fout}`, r.tekst].filter(Boolean);
+  return sendMail(subject, ['Er is een review gegeven in De Spelkeet.', '', `Wanneer: ${r.at}`, `Sterren: ${r.sterren} van de 5`, `Spel: ${r.spel || '-'}`, `Naam: ${r.naam || '-'}`, `Waar: ${r.bron === 'na-spel' ? 'na een potje' : 'op de reviewpagina'}, ${r.waar === 'app' ? 'in de Android-app' : 'op de website'}`, '', ...(body.length ? body : ['(geen tekst)']), '', ALL_LINE].join('\n'), 'review');
 }
 async function sendMail(subject, text, kind) {
   if (!MAIL_KEY || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(MAIL_TO)) return;
@@ -273,12 +274,15 @@ async function review(req, res) {
   const sterren = b && Number(b.sterren);
   if (!Number.isInteger(sterren) || sterren < 1 || sterren > 5) return send(400, { ok: false, msg: 'Kies hoeveel sterren je geeft.' });
   const spel = REVIEW_SPELLEN.has(clip(b.spel, 20)) ? clip(b.spel, 20) : '';
-  const r = { at: new Date().toISOString(), sterren, spel, naam: clip(b.naam, 40), tekst: clip(b.tekst, 1000) };
+  // na een potje (bron 'na-spel') komen sterren met 'wat ging goed' en 'wat ging fout'; de reviewpagina stuurt die ook
+  const ua = String(req.headers['user-agent'] || '');
+  const r = { at: new Date().toISOString(), sterren, spel, naam: clip(b.naam, 40), tekst: clip(b.tekst, 1000), goed: clip(b.goed, 500), fout: clip(b.fout, 500), bron: b.bron === 'na-spel' ? 'na-spel' : 'pagina', waar: /SpelkeetApp\//.test(ua) ? 'app' : 'web' };
   if (r.naam && isOffensive(r.naam)) r.naam = '';
   const list = recentMeldingen((await store.kv.get('reviews')) || []);
   list.unshift(r);
   await store.kv.set('reviews', list.slice(0, MELD_MAX));
-  log(`review: ${sterren}/5 ${spel || '-'}${r.tekst ? `: ${r.tekst.slice(0, 80)}` : ''}`);
+  const kort = [r.goed && `goed: ${r.goed}`, r.fout && `fout: ${r.fout}`, r.tekst].filter(Boolean).join(' | ');
+  log(`review: ${sterren}/5 ${spel || '-'} (${r.bron}, ${r.waar})${kort ? `: ${kort.slice(0, 120)}` : ''}`);
   mailReview(r);
   return send(200, { ok: true });
 }

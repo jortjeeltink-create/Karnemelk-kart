@@ -39,6 +39,9 @@ h1 small{display:block;font-size:13px;letter-spacing:.14em;text-transform:upperc
 .stars i{font-style:normal;color:#5d4c63}
 .text{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .text.none{color:var(--soft);font-style:italic}
+.text+.text{margin-top:6px}
+.lbl.good{color:#5fd99a}
+.lbl.bad{color:#ff8a7d}
 .empty{padding:28px 16px;text-align:center;color:var(--soft);border-radius:16px;box-shadow:inset 0 0 0 1px var(--line)}
 @media (max-width:420px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.tile b{font-size:24px}}
 </style>
@@ -73,8 +76,9 @@ h1 small{display:block;font-size:13px;letter-spacing:.14em;text-transform:upperc
     return `<article class="item"><div class="meta">${chips}<span>${esc(when(m.at))}</span></div><p class="text">${esc(m.wat)}</p></article>`;
   }
   function review(r) {
-    const chips = [r.spel && `<span class="chip">${esc(NAMES[r.spel] || r.spel)}</span>`, r.naam && `<span class="chip">${esc(r.naam)}</span>`].filter(Boolean).join('');
-    return `<article class="item"><div class="meta">${starsOf(Math.max(1, Math.min(5, r.sterren | 0)))}${chips}<span>${esc(when(r.at))}</span></div>${r.tekst ? `<p class="text">${esc(r.tekst)}</p>` : '<p class="text none">Geen tekst, alleen sterren.</p>'}</article>`;
+    const chips = [r.spel && `<span class="chip">${esc(NAMES[r.spel] || r.spel)}</span>`, r.naam && `<span class="chip">${esc(r.naam)}</span>`, r.bron === 'na-spel' && '<span class="chip">na een potje</span>', r.waar === 'app' && '<span class="chip">Android-app</span>'].filter(Boolean).join('');
+    const parts = [r.goed && `<p class="text"><b class="lbl good">Goed:</b> ${esc(r.goed)}</p>`, r.fout && `<p class="text"><b class="lbl bad">Fout:</b> ${esc(r.fout)}</p>`, r.tekst && `<p class="text">${esc(r.tekst)}</p>`].filter(Boolean).join('');
+    return `<article class="item"><div class="meta">${starsOf(Math.max(1, Math.min(5, r.sterren | 0)))}${chips}<span>${esc(when(r.at))}</span></div>${parts || '<p class="text none">Geen tekst, alleen sterren.</p>'}</article>`;
   }
 
   function render() {

@@ -296,6 +296,7 @@ button.seat:active .ava{transform:scale(.94)}
 <script src="/js/poort.js" defer></script>
 <script src="/js/slok.js" defer></script>
 <script src="/js/uitleg.js" defer></script>
+<script src="/js/review.js" defer></script>
 </head>
 <body>
 <div class="glow" aria-hidden="true"></div>
@@ -481,6 +482,7 @@ function onState(m) {
   }
   const first = !S || S.code !== m.code;
   S = m;
+  if (window.SpelkeetReview) SpelkeetReview.stand('mexen', m.phase, m.phase === 'uitslag' ? 1 : 0);   // na een potje: hoe vond je het?
   ui.joining = false; ui.error = '';
   store.set(KEY.table, { code: m.code });
   Net.want = { t: 'join', code: m.code, name: me.name, token: me.token };
@@ -498,6 +500,7 @@ function onState(m) {
 }
 
 function leaveLocal(reason) {
+  if (window.SpelkeetReview) SpelkeetReview.stand('mexen', null, 0);
   Net.stop();
   store.del(KEY.table);
   S = null; ui.banner = null; ui.sheet = null; ui.show = null; ui.code = '';
