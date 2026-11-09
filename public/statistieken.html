@@ -179,7 +179,7 @@ function render() {
     <h1><small>De Spelkeet</small>Statistieken</h1>
     <div class="seg" role="group" aria-label="Periode">${[7, 30, 90].map((n) => `<button type="button" data-d="${n}" aria-pressed="${n === days}">${n} dagen</button>`).join('')}</div>
   </header>
-  ${data.vast === false ? '<p class="warn"><b>Let op:</b> de cijfers staan nog niet vast opgeslagen. Bij elke update van de site beginnen ze weer bij nul. Zet Upstash aan in Render (UPSTASH_REDIS_REST_URL en UPSTASH_REDIS_REST_TOKEN), dan blijven ze bewaard.</p>' : ''}
+  ${data.vast === false && !data.overdracht ? '<p class="warn"><b>Let op:</b> de cijfers staan nog niet vast opgeslagen. Bij elke update van de site beginnen ze weer bij nul. Zet Upstash aan in Render (UPSTASH_REDIS_REST_URL en UPSTASH_REDIS_REST_TOKEN), dan blijven ze bewaard.</p>' : ''}
   <section class="tiles">
     <div class="tile live"><p>Nu op de site</p><b>${nf.format(data.online)}</b><span>de laatste 5 minuten</span></div>
     <div class="tile"><p>Nu in een spel</p><b>${nf.format(data.inGame)}</b><span>telefoons verbonden</span></div>

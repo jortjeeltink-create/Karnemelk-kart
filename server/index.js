@@ -17,7 +17,8 @@ import { PaardHub } from '../public/shared/paardhub.js';
 import { RotondeHub } from '../public/shared/rotondehub.js';
 import { MijnenveldHub } from '../public/shared/mijnenveldhub.js';
 import { ZuipbordHub } from '../public/shared/zuipbordhub.js';
-import { createStore, randomString, loadSecret, makeSigner, makeSecretCheck } from './store.js';
+import { createStore, randomString, loadSecret, makeSigner, makeSecretCheck, DATA_FILE } from './store.js';
+import { haalOver, overdrachtSecret, verify as overdrachtOk, PATH as OVERDRACHT_PATH } from './overdracht.js';
 import { createStats } from './stats.js';
 import { isDeviceToken, RETENTION_DAYS } from '../public/shared/profiles.js';
 import { isOffensive } from '../public/shared/namen.js';
@@ -117,6 +118,11 @@ function deviceCookie(req) {
 }
 
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
+// Bij een update: eerst alles overnemen van de server die nog draait, anders begint alles weer bij nul (overdracht.js).
+const UPSTASH = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+const OVERDRACHT_SECRET = overdrachtSecret(process.env);
+const OVERDRACHT_URL = process.env.OVERDRACHT_URL || process.env.RENDER_EXTERNAL_URL || '';
+const OVERGENOMEN = UPSTASH ? 0 : await haalOver({ url: OVERDRACHT_URL, secret: OVERDRACHT_SECRET, file: join(DATA_DIR, DATA_FILE), log });
 const store = await createStore({
   dataDir: DATA_DIR,
   upstashUrl: process.env.UPSTASH_REDIS_REST_URL,
@@ -165,7 +171,9 @@ const isOwner = (req) => /(?:^|;\s*)sk_eigen=1(?:;|$)/.test(String(req.headers.c
 const ownerCookie = (req) => `${OWNER_COOKIE}=1; Path=/; Max-Age=${365 * 86400}; HttpOnly; SameSite=Lax${req.headers['x-forwarded-proto'] === 'https' || req.socket.encrypted ? '; Secure' : ''}`;
 // Blijven de cijfers, meldingen en reviews bewaard als de server opnieuw start (bij elke update)? Alleen met Upstash
 // of een vaste schijf (DATA_DIR); zonder dat begint alles na een update weer bij nul.
-const VASTE_OPSLAG = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) || !!process.env.DATA_DIR;
+const VASTE_OPSLAG = UPSTASH || !!process.env.DATA_DIR;
+// zonder vaste opslag: blijft het bewaard bij een update doordat de nieuwe server alles overneemt?
+const OVERDRACHT = !UPSTASH && !!(OVERDRACHT_SECRET && OVERDRACHT_URL);
 const PAGE_NAMES = { '/speelhal.html': 'hoofdpagina', '/index.html': 'kart', '/bussen.html': 'bussen', '/boer.html': 'boer', '/mexen.html': 'mexen', '/dealer.html': 'dealer', '/paardenrace.html': 'paardenrace', '/rotonde.html': 'rotonde', '/mijnenveld.html': 'mijnenveld', '/zuipbord.html': 'borrelbord', '/iphone.html': 'iphone', '/privacy.html': 'privacy', '/voorwaarden.html': 'voorwaarden', '/melden.html': 'melden' };
 const clientIp = (req) => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 
@@ -304,7 +312,17 @@ const server = http.createServer((req, res) => {
     if (!beheerKeyOk(url.searchParams.get('sleutel'))) { res.writeHead(404); return res.end(); }
     Promise.all([store.kv.get('meldingen'), store.kv.get('reviews')]).then(([m, r]) => {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Set-Cookie': ownerCookie(req) });
-      res.end(JSON.stringify({ meldingen: recentMeldingen(m || []), reviews: recentMeldingen(r || []), mail: !!MAIL_KEY, vast: VASTE_OPSLAG }));
+      res.end(JSON.stringify({ meldingen: recentMeldingen(m || []), reviews: recentMeldingen(r || []), mail: !!MAIL_KEY, vast: VASTE_OPSLAG, overdracht: OVERDRACHT }));
+    });
+    return;
+  }
+  // de nieuwe server vraagt bij een update alles op (zie overdracht.js); alleen met een geldige handtekening
+  if (path === OVERDRACHT_PATH) {
+    if (UPSTASH || !overdrachtOk(OVERDRACHT_SECRET, req.headers['x-overdracht'])) { res.writeHead(404); return res.end(); }
+    stats.flush().catch(() => {}).then(() => {
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify(store.kv.data || {}));
+      log('overdracht: alles doorgegeven aan de nieuwe server');
     });
     return;
   }
@@ -319,7 +337,7 @@ const server = http.createServer((req, res) => {
     const days = Math.max(1, Math.min(120, Number(url.searchParams.get('dagen')) || 30));
     const inGame = [wss, ...tableChannels].reduce((n, ch) => n + ch.clients.size, 0);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Set-Cookie': ownerCookie(req) });
-    return res.end(JSON.stringify({ ...stats.summary(days), inGame, vast: VASTE_OPSLAG }));
+    return res.end(JSON.stringify({ ...stats.summary(days), inGame, vast: VASTE_OPSLAG, overdracht: OVERDRACHT, overgenomen: OVERGENOMEN }));
   }
   if (path === '/.well-known/assetlinks.json') {
     if (!ASSET_LINKS) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('Niet ingesteld (ANDROID_PACKAGE en ANDROID_SHA256)'); }
