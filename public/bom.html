@@ -92,19 +92,6 @@ p{margin:0}
 .steps b{color:var(--txt)}
 .howlink{display:inline-flex;align-items:center;gap:8px;margin-top:12px;min-height:40px;padding:0 14px;border-radius:999px;background:var(--card-2);font-weight:700;font-size:14px}
 
-.add{display:flex;gap:8px}
-.add input{flex:1;min-width:0;min-height:52px;padding:0 16px;border:0;border-radius:16px;background:var(--bg-2);box-shadow:inset 0 0 0 1px var(--line);color:var(--txt);font:600 17px var(--body)}
-.add input::placeholder{color:#6f6676}
-.add input:focus{outline:3px solid var(--orange);outline-offset:1px}
-.add button{flex:none;width:52px;min-height:52px;border-radius:16px;background:var(--orange);color:#1a0d06;font:800 26px/1 var(--head)}
-.add button:disabled{opacity:.4}
-.names{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.names:empty{display:none}
-.name{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 6px 0 14px;border-radius:999px;background:var(--card-2);font-weight:700}
-.name button{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;color:var(--mute);font-size:16px}
-.name button:hover{background:rgba(255,255,255,.08);color:var(--txt)}
-.hint{margin-top:10px;color:var(--mute);font-size:13.5px}
-
 .set{display:grid;gap:14px}
 .set > div{display:grid;gap:8px}
 .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border-radius:16px;background:var(--bg-2);box-shadow:inset 0 0 0 1px var(--line)}
@@ -114,12 +101,10 @@ p{margin:0}
 /* de opdracht */
 .round{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
 .pill{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 12px;border-radius:999px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
-.pill.hot{background:rgba(255,210,63,.14);box-shadow:inset 0 0 0 1px rgba(255,210,63,.55);color:var(--yellow)}
 .task{display:grid;gap:10px;padding:28px 20px;border-radius:28px;text-align:center;background:linear-gradient(160deg,#2a1d2c,#1a131c);box-shadow:inset 0 0 0 1px rgba(255,138,31,.28),0 20px 60px rgba(0,0,0,.45)}
 .task .label{color:var(--orange)}
 .task .say{font-family:var(--head);font-weight:800;font-size:clamp(32px,9.5vw,46px);line-height:1.04;text-wrap:balance;overflow-wrap:anywhere}
 .who{text-align:center;font-size:17px;color:var(--mute)}
-.who b{color:var(--txt);font-family:var(--head);font-size:22px}
 .grow{flex:1}
 
 /* de bom tikt */
@@ -144,26 +129,9 @@ p{margin:0}
 .shake{animation:shake .45s}
 @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
 @media (prefers-reduced-motion:reduce){.boom h2,.shake{animation:none}}
-.boom .q{font-family:var(--head);font-weight:800;font-size:24px}
-.pick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.pick button{min-height:60px;padding:8px 12px;border-radius:18px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);font-family:var(--head);font-weight:800;font-size:20px;overflow-wrap:anywhere}
-.pick button:hover,.pick button:focus-visible{background:var(--card-2);box-shadow:inset 0 0 0 2px var(--red)}
-.big{font-family:var(--head);font-weight:800;font-size:30px;line-height:1.1}
-.big em{font-style:normal;color:var(--red)}
-
-/* de stand */
-.score{display:grid;gap:8px;margin:0;padding:0;list-style:none}
-.score li{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;padding:12px 14px;border-radius:16px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);position:relative;overflow:hidden}
-.score li .bar{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(255,59,59,.22),rgba(255,138,31,.08));z-index:0;transition:width .5s ease-out}
-.score li > *:not(.bar){position:relative;z-index:1}
-.score .pos{font-family:var(--head);font-weight:800;color:var(--mute)}
-.score .nm{font-weight:700;font-size:17px;overflow-wrap:anywhere}
-.score .pt{font-family:var(--head);font-weight:800;font-size:22px}
-.score .pt small{font-family:var(--body);font-weight:600;font-size:12px;color:var(--mute);margin-left:4px}
-.score li.new{box-shadow:inset 0 0 0 2px var(--red)}
-.winner{display:grid;justify-items:center;gap:6px;text-align:center;padding:24px 16px;border-radius:26px;background:linear-gradient(160deg,#3a1418,#1c1216);box-shadow:inset 0 0 0 1px rgba(255,59,59,.4)}
-.winner .crown{font-size:40px;line-height:1}
-.winner b{font-family:var(--head);font-weight:800;font-size:clamp(34px,10vw,48px);line-height:1}
+.boom .hands{font-family:var(--head);font-weight:800;font-size:22px;color:var(--mute)}
+.boom .lost{font-family:var(--head);font-weight:800;font-size:clamp(40px,12vw,58px);line-height:1;color:var(--txt);text-wrap:balance}
+.boom .lost em{font-style:normal;color:var(--red)}
 
 /* pauze en menu */
 .overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:24px;background:rgba(8,6,10,.82);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -191,13 +159,13 @@ p{margin:0}
     <button class="iconbtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
   </header>
   <main id="screen" class="screen"></main>
-  <p class="fine" id="fine">Wat een strafpunt is, spreken jullie samen af: een opdracht, een grap of gewoon de stand bijhouden. <a href="/melden">Iets melden</a></p>
+  <p class="fine" id="fine">Wat de verliezer moet doen, spreken jullie samen af. Niks is verplicht, het gaat om de lol. <a href="/melden">Iets melden</a></p>
 </div>
 
 <div class="menu" id="menu" hidden>
   <nav aria-label="Menu">
     <button type="button" data-act="uitleg">❓ Hoe werkt het?</button>
-    <button type="button" data-act="stop" id="menuStop">🏁 Stoppen en de stand zien</button>
+    <button type="button" data-act="instellingen" id="menuSet">⚙️ Instellingen</button>
     <a href="/review?spel=bom">⭐ Wat vind je ervan?</a>
     <a href="/melden">🚩 Iets melden</a>
     <a href="/?tab=een">🏠 Terug naar De Spelkeet</a>
@@ -257,23 +225,18 @@ function opdrachten(pittig){
   return shuffle(out);
 }
 
-/* ================= INSTELLINGEN EN STAND ================= */
+/* ================= INSTELLINGEN ================= */
+// Geen namen en geen punten: bij wie hij ontploft, heeft verloren, en wat die moet doen bepalen jullie zelf.
 const TIJD = { kort: [10, 25], normaal: [15, 45], lang: [30, 70] };
 const KEY = 'spelkeet-bom';
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
 const saved = load();
-const S = {
-  spelers: Array.isArray(saved.spelers) ? saved.spelers.filter((n) => typeof n === 'string').slice(0, 12) : [],
-  punten: [1, 2, 3].includes(saved.punten) ? saved.punten : 2,
-  tijd: TIJD[saved.tijd] ? saved.tijd : 'normaal',
-  pittig: !!saved.pittig,
-  geluid: saved.geluid !== false,
-};
+const S = { tijd: TIJD[saved.tijd] ? saved.tijd : 'normaal', pittig: !!saved.pittig, geluid: saved.geluid !== false };
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* geen opslag: dan vergeet hij het */ } };
-// het potje van nu
+// het potje van nu: welke ronde en welke opdrachten nog over zijn
 let G = null;
 function nieuwPotje(){
-  G = { ronde: 0, scores: Object.fromEntries(S.spelers.map((n) => [n, 0])), knallen: 0, houder: S.spelers.length ? Math.floor(Math.random() * S.spelers.length) : -1, bag: opdrachten(S.pittig), opdracht: null, dubbel: false, laatste: null, start: Date.now() };
+  G = { ronde: 0, bag: opdrachten(S.pittig), opdracht: null };
   try { fetch('/api/potje', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ spel: 'bom' }), keepalive: true }).catch(() => {}); } catch (e) { /* niet erg */ }
 }
 function volgendeOpdracht(){
@@ -347,7 +310,6 @@ function tik(){
 }
 function knal(){
   schermAan(false); boemGeluid(); tril([500, 120, 300]);
-  G.knallen++;
   toon('boem');
 }
 // een telefoon die op slot gaat of een andere app: dan even pauze, zodat niemand onterecht ontploft
@@ -364,39 +326,29 @@ const BOMB = (cls = '') => `<svg class="bomb ${cls}" viewBox="0 0 200 200" aria-
   <ellipse cx="72" cy="94" rx="18" ry="10" fill="#fff" opacity=".16" transform="rotate(-35 72 94)"/>
   <g class="spark"><circle cx="174" cy="24" r="20" fill="url(#sg)"/><path d="M174 8l3 11 11 5-11 3-3 11-3-11-11-3 11-5z" fill="#fff8d6"/></g>
 </svg>`;
-const punten = () => S.punten * (G && G.dubbel ? 2 : 1);
-const ptTekst = (n) => `${n} strafpunt${n === 1 ? '' : 'en'}`;
 const SCHERM = {
   start(){
-    const n = S.spelers.length;
     return `<section class="hero">${BOMB()}<h1>Tikkende <span>Bom</span></h1><p>Eén telefoon, doorgeven en niet ontploffen.</p></section>
     <section class="card">
       <h2>Zo werkt het</h2>
       <ol class="steps">
         <li><span>De telefoon geeft een <b>opdracht</b>, zoals <b>"een dier met een P"</b>.</span></li>
         <li><span>Start de bom. <b>Noem iets</b> dat past en <b>geef de telefoon door</b>. Niks zeggen of iets dubbel zeggen? Dan moet je hem houden tot je wel iets weet.</span></li>
-        <li><span>Bij de <b>knal</b> krijgt wie hem vasthoudt <b>strafpunten</b>. Niemand weet hoe lang de lont is.</span></li>
+        <li><span>Ontploft hij <b>in jouw handen</b>? Dan heb <b>jij verloren</b>. Wat je moet doen, bepalen jullie zelf. Niemand weet hoe lang de lont is.</span></li>
       </ol>
       <button class="howlink" type="button" data-act="uitleg">Uitleg met plaatjes ›</button>
     </section>
-    <section class="card">
-      <h2>Wie doen er mee?</h2>
-      <form class="add" id="addForm" autocomplete="off"><input id="nameIn" maxlength="16" placeholder="Naam" enterkeyhint="done" aria-label="Naam van een speler"${n >= 12 ? ' disabled' : ''}><button type="submit" aria-label="Speler toevoegen"${n >= 12 ? ' disabled' : ''}>+</button></form>
-      <div class="names">${S.spelers.map((s, i) => `<span class="name">${esc(s)}<button type="button" data-del="${i}" aria-label="${esc(s)} weghalen">✕</button></span>`).join('')}</div>
-      <p class="hint">${n ? `${n} speler${n === 1 ? '' : 's'}${n >= 12 ? ' (meer past er niet)' : ''}. Met namen houdt de telefoon de strafpunten bij.` : 'Mag ook zonder namen: dan houden jullie de strafpunten zelf bij.'}</p>
-    </section>
     <section class="card set">
-      <div><span class="label">Strafpunten per knal</span><div class="seg" role="group" aria-label="Strafpunten per knal">${[1, 2, 3].map((p) => `<button type="button" data-punten="${p}" aria-pressed="${S.punten === p}">${p}</button>`).join('')}</div></div>
       <div><span class="label">Lengte van de lont</span><div class="seg" role="group" aria-label="Lengte van de lont">${[['kort', 'Kort'], ['normaal', 'Normaal'], ['lang', 'Lang']].map(([k, t]) => `<button type="button" data-tijd="${k}" aria-pressed="${S.tijd === k}">${t}</button>`).join('')}</div><p class="muted">${{ kort: 'Tussen 10 en 25 seconden', normaal: 'Tussen 15 en 45 seconden', lang: 'Tussen 30 en 70 seconden' }[S.tijd]}, maar niemand weet precies wanneer.</p></div>
       <div><span class="label">Opdrachten</span><div class="seg" role="group" aria-label="Soort opdrachten"><button type="button" data-pittig="0" aria-pressed="${!S.pittig}">Gewoon</button><button type="button" data-pittig="1" aria-pressed="${S.pittig}">Met pittige</button></div></div>
     </section>
     <button class="btn red" type="button" data-act="begin">Start het spel</button>`;
   },
   klaar(){
-    const [wat, tekst] = G.opdracht, h = G.houder >= 0 ? S.spelers[G.houder] : null;
-    return `<div class="round"><span class="pill">Ronde ${G.ronde}</span>${G.dubbel ? `<span class="pill hot">Dubbel: ${ptTekst(punten())}</span>` : ''}</div>
+    const [wat, tekst] = G.opdracht;
+    return `<div class="round"><span class="pill">Ronde ${G.ronde}</span></div>
     <section class="task"><span class="label">${esc(wat)}</span><p class="say">${esc(tekst)}</p></section>
-    ${h ? `<p class="who"><b>${esc(h)}</b> begint</p>` : `<p class="who">Wie begint, pakt de telefoon</p>`}
+    <p class="who">Wie begint, pakt de telefoon</p>
     <div class="grow"></div>
     <button class="btn red" type="button" data-act="bom">💣 Start de bom</button>
     <button class="btn ghost" type="button" data-act="ander">Andere opdracht</button>`;
@@ -409,38 +361,15 @@ const SCHERM = {
     <button class="pausebtn" type="button" data-act="pauze"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>Pauze</button>`;
   },
   boem(){
-    const p = punten();
     return `<h2>Boem!</h2>
-    ${S.spelers.length
-      ? `<p class="q">Wie had hem vast?</p><div class="pick">${S.spelers.map((s, i) => `<button type="button" data-raak="${i}">${esc(s)}</button>`).join('')}</div><button class="textlink" type="button" data-act="niemand">Niemand, telt niet</button>`
-      : `<p class="big">Wie hem vasthoudt: <em>${ptTekst(p)}</em></p><div class="grow"></div><button class="btn red" type="button" data-act="volgende">Volgende ronde</button><button class="btn ghost" type="button" data-act="stop">Stoppen</button>`}`;
-  },
-  stand(){
-    const p = punten(), l = G.laatste;
-    return `${l != null ? `<p class="big"><em>+${p}</em> voor ${esc(S.spelers[l])}</p>` : '<p class="big">Telt niet. Door!</p>'}
-    ${lijst(l)}
+    <p class="hands">Ontploft in jouw handen</p>
+    <p class="lost">Jij hebt <em>verloren!</em></p>
+    <p class="muted">Wat je moet doen, bepalen jullie zelf.</p>
     <div class="grow"></div>
     <button class="btn red" type="button" data-act="volgende">Volgende ronde</button>
-    <button class="btn ghost" type="button" data-act="stop">Stoppen</button>`;
-  },
-  einde(){
-    if (!S.spelers.length) {
-      return `<section class="winner"><span class="crown">💥</span><span class="label">Klaar!</span><b>${G.knallen} keer boem</b><p class="muted">in ${G.ronde} ronde${G.ronde === 1 ? '' : 's'}</p></section>
-      <div class="grow"></div><button class="btn red" type="button" data-act="opnieuw">Nog een potje</button><button class="btn ghost" type="button" data-act="spelers">Andere instellingen</button>`;
-    }
-    const rij = S.spelers.map((n) => [n, G.scores[n] || 0]).sort((a, b) => b[1] - a[1]), top = rij[0];
-    return `<section class="winner"><span class="crown">💣</span><span class="label">De grootste pechvogel</span><b>${top[1] ? esc(top[0]) : 'Niemand!'}</b><p class="muted">${top[1] ? `${ptTekst(top[1])} in ${G.ronde} ronde${G.ronde === 1 ? '' : 's'}` : 'Niemand ontplofte. Knap.'}</p></section>
-    ${lijst(null)}
-    <div class="grow"></div>
-    <button class="btn red" type="button" data-act="opnieuw">Nog een potje</button>
-    <button class="btn ghost" type="button" data-act="spelers">Andere spelers</button>`;
+    <button class="textlink" type="button" data-act="instellingen">Instellingen</button>`;
   },
 };
-function lijst(nieuw){
-  const rij = S.spelers.map((n, i) => ({ n, i, p: G.scores[n] || 0 })).sort((a, b) => b.p - a.p);
-  const max = Math.max(1, ...rij.map((r) => r.p));
-  return `<ol class="score" aria-label="De stand">${rij.map((r, k) => `<li class="${r.i === nieuw ? 'new' : ''}"><span class="bar" style="width:${Math.round(r.p / max * 100)}%"></span><span class="pos">${k + 1}</span><span class="nm">${esc(r.n)}</span><span class="pt">${r.p}<small>strafp.</small></span></li>`).join('')}</ol>`;
-}
 
 let nu = '';
 function toon(naam){
@@ -453,15 +382,14 @@ function toon(naam){
   if (ander) { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; scrollTo(0, 0); }
   if (naam === 'boem' && !reduce) { document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); }
   $('#topTitle').hidden = naam === 'start';
-  $('#menuStop').hidden = !G || naam === 'start' || naam === 'einde';
+  $('#menuSet').hidden = naam === 'start';
   $('#fine').hidden = naam === 'tikken';
   $('#backTxt').hidden = naam !== 'start';
   // na een potje: hoe vond je het? (zie review.js)
-  if (window.SpelkeetReview) window.SpelkeetReview.stand('bom', naam === 'start' ? 'lobby' : naam === 'einde' ? 'einde' : 'spel', naam === 'einde' ? 2 : naam === 'stand' || (naam === 'boem' && !S.spelers.length) ? 1 : 0);
+  if (window.SpelkeetReview) window.SpelkeetReview.stand('bom', naam === 'start' ? 'lobby' : 'spel', naam === 'boem' ? 1 : 0);
 }
 function nieuweRonde(){
   G.ronde++;
-  G.dubbel = G.ronde > 2 && Math.random() < .14;
   volgendeOpdracht();
   toon('klaar');
 }
@@ -474,47 +402,23 @@ function geluidKnop(){
 function sluitMenu(){ $('#menu').hidden = true; $('#menuBtn').setAttribute('aria-expanded', 'false'); }
 
 /* ================= KNOPPEN ================= */
-document.addEventListener('submit', (e) => {
-  if (e.target.id !== 'addForm') return;
-  e.preventDefault();
-  const v = $('#nameIn').value.replace(/\s+/g, ' ').trim().slice(0, 16);
-  if (!v || S.spelers.length >= 12) return;
-  if (S.spelers.some((s) => s.toLowerCase() === v.toLowerCase())) { $('#nameIn').select(); return; }
-  S.spelers.push(v); save(); toon('start');
-  const inp = $('#nameIn'); if (inp && !inp.disabled) inp.focus();
-});
 document.addEventListener('click', (e) => {
   const t = e.target.closest('button,[data-act]'); if (!t) { if (!$('#menu').hidden && !e.target.closest('#menu nav')) sluitMenu(); return; }
   if (t.id === 'menuBtn') { const m = $('#menu'); m.hidden = !m.hidden; t.setAttribute('aria-expanded', String(!m.hidden)); return; }
   if (t.id === 'soundBtn') { S.geluid = !S.geluid; save(); geluidKnop(); if (S.geluid) tikGeluid(true); return; }
   if (!$('#menu').hidden) sluitMenu();
   const d = t.dataset;
-  if (d.del != null) { S.spelers.splice(+d.del, 1); save(); return toon('start'); }
-  if (d.punten) { S.punten = +d.punten; save(); return toon('start'); }
   if (d.tijd) { S.tijd = d.tijd; save(); return toon('start'); }
-  if (d.pittig) { S.pittig = d.pittig === '1'; save(); return toon('start'); }
-  if (d.raak != null) {
-    const i = +d.raak, n = S.spelers[i];
-    G.scores[n] = (G.scores[n] || 0) + punten(); G.laatste = i; G.houder = i;
-    return toon('stand');
-  }
+  if (d.pittig) { S.pittig = d.pittig === '1'; save(); G = null; return toon('start'); }
   switch (d.act) {
     case 'uitleg': if (window.Uitleg) window.Uitleg.open('bom'); break;
-    case 'begin': {
-      // wat er nog in het naamveld staat, telt ook mee
-      const inp = $('#nameIn'), v = inp ? inp.value.replace(/\s+/g, ' ').trim().slice(0, 16) : '';
-      if (v && S.spelers.length < 12 && !S.spelers.some((s) => s.toLowerCase() === v.toLowerCase())) { S.spelers.push(v); save(); }
-      audio(); nieuwPotje(); nieuweRonde(); break;
-    }
+    case 'begin': audio(); if (!G) nieuwPotje(); nieuweRonde(); break;
     case 'ander': volgendeOpdracht(); toon('klaar'); break;
     case 'bom': toon('tikken'); startBom(); break;
     case 'pauze': pauze(); break;
     case 'verder': $('#pause').hidden = true; audio(); schermAan(true); verder(); break;
-    case 'niemand': G.laatste = null; toon('stand'); break;
     case 'volgende': nieuweRonde(); break;
-    case 'stop': clearTimeout(T.timer); T.loopt = false; $('#pause').hidden = true; schermAan(false); if (G) toon('einde'); break;
-    case 'opnieuw': nieuwPotje(); nieuweRonde(); break;
-    case 'spelers': G = null; toon('start'); break;
+    case 'instellingen': clearTimeout(T.timer); T.loopt = false; $('#pause').hidden = true; schermAan(false); toon('start'); break;
   }
 });
 addEventListener('keydown', (e) => { if (e.key === 'Escape') sluitMenu(); });
