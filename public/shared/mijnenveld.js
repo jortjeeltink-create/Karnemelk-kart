@@ -4,7 +4,6 @@
 // kaart. Ligt er een mijn op, dan drink je de slokken per mijn en leg je hem ergens anders neer: op een kaart of
 // tussen twee kaarten (dan raakt hij ze allebei). Daarna gok je rood of zwart en draai je de kaart om.
 // Goed: de volgende is aan de beurt. Fout: 2 slokken en je gooit opnieuw. Liggen alle kaarten open, dan is het klaar.
-// Zo speelt ook de online versie van dark-mark.com.
 // Een potje is een gewoon object (JSON) met de seed van de random-generator erin, net als bij Bussen.
 import { SUITS, newDeck, shuffle, rand, cleanNames, NAME_MAX } from './bussen.js';
 

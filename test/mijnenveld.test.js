@@ -1,5 +1,5 @@
 // Mijnenveld: de steen twee keer gooien naar een kaart, mijnen die ontploffen en verlegd worden, rood of zwart,
-// en wie hoeveel drinkt (zoals de online versie van dark-mark.com).
+// en wie hoeveel drinkt.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as M from '../public/shared/mijnenveld.js';
