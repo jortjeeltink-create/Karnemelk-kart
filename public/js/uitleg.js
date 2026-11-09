@@ -73,6 +73,13 @@
       { img: 'kart-3', t: 'Driften en items', p: 'Houd DRIFT ingedrukt in een bocht: hoe langer, hoe meer vonkjes. Laat los voor een turbo. Rijd door een regenboog-melkpak voor een item, zoals de stroopwafel-turbo, het kaasschild, een karnemelkplas of het klompkanon.' },
       { img: 'kart-4', t: 'Punten en de winkel', p: 'Na elke race krijg je MP-punten. Koop er karts, hoeden, capes en meer mee in de winkel, en maak je eigen coureur.' },
     ] },
+    toepen: { name: 'Toepen', c: '#e8a33d', url: '/toepen', slides: [
+      { img: 'toepen-1', t: 'Aan tafel', p: TAFEL(2, 8, ' De host kiest of jullie tot <b>10 of 15 strafpunten</b> spelen.') },
+      { img: 'toepen-2', t: 'Uitkomen', p: 'Iedereen krijgt 4 kaarten, en alleen jij ziet de jouwe. De speler na de deler komt uit: tik een kaart aan. Van laag naar hoog: <b>boer, vrouw, heer, aas, 7, 8, 9, 10</b>.' },
+      { img: 'toepen-3', t: 'Bekennen', p: 'Heb je de kleur die uitkwam, dan moet je die opleggen; de kaarten die mogen, lichten op. De hoogste kaart in die kleur wint de slag en komt daarna uit.' },
+      { img: 'toepen-4', t: 'Kloppen', p: 'Denk je de laatste slag te winnen? Tik op <b>Klop</b>: de inzet gaat één omhoog. De rest kiest <b>mee</b> of <b>pas</b>. Passen kost de oude inzet, en dan doe je deze ronde niet meer mee.' },
+      { img: 'toepen-5', t: 'De laatste slag', p: 'Wie de vierde slag wint, wint de ronde. De rest krijgt de inzet als strafpunten. Wie de grens haalt, ligt eruit; de laatste die overblijft, wint. Vuile was en kans op toep staan in de spelregels.' },
+    ] },
     bom: { name: 'Tikkende Bom', c: '#ff3b3b', url: '/bom', slides: [
       { img: 'bom-1', t: 'Eén telefoon', p: 'Jullie spelen samen op één telefoon: geen namen, geen codes. Kies hoe lang de lont ongeveer is en of er ook pittige opdrachten tussen zitten, en tik op <b>Start het spel</b>.' },
       { img: 'bom-2', t: 'De opdracht', p: 'Elke ronde komt er een opdracht, zoals <b>biermerken</b>, <b>bekende memes</b> of <b>mensen met wie iemand aan deze tafel heeft gezoend</b>. Te moeilijk? Tik op Andere opdracht. Wie de telefoon heeft, tikt op <b>Start de bom</b>.' },

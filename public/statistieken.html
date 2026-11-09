@@ -83,7 +83,7 @@ form.key button{font:800 16px/1 system-ui,sans-serif;padding:14px;border:0;borde
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const app = $('#app');
-const GAMES = { kart: ['Karnemelk Kart', '#ff7a00'], bussen: ['Bussen', '#4f8dff'], boer: ['Boer zoekt vrouw', '#ff6b8b'], mexen: ['Mexen', '#36c5d6'], dealer: ['Pak de dealer', '#a28fe3'], ftd: ['Pak de dealer', '#a28fe3'], paardenrace: ['Paardenrace', '#a6d83c'], paard: ['Paardenrace', '#a6d83c'], rotonde: ['Rotonde', '#d63bb5'], mijnenveld: ['Mijnenveld', '#c9803a'], borrelbord: ['Borrelbord', '#f2c230'], zuipbord: ['Borrelbord', '#f2c230'], bom: ['Tikkende Bom', '#ff3b3b'] };
+const GAMES = { kart: ['Karnemelk Kart', '#ff7a00'], bussen: ['Bussen', '#4f8dff'], boer: ['Boer zoekt vrouw', '#ff6b8b'], mexen: ['Mexen', '#36c5d6'], dealer: ['Pak de dealer', '#a28fe3'], ftd: ['Pak de dealer', '#a28fe3'], paardenrace: ['Paardenrace', '#a6d83c'], paard: ['Paardenrace', '#a6d83c'], rotonde: ['Rotonde', '#d63bb5'], mijnenveld: ['Mijnenveld', '#c9803a'], borrelbord: ['Borrelbord', '#f2c230'], zuipbord: ['Borrelbord', '#f2c230'], toepen: ['Toepen', '#e8a33d'], bom: ['Tikkende Bom', '#ff3b3b'] };
 const DAG = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
 const MAAND = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
 const dateOf = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
