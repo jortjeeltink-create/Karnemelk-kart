@@ -130,14 +130,21 @@ main{position:relative;z-index:1;padding-left:max(16px,env(safe-area-inset-left,
 .hero h1{font-weight:900;font-size:clamp(64px,15vw,240px);line-height:.82;text-transform:uppercase;white-space:nowrap;color:var(--cream);text-shadow:0 0 50px rgba(214,144,201,.35)}
 .hero-card{width:min(520px,100%);padding:26px;display:grid;gap:18px;text-align:left}
 .hero-card p{font-size:var(--s3);line-height:1.55;max-width:46ch}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:18px;background:var(--cream-3)}
-.tabs button{display:grid;align-content:start;justify-items:start;gap:4px;padding:10px 12px 11px;border-radius:14px;text-align:left;color:var(--plum-2)}
-.tabs button svg{color:var(--plum-2);margin-bottom:2px}
-.tabs button b{font-family:var(--display);font-weight:800;font-size:22px;line-height:1;color:var(--plum)}
-.tabs button small{font-size:var(--s1);font-weight:700}
-.tabs button[aria-selected="true"]{background:#fff;box-shadow:0 2px 12px rgba(43,21,49,.2)}
-.tabs button[aria-selected="true"] svg{color:var(--pink-2)}
-.tabs button:hover:not([aria-selected="true"]){background:rgba(255,255,255,.45)}
+.switch{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:5px;border-radius:999px;background:var(--plum);box-shadow:inset 0 2px 6px rgba(0,0,0,.35)}
+.switch .thumb{position:absolute;top:5px;bottom:5px;left:5px;width:calc(50% - 5px);border-radius:999px;background:var(--cream);box-shadow:0 3px 10px rgba(0,0,0,.35),inset 0 -2px 0 rgba(43,21,49,.08);transition:transform .38s cubic-bezier(.3,1.25,.5,1)}
+.switch[data-on="een"] .thumb{transform:translateX(100%)}
+.switch button{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:48px;padding:0 8px;border-radius:999px;color:rgba(243,239,219,.78);font-family:var(--display);font-weight:800;font-size:21px;line-height:1;white-space:nowrap;transition:color .25s}
+.switch button[aria-selected="true"]{color:var(--plum)}
+.switch button:hover:not([aria-selected="true"]){color:var(--cream)}
+.switch small{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:rgba(243,239,219,.16);font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:0;color:inherit;transition:background .25s,color .25s}
+.switch button[aria-selected="true"] small{background:var(--plum);color:var(--cream)}
+.switch button:focus-visible{outline-offset:-2px}
+@media (max-width:400px){.switch button{font-size:18px;gap:5px;padding:0 4px}.switch small{min-width:20px;height:20px;padding:0 5px}}
+@media (max-width:340px){.switch small{display:none}}
+#spellen{transition:opacity .2s ease}
+#spellen.fade{opacity:0}
+#heroText{transition:opacity .2s ease}
+#heroText.fade{opacity:0}
 .menu .mh{margin:10px 0 2px;font-size:var(--s1);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--plum-2)}
 .menu .mh:first-child{margin-top:0}
 .hero-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -219,9 +226,10 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
     <p class="kicker">Spellen voor samen</p>
     <h1>De Spelkeet</h1>
     <div class="hero-card cream">
-      <div class="tabs" id="tabs" role="tablist" aria-label="Soort spellen">
-        <button type="button" role="tab" data-tab="samen" aria-controls="spellen"><svg width="30" height="22" viewBox="0 0 30 22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="10" height="17" rx="2.5"/><rect x="18" y="3" width="10" height="17" rx="2.5"/></svg><b>Ieder z'n telefoon</b><small></small></button>
-        <button type="button" role="tab" data-tab="een" aria-controls="spellen"><svg width="30" height="22" viewBox="0 0 30 22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="10" y="2" width="10" height="18" rx="2.5"/><path d="M4 8l-2 3 2 3M26 8l2 3-2 3" stroke-linecap="round" stroke-linejoin="round"/></svg><b>Eén telefoon</b><small></small></button>
+      <div class="switch" id="tabs" role="tablist" aria-label="Soort spellen" data-on="samen">
+        <span class="thumb" aria-hidden="true"></span>
+        <button type="button" role="tab" data-tab="samen" aria-controls="spellen"><span class="lbl">Ieder z'n telefoon</span><small></small></button>
+        <button type="button" role="tab" data-tab="een" aria-controls="spellen"><span class="lbl">Eén telefoon</span><small></small></button>
       </div>
       <p id="heroText"></p>
       <div class="hero-list" id="heroList"></div>
@@ -334,6 +342,12 @@ const GAMES = [
     text: 'Het partyspel als ganzenbord. Gooi de steen over het bord, loop met je pion over 48 vakjes en doe wat er staat: strafpunten krijgen of uitdelen, een vraag, een duel (allebei gooien) of een maatje kiezen. Met de gans, de brug, het café, de put en de doodskop. De host kiest licht, middel of extreem: van zo\'n 10 strafpunten per potje tot zo\'n 25, met mega strafpunten.',
     facts: [['Spelers', '2 tot 10'], ['Versies', 'licht, middel, extreem'], ['Meedoen', 'met een code']],
     cta: 'Speel Borrelbord' },
+  { id: 'toepen', name: 'Toepen', name2: '', short: 'Toepen', acc: '#e8a33d', tint: '#2a1c08', bg: '#0f2a18',
+    url: '/toepen',
+    chips: ['Kaartspel', 'Online met vrienden'],
+    text: 'Het kroegspel met 32 kaarten. Iedereen krijgt vier kaarten op zijn eigen telefoon; wie de laatste slag wint, wint de ronde en de rest krijgt strafpunten. Durf je te kloppen? Dan gaat de inzet omhoog en kiest de rest: mee, of passen. Met vuile was en kans op toep.',
+    facts: [['Spelers', '2 tot 8'], ['Kaarten', '32, van 7 tot aas'], ['Meedoen', 'met een code']],
+    cta: 'Speel Toepen' },
   { id: 'kart', name: 'Karnemelk', name2: 'Kart', short: 'Karnemelk Kart', acc: '#ff7a00', tint: '#2c1410', bg: '#9fd8ff',
     url: '/kart',
     chips: ['Racen', 'Online met vrienden'],
@@ -363,9 +377,12 @@ let SHOWN = [];
 const telwoord = n => `${n} spel${n === 1 ? '' : 'len'}`;
 function build(){
   SHOWN = GAMES.filter(g => g.mode === tab);
+  $('#tabs').dataset.on = tab;
   document.querySelectorAll('#tabs [data-tab]').forEach(b => {
-    const on = b.dataset.tab === tab; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1;
-    b.querySelector('small').textContent = telwoord(GAMES.filter(g => g.mode === b.dataset.tab).length) + (b.dataset.tab === 'een' ? ' · nieuw' : '');
+    const on = b.dataset.tab === tab, n = GAMES.filter(g => g.mode === b.dataset.tab).length;
+    b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1;
+    b.querySelector('small').textContent = n;
+    b.setAttribute('aria-label', `${b.querySelector('.lbl').textContent}: ${telwoord(n)}`);
   });
   $('#heroText').textContent = TABS[tab].text;
   $('#spellen').innerHTML = SHOWN.map(g => `
@@ -394,7 +411,13 @@ function kiesTab(t){
   tab = t;
   try { localStorage.setItem('spelkeet-tab', t); } catch (e) { /* niet erg */ }
   try { const u = new URL(location.href); if (t === 'een') u.searchParams.set('tab', 'een'); else u.searchParams.delete('tab'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) { /* niet erg */ }
-  build(); active = -1; sizePrevs(); drawPrevs(performance.now(), 16, true); Sky.measure();
+  // de knop schuift meteen; de lijst en de tekst faden zacht over
+  $('#tabs').dataset.on = t;
+  document.querySelectorAll('#tabs [data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  const swap = () => { build(); active = -1; sizePrevs(); drawPrevs(performance.now(), 16, true); Sky.measure(); $('#spellen').classList.remove('fade'); $('#heroText').classList.remove('fade'); };
+  if (reduce) return swap();
+  $('#spellen').classList.add('fade'); $('#heroText').classList.add('fade');
+  clearTimeout(kiesTab.timer); kiesTab.timer = setTimeout(swap, 200);
 }
 
 /* ================= PREVIEWS ================= */
@@ -765,6 +788,35 @@ const PREV = {
     for (const q of P) { const gx = (q - 1) % 3 - 1, gy = Math.ceil(q / 3) - 2; c.beginPath(); c.arc(gx * ds * .27, gy * ds * .27, ds * .085, 0, TAU); c.fillStyle = '#3a2412'; c.fill(); }
     c.restore();
     if (cur && e > .78) { const ch = BORDJE[cur.to]; const word = { D: 'STRAF!', M: 'MEGA!', G: 'GEEF!', I: 'IEDEREEN!', B: 'GANS!', V: 'VRAAG', X: 'DUEL!', R: 'RUST', K: 'DOOD!', F: 'FINISH!', S: '' }[ch]; T(c, word, dx, h * .8, Math.min(w * .07, h * .13), COL[ch] === '#ffffff' ? '#f2c230' : COL[ch], { w: 400, f: LF }); }
+  },
+  // Toepen: vier spelers leggen om de beurt een kaart op, de hoogste in de kleur wint de slag; soms klopt er iemand
+  toepen(c, w, h, t){
+    const g = c.createRadialGradient(w / 2, h * .45, 10, w / 2, h * .5, Math.max(w, h) * .75); g.addColorStop(0, '#2f9a58'); g.addColorStop(.6, '#1c6e3a'); g.addColorStop(1, '#0f2a18'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    const cyc = reduce ? 5.2 : (t / 1000) % 6.4, round = reduce ? 0 : Math.floor(t / 6400);
+    const cw = Math.min(w * .12, h * .24), ch = cw * 1.4, cx = w / 2, cy = h * .52;
+    const card = (x, y, rot, txt, red, glow) => {
+      c.save(); c.translate(x, y); c.rotate(rot);
+      c.shadowColor = glow ? 'rgba(247,197,72,.9)' : 'rgba(0,0,0,.4)'; c.shadowBlur = glow ? 18 : 10; c.shadowOffsetY = glow ? 0 : 4;
+      rr(c, -cw / 2, -ch / 2, cw, ch, cw * .12); c.fillStyle = '#fffdf4'; c.fill();
+      c.shadowColor = 'transparent';
+      if (glow) { c.lineWidth = 3; c.strokeStyle = '#f7c548'; c.stroke(); }
+      T(c, txt, 0, 2, cw * .4, red ? '#d2343f' : '#24132a', { w: 900 });
+      c.restore();
+    };
+    // vier slagen om de beurt; de vierde kaart is de hoogste in de gevraagde kleur
+    const sets = [[['B♥', 1], ['9♥', 1], ['A♠', 0], ['10♥', 1]], [['7♣', 0], ['H♣', 0], ['8♦', 1], ['10♣', 0]], [['V♦', 1], ['7♦', 1], ['9♠', 0], ['10♦', 1]]];
+    const set = sets[round % sets.length], seats = [[0, 1], [-1, 0], [0, -1], [1, 0]];
+    const dx = w * .16, dy = h * .17;
+    set.forEach(([txt, red], k) => {
+      const at = .4 + k * .75; if (cyc < at) return;
+      const p = clamp((cyc - at) / .35, 0, 1), e = 1 - Math.pow(1 - p, 3), [sx, sy] = seats[k];
+      const fx = cx + sx * w * .45, fy = cy + sy * h * .5, tx = cx + sx * dx, ty = cy + sy * dy;
+      card(fx + (tx - fx) * e, fy + (ty - fy) * e, (k - 1.5) * .12 * e, txt, red, cyc > 3.9 && k === 3);
+    });
+    // de slag is voor de hoogste; af en toe klopt er iemand
+    if (cyc > 3.9 && cyc < 5.8) T(c, round % 2 ? 'SLAG!' : 'KLOP!', cx, h * .13, Math.min(w * .09, h * .16), round % 2 ? '#f7c548' : '#ffb35c', { w: 900 });
+    c.fillStyle = 'rgba(0,0,0,.28)'; rr(c, cx - w * .17, h * .9 - h * .05, w * .34, h * .09, h * .045); c.fill();
+    T(c, `slag ${(round % 4) + 1} van 4`, cx, h * .9, Math.min(w * .04, h * .07), 'rgba(243,239,219,.85)', { f: MF, w: 700 });
   },
   // Tikkende Bom: een opdracht bovenin, de bom tikt (steeds sneller) en dan: boem
   bom(c, w, h, t){
