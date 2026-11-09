@@ -92,6 +92,7 @@ h1 small{display:block;font-size:13px;letter-spacing:.14em;text-transform:upperc
         <div class="tile"><b>${R.length}</b><span>reviews</span></div>
         <div class="tile"><b>${avg}${R.length ? ' ★' : ''}</b><span>gemiddeld</span></div>
       </div>
+      ${data.vast === false ? '<p class="note"><b>Let op:</b> meldingen en reviews staan nog niet vast opgeslagen. Bij elke update van de site zijn ze weg. Zet Upstash aan in Render (UPSTASH_REDIS_REST_URL en UPSTASH_REDIS_REST_TOKEN).</p>' : ''}
       ${data.mail ? '<p class="note ok">Bij elke nieuwe melding of review krijg je ook een mail.</p>' : '<p class="note">Mail staat nog uit: zet RESEND_API_KEY in Render (Environment) om bij elke melding en review een mail te krijgen.</p>'}
       <div class="tabs" role="tablist">
         <button type="button" role="tab" data-tab="meldingen" aria-selected="${tab === 'meldingen'}">Meldingen (${M.length})</button>
