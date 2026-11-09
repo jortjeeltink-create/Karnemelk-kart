@@ -75,7 +75,7 @@
     ] },
     bom: { name: 'Tikkende Bom', c: '#ff3b3b', url: '/bom', slides: [
       { img: 'bom-1', t: 'Eén telefoon', p: 'Jullie spelen samen op één telefoon: geen namen, geen codes. Kies hoe lang de lont ongeveer is en of er ook pittige opdrachten tussen zitten, en tik op <b>Start het spel</b>.' },
-      { img: 'bom-2', t: 'De opdracht', p: 'Elke ronde komt er een opdracht, zoals <b>een dier met een T</b> of <b>rijm op huis</b>. Te moeilijk? Tik op Andere opdracht. Wie de telefoon heeft, tikt op <b>Start de bom</b>.' },
+      { img: 'bom-2', t: 'De opdracht', p: 'Elke ronde komt er een opdracht, zoals <b>biermerken</b>, <b>bekende memes</b> of <b>mensen met wie iemand aan deze tafel heeft gezoend</b>. Te moeilijk? Tik op Andere opdracht. Wie de telefoon heeft, tikt op <b>Start de bom</b>.' },
       { img: 'bom-3', t: 'Noem iets en geef door', p: 'De bom tikt. Noem iets dat past en geef de telefoon snel door. Niks zeggen of iets dat al gezegd is? Dan houd je hem tot je wel iets weet. De laatste seconden tikt hij sneller.' },
       { img: 'bom-4', t: 'Boem!', p: 'Niemand weet wanneer hij afgaat. Ontploft hij <b>in jouw handen</b>, dan heb jij verloren. Wat je moet doen, bepalen jullie zelf. Daarna de volgende ronde.' },
     ] },

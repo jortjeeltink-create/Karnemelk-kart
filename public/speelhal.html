@@ -343,7 +343,7 @@ const GAMES = [
   { id: 'bom', mode: 'een', name: 'Tikkende', name2: 'Bom', short: 'Tikkende Bom', acc: '#ff3b3b', tint: '#2a0d10', bg: '#140b0f',
     url: '/bom',
     chips: ['Partyspel', 'Eén telefoon'],
-    text: 'De telefoon geeft een opdracht, zoals een dier met een P, en begint te tikken. Noem iets dat past en geef hem snel door. Niemand weet hoe lang de lont is: ontploft hij in jouw handen, dan heb jij verloren. Wat je moet doen, bepalen jullie zelf.',
+    text: 'De telefoon geeft een opdracht, zoals biermerken of bekende memes, en begint te tikken. Noem iets dat past en geef hem snel door. Niemand weet hoe lang de lont is: ontploft hij in jouw handen, dan heb jij verloren. Wat je moet doen, bepalen jullie zelf.',
     facts: [['Spelers', '2 of meer'], ['Telefoons', 'één, die rondgaat'], ['Lont', '10 tot 70 seconden']],
     cta: 'Speel Tikkende Bom' }
 ];
@@ -769,7 +769,7 @@ const PREV = {
   // Tikkende Bom: een opdracht bovenin, de bom tikt (steeds sneller) en dan: boem
   bom(c, w, h, t){
     const s = t / 1000, cyc = Math.floor(s / 6), p = s % 6, boom = p > 4.4, q = boom ? (p - 4.4) / 1.6 : 0;
-    const [lab, txt] = [['Noem', 'Een dier met een P'], ['Rijm op', 'huis'], ['Noem', 'Snoep'], ['Noem', 'Iets in de supermarkt met een B']][cyc % 4];
+    const [lab, txt] = [['Noem', 'Biermerken'], ['Noem', 'Bekende memes'], ['Noem', 'Snacks uit de snackbar'], ['Noem', 'Festivals']][cyc % 4];
     const SF = 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
     const g = c.createRadialGradient(w / 2, h * .62, 0, w / 2, h * .62, Math.max(w, h) * .8); g.addColorStop(0, '#3a1216'); g.addColorStop(.55, '#1a0f14'); g.addColorStop(1, '#0e0b10'); c.fillStyle = g; c.fillRect(0, 0, w, h);
     const k = Math.min(w / 340, h / 300);
