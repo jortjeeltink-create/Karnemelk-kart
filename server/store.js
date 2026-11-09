@@ -8,10 +8,11 @@ import { randomBytes, createHmac, createHash, timingSafeEqual } from 'node:crypt
 import { Profiles } from '../public/shared/profiles.js';
 
 // ---------- sleutel/waarde-opslag ----------
+export const DATA_FILE = 'karnemelk-data.json';
 export class FileKV {
   constructor(dir) {
     this.dir = dir;
-    this.file = join(dir, 'karnemelk-data.json');
+    this.file = join(dir, DATA_FILE);
     this.data = {};
     this.timer = null;
   }
