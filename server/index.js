@@ -122,7 +122,8 @@ const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 const UPSTASH = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 const OVERDRACHT_SECRET = overdrachtSecret(process.env);
 const OVERDRACHT_URL = process.env.OVERDRACHT_URL || process.env.RENDER_EXTERNAL_URL || '';
-const OVERGENOMEN = UPSTASH ? 0 : await haalOver({ url: OVERDRACHT_URL, secret: OVERDRACHT_SECRET, file: join(DATA_DIR, DATA_FILE), log });
+const OVERGENOMEN = UPSTASH ? { ok: false, n: 0, reden: 'Upstash' } : await haalOver({ url: OVERDRACHT_URL, secret: OVERDRACHT_SECRET, file: join(DATA_DIR, DATA_FILE), log });
+const GESTART = new Date().toISOString();
 const store = await createStore({
   dataDir: DATA_DIR,
   upstashUrl: process.env.UPSTASH_REDIS_REST_URL,
@@ -337,7 +338,7 @@ const server = http.createServer((req, res) => {
     const days = Math.max(1, Math.min(120, Number(url.searchParams.get('dagen')) || 30));
     const inGame = [wss, ...tableChannels].reduce((n, ch) => n + ch.clients.size, 0);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Set-Cookie': ownerCookie(req) });
-    return res.end(JSON.stringify({ ...stats.summary(days), inGame, vast: VASTE_OPSLAG, overdracht: OVERDRACHT, overgenomen: OVERGENOMEN }));
+    return res.end(JSON.stringify({ ...stats.summary(days), inGame, vast: VASTE_OPSLAG, overdracht: OVERDRACHT, overgenomen: OVERGENOMEN, gestart: GESTART }));
   }
   if (path === '/.well-known/assetlinks.json') {
     if (!ASSET_LINKS) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('Niet ingesteld (ANDROID_PACKAGE en ANDROID_SHA256)'); }

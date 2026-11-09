@@ -29,24 +29,25 @@ export function verify(secret, header, now = Date.now()) {
 }
 
 // Haal de gegevens op bij de server die nu nog draait en zet ze in het opslagbestand, voordat de opslag geladen wordt.
-// Geeft het aantal overgenomen sleutels terug (0 als er niks over te nemen viel).
+// Geeft terug of het gelukt is, hoeveel sleutels er overkwamen en anders waarom niet.
 export async function haalOver({ url, secret, file, log = () => {}, timeoutMs = 15_000, fetchImpl = globalThis.fetch }) {
-  if (!url || !secret) return 0;
-  if (existsSync(file)) return 0;   // er staat al een bestand (zoals bij een vaste schijf): niks overnemen
+  if (!url || !secret) return { ok: false, n: 0, reden: 'staat uit' };
+  if (existsSync(file)) return { ok: false, n: 0, reden: 'er stond al een opslagbestand' };   // zoals bij een vaste schijf
   try {
     const r = await fetchImpl(new URL(PATH, url), { headers: { 'X-Overdracht': sign(secret) }, signal: AbortSignal.timeout(timeoutMs) });
-    if (!r.ok) { log(`overdracht: geen gegevens van de vorige server (${r.status})`); return 0; }
+    if (!r.ok) { log(`overdracht: geen gegevens van de vorige server (${r.status})`); return { ok: false, n: 0, reden: `de vorige server gaf ${r.status}` }; }
     const data = await r.json();
-    if (!data || typeof data !== 'object' || Array.isArray(data)) { log('overdracht: onbruikbaar antwoord'); return 0; }
+    if (!data || typeof data !== 'object' || Array.isArray(data)) { log('overdracht: onbruikbaar antwoord'); return { ok: false, n: 0, reden: 'onbruikbaar antwoord' }; }
     mkdirSync(dirname(file), { recursive: true });
     const tmp = `${file}.overdracht`;
     writeFileSync(tmp, JSON.stringify(data));
     renameSync(tmp, file);
     const n = Object.keys(data).length;
     log(`overdracht: ${n} sleutels overgenomen van de vorige server`);
-    return n;
+    return { ok: true, n, reden: '' };
   } catch (e) {
-    log(`overdracht: niet gelukt (${e.name === 'TimeoutError' ? 'geen antwoord' : e.message})`);
-    return 0;
+    const reden = e.name === 'TimeoutError' ? 'geen antwoord' : e.message;
+    log(`overdracht: niet gelukt (${reden})`);
+    return { ok: false, n: 0, reden };
   }
 }

@@ -38,7 +38,8 @@ test('een update: de nieuwe server begint met de statistieken, meldingen en revi
     assert.match(nieuw.output(), /overdracht: \d+ sleutels overgenomen/);
     const s = await (await fetch(nieuw.url + '/api/statistieken?sleutel=geheim123&dagen=1')).json();
     assert.equal(s.days[0].views, 3, 'de bezoeken van vandaag zijn er nog');
-    assert.ok(s.overgenomen > 0, 'de statistieken zeggen hoeveel er is overgenomen');
+    assert.equal(s.overgenomen.ok, true, 'de statistieken zeggen dat het gelukt is');
+    assert.ok(s.overgenomen.n > 0, 'en hoeveel er is overgenomen');
     assert.deepEqual(s.days[0].pages, { hoofdpagina: 1, bussen: 1, mexen: 1 });
     const b = await (await fetch(nieuw.url + '/api/beheer?sleutel=geheim123')).json();
     assert.equal(b.reviews.length, 1);
@@ -51,6 +52,7 @@ test('een update: de nieuwe server begint met de statistieken, meldingen en revi
     const s2 = await (await fetch(vreemd.url + '/api/statistieken?sleutel=geheim123&dagen=1')).json();
     assert.equal(s2.days[0].views, 0);
     assert.equal(s2.overdracht, true);
+    assert.deepEqual([s2.overgenomen.ok, s2.overgenomen.reden], [false, 'de vorige server gaf 404']);
   } finally {
     await oud.stop();
     if (nieuw) await nieuw.stop();
