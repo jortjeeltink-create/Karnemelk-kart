@@ -158,6 +158,14 @@ const rotondeHub = new RotondeHub({ log, stat, build: buildOf('/rotonde.html') }
 const mijnHub = new MijnenveldHub({ log, stat, build: buildOf('/mijnenveld.html') });
 const bordHub = new ZuipbordHub({ log, stat, build: buildOf('/zuipbord.html') });
 // welke pagina's we tellen, met een korte naam
+// Jij als maker telt niet mee: wie de beheer- of statistiekenlink opent, krijgt op dat apparaat een cookie, en met
+// dat cookie tellen je bezoeken daar niet mee. Spelers krijgen dit cookie nooit.
+const OWNER_COOKIE = 'sk_eigen';
+const isOwner = (req) => /(?:^|;\s*)sk_eigen=1(?:;|$)/.test(String(req.headers.cookie || ''));
+const ownerCookie = (req) => `${OWNER_COOKIE}=1; Path=/; Max-Age=${365 * 86400}; HttpOnly; SameSite=Lax${req.headers['x-forwarded-proto'] === 'https' || req.socket.encrypted ? '; Secure' : ''}`;
+// Blijven de cijfers, meldingen en reviews bewaard als de server opnieuw start (bij elke update)? Alleen met Upstash
+// of een vaste schijf (DATA_DIR); zonder dat begint alles na een update weer bij nul.
+const VASTE_OPSLAG = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) || !!process.env.DATA_DIR;
 const PAGE_NAMES = { '/speelhal.html': 'hoofdpagina', '/index.html': 'kart', '/bussen.html': 'bussen', '/boer.html': 'boer', '/mexen.html': 'mexen', '/dealer.html': 'dealer', '/paardenrace.html': 'paardenrace', '/rotonde.html': 'rotonde', '/mijnenveld.html': 'mijnenveld', '/zuipbord.html': 'borrelbord', '/iphone.html': 'iphone', '/privacy.html': 'privacy', '/voorwaarden.html': 'voorwaarden', '/melden.html': 'melden' };
 const clientIp = (req) => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 
@@ -295,8 +303,8 @@ const server = http.createServer((req, res) => {
   if (path === '/api/beheer') {
     if (!beheerKeyOk(url.searchParams.get('sleutel'))) { res.writeHead(404); return res.end(); }
     Promise.all([store.kv.get('meldingen'), store.kv.get('reviews')]).then(([m, r]) => {
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-      res.end(JSON.stringify({ meldingen: recentMeldingen(m || []), reviews: recentMeldingen(r || []), mail: !!MAIL_KEY }));
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Set-Cookie': ownerCookie(req) });
+      res.end(JSON.stringify({ meldingen: recentMeldingen(m || []), reviews: recentMeldingen(r || []), mail: !!MAIL_KEY, vast: VASTE_OPSLAG }));
     });
     return;
   }
@@ -310,8 +318,8 @@ const server = http.createServer((req, res) => {
     if (!statsKeyOk(url.searchParams.get('sleutel'))) { res.writeHead(404); return res.end(); }
     const days = Math.max(1, Math.min(120, Number(url.searchParams.get('dagen')) || 30));
     const inGame = [wss, ...tableChannels].reduce((n, ch) => n + ch.clients.size, 0);
-    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-    return res.end(JSON.stringify({ ...stats.summary(days), inGame }));
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Set-Cookie': ownerCookie(req) });
+    return res.end(JSON.stringify({ ...stats.summary(days), inGame, vast: VASTE_OPSLAG }));
   }
   if (path === '/.well-known/assetlinks.json') {
     if (!ASSET_LINKS) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('Niet ingesteld (ANDROID_PACKAGE en ANDROID_SHA256)'); }
@@ -353,7 +361,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     return res.end('Niet gevonden');
   }
-  if (req.method === 'GET' && PAGE_NAMES[path]) stats.pageview(PAGE_NAMES[path], { ip: clientIp(req), ua: String(req.headers['user-agent'] || '') });
+  if (req.method === 'GET' && PAGE_NAMES[path] && !isOwner(req)) stats.pageview(PAGE_NAMES[path], { ip: clientIp(req), ua: String(req.headers['user-agent'] || '') });
   const headers = { 'Content-Type': f.type, ETag: f.etag, 'Cache-Control': 'no-cache', Vary: 'Accept-Encoding', 'X-Content-Type-Options': 'nosniff' };
   if (path === '/index.html') headers['Set-Cookie'] = deviceCookie(req);
   if (req.headers['if-none-match'] === f.etag) { res.writeHead(304, headers); return res.end(); }

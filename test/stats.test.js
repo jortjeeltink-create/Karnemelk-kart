@@ -90,6 +90,15 @@ test('de server: /api/statistieken alleen met de sleutel; een browser telt mee, 
     assert.deepEqual(today.pages, { hoofdpagina: 1, borrelbord: 1 });
     assert.equal(s.online, 1);
     assert.equal(typeof s.inGame, 'number');
+    assert.equal(s.vast, true, 'in de test staat de opslag in een vaste map (DATA_DIR)');
+    // de maker: wie de link opent krijgt een cookie, en telt daarna niet meer mee
+    const cookie = (r.headers.get('set-cookie') || '').split(';')[0];
+    assert.equal(cookie, 'sk_eigen=1');
+    assert.match(r.headers.get('set-cookie'), /HttpOnly/);
+    for (let i = 0; i < 5; i++) await fetch(srv.url + '/borrelbord', { headers: { 'User-Agent': PHONE, Cookie: `kk_dev=abc; ${cookie}` } });
+    const s2 = await (await fetch(srv.url + '/api/statistieken?sleutel=geheim123&dagen=1')).json();
+    assert.equal(s2.days[0].views, 2, 'vijf keer zelf kijken telt niet mee');
+    assert.equal(s2.days[0].visitors, 1);
     const page = await (await fetch(srv.url + '/statistieken')).text();
     assert.match(page, /<title>Statistieken · De Spelkeet<\/title>/);
     assert.match(page, /noindex/);

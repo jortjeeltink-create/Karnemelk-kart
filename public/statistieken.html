@@ -43,6 +43,7 @@ h1 small{display:block;font-size:13px;font-weight:700;letter-spacing:.12em;text-
 .card{background:var(--surface-1);border-radius:20px;padding:16px;box-shadow:inset 0 0 0 1px var(--line)}
 .card h2{font-size:17px;font-weight:800}
 .card .note{font-size:13px;color:var(--text-muted);margin-top:2px}
+.warn{margin:0 0 14px;padding:12px 14px;border-radius:14px;font-size:14px;line-height:1.45;background:rgba(242,194,48,.12);box-shadow:inset 0 0 0 1px rgba(242,194,48,.45)}
 .chart{position:relative;margin-top:12px;overflow:visible}
 main{overflow-x:clip}
 .chart svg{display:block;width:100%;height:auto;overflow:visible}
@@ -178,6 +179,7 @@ function render() {
     <h1><small>De Spelkeet</small>Statistieken</h1>
     <div class="seg" role="group" aria-label="Periode">${[7, 30, 90].map((n) => `<button type="button" data-d="${n}" aria-pressed="${n === days}">${n} dagen</button>`).join('')}</div>
   </header>
+  ${data.vast === false ? '<p class="warn"><b>Let op:</b> de cijfers staan nog niet vast opgeslagen. Bij elke update van de site beginnen ze weer bij nul. Zet Upstash aan in Render (UPSTASH_REDIS_REST_URL en UPSTASH_REDIS_REST_TOKEN), dan blijven ze bewaard.</p>' : ''}
   <section class="tiles">
     <div class="tile live"><p>Nu op de site</p><b>${nf.format(data.online)}</b><span>de laatste 5 minuten</span></div>
     <div class="tile"><p>Nu in een spel</p><b>${nf.format(data.inGame)}</b><span>telefoons verbonden</span></div>
@@ -200,7 +202,7 @@ function render() {
     <p class="note">De laatste ${days} dagen.</p>
     ${gameRows.length ? `<table><thead><tr><th>Spel</th><th>Bezocht</th><th>Tafels</th><th>Potjes</th></tr></thead><tbody>${gameRows.map(([name, g]) => `<tr><td style="--c:${g.c}"><i></i>${esc(name)}</td><td>${nf.format(g.pages)}</td><td>${name === 'Karnemelk Kart' ? '–' : nf.format(g.tables)}</td><td>${name === 'Karnemelk Kart' ? '–' : nf.format(g.starts)}</td></tr>`).join('')}</tbody></table>` : '<p class="empty">Nog geen spellen gespeeld in deze periode.</p>'}
   </section>
-  <p class="foot">Zonder cookies en zonder IP-adressen: alleen tellingen per dag en per uur. Ververst elke minuut.</p>`;
+  <p class="foot">Jouw eigen bezoeken op dit apparaat tellen niet mee. Kom je ook via een andere browser of telefoon op de site, open deze link daar dan ook één keer.<br>Spelers worden geteld zonder cookies en zonder IP-adressen te bewaren: alleen tellingen per dag en per uur. Ververst elke minuut.</p>`;
   app.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => { days = +b.dataset.d; load(); }));
 }
 
