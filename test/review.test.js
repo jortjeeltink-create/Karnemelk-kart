@@ -105,6 +105,8 @@ test('review-vraag: elk spel laadt het script en meldt zijn stand', () => {
     assert.ok(html.includes(`SpelkeetReview.stand('${spel}', null, 0)`), `${page}: van tafel`);
   }
   assert.ok(read('index.html').includes('<script src="/js/review.js" defer></script>'), 'kart: review.js');
+  const bom = read('bom.html');
+  assert.ok(bom.includes('<script src="/js/review.js" defer></script>') && bom.includes("SpelkeetReview.stand('bom', "), 'Tikkende Bom: review.js en de stand');
   const main = read('js/main.js');
   assert.ok(main.includes("SpelkeetReview.stand('kart', 'race', 0)") && main.includes("SpelkeetReview.stand('kart', 'uitslag', 1)"), 'kart: race en uitslag');
   // het venster stuurt sterren, goed, fout en de bron naar de server

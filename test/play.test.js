@@ -49,7 +49,7 @@ test('de server: privacybeleid, voorwaarden, melden, offline-pagina; geen 18+ me
     }
     assert.match(await (await fetch(srv.url + '/privacy')).text(), /Mijn gegevens wissen/);
     // elke speelpagina meldt de service worker aan, zegt niks over 18+ en heeft een link om iets te melden
-    for (const path of ['/', '/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld', '/borrelbord']) {
+    for (const path of ['/', '/kart', '/bussen', '/boer', '/mexen', '/dealer', '/paardenrace', '/rotonde', '/mijnenveld', '/borrelbord', '/bom']) {
       const html = await (await fetch(srv.url + path)).text();
       assert.ok(html.includes('<script src="/js/poort.js" defer></script>'), `${path}: de service worker`);
       assert.ok(!/18\+|18 jaar|alcohol/i.test(html), `${path}: geen 18+ en geen alcohol`);
