@@ -103,6 +103,7 @@ p{margin:0}
 .dock{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;display:flex;align-items:center;gap:6px;padding:6px;border-radius:999px;background:var(--cream);color:var(--plum);box-shadow:0 18px 50px rgba(0,0,0,.5);max-width:calc(100vw - 24px)}
 .pinkbtn{width:52px;height:52px;border-radius:50%;background:var(--pink);color:var(--plum);display:grid;place-items:center;flex:none;box-shadow:inset 0 -3px 0 rgba(43,21,49,.15)}
 .pinkbtn:hover{background:#e0a2d4}
+.pinkbtn svg{pointer-events:none}
 .logo{font-family:var(--display);font-weight:900;font-size:28px;line-height:1;letter-spacing:-.02em;padding:0 8px;color:var(--plum);white-space:nowrap}
 .seg{display:flex;gap:2px;padding:4px;border-radius:999px;background:var(--cream-3);min-width:0;overflow-x:auto;scrollbar-width:none}
 .seg::-webkit-scrollbar{display:none}
@@ -129,6 +130,16 @@ main{position:relative;z-index:1;padding-left:max(16px,env(safe-area-inset-left,
 .hero h1{font-weight:900;font-size:clamp(64px,15vw,240px);line-height:.82;text-transform:uppercase;white-space:nowrap;color:var(--cream);text-shadow:0 0 50px rgba(214,144,201,.35)}
 .hero-card{width:min(520px,100%);padding:26px;display:grid;gap:18px;text-align:left}
 .hero-card p{font-size:var(--s3);line-height:1.55;max-width:46ch}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:18px;background:var(--cream-3)}
+.tabs button{display:grid;align-content:start;justify-items:start;gap:4px;padding:10px 12px 11px;border-radius:14px;text-align:left;color:var(--plum-2)}
+.tabs button svg{color:var(--plum-2);margin-bottom:2px}
+.tabs button b{font-family:var(--display);font-weight:800;font-size:22px;line-height:1;color:var(--plum)}
+.tabs button small{font-size:var(--s1);font-weight:700}
+.tabs button[aria-selected="true"]{background:#fff;box-shadow:0 2px 12px rgba(43,21,49,.2)}
+.tabs button[aria-selected="true"] svg{color:var(--pink-2)}
+.tabs button:hover:not([aria-selected="true"]){background:rgba(255,255,255,.45)}
+.menu .mh{margin:10px 0 2px;font-size:var(--s1);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--plum-2)}
+.menu .mh:first-child{margin-top:0}
 .hero-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .hero-list a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--cream-2);text-decoration:none;font-family:var(--display);font-weight:700;font-size:20px;line-height:1.1;min-width:0}
 .hero-list a:hover{background:var(--cream-3)}
@@ -208,8 +219,11 @@ footer .big{font-family:var(--display);font-weight:900;font-size:clamp(60px,12vw
     <p class="kicker">Spellen voor samen</p>
     <h1>De Spelkeet</h1>
     <div class="hero-card cream">
-      <div class="chips"><span class="chip">Negen spellen</span><span class="chip line">Eén pagina</span></div>
-      <p>Spellen voor een avond met vrienden, ieder op zijn eigen telefoon. Scroll naar beneden om ze te bekijken, of spring er direct in.</p>
+      <div class="tabs" id="tabs" role="tablist" aria-label="Soort spellen">
+        <button type="button" role="tab" data-tab="samen" aria-controls="spellen"><svg width="30" height="22" viewBox="0 0 30 22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="10" height="17" rx="2.5"/><rect x="18" y="3" width="10" height="17" rx="2.5"/></svg><b>Ieder z'n telefoon</b><small></small></button>
+        <button type="button" role="tab" data-tab="een" aria-controls="spellen"><svg width="30" height="22" viewBox="0 0 30 22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="10" y="2" width="10" height="18" rx="2.5"/><path d="M4 8l-2 3 2 3M26 8l2 3-2 3" stroke-linecap="round" stroke-linejoin="round"/></svg><b>Eén telefoon</b><small></small></button>
+      </div>
+      <p id="heroText"></p>
       <div class="hero-list" id="heroList"></div>
       <a class="iphone" href="/iphone"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M10.5 18.5h3"/></svg><span><b>Vrienden met een iPhone?</b> Zo spelen ze mee</span><span aria-hidden="true">›</span></a>
     </div>
@@ -272,12 +286,6 @@ const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
 
 /* ================= SPELLEN ================= */
 const GAMES = [
-  { id: 'kart', name: 'Karnemelk', name2: 'Kart', short: 'Karnemelk Kart', acc: '#ff7a00', tint: '#2c1410', bg: '#9fd8ff',
-    url: '/kart',
-    chips: ['Racen', 'Online met vrienden'],
-    text: 'Kartracen door Nederland: langs de molen, door de grachten en tussen de sterren. Race live tegen je vrienden of tegen bots, pak items en drift door de bochten.',
-    facts: [['Banen', '13'], ['Live', 'tot 10 vrienden'], ['Extra', 'items, schansen, winkel']],
-    cta: 'Speel Karnemelk Kart' },
   { id: 'bussen', name: 'Bussen', name2: '', short: 'Bussen', acc: '#4f8dff', tint: '#101b3f', bg: '#0b1230',
     url: '/bussen',
     chips: ['Kaartspel', 'Online met vrienden'],
@@ -325,11 +333,42 @@ const GAMES = [
     chips: ['Bordspel', 'Online met vrienden'],
     text: 'Het partyspel als ganzenbord. Gooi de steen over het bord, loop met je pion over 48 vakjes en doe wat er staat: strafpunten krijgen of uitdelen, een vraag, een duel (allebei gooien) of een maatje kiezen. Met de gans, de brug, het café, de put en de doodskop. De host kiest licht, middel of extreem: van zo\'n 10 strafpunten per potje tot zo\'n 25, met mega strafpunten.',
     facts: [['Spelers', '2 tot 10'], ['Versies', 'licht, middel, extreem'], ['Meedoen', 'met een code']],
-    cta: 'Speel Borrelbord' }
+    cta: 'Speel Borrelbord' },
+  { id: 'kart', name: 'Karnemelk', name2: 'Kart', short: 'Karnemelk Kart', acc: '#ff7a00', tint: '#2c1410', bg: '#9fd8ff',
+    url: '/kart',
+    chips: ['Racen', 'Online met vrienden'],
+    text: 'Kartracen door Nederland: langs de molen, door de grachten en tussen de sterren. Race live tegen je vrienden of tegen bots, pak items en drift door de bochten.',
+    facts: [['Banen', '13'], ['Live', 'tot 10 vrienden'], ['Extra', 'items, schansen, winkel']],
+    cta: 'Speel Karnemelk Kart' },
+  { id: 'bom', mode: 'een', name: 'Tikkende', name2: 'Bom', short: 'Tikkende Bom', acc: '#ff3b3b', tint: '#2a0d10', bg: '#140b0f',
+    url: '/bom',
+    chips: ['Partyspel', 'Eén telefoon'],
+    text: 'De telefoon geeft een opdracht, zoals een dier met een P, en begint te tikken. Noem iets dat past en geef hem snel door. Niemand weet hoe lang de lont is: wie hem vasthoudt bij de knal, krijgt strafpunten.',
+    facts: [['Spelers', '2 of meer'], ['Telefoons', 'één, die rondgaat'], ['Lont', '10 tot 70 seconden']],
+    cta: 'Speel Tikkende Bom' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+// twee tabbladen: spellen waarbij ieder op zijn eigen telefoon speelt, en spellen op één telefoon die rondgaat
+const TABS = {
+  samen: { text: 'Spellen voor een avond met vrienden, ieder op zijn eigen telefoon. Eén iemand maakt een tafel, de rest doet mee met de code. Scroll naar beneden om ze te bekijken, of spring er direct in.' },
+  een: { text: 'Spellen op één telefoon: leg hem op tafel of geef hem door. Geen codes en niemand hoeft iets te openen. Scroll naar beneden, of spring er direct in.' },
+};
+GAMES.forEach(g => { g.mode = g.mode || 'samen'; });
+let tab = (() => {
+  const q = new URLSearchParams(location.search).get('tab');
+  if (q === 'een' || q === 'samen') return q;
+  try { return localStorage.getItem('spelkeet-tab') === 'een' ? 'een' : 'samen'; } catch (e) { return 'samen'; }
+})();
+let SHOWN = [];
+const telwoord = n => `${n} spel${n === 1 ? '' : 'len'}`;
 function build(){
-  $('#spellen').innerHTML = GAMES.map(g => `
+  SHOWN = GAMES.filter(g => g.mode === tab);
+  document.querySelectorAll('#tabs [data-tab]').forEach(b => {
+    const on = b.dataset.tab === tab; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1;
+    b.querySelector('small').textContent = telwoord(GAMES.filter(g => g.mode === b.dataset.tab).length) + (b.dataset.tab === 'een' ? ' · nieuw' : '');
+  });
+  $('#heroText').textContent = TABS[tab].text;
+  $('#spellen').innerHTML = SHOWN.map(g => `
   <section class="game" id="${g.id}" style="--acc:${g.acc}">
     <article class="gcard cream">
       <div class="prev" style="--bg:${g.bg}"><canvas data-prev="${g.id}" role="img" aria-label="Voorproefje van ${g.short}"></canvas></div>
@@ -345,11 +384,17 @@ function build(){
       </div>
     </article>
   </section>`).join('');
-  $('#heroList').innerHTML = GAMES.map(g => `<a href="#${g.id}" data-nav style="--c:${g.acc}"><i></i>${g.short}</a>`).join('');
-  $('#seg').innerHTML = GAMES.map((g, i) => `<button type="button" data-jump="${g.id}" style="--c:${g.acc}" aria-current="${i === 0}" aria-label="${g.short}"><i></i><span>${g.short}</span></button>`).join('');
-  $('#menuNav').innerHTML = GAMES.map(g => g.url
-    ? `<a href="${g.url}">${g.short} <small>spelen ›</small></a>`
-    : `<a href="#${g.id}" data-nav>${g.short} <small>link volgt</small></a>`).join('');
+  $('#heroList').innerHTML = SHOWN.map(g => `<a href="#${g.id}" data-nav style="--c:${g.acc}"><i></i>${g.short}</a>`).join('');
+  $('#seg').innerHTML = SHOWN.map((g, i) => `<button type="button" data-jump="${g.id}" style="--c:${g.acc}" aria-current="${i === 0}" aria-label="${g.short}"><i></i><span>${g.short}</span></button>`).join('');
+  const link = g => `<a href="${g.url}">${g.short} <small>spelen ›</small></a>`;
+  $('#menuNav').innerHTML = `<p class="mh">Ieder z'n telefoon</p>${GAMES.filter(g => g.mode === 'samen').map(link).join('')}<p class="mh">Eén telefoon</p>${GAMES.filter(g => g.mode === 'een').map(link).join('')}`;
+}
+function kiesTab(t){
+  if (t === tab) return;
+  tab = t;
+  try { localStorage.setItem('spelkeet-tab', t); } catch (e) { /* niet erg */ }
+  try { const u = new URL(location.href); if (t === 'een') u.searchParams.set('tab', 'een'); else u.searchParams.delete('tab'); history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) { /* niet erg */ }
+  build(); active = -1; sizePrevs(); drawPrevs(performance.now(), 16, true); Sky.measure();
 }
 
 /* ================= PREVIEWS ================= */
@@ -720,6 +765,46 @@ const PREV = {
     for (const q of P) { const gx = (q - 1) % 3 - 1, gy = Math.ceil(q / 3) - 2; c.beginPath(); c.arc(gx * ds * .27, gy * ds * .27, ds * .085, 0, TAU); c.fillStyle = '#3a2412'; c.fill(); }
     c.restore();
     if (cur && e > .78) { const ch = BORDJE[cur.to]; const word = { D: 'STRAF!', M: 'MEGA!', G: 'GEEF!', I: 'IEDEREEN!', B: 'GANS!', V: 'VRAAG', X: 'DUEL!', R: 'RUST', K: 'DOOD!', F: 'FINISH!', S: '' }[ch]; T(c, word, dx, h * .8, Math.min(w * .07, h * .13), COL[ch] === '#ffffff' ? '#f2c230' : COL[ch], { w: 400, f: LF }); }
+  },
+  // Tikkende Bom: een opdracht bovenin, de bom tikt (steeds sneller) en dan: boem
+  bom(c, w, h, t){
+    const s = t / 1000, cyc = Math.floor(s / 6), p = s % 6, boom = p > 4.4, q = boom ? (p - 4.4) / 1.6 : 0;
+    const [lab, txt] = [['Noem', 'Een dier met een P'], ['Rijm op', 'huis'], ['Noem', 'Snoep'], ['Noem', 'Iets in de supermarkt met een B']][cyc % 4];
+    const SF = 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+    const g = c.createRadialGradient(w / 2, h * .62, 0, w / 2, h * .62, Math.max(w, h) * .8); g.addColorStop(0, '#3a1216'); g.addColorStop(.55, '#1a0f14'); g.addColorStop(1, '#0e0b10'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    const k = Math.min(w / 340, h / 300);
+    // de opdracht
+    const cw = Math.min(w - 32, 300 * k), ch = 74 * k, cx = (w - cw) / 2, cy = 18 * k;
+    rr(c, cx, cy, cw, ch, 18 * k); c.fillStyle = '#231a26'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = 'rgba(255,138,31,.45)'; c.stroke();
+    T(c, lab.toUpperCase(), w / 2, cy + 20 * k, 11 * k, '#ff8a1f', { f: SF, w: 800 });
+    let fs = 26 * k; c.font = `800 ${fs}px ${SF}`; while (c.measureText(txt).width > cw - 24 && fs > 10) { fs -= 1; c.font = `800 ${fs}px ${SF}`; }
+    T(c, txt, w / 2, cy + 48 * k, fs, '#f7f2ea', { f: SF, w: 800 });
+    const bx = w / 2, by = cy + ch + (h - cy - ch) * .52, R = Math.min(w * .2, (h - cy - ch) * .32);
+    if (!boom) {
+      // tikken: elke halve seconde een tik, het laatste stuk sneller
+      const tk = p > 3.4 ? .16 : .5, ph = (p % tk) / tk, pulse = 1 + .07 * Math.exp(-ph * 6);
+      const gl = c.createRadialGradient(bx, by, R * .5, bx, by, R * 2.2); gl.addColorStop(0, `rgba(255,59,59,${.28 * Math.exp(-ph * 4)})`); gl.addColorStop(1, 'rgba(255,59,59,0)'); c.fillStyle = gl; c.fillRect(0, 0, w, h);
+      c.save(); c.translate(bx, by); c.scale(pulse, pulse);
+      c.lineCap = 'round'; c.strokeStyle = '#d7b27a'; c.lineWidth = R * .11; c.beginPath(); c.moveTo(R * .55, -R * .78); c.bezierCurveTo(R * .75, -R * 1.15, R * 1.0, -R * 1.3, R * 1.25, -R * 1.32); c.stroke();
+      c.fillStyle = '#2e2734'; c.save(); c.translate(R * .55, -R * .8); c.rotate(.66); rr(c, -R * .24, -R * .17, R * .48, R * .34, R * .08); c.fill(); c.restore();
+      const bg = c.createRadialGradient(-R * .35, -R * .4, R * .1, 0, 0, R * 1.1); bg.addColorStop(0, '#5a4f63'); bg.addColorStop(.5, '#211b27'); bg.addColorStop(1, '#09070b');
+      c.fillStyle = bg; c.beginPath(); c.arc(0, 0, R, 0, TAU); c.fill();
+      c.fillStyle = 'rgba(255,255,255,.16)'; c.beginPath(); c.ellipse(-R * .38, -R * .42, R * .28, R * .15, -.6, 0, TAU); c.fill();
+      // de vonk
+      const sx = R * 1.25, sy = -R * 1.32, fl = .8 + .35 * Math.abs(Math.sin(t / 37));
+      const sg = c.createRadialGradient(sx, sy, 0, sx, sy, R * .42 * fl); sg.addColorStop(0, '#fff6c8'); sg.addColorStop(.35, '#ffd23f'); sg.addColorStop(1, 'rgba(255,59,59,0)'); c.fillStyle = sg; c.beginPath(); c.arc(sx, sy, R * .42 * fl, 0, TAU); c.fill();
+      c.restore();
+      T(c, 'Noem iets en geef door!', w / 2, h - 18 * k, 13 * k, 'rgba(247,242,234,.75)', { f: SF, w: 700 });
+    } else {
+      // boem: een witte flits, scherven en de tekst
+      c.fillStyle = `rgba(255,236,200,${.9 * Math.pow(1 - Math.min(1, q * 3), 2)})`; c.fillRect(0, 0, w, h);
+      c.save(); c.translate(bx, by);
+      for (let i = 0; i < 16; i++) { const a = i / 16 * TAU + cyc, r0 = R * (.3 + q * 1.2), r1 = r0 + R * (.25 + .2 * Math.sin(i * 7)) * (1 - q); c.strokeStyle = i % 2 ? '#ff8a1f' : '#ffd23f'; c.globalAlpha = 1 - q; c.lineWidth = 4 * k; c.beginPath(); c.moveTo(Math.cos(a) * r0, Math.sin(a) * r0); c.lineTo(Math.cos(a) * r1, Math.sin(a) * r1); c.stroke(); }
+      c.globalAlpha = 1; c.restore();
+      const sc = .6 + .4 * Math.min(1, q * 5), size = 68 * k * sc;
+      c.font = `900 ${size}px ${SF}`; const tg = c.createLinearGradient(0, by - size / 2, 0, by + size / 2); tg.addColorStop(0, '#ffd23f'); tg.addColorStop(.5, '#ff8a1f'); tg.addColorStop(1, '#ff3b3b');
+      c.save(); c.translate(bx + (q < .3 ? Math.sin(t / 15) * 4 * k : 0), by); T(c, 'BOEM!', 0, 0, size, tg, { f: SF, w: 900 }); c.restore();
+    }
   }
 };
 // voor het voorproefje van Borrelbord: de soort van elk vakje (zie zuipbord.js) en een vaste reeks worpen voor drie pionnen
@@ -1158,10 +1243,13 @@ function closeMenu(){ $('#menu').hidden = true; $('#menuBtn').setAttribute('aria
 document.addEventListener('click', e => {
   const nav = e.target.closest('a[data-nav]'); if (nav) { e.preventDefault(); closeMenu(); goTo(nav.getAttribute('href')); return; }
   const j = e.target.closest('[data-jump]'); if (j) { closeMenu(); goTo('#' + j.dataset.jump); return; }
+  const tb = e.target.closest('#tabs [data-tab]'); if (tb) { kiesTab(tb.dataset.tab); return; }
   if (!e.target.closest('#menu') && !e.target.closest('#menuBtn') && !$('#menu').hidden) closeMenu();
 });
-$('#menuBtn').addEventListener('click', () => { const m = $('#menu'); if (!m.hidden) { closeMenu(); return; } m.hidden = false; $('#menuBtn').setAttribute('aria-expanded', 'true'); $('#menuIco').innerHTML = '<path d="M6 6l12 12M18 6L6 18"/>'; $('#menuBtn').setAttribute('aria-label', 'Menu sluiten'); });
+// stopPropagation: het icoon in de knop wordt vervangen, en dan herkent de klik op document de knop niet meer
+$('#menuBtn').addEventListener('click', (e) => { e.stopPropagation(); const m = $('#menu'); if (!m.hidden) { closeMenu(); return; } m.hidden = false; $('#menuBtn').setAttribute('aria-expanded', 'true'); $('#menuIco').innerHTML = '<path d="M6 6l12 12M18 6L6 18"/>'; $('#menuBtn').setAttribute('aria-label', 'Menu sluiten'); });
 addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+$('#tabs').addEventListener('keydown', e => { if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return; e.preventDefault(); kiesTab(tab === 'samen' ? 'een' : 'samen'); $(`#tabs [data-tab="${tab}"]`).focus(); });
 // de iPhone-link delen met vrienden (vanuit de app op Android gaat dat via het deelmenu)
 $('#ipShare').addEventListener('click', () => {
   const url = `${location.origin}/iphone`, b = $('#ipShare');
@@ -1190,7 +1278,7 @@ function frame(t){
   if (lenis) lenis.raf(t);
   const dt = lastT ? t - lastT : 16; lastT = t;
   updateActive();
-  const g = active >= 0 ? GAMES[active] : null;
+  const g = active >= 0 ? SHOWN[active] : null;
   Sky.draw(t, g ? g.tint : '#1b0d1f', g ? g.acc : '#d690c9');
   Meter.update(); parallax(); drawPrevs(t, dt, false);
   requestAnimationFrame(frame);

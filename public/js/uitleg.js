@@ -73,6 +73,13 @@
       { img: 'kart-3', t: 'Driften en items', p: 'Houd DRIFT ingedrukt in een bocht: hoe langer, hoe meer vonkjes. Laat los voor een turbo. Rijd door een regenboog-melkpak voor een item, zoals de stroopwafel-turbo, het kaasschild, een karnemelkplas of het klompkanon.' },
       { img: 'kart-4', t: 'Punten en de winkel', p: 'Na elke race krijg je MP-punten. Koop er karts, hoeden, capes en meer mee in de winkel, en maak je eigen coureur.' },
     ] },
+    bom: { name: 'Tikkende Bom', c: '#ff3b3b', url: '/bom', slides: [
+      { img: 'bom-1', t: 'Eén telefoon', p: 'Jullie spelen samen op één telefoon: niemand hoeft een code in te voeren. Zet de namen erin (mag ook zonder) en kies hoeveel strafpunten een knal is en hoe lang de lont ongeveer is.' },
+      { img: 'bom-2', t: 'De opdracht', p: 'Elke ronde komt er een opdracht, zoals <b>een dier met een T</b> of <b>rijm op huis</b>. Te moeilijk? Tik op Andere opdracht. Wie de telefoon heeft, tikt op <b>Start de bom</b>.' },
+      { img: 'bom-3', t: 'Noem iets en geef door', p: 'De bom tikt. Noem iets dat past en geef de telefoon snel door. Niks zeggen of iets dat al gezegd is? Dan houd je hem tot je wel iets weet. De laatste seconden tikt hij sneller.' },
+      { img: 'bom-4', t: 'Boem!', p: 'Niemand weet wanneer hij afgaat. Wie hem vasthoudt bij de knal, krijgt de <b>strafpunten</b>; soms telt een ronde dubbel. Tik aan wie het was.' },
+      { img: 'bom-5', t: 'De stand', p: 'De telefoon houdt de stand bij, en wie ontplofte begint de volgende ronde. Tik op <b>Stoppen</b> voor de eindstand en de grootste pechvogel.' },
+    ] },
   };
   // andere namen voor hetzelfde spel
   GAMES.paard = GAMES.paardenrace;

@@ -156,6 +156,8 @@ const statsKeyOk = (k) => !!k && (isMeldSleutel(k) || STATS_LINKS.has(hashOf(k))
 const beheerKeyOk = (k) => !!k && (isMeldSleutel(k) || BEHEER_LINKS.has(hashOf(k)));
 const statsTimer = stats.start();
 const stat = (kind, id) => stats.game(kind, id);
+const EEN_TELEFOON = new Set(['bom']);   // spellen op één telefoon (zonder server-tafel)
+const potjeTimes = new Map();
 const busHub = new BusHub({ log, stat, build: buildOf('/bussen.html') });
 const boerHub = new BoerHub({ log, stat, build: buildOf('/boer.html') });
 const mexHub = new MexHub({ log, stat, build: buildOf('/mexen.html') });
@@ -175,7 +177,7 @@ const ownerCookie = (req) => `${OWNER_COOKIE}=1; Path=/; Max-Age=${365 * 86400};
 const VASTE_OPSLAG = UPSTASH || !!process.env.DATA_DIR;
 // zonder vaste opslag: blijft het bewaard bij een update doordat de nieuwe server alles overneemt?
 const OVERDRACHT = !UPSTASH && !!(OVERDRACHT_SECRET && OVERDRACHT_URL);
-const PAGE_NAMES = { '/speelhal.html': 'hoofdpagina', '/index.html': 'kart', '/bussen.html': 'bussen', '/boer.html': 'boer', '/mexen.html': 'mexen', '/dealer.html': 'dealer', '/paardenrace.html': 'paardenrace', '/rotonde.html': 'rotonde', '/mijnenveld.html': 'mijnenveld', '/zuipbord.html': 'borrelbord', '/iphone.html': 'iphone', '/privacy.html': 'privacy', '/voorwaarden.html': 'voorwaarden', '/melden.html': 'melden' };
+const PAGE_NAMES = { '/speelhal.html': 'hoofdpagina', '/index.html': 'kart', '/bussen.html': 'bussen', '/boer.html': 'boer', '/mexen.html': 'mexen', '/dealer.html': 'dealer', '/paardenrace.html': 'paardenrace', '/rotonde.html': 'rotonde', '/mijnenveld.html': 'mijnenveld', '/zuipbord.html': 'borrelbord', '/bom.html': 'bom', '/iphone.html': 'iphone', '/privacy.html': 'privacy', '/voorwaarden.html': 'voorwaarden', '/melden.html': 'melden' };
 const clientIp = (req) => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 
 // Een spel met een nieuwe naam (Zuipbord heet nu Borrelbord), en spellen die van de site af zijn (Weerwolven, Mega
@@ -282,7 +284,7 @@ async function melden(req, res) {
 }
 
 // ---------- reviews (Wat vind je ervan?): sterren en een opmerking ----------
-const REVIEW_SPELLEN = new Set(['kart', 'bussen', 'boer', 'mexen', 'dealer', 'paardenrace', 'rotonde', 'mijnenveld', 'borrelbord', 'alles']);
+const REVIEW_SPELLEN = new Set(['kart', 'bussen', 'boer', 'mexen', 'dealer', 'paardenrace', 'rotonde', 'mijnenveld', 'borrelbord', 'bom', 'alles']);
 async function review(req, res) {
   const send = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)); };
   const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
@@ -309,6 +311,17 @@ const server = http.createServer((req, res) => {
   let path = decodeURIComponent(url.pathname);
   if (path === '/api/melden' && req.method === 'POST') { melden(req, res); return; }
   if (path === '/api/review' && req.method === 'POST') { review(req, res); return; }
+  // een spel op één telefoon (zoals Tikkende Bom) draait helemaal op de telefoon zelf; die meldt alleen dat er een
+  // potje begint, voor de statistieken. Hooguit 60 per uur per adres, en jij als maker telt niet mee.
+  if (path === '/api/potje' && req.method === 'POST') {
+    readJson(req).then((b) => {
+      const ip = clientIp(req), now = Date.now(), recent = (potjeTimes.get(ip) || []).filter((t) => now - t < 3600_000);
+      if (b && EEN_TELEFOON.has(b.spel) && recent.length < 60 && !isOwner(req)) { recent.push(now); potjeTimes.set(ip, recent); stat('potje', b.spel); }
+      if (potjeTimes.size > 5000) potjeTimes.clear();
+      res.writeHead(204, { 'Cache-Control': 'no-store' }); res.end();
+    });
+    return;
+  }
   if (path === '/api/beheer') {
     if (!beheerKeyOk(url.searchParams.get('sleutel'))) { res.writeHead(404); return res.end(); }
     Promise.all([store.kv.get('meldingen'), store.kv.get('reviews')]).then(([m, r]) => {
@@ -369,6 +382,7 @@ const server = http.createServer((req, res) => {
   else if (path === '/bussen' || path === '/bussen/' || /^\/bussen\/[A-Za-z]{4}$/.test(path)) path = '/bussen.html';
   else if (path === '/boer' || path === '/boer/' || /^\/boer\/[A-Za-z]{4}$/.test(path)) path = '/boer.html';
   else if (path === '/mexen' || path === '/mexen/' || /^\/mexen\/[A-Za-z]{4}$/.test(path)) path = '/mexen.html';
+  else if (path === '/bom' || path === '/bom/') path = '/bom.html';
   else if (path === '/dealer' || path === '/dealer/' || /^\/dealer\/[A-Za-z]{4}$/.test(path)) path = '/dealer.html';
   else if (path === '/paardenrace' || path === '/paardenrace/' || /^\/paardenrace\/[A-Za-z]{4}$/.test(path)) path = '/paardenrace.html';
   else if (path === '/rotonde' || path === '/rotonde/' || /^\/rotonde\/[A-Za-z]{4}$/.test(path)) path = '/rotonde.html';

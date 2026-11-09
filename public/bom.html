@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tikkende Bom</title>
+<meta name="description" content="Tikkende Bom: een partyspel op één telefoon. Noem iets dat bij de opdracht past, geef de telefoon door en hoop dat hij niet bij jou ontploft.">
+<meta name="theme-color" content="#0e0b10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tikkende Bom">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="/bom.webmanifest">
+<link rel="icon" href="/img/bom.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/bom-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap">
+<style>
+:root{
+  /* Eén telefoon die rondgaat: donker, groot en simpel, met rood en oranje als de lont. Alles is met één duim te
+     bedienen en van een meter afstand te lezen, want de telefoon ligt op tafel of gaat van hand tot hand. */
+  --bg:#0e0b10;
+  --bg-2:#151017;
+  --card:#1b151e;
+  --card-2:#241c28;
+  --line:rgba(255,255,255,.1);
+  --txt:#f7f2ea;
+  --mute:#a99fb0;
+  --red:#ff3b3b;
+  --orange:#ff8a1f;
+  --yellow:#ffd23f;
+  --green:#3ddc84;
+  --head:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--txt);font:16px/1.5 var(--body);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:3px;border-radius:12px}
+h1,h2,h3{font-family:var(--head);margin:0;line-height:1.05;letter-spacing:-.02em}
+p{margin:0}
+
+/* de achtergrond: een zachte rode gloed die bij elke tik even oplicht */
+.glow{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(80% 55% at 50% 0%,rgba(255,59,59,.22),transparent 70%),radial-gradient(70% 50% at 50% 100%,rgba(255,138,31,.12),transparent 70%)}
+.flash{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(60% 45% at 50% 52%,rgba(255,59,59,.42),transparent 70%);opacity:0;transition:opacity .25s ease-out}
+.flash.on{opacity:1;transition:none}
+
+.app{position:relative;z-index:1;min-height:100svh;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.top{display:flex;align-items:center;gap:8px;min-height:52px}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px 0 8px;border-radius:999px;color:var(--mute);text-decoration:none;font-weight:600;font-size:15px}
+.back:hover{color:var(--txt)}
+.top .title{font-family:var(--head);font-weight:800;font-size:18px;margin-right:auto}
+.iconbtn{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);color:var(--txt)}
+.iconbtn:hover{background:var(--card-2)}
+
+.screen{flex:1;display:flex;flex-direction:column;gap:14px;padding-top:6px}
+.screen.anim{animation:in .28s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+@media (prefers-reduced-motion:reduce){.screen.anim{animation:none}}
+
+.card{padding:18px;border-radius:22px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.card h2{font-size:21px;font-weight:800;margin-bottom:10px}
+.label{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.muted{color:var(--mute);font-size:14px}
+
+/* knoppen */
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:58px;padding:0 20px;border-radius:18px;font-family:var(--head);font-weight:800;font-size:21px;letter-spacing:-.01em;text-decoration:none;text-align:center}
+.btn.red{background:linear-gradient(180deg,#ff5a4a,#e8262a);color:#fff;box-shadow:0 10px 30px rgba(255,59,59,.35),inset 0 -4px 0 rgba(0,0,0,.18)}
+.btn.red:active{transform:translateY(1px)}
+.btn.ghost{background:var(--card);color:var(--txt);box-shadow:inset 0 0 0 1px var(--line);font-size:18px;min-height:52px}
+.btn.ghost:hover{background:var(--card-2)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.textlink{display:block;margin:2px auto 0;min-height:44px;padding:0 14px;color:var(--mute);font-weight:600;font-size:15px}
+.textlink:hover{color:var(--txt)}
+
+/* startscherm */
+.hero{display:grid;justify-items:center;text-align:center;gap:8px;padding:6px 0 2px}
+.hero .bomb{width:132px;height:132px}
+.hero h1{font-size:clamp(44px,13vw,64px);font-weight:800;text-transform:uppercase;line-height:.9}
+.hero h1 span{display:block;background:linear-gradient(90deg,var(--orange),var(--red));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--mute);max-width:32ch}
+.steps{display:grid;gap:10px;margin:0;padding:0;list-style:none;counter-reset:s}
+.steps li{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start;font-size:15px;line-height:1.45}
+.steps li::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--card-2);font-family:var(--head);font-weight:800;color:var(--orange)}
+.steps b{color:var(--txt)}
+.howlink{display:inline-flex;align-items:center;gap:8px;margin-top:12px;min-height:40px;padding:0 14px;border-radius:999px;background:var(--card-2);font-weight:700;font-size:14px}
+
+.add{display:flex;gap:8px}
+.add input{flex:1;min-width:0;min-height:52px;padding:0 16px;border:0;border-radius:16px;background:var(--bg-2);box-shadow:inset 0 0 0 1px var(--line);color:var(--txt);font:600 17px var(--body)}
+.add input::placeholder{color:#6f6676}
+.add input:focus{outline:3px solid var(--orange);outline-offset:1px}
+.add button{flex:none;width:52px;min-height:52px;border-radius:16px;background:var(--orange);color:#1a0d06;font:800 26px/1 var(--head)}
+.add button:disabled{opacity:.4}
+.names{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.names:empty{display:none}
+.name{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 6px 0 14px;border-radius:999px;background:var(--card-2);font-weight:700}
+.name button{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;color:var(--mute);font-size:16px}
+.name button:hover{background:rgba(255,255,255,.08);color:var(--txt)}
+.hint{margin-top:10px;color:var(--mute);font-size:13.5px}
+
+.set{display:grid;gap:14px}
+.set > div{display:grid;gap:8px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border-radius:16px;background:var(--bg-2);box-shadow:inset 0 0 0 1px var(--line)}
+.seg button{min-height:44px;border-radius:12px;font-weight:700;font-size:15px;color:var(--mute)}
+.seg button[aria-pressed="true"]{background:var(--card-2);color:var(--txt);box-shadow:0 2px 10px rgba(0,0,0,.35),inset 0 0 0 1px rgba(255,138,31,.55)}
+
+/* de opdracht */
+.round{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 12px;border-radius:999px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.pill.hot{background:rgba(255,210,63,.14);box-shadow:inset 0 0 0 1px rgba(255,210,63,.55);color:var(--yellow)}
+.task{display:grid;gap:10px;padding:28px 20px;border-radius:28px;text-align:center;background:linear-gradient(160deg,#2a1d2c,#1a131c);box-shadow:inset 0 0 0 1px rgba(255,138,31,.28),0 20px 60px rgba(0,0,0,.45)}
+.task .label{color:var(--orange)}
+.task .say{font-family:var(--head);font-weight:800;font-size:clamp(32px,9.5vw,46px);line-height:1.04;text-wrap:balance;overflow-wrap:anywhere}
+.who{text-align:center;font-size:17px;color:var(--mute)}
+.who b{color:var(--txt);font-family:var(--head);font-size:22px}
+.grow{flex:1}
+
+/* de bom tikt */
+.ticking{justify-content:space-between;text-align:center}
+.ticking .task{padding:22px 18px}
+.ticking .say{font-size:clamp(30px,9vw,42px)}
+.bombwrap{display:grid;place-items:center;flex:1;min-height:220px}
+.ticking .bomb{width:min(64vw,260px);height:auto;transform-origin:50% 60%}
+.bomb.pulse{animation:pulse .16s ease-out}
+@keyframes pulse{0%{transform:scale(1.07) rotate(-2deg)}100%{transform:scale(1) rotate(0)}}
+.spark{transform-box:fill-box;transform-origin:center;animation:spark .18s infinite alternate}
+@keyframes spark{from{transform:scale(.8) rotate(0)}to{transform:scale(1.15) rotate(25deg)}}
+@media (prefers-reduced-motion:reduce){.bomb.pulse,.spark{animation:none}}
+.pass{font-family:var(--head);font-weight:800;font-size:24px;line-height:1.15}
+.pass small{display:block;margin-top:4px;font-family:var(--body);font-weight:500;font-size:14px;color:var(--mute)}
+.pausebtn{align-self:center;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);font-weight:700;font-size:15px;color:var(--mute)}
+
+/* boem */
+.boom{text-align:center;justify-content:center}
+.boom h2{font-size:clamp(84px,28vw,140px);font-weight:800;line-height:.85;text-transform:uppercase;background:linear-gradient(180deg,var(--yellow),var(--orange) 45%,var(--red));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 8px 30px rgba(255,59,59,.45));animation:boom .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes boom{from{transform:scale(.3);opacity:0}}
+.shake{animation:shake .45s}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
+@media (prefers-reduced-motion:reduce){.boom h2,.shake{animation:none}}
+.boom .q{font-family:var(--head);font-weight:800;font-size:24px}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pick button{min-height:60px;padding:8px 12px;border-radius:18px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);font-family:var(--head);font-weight:800;font-size:20px;overflow-wrap:anywhere}
+.pick button:hover,.pick button:focus-visible{background:var(--card-2);box-shadow:inset 0 0 0 2px var(--red)}
+.big{font-family:var(--head);font-weight:800;font-size:30px;line-height:1.1}
+.big em{font-style:normal;color:var(--red)}
+
+/* de stand */
+.score{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.score li{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;padding:12px 14px;border-radius:16px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);position:relative;overflow:hidden}
+.score li .bar{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(255,59,59,.22),rgba(255,138,31,.08));z-index:0;transition:width .5s ease-out}
+.score li > *:not(.bar){position:relative;z-index:1}
+.score .pos{font-family:var(--head);font-weight:800;color:var(--mute)}
+.score .nm{font-weight:700;font-size:17px;overflow-wrap:anywhere}
+.score .pt{font-family:var(--head);font-weight:800;font-size:22px}
+.score .pt small{font-family:var(--body);font-weight:600;font-size:12px;color:var(--mute);margin-left:4px}
+.score li.new{box-shadow:inset 0 0 0 2px var(--red)}
+.winner{display:grid;justify-items:center;gap:6px;text-align:center;padding:24px 16px;border-radius:26px;background:linear-gradient(160deg,#3a1418,#1c1216);box-shadow:inset 0 0 0 1px rgba(255,59,59,.4)}
+.winner .crown{font-size:40px;line-height:1}
+.winner b{font-family:var(--head);font-weight:800;font-size:clamp(34px,10vw,48px);line-height:1}
+
+/* pauze en menu */
+.overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:24px;background:rgba(8,6,10,.82);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.overlay .card{width:min(100%,380px);display:grid;gap:12px;text-align:center}
+.menu{position:fixed;inset:0;z-index:21;display:flex;align-items:flex-start;justify-content:flex-end;padding:calc(62px + env(safe-area-inset-top,0px)) 16px 16px;background:rgba(8,6,10,.5)}
+.menu nav{width:min(100%,300px);display:grid;padding:8px;border-radius:20px;background:var(--card-2);box-shadow:0 20px 60px rgba(0,0,0,.6),inset 0 0 0 1px var(--line)}
+.menu nav a,.menu nav button{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 12px;border-radius:12px;text-decoration:none;font-weight:600;text-align:left}
+.menu nav a:hover,.menu nav button:hover{background:rgba(255,255,255,.06)}
+.fine{margin-top:auto;padding-top:14px;text-align:center;color:#7d7384;font-size:12.5px;line-height:1.45}
+.fine a{color:var(--mute)}
+</style>
+<script src="/js/poort.js" defer></script>
+<script src="/js/uitleg.js" defer></script>
+<script src="/js/review.js" defer></script>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<div class="flash" id="flash" aria-hidden="true"></div>
+
+<div class="app">
+  <header class="top">
+    <a class="back" href="/?tab=een" aria-label="Terug naar De Spelkeet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span id="backTxt">De Spelkeet</span></a>
+    <span class="title" id="topTitle" hidden>Tikkende Bom</span>
+    <button class="iconbtn" id="soundBtn" type="button" aria-label="Geluid uit"></button>
+    <button class="iconbtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+  </header>
+  <main id="screen" class="screen"></main>
+  <p class="fine" id="fine">Wat een strafpunt is, spreken jullie samen af: een opdracht, een grap of gewoon de stand bijhouden. <a href="/melden">Iets melden</a></p>
+</div>
+
+<div class="menu" id="menu" hidden>
+  <nav aria-label="Menu">
+    <button type="button" data-act="uitleg">❓ Hoe werkt het?</button>
+    <button type="button" data-act="stop" id="menuStop">🏁 Stoppen en de stand zien</button>
+    <a href="/review?spel=bom">⭐ Wat vind je ervan?</a>
+    <a href="/melden">🚩 Iets melden</a>
+    <a href="/?tab=een">🏠 Terug naar De Spelkeet</a>
+  </nav>
+</div>
+
+<div class="overlay" id="pause" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="pauseT">
+    <h2 id="pauseT">Pauze</h2>
+    <p class="muted">De bom tikt verder waar hij was, zodra je op verder tikt.</p>
+    <button class="btn red" type="button" data-act="verder">Verder</button>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= DE OPDRACHTEN ================= */
+// [wat je doet, de opdracht]. Breed genoeg dat iedereen snel iets kan noemen.
+const VAST = [
+  'Automerken', 'Snoep', 'Voetbalclubs', 'Dingen die je meeneemt op vakantie', 'Nederlandse artiesten', 'Pizza-toppings',
+  'Dingen in een slaapkamer', 'Sporten', 'Beroepen', 'Kledingstukken', 'Groenten', 'Fruit', 'Apps op je telefoon',
+  'Hoofdsteden', 'Dingen die rood zijn', 'Dingen die geel zijn', 'Dieren in de dierentuin', 'Dingen in een keuken',
+  'Ontbijt', 'Kaassoorten', 'Disneyfilms', 'Superhelden', 'Instrumenten', 'Dingen op een camping', 'Merken van kleding',
+  'Dingen in een badkamer', 'Feestdagen', 'Bordspellen', 'Talen', 'Lichaamsdelen', 'Dingen in een klaslokaal',
+  'Dingen die je op het strand ziet', 'Snacks uit de snackbar', 'Vogels', 'Schoenen', 'Dingen met wielen',
+  'Dingen die je in een tas hebt', 'Soorten weer', 'Kleuren', 'Nederlandse steden', 'Landen in Europa', 'YouTubers',
+  'Gerechten met rijst', 'Desserts', 'Dingen in een tuin', 'Gereedschap', 'Dingen die vliegen', 'Supermarkten',
+  'Programma\'s op tv', 'Fastfoodketens', 'Dingen die je op een verjaardag ziet', 'Dingen in een ziekenhuis',
+  'Dieren met vier poten', 'Dingen in de zee', 'Merken van frisdrank', 'Soorten brood', 'Dingen die je in de winter doet',
+  'Nederlandse gerechten', 'Pokémon', 'Films met een getal in de titel', 'Dingen die stinken', 'Dingen die je kunt openen',
+  'Spelletjes van vroeger', 'Dingen op een kermis', 'Kruiden en specerijen', 'Bekende Nederlanders', 'Dingen met een knop',
+];
+const LETTERCAT = ['Een land', 'Een stad', 'Een dier', 'Een voornaam', 'Een beroep', 'Iets om te eten', 'Een merk', 'Iets in huis', 'Iets in de supermarkt', 'Een artiest of band', 'Een film of serie', 'Een sport of spel'];
+const LETTERS = 'BDGHKLMPRSTVW';
+const RIJM = ['kat', 'huis', 'feest', 'boom', 'zon', 'kaas', 'bed', 'vis', 'hand', 'muis', 'stoel', 'maan', 'tas', 'pet', 'boot', 'neus', 'bal', 'lamp'];
+const PITTIG = [
+  'Smoesjes om te laat te komen', 'Dingen die je liever niet in je zoekgeschiedenis hebt', 'Redenen om een date af te zeggen',
+  'Dingen die je niet tegen je schoonmoeder zegt', 'Gênante momenten op school', 'Dingen die je ouders niet mogen weten',
+  'Dingen die je zegt als je ex belt', 'Slechte openingszinnen', 'Rare gewoontes van iemand aan tafel',
+  'Dingen die je om 4 uur \'s nachts doet', 'Excuses om niet te sporten', 'Dingen die je stiekem leuk vindt',
+  'Dingen die je nooit meer wilt doen', 'Plekken waar je in slaap bent gevallen', 'Dingen die je in de groepsapp spijt hebben',
+  'Redenen om het uit te maken', 'Leugens die iedereen weleens vertelt', 'Dingen die je doet als niemand kijkt',
+  'Wat je zegt als je iemands naam vergeten bent', 'Dingen die fout gaan op vakantie',
+];
+function opdrachten(pittig){
+  const out = VAST.map((t) => ['Noem', t]);
+  for (const c of LETTERCAT) for (const l of shuffle([...LETTERS]).slice(0, 4)) out.push(['Noem', `${c} met een ${l}`]);
+  for (const r of RIJM) out.push(['Rijm op', r]);
+  if (pittig) for (const t of PITTIG) out.push(['Noem', t], ['Noem', t]);   // pittig komt wat vaker langs
+  return shuffle(out);
+}
+
+/* ================= INSTELLINGEN EN STAND ================= */
+const TIJD = { kort: [10, 25], normaal: [15, 45], lang: [30, 70] };
+const KEY = 'spelkeet-bom';
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
+const saved = load();
+const S = {
+  spelers: Array.isArray(saved.spelers) ? saved.spelers.filter((n) => typeof n === 'string').slice(0, 12) : [],
+  punten: [1, 2, 3].includes(saved.punten) ? saved.punten : 2,
+  tijd: TIJD[saved.tijd] ? saved.tijd : 'normaal',
+  pittig: !!saved.pittig,
+  geluid: saved.geluid !== false,
+};
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* geen opslag: dan vergeet hij het */ } };
+// het potje van nu
+let G = null;
+function nieuwPotje(){
+  G = { ronde: 0, scores: Object.fromEntries(S.spelers.map((n) => [n, 0])), knallen: 0, houder: S.spelers.length ? Math.floor(Math.random() * S.spelers.length) : -1, bag: opdrachten(S.pittig), opdracht: null, dubbel: false, laatste: null, start: Date.now() };
+  try { fetch('/api/potje', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ spel: 'bom' }), keepalive: true }).catch(() => {}); } catch (e) { /* niet erg */ }
+}
+function volgendeOpdracht(){
+  if (!G.bag.length) G.bag = opdrachten(S.pittig);
+  G.opdracht = G.bag.pop();
+}
+
+/* ================= GELUID, TRILLEN EN SCHERM AAN ================= */
+let ac = null;
+function audio(){
+  if (!S.geluid) return null;
+  try { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) { ac = null; }
+  return ac;
+}
+function tikGeluid(hoog){
+  const a = audio(); if (!a) return;
+  const t = a.currentTime, o = a.createOscillator(), g = a.createGain(), f = a.createBiquadFilter();
+  o.type = 'square'; o.frequency.value = hoog ? 1500 : 1100;
+  f.type = 'bandpass'; f.frequency.value = hoog ? 2200 : 1700; f.Q.value = 3;
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.5, t + .004); g.gain.exponentialRampToValueAtTime(.0001, t + .05);
+  o.connect(f).connect(g).connect(a.destination); o.start(t); o.stop(t + .07);
+}
+function boemGeluid(){
+  const a = audio(); if (!a) return;
+  const t = a.currentTime, len = Math.floor(a.sampleRate * 1.8), buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+  const n = a.createBufferSource(); n.buffer = buf;
+  const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(3200, t); f.frequency.exponentialRampToValueAtTime(140, t + 1.4);
+  const g = a.createGain(); g.gain.setValueAtTime(1, t); g.gain.exponentialRampToValueAtTime(.001, t + 1.8);
+  n.connect(f).connect(g).connect(a.destination); n.start(t);
+  const o = a.createOscillator(), og = a.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(35, t + .6);
+  og.gain.setValueAtTime(.9, t); og.gain.exponentialRampToValueAtTime(.001, t + .8); o.connect(og).connect(a.destination); o.start(t); o.stop(t + .85);
+}
+const tril = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* niet erg */ } };
+let lock = null;
+async function schermAan(aan){
+  try {
+    if (aan && !lock && 'wakeLock' in navigator) { lock = await navigator.wakeLock.request('screen'); lock.addEventListener('release', () => { lock = null; }); }
+    else if (!aan && lock) { const l = lock; lock = null; await l.release(); }
+  } catch (e) { lock = null; }
+}
+
+/* ================= DE BOM ================= */
+// Hoe lang de lont is, weet niemand: een willekeurige tijd tussen de grenzen van de gekozen stand. Het tikken gaat
+// de laatste paar seconden sneller, dan wordt het pas echt spannend.
+const T = { eind: 0, over: 0, timer: 0, hoog: false, loopt: false };
+function startBom(){
+  const [a, b] = TIJD[S.tijd];
+  T.over = rnd(a, b) * 1000; T.loopt = true;
+  audio(); schermAan(true);
+  verder();
+}
+function verder(){
+  T.eind = performance.now() + T.over; T.loopt = true;
+  clearTimeout(T.timer); tik();
+}
+function pauze(){
+  if (!T.loopt) return;
+  clearTimeout(T.timer); T.over = Math.max(500, T.eind - performance.now()); T.loopt = false;
+  $('#pause').hidden = false; schermAan(false);
+}
+function tik(){
+  const over = T.eind - performance.now();
+  if (over <= 0) { T.loopt = false; return knal(); }
+  T.hoog = !T.hoog; tikGeluid(T.hoog);
+  const b = document.querySelector('.ticking .bomb');
+  if (b && !reduce) { b.classList.remove('pulse'); void b.getBoundingClientRect(); b.classList.add('pulse'); }
+  const fl = $('#flash'); fl.classList.add('on'); requestAnimationFrame(() => requestAnimationFrame(() => fl.classList.remove('on')));
+  const stap = over < 2000 ? 150 : over < 5000 ? 280 : rnd(480, 560);
+  T.timer = setTimeout(tik, Math.min(stap, over));
+}
+function knal(){
+  schermAan(false); boemGeluid(); tril([500, 120, 300]);
+  G.knallen++;
+  toon('boem');
+}
+// een telefoon die op slot gaat of een andere app: dan even pauze, zodat niemand onterecht ontploft
+document.addEventListener('visibilitychange', () => { if (document.hidden && T.loopt) pauze(); });
+
+/* ================= SCHERMEN ================= */
+const BOMB = (cls = '') => `<svg class="bomb ${cls}" viewBox="0 0 200 200" aria-hidden="true">
+  <defs><radialGradient id="bb" cx="38%" cy="34%" r="70%"><stop offset="0" stop-color="#5a4f63"/><stop offset=".5" stop-color="#211b27"/><stop offset="1" stop-color="#09070b"/></radialGradient>
+  <radialGradient id="sg"><stop offset="0" stop-color="#fff6c8"/><stop offset=".35" stop-color="#ffd23f"/><stop offset=".7" stop-color="#ff8a1f" stop-opacity=".6"/><stop offset="1" stop-color="#ff3b3b" stop-opacity="0"/></radialGradient></defs>
+  <path d="M132 50c10-18 22-26 40-26" fill="none" stroke="#d7b27a" stroke-width="7" stroke-linecap="round"/>
+  <path d="M132 50c10-18 22-26 40-26" fill="none" stroke="#8a6a3c" stroke-width="7" stroke-linecap="round" stroke-dasharray="3 7"/>
+  <rect x="108" y="46" width="34" height="24" rx="6" transform="rotate(38 125 58)" fill="#2e2734"/>
+  <circle cx="96" cy="120" r="64" fill="url(#bb)"/>
+  <ellipse cx="72" cy="94" rx="18" ry="10" fill="#fff" opacity=".16" transform="rotate(-35 72 94)"/>
+  <g class="spark"><circle cx="174" cy="24" r="20" fill="url(#sg)"/><path d="M174 8l3 11 11 5-11 3-3 11-3-11-11-3 11-5z" fill="#fff8d6"/></g>
+</svg>`;
+const punten = () => S.punten * (G && G.dubbel ? 2 : 1);
+const ptTekst = (n) => `${n} strafpunt${n === 1 ? '' : 'en'}`;
+const SCHERM = {
+  start(){
+    const n = S.spelers.length;
+    return `<section class="hero">${BOMB()}<h1>Tikkende <span>Bom</span></h1><p>Eén telefoon, doorgeven en niet ontploffen.</p></section>
+    <section class="card">
+      <h2>Zo werkt het</h2>
+      <ol class="steps">
+        <li><span>De telefoon geeft een <b>opdracht</b>, zoals <b>"een dier met een P"</b>.</span></li>
+        <li><span>Start de bom. <b>Noem iets</b> dat past en <b>geef de telefoon door</b>. Niks zeggen of iets dubbel zeggen? Dan moet je hem houden tot je wel iets weet.</span></li>
+        <li><span>Bij de <b>knal</b> krijgt wie hem vasthoudt <b>strafpunten</b>. Niemand weet hoe lang de lont is.</span></li>
+      </ol>
+      <button class="howlink" type="button" data-act="uitleg">Uitleg met plaatjes ›</button>
+    </section>
+    <section class="card">
+      <h2>Wie doen er mee?</h2>
+      <form class="add" id="addForm" autocomplete="off"><input id="nameIn" maxlength="16" placeholder="Naam" enterkeyhint="done" aria-label="Naam van een speler"${n >= 12 ? ' disabled' : ''}><button type="submit" aria-label="Speler toevoegen"${n >= 12 ? ' disabled' : ''}>+</button></form>
+      <div class="names">${S.spelers.map((s, i) => `<span class="name">${esc(s)}<button type="button" data-del="${i}" aria-label="${esc(s)} weghalen">✕</button></span>`).join('')}</div>
+      <p class="hint">${n ? `${n} speler${n === 1 ? '' : 's'}${n >= 12 ? ' (meer past er niet)' : ''}. Met namen houdt de telefoon de strafpunten bij.` : 'Mag ook zonder namen: dan houden jullie de strafpunten zelf bij.'}</p>
+    </section>
+    <section class="card set">
+      <div><span class="label">Strafpunten per knal</span><div class="seg" role="group" aria-label="Strafpunten per knal">${[1, 2, 3].map((p) => `<button type="button" data-punten="${p}" aria-pressed="${S.punten === p}">${p}</button>`).join('')}</div></div>
+      <div><span class="label">Lengte van de lont</span><div class="seg" role="group" aria-label="Lengte van de lont">${[['kort', 'Kort'], ['normaal', 'Normaal'], ['lang', 'Lang']].map(([k, t]) => `<button type="button" data-tijd="${k}" aria-pressed="${S.tijd === k}">${t}</button>`).join('')}</div><p class="muted">${{ kort: 'Tussen 10 en 25 seconden', normaal: 'Tussen 15 en 45 seconden', lang: 'Tussen 30 en 70 seconden' }[S.tijd]}, maar niemand weet precies wanneer.</p></div>
+      <div><span class="label">Opdrachten</span><div class="seg" role="group" aria-label="Soort opdrachten"><button type="button" data-pittig="0" aria-pressed="${!S.pittig}">Gewoon</button><button type="button" data-pittig="1" aria-pressed="${S.pittig}">Met pittige</button></div></div>
+    </section>
+    <button class="btn red" type="button" data-act="begin">Start het spel</button>`;
+  },
+  klaar(){
+    const [wat, tekst] = G.opdracht, h = G.houder >= 0 ? S.spelers[G.houder] : null;
+    return `<div class="round"><span class="pill">Ronde ${G.ronde}</span>${G.dubbel ? `<span class="pill hot">Dubbel: ${ptTekst(punten())}</span>` : ''}</div>
+    <section class="task"><span class="label">${esc(wat)}</span><p class="say">${esc(tekst)}</p></section>
+    ${h ? `<p class="who"><b>${esc(h)}</b> begint</p>` : `<p class="who">Wie begint, pakt de telefoon</p>`}
+    <div class="grow"></div>
+    <button class="btn red" type="button" data-act="bom">💣 Start de bom</button>
+    <button class="btn ghost" type="button" data-act="ander">Andere opdracht</button>`;
+  },
+  tikken(){
+    const [wat, tekst] = G.opdracht;
+    return `<section class="task"><span class="label">${esc(wat)}</span><p class="say">${esc(tekst)}</p></section>
+    <div class="bombwrap">${BOMB()}</div>
+    <p class="pass">Noem iets en geef door!<small>Niks zeggen of iets dubbel? Dan houd je hem.</small></p>
+    <button class="pausebtn" type="button" data-act="pauze"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>Pauze</button>`;
+  },
+  boem(){
+    const p = punten();
+    return `<h2>Boem!</h2>
+    ${S.spelers.length
+      ? `<p class="q">Wie had hem vast?</p><div class="pick">${S.spelers.map((s, i) => `<button type="button" data-raak="${i}">${esc(s)}</button>`).join('')}</div><button class="textlink" type="button" data-act="niemand">Niemand, telt niet</button>`
+      : `<p class="big">Wie hem vasthoudt: <em>${ptTekst(p)}</em></p><div class="grow"></div><button class="btn red" type="button" data-act="volgende">Volgende ronde</button><button class="btn ghost" type="button" data-act="stop">Stoppen</button>`}`;
+  },
+  stand(){
+    const p = punten(), l = G.laatste;
+    return `${l != null ? `<p class="big"><em>+${p}</em> voor ${esc(S.spelers[l])}</p>` : '<p class="big">Telt niet. Door!</p>'}
+    ${lijst(l)}
+    <div class="grow"></div>
+    <button class="btn red" type="button" data-act="volgende">Volgende ronde</button>
+    <button class="btn ghost" type="button" data-act="stop">Stoppen</button>`;
+  },
+  einde(){
+    if (!S.spelers.length) {
+      return `<section class="winner"><span class="crown">💥</span><span class="label">Klaar!</span><b>${G.knallen} keer boem</b><p class="muted">in ${G.ronde} ronde${G.ronde === 1 ? '' : 's'}</p></section>
+      <div class="grow"></div><button class="btn red" type="button" data-act="opnieuw">Nog een potje</button><button class="btn ghost" type="button" data-act="spelers">Andere instellingen</button>`;
+    }
+    const rij = S.spelers.map((n) => [n, G.scores[n] || 0]).sort((a, b) => b[1] - a[1]), top = rij[0];
+    return `<section class="winner"><span class="crown">💣</span><span class="label">De grootste pechvogel</span><b>${top[1] ? esc(top[0]) : 'Niemand!'}</b><p class="muted">${top[1] ? `${ptTekst(top[1])} in ${G.ronde} ronde${G.ronde === 1 ? '' : 's'}` : 'Niemand ontplofte. Knap.'}</p></section>
+    ${lijst(null)}
+    <div class="grow"></div>
+    <button class="btn red" type="button" data-act="opnieuw">Nog een potje</button>
+    <button class="btn ghost" type="button" data-act="spelers">Andere spelers</button>`;
+  },
+};
+function lijst(nieuw){
+  const rij = S.spelers.map((n, i) => ({ n, i, p: G.scores[n] || 0 })).sort((a, b) => b.p - a.p);
+  const max = Math.max(1, ...rij.map((r) => r.p));
+  return `<ol class="score" aria-label="De stand">${rij.map((r, k) => `<li class="${r.i === nieuw ? 'new' : ''}"><span class="bar" style="width:${Math.round(r.p / max * 100)}%"></span><span class="pos">${k + 1}</span><span class="nm">${esc(r.n)}</span><span class="pt">${r.p}<small>strafp.</small></span></li>`).join('')}</ol>`;
+}
+
+let nu = '';
+function toon(naam){
+  // een ander scherm schuift erin en begint bovenaan; hetzelfde scherm opnieuw (een instelling) blijft gewoon staan
+  const ander = naam !== nu;
+  nu = naam;
+  const el = $('#screen');
+  el.className = `screen ${naam === 'tikken' ? 'ticking' : naam === 'boem' ? 'boom' : ''}${ander ? ' anim' : ''}`;
+  el.innerHTML = SCHERM[naam]();
+  if (ander) { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; scrollTo(0, 0); }
+  if (naam === 'boem' && !reduce) { document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); }
+  $('#topTitle').hidden = naam === 'start';
+  $('#menuStop').hidden = !G || naam === 'start' || naam === 'einde';
+  $('#fine').hidden = naam === 'tikken';
+  $('#backTxt').hidden = naam !== 'start';
+  // na een potje: hoe vond je het? (zie review.js)
+  if (window.SpelkeetReview) window.SpelkeetReview.stand('bom', naam === 'start' ? 'lobby' : naam === 'einde' ? 'einde' : 'spel', naam === 'einde' ? 2 : naam === 'stand' || (naam === 'boem' && !S.spelers.length) ? 1 : 0);
+}
+function nieuweRonde(){
+  G.ronde++;
+  G.dubbel = G.ronde > 2 && Math.random() < .14;
+  volgendeOpdracht();
+  toon('klaar');
+}
+function geluidKnop(){
+  $('#soundBtn').innerHTML = S.geluid
+    ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>'
+    : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9l5 6M21 9l-5 6"/></svg>';
+  $('#soundBtn').setAttribute('aria-label', S.geluid ? 'Geluid uit' : 'Geluid aan');
+}
+function sluitMenu(){ $('#menu').hidden = true; $('#menuBtn').setAttribute('aria-expanded', 'false'); }
+
+/* ================= KNOPPEN ================= */
+document.addEventListener('submit', (e) => {
+  if (e.target.id !== 'addForm') return;
+  e.preventDefault();
+  const v = $('#nameIn').value.replace(/\s+/g, ' ').trim().slice(0, 16);
+  if (!v || S.spelers.length >= 12) return;
+  if (S.spelers.some((s) => s.toLowerCase() === v.toLowerCase())) { $('#nameIn').select(); return; }
+  S.spelers.push(v); save(); toon('start');
+  const inp = $('#nameIn'); if (inp && !inp.disabled) inp.focus();
+});
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('button,[data-act]'); if (!t) { if (!$('#menu').hidden && !e.target.closest('#menu nav')) sluitMenu(); return; }
+  if (t.id === 'menuBtn') { const m = $('#menu'); m.hidden = !m.hidden; t.setAttribute('aria-expanded', String(!m.hidden)); return; }
+  if (t.id === 'soundBtn') { S.geluid = !S.geluid; save(); geluidKnop(); if (S.geluid) tikGeluid(true); return; }
+  if (!$('#menu').hidden) sluitMenu();
+  const d = t.dataset;
+  if (d.del != null) { S.spelers.splice(+d.del, 1); save(); return toon('start'); }
+  if (d.punten) { S.punten = +d.punten; save(); return toon('start'); }
+  if (d.tijd) { S.tijd = d.tijd; save(); return toon('start'); }
+  if (d.pittig) { S.pittig = d.pittig === '1'; save(); return toon('start'); }
+  if (d.raak != null) {
+    const i = +d.raak, n = S.spelers[i];
+    G.scores[n] = (G.scores[n] || 0) + punten(); G.laatste = i; G.houder = i;
+    return toon('stand');
+  }
+  switch (d.act) {
+    case 'uitleg': if (window.Uitleg) window.Uitleg.open('bom'); break;
+    case 'begin': {
+      // wat er nog in het naamveld staat, telt ook mee
+      const inp = $('#nameIn'), v = inp ? inp.value.replace(/\s+/g, ' ').trim().slice(0, 16) : '';
+      if (v && S.spelers.length < 12 && !S.spelers.some((s) => s.toLowerCase() === v.toLowerCase())) { S.spelers.push(v); save(); }
+      audio(); nieuwPotje(); nieuweRonde(); break;
+    }
+    case 'ander': volgendeOpdracht(); toon('klaar'); break;
+    case 'bom': toon('tikken'); startBom(); break;
+    case 'pauze': pauze(); break;
+    case 'verder': $('#pause').hidden = true; audio(); schermAan(true); verder(); break;
+    case 'niemand': G.laatste = null; toon('stand'); break;
+    case 'volgende': nieuweRonde(); break;
+    case 'stop': clearTimeout(T.timer); T.loopt = false; $('#pause').hidden = true; schermAan(false); if (G) toon('einde'); break;
+    case 'opnieuw': nieuwPotje(); nieuweRonde(); break;
+    case 'spelers': G = null; toon('start'); break;
+  }
+});
+addEventListener('keydown', (e) => { if (e.key === 'Escape') sluitMenu(); });
+
+geluidKnop();
+toon('start');
+})();
+</script>
+</body>
+</html>

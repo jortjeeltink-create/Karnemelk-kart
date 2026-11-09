@@ -1,0 +1,18 @@
+{
+  "name": "Tikkende Bom",
+  "short_name": "Tikkende Bom",
+  "description": "Een partyspel op één telefoon: noem iets dat past, geef de telefoon door en hoop dat hij niet bij jou ontploft.",
+  "lang": "nl",
+  "id": "/bom",
+  "start_url": "/bom",
+  "scope": "/bom",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e0b10",
+  "theme_color": "#0e0b10",
+  "icons": [
+    { "src": "/img/bom-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/img/bom-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/img/bom.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
