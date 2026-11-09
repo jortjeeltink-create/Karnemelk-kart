@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alibi</title>
+<meta name="description" content="Alibi: een partyspel op één telefoon. Jullie worden ergens van verdacht en verzinnen samen een alibi, maar iedereen krijgt in het geheim een raar woord dat erin moet.">
+<meta name="theme-color" content="#0f141c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Alibi">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="/alibi.webmanifest">
+<link rel="icon" href="/img/alibi.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/alibi-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Special+Elite&display=swap">
+<style>
+:root{
+  /* Een verhoorkamer: donker blauwgrijs, geel afzetlint, en de beschuldiging als getypt dossier op papier.
+     Groot en simpel, want de telefoon gaat van hand tot hand. */
+  --bg:#0f141c;
+  --bg-2:#151b26;
+  --card:#1a2230;
+  --card-2:#222c3d;
+  --line:rgba(255,255,255,.1);
+  --txt:#eef2f7;
+  --mute:#93a0b4;
+  --tape:#ffd23f;
+  --tape-ink:#1a1500;
+  --red:#ff4d4d;
+  --green:#3ddc84;
+  --paper:#f4ecd8;
+  --paper-ink:#2a2418;
+  --head:"Archivo Black",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --type:"Special Elite","Courier New",ui-monospace,monospace;
+  --body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%}
+body{background:var(--bg) radial-gradient(90% 50% at 50% 0%,rgba(80,110,160,.28),transparent 70%) no-repeat;color:var(--txt);font:16px/1.5 var(--body);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--tape);outline-offset:3px;border-radius:12px}
+h1,h2,h3{font-family:var(--head);font-weight:400;margin:0;line-height:1.05;letter-spacing:-.01em}
+p{margin:0}
+
+/* het afzetlint bovenaan */
+.tape{position:relative;z-index:2;height:30px;overflow:hidden;background:repeating-linear-gradient(-45deg,var(--tape) 0 22px,#1a1a1a 22px 44px);box-shadow:0 4px 18px rgba(0,0,0,.45)}
+.tape span{position:absolute;inset:4px 0;display:flex;align-items:center;justify-content:center;gap:18px;background:var(--tape);color:var(--tape-ink);font:400 12px/1 var(--head);letter-spacing:.2em;white-space:nowrap}
+
+.app{position:relative;z-index:1;min-height:calc(100svh - 30px);max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding:8px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.top{display:flex;align-items:center;gap:8px;min-height:52px}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px 0 8px;border-radius:999px;color:var(--mute);text-decoration:none;font-weight:600;font-size:15px}
+.back:hover{color:var(--txt)}
+.top .title{font-family:var(--head);font-size:18px;margin-right:auto}
+.iconbtn{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);color:var(--txt)}
+.iconbtn:hover{background:var(--card-2)}
+.top .spacer{margin-right:auto}
+
+.screen{flex:1;display:flex;flex-direction:column;gap:14px;padding-top:6px}
+.screen.anim{animation:in .28s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.card{padding:18px;border-radius:20px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.card h2{font-size:21px;margin-bottom:10px}
+.label{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.muted{color:var(--mute);font-size:14px}
+.grow{flex:1}
+.center{text-align:center}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:58px;padding:0 20px;border-radius:16px;font-family:var(--head);font-size:20px;text-decoration:none;text-align:center}
+.btn.go{background:var(--tape);color:var(--tape-ink);box-shadow:0 10px 30px rgba(255,210,63,.25),inset 0 -4px 0 rgba(0,0,0,.15)}
+.btn.go:active{transform:translateY(1px)}
+.btn.ghost{background:var(--card);color:var(--txt);box-shadow:inset 0 0 0 1px var(--line);font-size:17px;min-height:52px}
+.btn.ghost:hover{background:var(--card-2)}
+.btn.lie{background:linear-gradient(180deg,#ff6a6a,#e02a2a);color:#fff;box-shadow:inset 0 -4px 0 rgba(0,0,0,.2)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.textlink{display:block;margin:0 auto;min-height:44px;padding:0 14px;color:var(--mute);font-weight:600;font-size:15px}
+.textlink:hover{color:var(--txt)}
+
+/* start */
+.hero{display:grid;justify-items:center;text-align:center;gap:10px;padding:8px 0 2px}
+.hero h1{font-size:clamp(56px,17vw,84px);line-height:.9;text-transform:uppercase;letter-spacing:.02em}
+.hero h1 span{color:var(--tape)}
+.hero p{color:var(--mute);max-width:32ch}
+.badge{display:grid;place-items:center;width:86px;height:86px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2b3850,#121926);box-shadow:inset 0 0 0 3px var(--tape),0 10px 30px rgba(0,0,0,.5)}
+.badge svg{width:46px;height:46px;color:var(--tape)}
+.steps{display:grid;gap:10px;margin:0;padding:0;list-style:none;counter-reset:s}
+.steps li{display:grid;grid-template-columns:32px 1fr;gap:12px;align-items:start;font-size:15px;line-height:1.45}
+.steps li::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--tape);color:var(--tape-ink);font-family:var(--head);font-size:15px}
+.steps b{color:#fff}
+.howlink{display:inline-flex;align-items:center;gap:8px;margin-top:12px;min-height:40px;padding:0 14px;border-radius:999px;background:var(--card-2);font-weight:700;font-size:14px}
+.set{display:grid;gap:14px}
+.set > div{display:grid;gap:8px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border-radius:14px;background:var(--bg-2);box-shadow:inset 0 0 0 1px var(--line)}
+.seg button{min-height:44px;border-radius:10px;font-weight:700;font-size:15px;color:var(--mute)}
+.seg button[aria-pressed="true"]{background:var(--tape);color:var(--tape-ink)}
+
+/* het dossier: de beschuldiging, getypt op papier met een stempel */
+.dossier{position:relative;padding:22px 20px 24px;border-radius:6px 6px 16px 16px;background:linear-gradient(180deg,#f7f0de,#ece2c8);color:var(--paper-ink);box-shadow:0 18px 50px rgba(0,0,0,.5),inset 0 0 0 1px rgba(0,0,0,.08);transform:rotate(-.6deg)}
+.dossier::before{content:"";position:absolute;left:50%;top:-10px;width:70px;height:20px;transform:translateX(-50%) rotate(2deg);background:rgba(255,210,63,.75);box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.dossier .kop{display:flex;justify-content:space-between;gap:10px;font:12px/1 var(--type);letter-spacing:.08em;text-transform:uppercase;color:#6b604a;border-bottom:1.5px dashed rgba(42,36,24,.35);padding-bottom:10px;margin-bottom:12px}
+.dossier .tekst{font:400 clamp(22px,6.4vw,28px)/1.3 var(--type);text-wrap:pretty}
+.dossier.klein{padding:12px 14px 14px;transform:none}
+.dossier.klein::before{display:none}
+.dossier.klein .kop{padding-bottom:6px;margin-bottom:6px;font-size:10.5px}
+.dossier.klein .tekst{font-size:16px;line-height:1.3}
+.stamp{position:absolute;right:12px;bottom:-14px;padding:6px 10px;border:3px solid #c42b2b;border-radius:6px;color:#c42b2b;font:400 15px/1 var(--head);letter-spacing:.12em;transform:rotate(-8deg);background:rgba(244,236,216,.85)}
+
+/* je geheime woord */
+.handoff{display:grid;justify-items:center;text-align:center;gap:12px;padding:22px 16px}
+.handoff .nr{font:400 clamp(40px,12vw,58px)/1 var(--head)}
+.handoff .nr small{display:block;margin-top:6px;font:700 13px/1 var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.eye{display:grid;place-items:center;width:74px;height:74px;border-radius:50%;background:var(--card-2);box-shadow:inset 0 0 0 1px var(--line)}
+.eye svg{width:38px;height:38px;color:var(--tape)}
+.word{position:relative;display:grid;place-items:center;justify-items:center;gap:6px;padding:26px 16px;border-radius:22px;background:var(--card);box-shadow:inset 0 0 0 2px var(--tape),0 20px 50px rgba(0,0,0,.45);text-align:center}
+.word .label{color:var(--tape)}
+.word b{font:400 clamp(40px,13vw,64px)/1 var(--head);overflow-wrap:anywhere;color:#fff}
+.timer{position:relative;width:118px;height:118px;margin:0 auto}
+.timer svg{width:100%;height:100%;transform:rotate(-90deg)}
+.timer circle{fill:none;stroke-width:9}
+.timer .bg{stroke:rgba(255,255,255,.1)}
+.timer .fg{stroke:var(--tape);stroke-linecap:round;transition:stroke .2s}
+.timer.laag .fg{stroke:var(--red)}
+.timer b{position:absolute;inset:0;display:grid;place-items:center;font:400 44px/1 var(--head)}
+.timer.laag b{color:var(--red)}
+.tijd{font:400 clamp(54px,17vw,80px)/1 var(--head);color:var(--red);text-align:center;animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.4);opacity:0}}
+.say{text-align:center;font:400 22px/1.2 var(--head)}
+.say small{display:block;margin-top:6px;font:500 14px/1.4 var(--body);color:var(--mute)}
+
+/* leugen! */
+.overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:20px;background:rgba(6,9,14,.86);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.overlay .card{width:min(100%,400px);display:grid;gap:12px;text-align:center}
+.leugen{font:400 clamp(56px,18vw,86px)/.9 var(--head);color:var(--red);text-transform:uppercase;animation:pop .4s cubic-bezier(.2,1.6,.4,1)}
+.rule{display:grid;gap:8px;text-align:left;font-size:15px;line-height:1.45}
+.rule p{padding:10px 12px;border-radius:12px;background:var(--bg-2)}
+.rule b{color:#fff}
+
+/* stemmen */
+.count{font:400 clamp(90px,30vw,150px)/1 var(--head);color:var(--tape);text-align:center;animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+.wijs{font:400 clamp(48px,15vw,72px)/1 var(--head);color:var(--red);text-align:center;text-transform:uppercase;animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+@media (prefers-reduced-motion:reduce){.screen.anim,.tijd,.leugen,.count,.wijs{animation:none}}
+
+.menu{position:fixed;inset:0;z-index:21;display:flex;align-items:flex-start;justify-content:flex-end;padding:calc(84px + env(safe-area-inset-top,0px)) 16px 16px;background:rgba(6,9,14,.5)}
+.menu nav{width:min(100%,300px);display:grid;padding:8px;border-radius:18px;background:var(--card-2);box-shadow:0 20px 60px rgba(0,0,0,.6),inset 0 0 0 1px var(--line)}
+.menu nav a,.menu nav button{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 12px;border-radius:12px;text-decoration:none;font-weight:600;text-align:left}
+.menu nav a:hover,.menu nav button:hover{background:rgba(255,255,255,.06)}
+.fine{margin-top:auto;padding-top:14px;text-align:center;color:#6f7b8e;font-size:12.5px;line-height:1.45}
+.fine a{color:var(--mute)}
+</style>
+<script src="/js/poort.js" defer></script>
+<script src="/js/uitleg.js" defer></script>
+<script src="/js/review.js" defer></script>
+</head>
+<body>
+<div class="tape" aria-hidden="true"><span>VERDACHT · NIET BETREDEN · VERDACHT · NIET BETREDEN · VERDACHT</span></div>
+<div class="app">
+  <header class="top">
+    <a class="back" href="/?tab=een" aria-label="Terug naar De Spelkeet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span id="backTxt">De Spelkeet</span></a>
+    <span class="title" id="topTitle" hidden>Alibi</span>
+    <span class="spacer" id="spacer"></span>
+    <button class="iconbtn" id="soundBtn" type="button" aria-label="Geluid uit"></button>
+    <button class="iconbtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+  </header>
+  <main id="screen" class="screen"></main>
+  <p class="fine" id="fine">De strafpunten houden jullie zelf bij. Wat een strafpunt is, spreken jullie samen af. <a href="/melden">Iets melden</a></p>
+</div>
+
+<div class="menu" id="menu" hidden>
+  <nav aria-label="Menu">
+    <button type="button" data-act="uitleg">❓ Hoe werkt het?</button>
+    <button type="button" data-act="instellingen" id="menuSet">⚙️ Instellingen</button>
+    <a href="/review?spel=alibi">⭐ Wat vind je ervan?</a>
+    <a href="/melden">🚩 Iets melden</a>
+    <a href="/?tab=een">🏠 Terug naar De Spelkeet</a>
+  </nav>
+</div>
+
+<div class="overlay" id="leugen" hidden>
+  <div class="card" role="dialog" aria-modal="true" aria-labelledby="leugenT">
+    <p class="leugen" id="leugenT">Leugen!</p>
+    <div class="rule">
+      <p>Wie riep, zegt welk eerder detail er wordt tegengesproken. De groep beslist:</p>
+      <p><b>Klopt het?</b> Dan krijgt de leugenaar een strafpunt.</p>
+      <p><b>Klopt het niet?</b> Dan krijgt wie riep er één.</p>
+      <p class="muted">Iedereen mag één keer per ronde Leugen! roepen.</p>
+    </div>
+    <button class="btn go" type="button" data-act="verder">Verder met het verhaal</button>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= DE BESCHULDIGINGEN EN DE WOORDEN ================= */
+// Wat jullie gedaan zouden hebben: gek genoeg om een verhaal omheen te verzinnen, en nooit echt erg.
+const BESCHULDIGINGEN = [
+  'Jullie hebben om 03:00 een winkelwagen in de gym gezet.',
+  'Jullie hebben de tuinkabouter van de buren ontvoerd en er een losgeldbrief bij gelegd.',
+  'Jullie zijn met een opblaasflamingo door de drive-in van de McDonald\'s gereden.',
+  'Iemand heeft 40 pizza\'s besteld op naam van de buurman. Jullie waren de laatsten die hem zagen.',
+  'Jullie hebben om middernacht karaoke gezongen op het dak van de supermarkt.',
+  'De fiets van de conciërge hangt in een boom, en jullie waren er als laatste.',
+  'Iemand heeft de playlist van het schoolfeest vervangen door alleen maar het Wilhelmus.',
+  'Jullie hebben de verjaardagstaart van oom Kees opgegeten voordat hij er was.',
+  'Het standbeeld op het plein heeft opeens een zonnebril en een sjaal. Jullie zijn gezien.',
+  'Jullie stonden om 04:00 in badjas bij de pinautomaat te dansen.',
+  'De sleutels van de clubbus van de voetbalvereniging lagen in jullie vriezer.',
+  'Jullie hebben in de bibliotheek een verstoppertjestoernooi georganiseerd.',
+  'Al het wc-papier van het studentenhuis is weg. Jullie kamers ruiken naar wc-eend.',
+  'Iemand heeft in de klassenapp 400 foto\'s van een gans gezet. Vanaf jullie wifi.',
+  'Jullie hebben een tractor geleend om naar de kroeg te gaan.',
+  'Op de camping is de vlag vervangen door een onderbroek. Jullie tent stond ernaast.',
+  'Jullie zijn gezien terwijl jullie een bankje uit het park de bus in tilden.',
+  'Er staat een levensgrote kartonnen BN\'er in de woonkamer van jullie docent.',
+  'Jullie hebben de bruiloft van een onbekend stel binnengelopen en de openingsdans gedaan.',
+  'De hele straat is versierd met slingers, en niemand is jarig. Jullie hadden lijm aan je handen.',
+  'Jullie hebben om 02:00 bij de snackbar een frikandel van een meter besteld en zijn niet betaald weggerend.',
+  'Iemand heeft de klok van de kerktoren een uur vooruitgezet. Jullie waren boven.',
+  'Jullie hebben het zwembad van de camping gevuld met badschuim.',
+  'Op de deurbelcamera van de buren staan jullie, verkleed als kerstman. In juli.',
+  'Jullie zijn met zijn allen op één scootmobiel gezien op de snelweg.',
+  'De koelkast van de kantine is leeg en er ligt een briefje met jullie handschrift.',
+  'Jullie hebben een kameel van de kinderboerderij meegenomen voor een selfie.',
+  'Iemand heeft de deurbel van de directeur vervangen door een scheetgeluid.',
+  'Jullie hebben de bowlingbaan laten overstromen.',
+  'Er zit een vreemde hamster in de klas, en hij heet zoals jullie groepsapp.',
+  'Jullie zijn gezien terwijl jullie de kerstboom van het dorp in een bakfiets wegfietsten.',
+  'De hele schoolgang ligt vol met piepschuimbolletjes. Jullie kluisjes ook.',
+  'Jullie hebben een bus vol bejaarden meegenomen naar een technofeest.',
+  'Iemand heeft het Tinder-profiel van je oom gemaakt. Met jullie foto\'s.',
+  'Jullie hebben op het schoolplein een tent opgezet en zijn er drie dagen blijven wonen.',
+  'In het meer drijft een opblaasboot met jullie namen erop, en de politie zoekt de eigenaars.',
+];
+// Het rare woord dat jij er in het geheim in moet verwerken.
+const WOORDEN = [
+  'frikandel', 'badjas', 'oma', 'kameel', 'glitter', 'brandweer', 'kroket', 'trampoline', 'ijsbeer', 'tandenborstel',
+  'karaoke', 'bruiloft', 'eenhoorn', 'waterpistool', 'tractor', 'sushi', 'vuurwerk', 'klompen', 'stofzuiger', 'hamster',
+  'helikopter', 'pyjama', 'kaasschaaf', 'bowlingbal', 'politie', 'rolschaatsen', 'kerstman', 'discobal', 'gitaar', 'pannenkoek',
+  'nachtwinkel', 'tattoo', 'bloemkool', 'vergiet', 'sambal', 'schoonmoeder', 'lama', 'luchtbed', 'opblaasboot', 'haarlak',
+  'scootmobiel', 'carnaval', 'stroopwafel', 'TikTok', 'kebab', 'schaatsen', 'bakfiets', 'tuinkabouter', 'verkeersdrempel', 'dropveter',
+  'sauna', 'dinosaurus', 'gebit', 'zwembad', 'koe', 'piraat', 'brommer', 'boerenkool', 'spaghetti', 'sokken',
+  'ambulance', 'goudvis', 'Ikea', 'tandarts', 'rookmelder', 'skateboard', 'wc-rol', 'lasagne', 'clown', 'paraplu',
+  'fietsenrek', 'treinkaartje', 'zonnebrand', 'ex', 'dronken', 'stagiair', 'bingo', 'kerkklok', 'tent', 'regenjas',
+  'knakworst', 'hondenhok', 'koffer', 'snorkel', 'veerpont', 'surfplank', 'kaarslicht', 'tijger', 'bananenschil', 'konijn',
+  'paspoort', 'politiebus', 'muntjes', 'kassabon', 'supermarkt', 'groepsapp', 'moeder', 'buurman', 'huisarts', 'stofzuigerzak',
+  'boot', 'ijsje', 'kapper', 'cactus', 'fitness', 'bril', 'pinpas', 'oordopjes', 'hockeystick', 'barbecue',
+  'kaas', 'slipper', 'vlieger', 'kampvuur', 'bus', 'nachtbus', 'schoolreis', 'meester', 'gans', 'opa',
+];
+
+/* ================= INSTELLINGEN ================= */
+const KEY = 'spelkeet-alibi';
+const TIJDEN = [8, 12, 15];
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
+const saved = load();
+const S = {
+  spelers: Number.isInteger(saved.spelers) && saved.spelers >= 3 && saved.spelers <= 8 ? saved.spelers : 4,
+  tijd: TIJDEN.includes(saved.tijd) ? saved.tijd : 8,
+  geluid: saved.geluid !== false,
+};
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* geen opslag */ } };
+// het potje: welke ronde, welke beschuldiging, de woorden van deze ronde en wie er aan de beurt is
+let G = null;
+const bag = { b: [], w: [] };
+const pick = (k, list) => { if (!bag[k].length) bag[k] = shuffle([...list]); return bag[k].pop(); };
+function nieuwPotje() {
+  G = { ronde: 0 };
+  try { fetch('/api/potje', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ spel: 'alibi' }), keepalive: true }).catch(() => {}); } catch (e) { /* niet erg */ }
+}
+function nieuweRonde() {
+  G.ronde++;
+  G.beschuldiging = pick('b', BESCHULDIGINGEN);
+  G.woorden = Array.from({ length: S.spelers }, () => pick('w', WOORDEN));
+  G.beurt = 0;
+  toon('beschuldiging');
+}
+
+/* ================= GELUID, TRILLEN EN SCHERM AAN ================= */
+let ac = null;
+function audio() {
+  if (!S.geluid) return null;
+  try { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) { ac = null; }
+  return ac;
+}
+function toon_(f, d, { type = 'sine', vol = .2, at = 0, slide = 0 } = {}) {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + at, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t);
+  if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f * slide), t + d);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + d + .05);
+}
+const Snd = {
+  tik() { toon_(1200, .05, { type: 'square', vol: .12 }); },
+  tijd() { toon_(220, .5, { type: 'sawtooth', vol: .2, slide: .7 }); toon_(165, .55, { type: 'square', vol: .12, at: .05, slide: .7 }); },
+  woord() { toon_(660, .12, { type: 'triangle', vol: .15 }); toon_(990, .16, { type: 'triangle', vol: .15, at: .1 }); },
+  leugen() { for (let k = 0; k < 3; k++) toon_(520, .12, { type: 'square', vol: .16, at: k * .16 }); },
+  tel() { toon_(880, .1, { type: 'triangle', vol: .15 }); },
+  wijs() { [523, 659, 784].forEach((f, k) => toon_(f, .18, { type: 'triangle', vol: .15, at: k * .08 })); },
+};
+const tril = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* niet erg */ } };
+let lock = null;
+async function schermAan(aan) {
+  try {
+    if (aan && !lock && 'wakeLock' in navigator) { lock = await navigator.wakeLock.request('screen'); lock.addEventListener('release', () => { lock = null; }); }
+    else if (!aan && lock) { const l = lock; lock = null; await l.release(); }
+  } catch (e) { lock = null; }
+}
+
+/* ================= DE TIMER ================= */
+const T = { eind: 0, timer: 0, over: 0, loopt: false };
+function startTimer() {
+  T.over = S.tijd * 1000; T.loopt = true;
+  T.eind = performance.now() + T.over;
+  tick();
+}
+function stopTimer() { clearTimeout(T.timer); T.loopt = false; }
+function tick() {
+  const over = Math.max(0, T.eind - performance.now()), sec = Math.ceil(over / 1000);
+  const el = $('#timer');
+  if (el) {
+    el.querySelector('b').textContent = sec;
+    el.querySelector('.fg').style.strokeDashoffset = String(339.3 * (1 - over / (S.tijd * 1000)));
+    el.classList.toggle('laag', over <= 3000);
+  }
+  if (over <= 0) { T.loopt = false; Snd.tijd(); tril([300, 80, 200]); return toon('tijd'); }
+  if (over <= 3000 && sec !== T.last) Snd.tik();
+  T.last = sec;
+  T.timer = setTimeout(tick, 100);
+}
+// telefoon op slot of naar een andere app: de timer stopt, zodat niemand onterecht af is
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && T.loopt) { T.over = Math.max(0, T.eind - performance.now()); clearTimeout(T.timer); T.loopt = false; T.paused = true; }
+  else if (!document.hidden && T.paused && nu === 'woord') { T.paused = false; T.eind = performance.now() + T.over; T.loopt = true; tick(); }
+});
+
+/* ================= SCHERMEN ================= */
+const ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/><path d="M8 9.5c.6-1.2 1.6-1.8 2.8-1.8"/></svg>';
+const EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const dossier = (klein = false) => `<section class="dossier${klein ? ' klein' : ''}" aria-label="De beschuldiging"><div class="kop"><span>Dossier ${String(G.ronde).padStart(3, '0')}</span><span>Beschuldiging</span></div><p class="tekst">${esc(G.beschuldiging)}</p>${klein ? '' : '<span class="stamp">VERDACHT</span>'}</section>`;
+const SCHERM = {
+  start() {
+    return `<section class="hero"><span class="badge">${ICON}</span><h1>Ali<span>bi</span></h1><p>Jullie worden ergens van verdacht. Verzin samen een alibi, met een raar woord dat niemand zag aankomen.</p></section>
+    <section class="card">
+      <h2>Zo werkt het</h2>
+      <ol class="steps">
+        <li><span>De telefoon toont de <b>beschuldiging</b>. Bijvoorbeeld: <i>"Jullie hebben om 03:00 een winkelwagen in de gym gezet."</i></span></li>
+        <li><span>Om de beurt krijg je in het geheim een <b>woord</b>, zoals <i>frikandel</i>. Je hebt ${S.tijd} seconden om één zin aan het alibi toe te voegen waar dat woord in zit. Dan <b>geef je de telefoon door</b>; de volgende gaat verder op jouw verhaal.</span></li>
+        <li><span>Spreekt iemand een eerder detail tegen? Roep <b>Leugen!</b> (één keer per ronde). Klopt het, dan krijgt de leugenaar een strafpunt; klopt het niet, dan krijg jij er één.</span></li>
+        <li><span>Na het rondje wijzen jullie tegelijk aan wie het verhaal het <b>verdachtst</b> maakte. Die krijgt ook een strafpunt.</span></li>
+      </ol>
+      <button class="howlink" type="button" data-act="uitleg">Uitleg met plaatjes ›</button>
+    </section>
+    <section class="card set">
+      <div><span class="label">Hoeveel spelers?</span><div class="seg" role="group" aria-label="Aantal spelers">${[3, 4, 5, 6, 7, 8].map((n) => `<button type="button" data-spelers="${n}" aria-pressed="${S.spelers === n}">${n}</button>`).join('')}</div></div>
+      <div><span class="label">Tijd per zin</span><div class="seg" role="group" aria-label="Tijd per zin">${TIJDEN.map((n) => `<button type="button" data-tijd="${n}" aria-pressed="${S.tijd === n}">${n} sec</button>`).join('')}</div></div>
+    </section>
+    <button class="btn go" type="button" data-act="begin">Start het verhoor</button>`;
+  },
+  beschuldiging() {
+    return `<p class="label center">Ronde ${G.ronde} · ${S.spelers} verdachten</p>
+    ${dossier()}
+    <p class="muted center">Lees het hardop voor. Het alibi begint bij speler 1.</p>
+    <div class="grow"></div>
+    <button class="btn go" type="button" data-act="volgende">Begin het verhaal</button>
+    <button class="btn ghost" type="button" data-act="anders">Andere beschuldiging</button>`;
+  },
+  // de telefoon is net doorgegeven: eerst kijken of jij hem hebt, dan pas het woord
+  geef() {
+    return `${dossier(true)}
+    <section class="card handoff"><span class="eye">${EYE}</span><p class="nr">Speler ${G.beurt + 1}<small>van de ${S.spelers}</small></p><p class="muted">Pak de telefoon en kijk alleen jij. Zodra je je woord ziet, loopt de tijd.</p></section>
+    <div class="grow"></div>
+    <button class="btn go" type="button" data-act="woord">Laat mijn woord zien</button>
+    ${G.beurt ? '<button class="btn lie" type="button" data-act="leugen">Leugen!</button>' : ''}`;
+  },
+  woord() {
+    return `${dossier(true)}
+    <section class="word"><span class="label">Jouw woord</span><b>${esc(G.woorden[G.beurt])}</b></section>
+    <div class="timer" id="timer" role="timer" aria-label="Tijd"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="bg" cx="60" cy="60" r="54"/><circle class="fg" cx="60" cy="60" r="54" stroke-dasharray="339.3" stroke-dashoffset="0"/></svg><b>${S.tijd}</b></div>
+    <p class="say">Vertel je zin!<small>Eén zin aan het alibi, met dit woord erin.</small></p>
+    <div class="grow"></div>
+    <button class="btn ghost" type="button" data-act="klaar">Klaar, mijn zin is gezegd</button>`;
+  },
+  tijd() {
+    const laatste = G.beurt >= S.spelers - 1;
+    return `${dossier(true)}
+    <p class="tijd">Tijd!</p>
+    <p class="say">${laatste ? 'Het alibi is rond.' : 'Geef de telefoon door.'}<small>${laatste ? 'Iedereen heeft zijn zin gezegd.' : `Speler ${G.beurt + 2} gaat verder op het verhaal.`}</small></p>
+    <div class="grow"></div>
+    <button class="btn go" type="button" data-act="door">${laatste ? 'Naar de stemming' : 'Geef door'}</button>
+    <button class="btn lie" type="button" data-act="leugen">Leugen!</button>`;
+  },
+  stem() {
+    return `${dossier(true)}
+    <section class="card center"><h2>Wie maakte het verhaal het meest verdacht?</h2><p class="muted">Denk even na. Op het teken wijst iedereen tegelijk iemand aan. Wie de meeste vingers krijgt, krijgt een strafpunt.</p></section>
+    <div class="grow"></div>
+    <button class="btn go" type="button" data-act="tel">Aftellen: 3, 2, 1</button>`;
+  },
+  wijs() {
+    return `${dossier(true)}<div class="grow"></div><p class="count" id="count">3</p><div class="grow"></div>`;
+  },
+  einde() {
+    return `${dossier(true)}
+    <p class="wijs">Wijs!</p>
+    <p class="say">Wie de meeste vingers krijgt, krijgt een strafpunt.<small>Gelijk? Dan krijgen ze er allebei één.</small></p>
+    <div class="grow"></div>
+    <button class="btn go" type="button" data-act="ronde">Nieuwe beschuldiging</button>
+    <button class="textlink" type="button" data-act="instellingen">Instellingen</button>`;
+  },
+};
+
+let nu = '';
+function toon(naam) {
+  const ander = naam !== nu;
+  nu = naam;
+  const el = $('#screen');
+  el.className = `screen${ander ? ' anim' : ''}`;
+  el.innerHTML = SCHERM[naam]();
+  if (ander) { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; scrollTo(0, 0); }
+  $('#topTitle').hidden = naam === 'start';
+  $('#spacer').hidden = naam !== 'start';
+  $('#backTxt').hidden = naam !== 'start';
+  $('#menuSet').hidden = naam === 'start';
+  $('#fine').hidden = naam === 'woord';
+  // na een rondje: hoe vond je het? (zie review.js)
+  if (window.SpelkeetReview) window.SpelkeetReview.stand('alibi', naam === 'start' ? 'lobby' : 'spel', naam === 'einde' ? 1 : 0);
+}
+function geluidKnop() {
+  $('#soundBtn').innerHTML = S.geluid
+    ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>'
+    : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9l5 6M21 9l-5 6"/></svg>';
+  $('#soundBtn').setAttribute('aria-label', S.geluid ? 'Geluid uit' : 'Geluid aan');
+}
+const sluitMenu = () => { $('#menu').hidden = true; $('#menuBtn').setAttribute('aria-expanded', 'false'); };
+
+// 3, 2, 1 ... wijs!
+let telTimer = 0;
+function aftellen() {
+  toon('wijs');
+  let n = 3;
+  Snd.tel();
+  const stap = () => {
+    n--;
+    if (n <= 0) { Snd.wijs(); tril(200); return toon('einde'); }
+    const el = $('#count'); if (el) { el.textContent = n; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; }
+    Snd.tel();
+    telTimer = setTimeout(stap, 900);
+  };
+  telTimer = setTimeout(stap, 900);
+}
+
+/* ================= KNOPPEN ================= */
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('button,[data-act]'); if (!t) { if (!$('#menu').hidden && !e.target.closest('#menu nav')) sluitMenu(); return; }
+  if (t.id === 'menuBtn') { const m = $('#menu'); m.hidden = !m.hidden; t.setAttribute('aria-expanded', String(!m.hidden)); return; }
+  if (t.id === 'soundBtn') { S.geluid = !S.geluid; save(); geluidKnop(); if (S.geluid) Snd.tel(); return; }
+  if (!$('#menu').hidden) sluitMenu();
+  const d = t.dataset;
+  if (d.spelers) { S.spelers = +d.spelers; save(); return toon('start'); }
+  if (d.tijd) { S.tijd = +d.tijd; save(); return toon('start'); }
+  switch (d.act) {
+    case 'uitleg': if (window.Uitleg) window.Uitleg.open('alibi'); break;
+    case 'begin': audio(); schermAan(true); nieuwPotje(); nieuweRonde(); break;
+    case 'anders': G.beschuldiging = pick('b', BESCHULDIGINGEN); toon('beschuldiging'); break;
+    case 'volgende': toon('geef'); break;
+    case 'woord': audio(); Snd.woord(); toon('woord'); startTimer(); break;
+    case 'klaar': stopTimer(); toon('tijd'); break;
+    case 'door':
+      if (G.beurt >= S.spelers - 1) toon('stem');
+      else { G.beurt++; toon('geef'); }
+      break;
+    case 'leugen': Snd.leugen(); tril([80, 60, 80]); $('#leugen').hidden = false; break;
+    case 'verder': $('#leugen').hidden = true; break;
+    case 'tel': audio(); aftellen(); break;
+    case 'ronde': nieuweRonde(); break;
+    case 'instellingen': stopTimer(); clearTimeout(telTimer); $('#leugen').hidden = true; schermAan(false); toon('start'); break;
+  }
+});
+addEventListener('keydown', (e) => { if (e.key === 'Escape') { sluitMenu(); $('#leugen').hidden = true; } });
+
+geluidKnop();
+toon('start');
+})();
+</script>
+</body>
+</html>

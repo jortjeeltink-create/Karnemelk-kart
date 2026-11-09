@@ -9,7 +9,7 @@
   const KEY = 'spelkeet-review';
   const MIN = 60e3, HOUR = 3600e3, DAY = 24 * HOUR;
   const WAIT = { 1: 6 * MIN, 2: 2 * MIN, weg: 4 * MIN };   // zo lang moet je eerst gespeeld hebben
-  const NAMES = { kart: 'Karnemelk Kart', bussen: 'Bussen', boer: 'Boer zoekt vrouw', mexen: 'Mexen', dealer: 'Pak de dealer', paardenrace: 'Paardenrace', rotonde: 'Rotonde', mijnenveld: 'Mijnenveld', borrelbord: 'het Borrelbord', toepen: 'Toepen', bom: 'Tikkende Bom' };
+  const NAMES = { kart: 'Karnemelk Kart', bussen: 'Bussen', boer: 'Boer zoekt vrouw', mexen: 'Mexen', dealer: 'Pak de dealer', paardenrace: 'Paardenrace', rotonde: 'Rotonde', mijnenveld: 'Mijnenveld', borrelbord: 'het Borrelbord', toepen: 'Toepen', bom: 'Tikkende Bom', alibi: 'Alibi' };
   const R = window.SpelkeetReview = { klok: () => Date.now(), stand, open };
   const now = () => R.klok();
   const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };

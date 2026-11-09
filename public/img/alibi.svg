@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="20%" r="85%"><stop offset="0" stop-color="#2b3850"/><stop offset=".6" stop-color="#151b26"/><stop offset="1" stop-color="#0f141c"/></radialGradient>
+    <pattern id="lint" width="56" height="56" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="56" height="56" fill="#ffd23f"/><rect width="28" height="56" fill="#1a1a1a"/></pattern>
+    <clipPath id="rond"><rect width="512" height="512" rx="112"/></clipPath>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g clip-path="url(#rond)">
+    <g transform="rotate(-18 256 400)">
+      <rect x="-60" y="360" width="640" height="78" fill="url(#lint)"/>
+      <rect x="-60" y="376" width="640" height="46" fill="#ffd23f"/>
+      <text x="256" y="408" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="30" letter-spacing="6" fill="#1a1500">ALIBI · ALIBI · ALIBI</text>
+    </g>
+  </g>
+  <circle cx="226" cy="206" r="96" fill="#1a2230" stroke="#ffd23f" stroke-width="26"/>
+  <path d="M296 276 L384 364" stroke="#ffd23f" stroke-width="40" stroke-linecap="round"/>
+  <path d="M184 186 C192 160 214 146 240 146" fill="none" stroke="#eef2f7" stroke-width="14" stroke-linecap="round" opacity=".7"/>
+</svg>
