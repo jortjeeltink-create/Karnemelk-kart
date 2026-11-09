@@ -359,7 +359,13 @@ const GAMES = [
     chips: ['Partyspel', 'Eén telefoon'],
     text: 'De telefoon geeft een opdracht, zoals biermerken of bekende memes, en begint te tikken. Noem iets dat past en geef hem snel door. Niemand weet hoe lang de lont is: ontploft hij in jouw handen, dan heb jij verloren. Wat je moet doen, bepalen jullie zelf.',
     facts: [['Spelers', '2 of meer'], ['Telefoons', 'één, die rondgaat'], ['Lont', '10 tot 70 seconden']],
-    cta: 'Speel Tikkende Bom' }
+    cta: 'Speel Tikkende Bom' },
+  { id: 'alibi', mode: 'een', name: 'Alibi', name2: '', short: 'Alibi', acc: '#ffd23f', tint: '#1a2130', bg: '#0f141c',
+    url: '/alibi',
+    chips: ['Verhaalspel', 'Eén telefoon'],
+    text: 'Jullie worden ergens van verdacht en verzinnen samen een alibi. Om de beurt krijg je in het geheim een raar woord, zoals frikandel, en heb je 8 seconden om er één zin mee aan het verhaal toe te voegen. Spreekt iemand een eerder detail tegen? Leugen! En wie maakte het verhaal het meest verdacht?',
+    facts: [['Spelers', '3 tot 8'], ['Telefoons', 'één, die rondgaat'], ['Per zin', '8 seconden']],
+    cta: 'Speel Alibi' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 // twee tabbladen: spellen waarbij ieder op zijn eigen telefoon speelt, en spellen op één telefoon die rondgaat
@@ -817,6 +823,40 @@ const PREV = {
     if (cyc > 3.9 && cyc < 5.8) T(c, round % 2 ? 'SLAG!' : 'KLOP!', cx, h * .13, Math.min(w * .09, h * .16), round % 2 ? '#f7c548' : '#ffb35c', { w: 900 });
     c.fillStyle = 'rgba(0,0,0,.28)'; rr(c, cx - w * .17, h * .9 - h * .05, w * .34, h * .09, h * .045); c.fill();
     T(c, `slag ${(round % 4) + 1} van 4`, cx, h * .9, Math.min(w * .04, h * .07), 'rgba(243,239,219,.85)', { f: MF, w: 700 });
+  },
+  // Alibi: het dossier met de beschuldiging, een geheim woord dat omdraait en de tijd die wegloopt
+  alibi(c, w, h, t){
+    const g = c.createRadialGradient(w / 2, 0, 10, w / 2, h * .3, Math.max(w, h)); g.addColorStop(0, '#2b3850'); g.addColorStop(1, '#0f141c'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    const k = Math.min(w / 340, h / 300), cyc = reduce ? 3.2 : (t / 1000) % 6, round = reduce ? 0 : Math.floor(t / 6000);
+    const SF = 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif', TF = '"Courier New",ui-monospace,monospace';
+    // afzetlint
+    c.save(); c.translate(0, h * .88); c.rotate(-.05); c.fillStyle = '#ffd23f'; c.fillRect(-20, -12 * k, w + 40, 24 * k);
+    c.fillStyle = '#1a1a1a'; for (let x = -40; x < w + 40; x += 36 * k) { c.beginPath(); c.moveTo(x, -12 * k); c.lineTo(x + 14 * k, -12 * k); c.lineTo(x + 2 * k, 12 * k); c.lineTo(x - 12 * k, 12 * k); c.fill(); }
+    c.fillStyle = '#ffd23f'; c.fillRect(-20, -7 * k, w + 40, 14 * k); T(c, 'VERDACHT · NIET BETREDEN · VERDACHT', w / 2, 1, 10 * k, '#1a1500', { f: SF, w: 900 }); c.restore();
+    // het dossier
+    const dw = Math.min(w * .78, 280 * k), dx = (w - dw) / 2, dy = h * .08, dh = h * .36;
+    c.save(); c.translate(w / 2, dy + dh / 2); c.rotate(-.012); c.translate(-w / 2, -(dy + dh / 2));
+    rr(c, dx, dy, dw, dh, 6 * k); c.fillStyle = '#f4ecd8'; c.fill();
+    T(c, 'DOSSIER · BESCHULDIGING', dx + 12 * k, dy + 16 * k, 9 * k, '#6b604a', { f: TF, w: 700, a: 'left' });
+    const zinnen = [['Jullie hebben om 03:00 een', 'winkelwagen in de gym gezet.'], ['Jullie zijn met een opblaas-', 'flamingo door de drive-in gereden.'], ['De fiets van de conciërge', 'hangt in een boom.']][round % 3];
+    zinnen.forEach((z, i) => { let fs = 13 * k; c.font = `700 ${fs}px ${TF}`; while (c.measureText(z).width > dw - 24 * k && fs > 8) { fs -= .5; c.font = `700 ${fs}px ${TF}`; } T(c, z, dx + 12 * k, dy + (40 + i * 22) * k, fs, '#2a2418', { f: TF, w: 700, a: 'left' }); });
+    c.save(); c.translate(dx + dw - 46 * k, dy + dh - 14 * k); c.rotate(-.14); c.strokeStyle = '#c42b2b'; c.lineWidth = 2.5 * k; rr(c, -40 * k, -12 * k, 80 * k, 24 * k, 4 * k); c.stroke(); T(c, 'VERDACHT', 0, 1, 11 * k, '#c42b2b', { f: SF, w: 900 }); c.restore();
+    c.restore();
+    // het geheime woord: eerst dicht, dan open met de tijd erbij
+    const woord = ['frikandel', 'badjas', 'oma', 'kameel'][round % 4];
+    const cw = Math.min(w * .5, 180 * k), ch = h * .26, cx = w * .38, cy = h * .64;
+    const flip = clamp((cyc - .9) / .4, 0, 1), sx = Math.abs(Math.cos(flip * Math.PI));
+    c.save(); c.translate(cx, cy); c.scale(Math.max(.04, sx), 1);
+    rr(c, -cw / 2, -ch / 2, cw, ch, 14 * k); c.fillStyle = '#1a2230'; c.fill(); c.lineWidth = 2.5 * k; c.strokeStyle = '#ffd23f'; c.stroke();
+    if (flip < .5) T(c, '?', 0, 2, ch * .55, '#ffd23f', { f: SF, w: 900 });
+    else { T(c, 'JOUW WOORD', 0, -ch * .22, 9 * k, '#ffd23f', { f: SF, w: 800 }); T(c, woord, 0, ch * .08, Math.min(24 * k, cw / woord.length * 1.6), '#fff', { f: SF, w: 900 }); }
+    c.restore();
+    // de tijd
+    const left = clamp(1 - (cyc - 1.3) / 3.6, 0, 1), tx = w * .76, ty = cy, r = Math.min(w * .1, h * .12);
+    c.lineWidth = 6 * k; c.strokeStyle = 'rgba(255,255,255,.12)'; c.beginPath(); c.arc(tx, ty, r, 0, TAU); c.stroke();
+    if (cyc > 1.3) { c.strokeStyle = left < .38 ? '#ff4d4d' : '#ffd23f'; c.beginPath(); c.arc(tx, ty, r, -Math.PI / 2, -Math.PI / 2 + TAU * left); c.stroke(); }
+    T(c, cyc < 1.3 ? '8' : left > 0 ? String(Math.ceil(left * 8)) : '!', tx, ty + 1, r * .8, left < .38 && cyc > 1.3 ? '#ff4d4d' : '#fff', { f: SF, w: 900 });
+    if (cyc > 4.9) T(c, 'GEEF DOOR!', w / 2, h * .815, Math.min(w * .06, h * .07), '#ffd23f', { f: SF, w: 900 });
   },
   // Tikkende Bom: een opdracht bovenin, de bom tikt (steeds sneller) en dan: boem
   bom(c, w, h, t){

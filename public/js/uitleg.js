@@ -80,6 +80,13 @@
       { img: 'toepen-4', t: 'Kloppen', p: 'Denk je de laatste slag te winnen? Tik op <b>Klop</b>: de inzet gaat één omhoog. De rest kiest <b>mee</b> of <b>pas</b>. Passen kost de oude inzet, en dan doe je deze ronde niet meer mee.' },
       { img: 'toepen-5', t: 'De laatste slag', p: 'Wie de vierde slag wint, wint de ronde. De rest krijgt de inzet als strafpunten. Wie de grens haalt, ligt eruit; de laatste die overblijft, wint. Vuile was en kans op toep staan in de spelregels.' },
     ] },
+    alibi: { name: 'Alibi', c: '#ffd23f', url: '/alibi', slides: [
+      { img: 'alibi-1', t: 'Eén telefoon', p: 'Kies met hoeveel jullie zijn (3 tot 8) en hoeveel tijd iedereen per zin heeft. Er hoeft niemand een code in te voeren: de telefoon gaat rond.' },
+      { img: 'alibi-2', t: 'De beschuldiging', p: 'De telefoon toont waar jullie van verdacht worden. Lees het hardop voor. Te saai? Tik op Andere beschuldiging.' },
+      { img: 'alibi-3', t: 'Jouw geheime woord', p: 'Om de beurt pak je de telefoon en zie je in het geheim een woord. Je hebt <b>8 seconden</b> om één zin aan het alibi toe te voegen waar dat woord in zit. Daarna <b>geef je door</b>; de volgende gaat verder op jouw verhaal.' },
+      { img: 'alibi-4', t: 'Leugen!', p: 'Spreekt iemand een eerder detail tegen? Tik op <b>Leugen!</b> (één keer per ronde). Klopt het, dan krijgt de leugenaar een strafpunt; klopt het niet, dan krijgt wie riep er één.' },
+      { img: 'alibi-5', t: 'Wie was het verdachtst?', p: 'Na het rondje telt de telefoon af en wijst iedereen tegelijk aan wie het verhaal het meest verdacht maakte. Die krijgt een strafpunt. De strafpunten houden jullie zelf bij.' },
+    ] },
     bom: { name: 'Tikkende Bom', c: '#ff3b3b', url: '/bom', slides: [
       { img: 'bom-1', t: 'Eén telefoon', p: 'Jullie spelen samen op één telefoon: geen namen, geen codes. Kies hoe lang de lont ongeveer is en of er ook pittige opdrachten tussen zitten, en tik op <b>Start het spel</b>.' },
       { img: 'bom-2', t: 'De opdracht', p: 'Elke ronde komt er een opdracht, zoals <b>biermerken</b>, <b>bekende memes</b> of <b>mensen met wie iemand aan deze tafel heeft gezoend</b>. Te moeilijk? Tik op Andere opdracht. Wie de telefoon heeft, tikt op <b>Start de bom</b>.' },
