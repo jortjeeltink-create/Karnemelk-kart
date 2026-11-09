@@ -190,37 +190,57 @@ const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ================= DE OPDRACHTEN ================= */
-// [wat je doet, de opdracht]. Breed genoeg dat iedereen snel iets kan noemen.
+// Feest, memes, uitgaan en de mensen aan tafel. Breed genoeg dat iedereen snel iets kan noemen, en met genoeg
+// stof om te lachen. Met "pittig" komen er persoonlijkere bij (exen, dates, gênante dingen).
 const VAST = [
-  'Automerken', 'Snoep', 'Voetbalclubs', 'Dingen die je meeneemt op vakantie', 'Nederlandse artiesten', 'Pizza-toppings',
-  'Dingen in een slaapkamer', 'Sporten', 'Beroepen', 'Kledingstukken', 'Groenten', 'Fruit', 'Apps op je telefoon',
-  'Hoofdsteden', 'Dingen die rood zijn', 'Dingen die geel zijn', 'Dieren in de dierentuin', 'Dingen in een keuken',
-  'Ontbijt', 'Kaassoorten', 'Disneyfilms', 'Superhelden', 'Instrumenten', 'Dingen op een camping', 'Merken van kleding',
-  'Dingen in een badkamer', 'Feestdagen', 'Bordspellen', 'Talen', 'Lichaamsdelen', 'Dingen in een klaslokaal',
-  'Dingen die je op het strand ziet', 'Snacks uit de snackbar', 'Vogels', 'Schoenen', 'Dingen met wielen',
-  'Dingen die je in een tas hebt', 'Soorten weer', 'Kleuren', 'Nederlandse steden', 'Landen in Europa', 'YouTubers',
-  'Gerechten met rijst', 'Desserts', 'Dingen in een tuin', 'Gereedschap', 'Dingen die vliegen', 'Supermarkten',
-  'Programma\'s op tv', 'Fastfoodketens', 'Dingen die je op een verjaardag ziet', 'Dingen in een ziekenhuis',
-  'Dieren met vier poten', 'Dingen in de zee', 'Merken van frisdrank', 'Soorten brood', 'Dingen die je in de winter doet',
-  'Nederlandse gerechten', 'Pokémon', 'Films met een getal in de titel', 'Dingen die stinken', 'Dingen die je kunt openen',
-  'Spelletjes van vroeger', 'Dingen op een kermis', 'Kruiden en specerijen', 'Bekende Nederlanders', 'Dingen met een knop',
+  // eten en drinken
+  'Biermerken', 'Cocktails', 'Drankspellen', 'Dingen die je zegt als je dronken bent', 'Dingen die je om 3 uur \'s nachts eet',
+  'Snacks uit de snackbar', 'Chipssmaken', 'Sauzen', 'Energiedrankjes en frisdrank', 'Fastfoodketens', 'Snoep',
+  'Snoep van vroeger', 'Dingen die je bij de McDonald\'s bestelt', 'Dingen in een kebabzaak', 'Pizza-toppings',
+  'Dingen die helpen tegen een kater', 'Ontbijt na een avond stappen', 'Dingen die je in de nachtwinkel koopt',
+  // muziek, series en internet
+  'Nederlandse rappers', 'Feestnummers die iedereen meebrult', 'Nummers van het foute uur', 'Nederlandstalige hits',
+  'Liedjes die viral gingen op TikTok', 'Festivals', 'Artiesten die je live hebt gezien', 'TikTokkers', 'YouTubers',
+  'Influencers', 'Bekende memes', 'Bekende Nederlanders', 'Bekende Nederlanders die een meme zijn geworden',
+  'Reality-sterren', 'Realityprogramma\'s', 'Series op Netflix', 'Tv-programma\'s van vroeger', 'Tekenfilms van vroeger',
+  'Disneyfilms', 'Pokémon', 'Superhelden', 'Games', 'Apps op je telefoon', 'Emoji\'s die je het meest stuurt',
+  'Woorden in straattaal', 'Dingen die je in de groepsapp stuurt', 'Celebrity crushes', 'Bekende koppels',
+  // uitgaan en vakantie
+  'Dingen die je ziet in een club', 'Dingen die je in de kroeg hoort', 'Dingen die je kwijtraakt tijdens het stappen',
+  'Dingen in je tas als je uitgaat', 'Dingen die je tegen een taxichauffeur zegt', 'Redenen om vroeg weg te gaan van een feestje',
+  'Dingen die je meeneemt naar een festival', 'Vakantiebestemmingen om te feesten', 'Studentensteden',
+  'Dingen die je op een camping ziet', 'Dingen die fout gaan op vakantie', 'Dingen die je op Marktplaats vindt',
+  // daten
+  'Rode vlaggen bij een date', 'Openingszinnen om iemand te versieren', 'Datingapps', 'Dingen die je doet op een eerste date',
+  'Redenen om een date af te zeggen',
+  // de mensen aan deze tafel
+  'Mensen met wie iemand aan deze tafel heeft gezoend', 'Bijnamen van iemand aan deze tafel',
+  'Dingen die iemand aan deze tafel altijd zegt', 'Dingen waar iemand aan deze tafel bang voor is',
+  'Dingen die iemand aan deze tafel weleens kwijt is geraakt', 'Wat er in de koelkast van iemand aan deze tafel staat',
+  'Wat iemand aan deze tafel doet als hij of zij dronken is', 'Leraren van vroeger', 'Klasgenoten van vroeger',
+  // van alles
+  'Kledingmerken', 'Sneakermerken', 'Automerken', 'Voetballers', 'Voetbalclubs', 'Dingen in de Action',
+  'Dingen die je moeder altijd zegt', 'Dingen die je vader altijd zegt', 'Smoesjes om niet naar school of je werk te gaan',
+  'Smoesjes om te laat te komen', 'Tattoos die je beter niet kunt nemen', 'Dingen op je bucketlist',
+  'Beroepen die je nooit zou willen', 'Dingen die je doet als je je verveelt', 'Namen voor een hond', 'Dingen die stinken',
+  'Kaartspellen', 'Spelletjes van vroeger op het schoolplein', 'Dingen die je ziet in de sportschool', 'Kapsels',
 ];
-const LETTERCAT = ['Een land', 'Een stad', 'Een dier', 'Een voornaam', 'Een beroep', 'Iets om te eten', 'Een merk', 'Iets in huis', 'Iets in de supermarkt', 'Een artiest of band', 'Een film of serie', 'Een sport of spel'];
+const LETTERCAT = ['Een bekende Nederlander', 'Een rapper of zanger', 'Een merk', 'Een snack of snoep', 'Een film of serie', 'Een stad of land', 'Een voornaam'];
 const LETTERS = 'BDGHKLMPRSTVW';
-const RIJM = ['kat', 'huis', 'feest', 'boom', 'zon', 'kaas', 'bed', 'vis', 'hand', 'muis', 'stoel', 'maan', 'tas', 'pet', 'boot', 'neus', 'bal', 'lamp'];
 const PITTIG = [
-  'Smoesjes om te laat te komen', 'Dingen die je liever niet in je zoekgeschiedenis hebt', 'Redenen om een date af te zeggen',
-  'Dingen die je niet tegen je schoonmoeder zegt', 'Gênante momenten op school', 'Dingen die je ouders niet mogen weten',
-  'Dingen die je zegt als je ex belt', 'Slechte openingszinnen', 'Rare gewoontes van iemand aan tafel',
-  'Dingen die je om 4 uur \'s nachts doet', 'Excuses om niet te sporten', 'Dingen die je stiekem leuk vindt',
-  'Dingen die je nooit meer wilt doen', 'Plekken waar je in slaap bent gevallen', 'Dingen die je in de groepsapp spijt hebben',
+  'Exen van mensen aan deze tafel', 'Plekken waar je ooit hebt gezoend', 'Crushes van mensen aan deze tafel',
+  'Mensen aan wie iemand aan deze tafel een dronken appje heeft gestuurd', 'Gênante dingen die iemand aan deze tafel heeft gedaan',
+  'Dingen die je liever niet in je zoekgeschiedenis hebt', 'Dingen die je ouders niet mogen weten', 'Berichten waar je spijt van hebt',
   'Redenen om het uit te maken', 'Leugens die iedereen weleens vertelt', 'Dingen die je doet als niemand kijkt',
-  'Wat je zegt als je iemands naam vergeten bent', 'Dingen die fout gaan op vakantie',
+  'Dingen die je om 4 uur \'s nachts doet', 'Dingen die je zegt als je ex belt', 'Slechte openingszinnen',
+  'Dingen die je nooit meer wilt doen', 'Plekken waar je in slaap bent gevallen', 'Rare gewoontes van iemand aan deze tafel',
+  'Dingen die fout gingen op een feestje', 'Dingen die iemand aan deze tafel stiekem leuk vindt',
+  'Dingen die je niet tegen je schoonmoeder zegt', 'Dingen die je niet wilt horen na een date',
 ];
 function opdrachten(pittig){
   const out = VAST.map((t) => ['Noem', t]);
-  for (const c of LETTERCAT) for (const l of shuffle([...LETTERS]).slice(0, 4)) out.push(['Noem', `${c} met een ${l}`]);
-  for (const r of RIJM) out.push(['Rijm op', r]);
+  // een paar met een letter, voor de afwisseling
+  for (const c of shuffle([...LETTERCAT]).slice(0, 4)) out.push(['Noem', `${c} met een ${shuffle([...LETTERS])[0]}`]);
   if (pittig) for (const t of PITTIG) out.push(['Noem', t], ['Noem', t]);   // pittig komt wat vaker langs
   return shuffle(out);
 }
@@ -332,7 +352,7 @@ const SCHERM = {
     <section class="card">
       <h2>Zo werkt het</h2>
       <ol class="steps">
-        <li><span>De telefoon geeft een <b>opdracht</b>, zoals <b>"een dier met een P"</b>.</span></li>
+        <li><span>De telefoon geeft een <b>opdracht</b>, zoals <b>"biermerken"</b> of <b>"bekende memes"</b>.</span></li>
         <li><span>Start de bom. <b>Noem iets</b> dat past en <b>geef de telefoon door</b>. Niks zeggen of iets dubbel zeggen? Dan moet je hem houden tot je wel iets weet.</span></li>
         <li><span>Ontploft hij <b>in jouw handen</b>? Dan heb <b>jij verloren</b>. Wat je moet doen, bepalen jullie zelf. Niemand weet hoe lang de lont is.</span></li>
       </ol>
