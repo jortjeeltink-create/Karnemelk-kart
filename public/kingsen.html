@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kingsen</title>
+<meta name="description" content="Kingsen op één telefoon: trek om de beurt een kaart uit de cirkel. Elke kaart is een opdracht, en wie de vierde heer op het glas legt, krijgt een mega strafpunt.">
+<meta name="theme-color" content="#120c24">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kingsen">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="/kingsen.webmanifest">
+<link rel="icon" href="/img/kingsen.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/kingsen-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Outfit:wght@500;600;700;800&display=swap">
+<style>
+:root{
+  /* Koninklijk: diep paars, goud en een cirkel kaarten rond een glas. Koppen in een klassieke letter, de rest
+     strak en groot, zodat iedereen aan tafel het kan lezen. */
+  --bg:#120c24;
+  --bg-2:#1b1335;
+  --card:#211843;
+  --card-2:#2c2157;
+  --line:rgba(255,255,255,.11);
+  --txt:#f6f1ff;
+  --mute:#bcb0da;
+  --gold:#f3c34b;
+  --gold-2:#ffe08a;
+  --purple:#8b5cf6;
+  --red:#d9343f;
+  --ink:#1b1430;
+  --paper:#fffaf0;
+  --ok:#7ee2a8;
+  --head:"Cinzel",Georgia,serif;
+  --ui:"Outfit",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg) radial-gradient(120% 70% at 50% -10%,#3a2575 0%,rgba(18,12,36,0) 60%) no-repeat;color:var(--txt);font:16px/1.5 var(--ui);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+button,textarea{font:inherit;color:inherit}
+button{border:0;background:none;padding:0;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:12px}
+h1,h2,h3{margin:0;line-height:1.05}
+p{margin:0}
+
+.app{position:relative;min-height:100svh;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.top{display:flex;align-items:center;gap:8px;min-height:52px}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px 0 8px;border-radius:999px;color:var(--mute);text-decoration:none;font-weight:600;font-size:15px}
+.back:hover{color:var(--txt)}
+.top .title{font-family:var(--head);font-weight:900;font-size:19px;letter-spacing:.04em;margin-right:auto}
+.top .spacer{margin-right:auto}
+.iconbtn{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);color:var(--txt)}
+.iconbtn:hover{background:var(--card-2)}
+
+.screen{flex:1;display:flex;flex-direction:column;gap:14px;padding-top:6px}
+.screen.anim{animation:in .28s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.card{padding:18px;border-radius:20px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.card h2{font-family:var(--head);font-weight:900;font-size:21px;margin-bottom:10px;letter-spacing:.02em}
+.label{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+.muted{color:var(--mute);font-size:14px}
+.grow{flex:1}
+.center{text-align:center}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:60px;padding:0 20px;border-radius:18px;font-family:var(--ui);font-weight:800;font-size:20px;text-decoration:none;text-align:center}
+.btn.go{background:linear-gradient(180deg,var(--gold-2),var(--gold) 55%,#d9a22c);color:#2a1a00;box-shadow:0 12px 30px rgba(243,195,75,.28),inset 0 -4px 0 rgba(0,0,0,.14)}
+.btn.go:active{transform:translateY(1px)}
+.btn.ghost{background:var(--card);color:var(--txt);box-shadow:inset 0 0 0 1px var(--line);font-size:17px;min-height:52px}
+.btn.ghost:hover{background:var(--card-2)}
+.btn.stick{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:3}
+.textlink{display:block;margin:0 auto;min-height:44px;padding:0 14px;color:var(--mute);font-weight:600;font-size:15px}
+.textlink:hover{color:var(--txt)}
+
+/* start */
+.hero{display:grid;justify-items:center;text-align:center;gap:8px;padding:6px 0 2px}
+.hero h1{font-family:var(--head);font-weight:900;font-size:clamp(48px,14vw,68px);letter-spacing:.03em;background:linear-gradient(180deg,var(--gold-2),var(--gold) 60%,#c98d1c);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 22px rgba(243,195,75,.25))}
+.hero p{color:var(--mute);max-width:32ch}
+.crown{width:84px;height:auto;filter:drop-shadow(0 8px 20px rgba(243,195,75,.35))}
+.steps{display:grid;gap:10px;margin:0;padding:0;list-style:none;counter-reset:s}
+.steps li{display:grid;grid-template-columns:32px 1fr;gap:12px;align-items:start;font-size:15px;line-height:1.45}
+.steps li::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--gold);color:#2a1a00;font-weight:800;font-size:15px}
+.steps b{color:#fff}
+.howlink{display:inline-flex;align-items:center;gap:8px;margin-top:12px;min-height:40px;padding:0 14px;border-radius:999px;background:var(--card-2);font-weight:700;font-size:14px}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.opt b{display:block;font-weight:800;font-size:17px}
+.opt small{display:block;color:var(--mute);font-size:13.5px;line-height:1.4}
+.sw{position:relative;flex:none;width:56px;height:32px;border-radius:999px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px var(--line);transition:background .2s}
+.sw::after{content:"";position:absolute;left:4px;top:4px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.35);transition:transform .25s cubic-bezier(.3,1.3,.5,1)}
+.sw[aria-checked="true"]{background:var(--purple)}
+.sw[aria-checked="true"]::after{transform:translateX(24px)}
+.cheat{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin:0;padding:0;list-style:none;font-size:13.5px}
+.cheat li{display:flex;gap:8px;align-items:baseline}
+.cheat b{flex:none;min-width:22px;color:var(--gold);font-weight:800}
+
+/* een speelkaart */
+.pc{--w:120px;position:relative;width:var(--w);height:calc(var(--w) * 1.4);border-radius:calc(var(--w) * .1);background:linear-gradient(160deg,var(--paper),#efe5d2);color:var(--ink);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12),0 10px 24px rgba(0,0,0,.45);flex:none}
+.pc.red{color:var(--red)}
+.pc .ix{position:absolute;left:7%;top:4.5%;display:grid;justify-items:center;font:800 calc(var(--w) * .17)/.95 var(--ui)}
+.pc .ix i{font-style:normal;font-size:.75em}
+.pc .ix.b{left:auto;top:auto;right:7%;bottom:4.5%;transform:rotate(180deg)}
+.pc .mid{position:absolute;inset:0;display:grid;place-items:center;font:800 calc(var(--w) * .52)/1 var(--ui)}
+.pc .mid.court{inset:15% 25%;border:2px solid currentColor;border-radius:calc(var(--w) * .07);font-family:var(--head);font-weight:900;font-size:calc(var(--w) * .34);align-content:center;gap:2px;justify-items:center}
+.pc .mid.court i{font-style:normal;font-family:var(--ui);font-size:.7em}
+
+/* de cirkel rond het glas */
+.status{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border-radius:999px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);font-size:13.5px;font-weight:700;color:var(--txt)}
+.chip b{color:var(--gold);font-variant-numeric:tabular-nums}
+.chip svg{flex:none}
+button.chip:hover{background:var(--card-2)}
+.dir.ccw svg{transform:scaleX(-1)}
+.ringwrap{position:relative;container-type:inline-size;width:min(100%,380px);aspect-ratio:1;margin:0 auto;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.ringwrap::before{content:"";position:absolute;inset:4%;border-radius:50%;background:radial-gradient(closest-side,rgba(139,92,246,.22),rgba(139,92,246,.06) 70%,transparent)}
+.rc{position:absolute;width:8.4%;height:11.8%;border-radius:4px;background:repeating-linear-gradient(45deg,#4a2a8a 0 3px,#5d37a8 3px 6px);box-shadow:inset 0 0 0 2px #fffaf0,0 3px 6px rgba(0,0,0,.45);transition:transform .35s cubic-bezier(.3,.7,.2,1),opacity .35s}
+.rc.weg{opacity:0}
+.ringwrap.kapot .rc.dicht{transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.glass{position:absolute;left:50%;top:50%;width:26%;transform:translate(-50%,-46%);pointer-events:none}
+.kings{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none}
+.kings .pc{position:absolute;--w:10cqw;left:calc(var(--w) * -.5);top:calc(-14cqw - var(--w) * .8);box-shadow:0 4px 10px rgba(0,0,0,.5)}
+.kings .pc .ix{display:none}
+.kings .pc .mid.court{inset:12%;font-size:calc(var(--w) * .42)}
+.hint{text-align:center;color:var(--mute);font-size:14px;min-height:21px}
+.vorige{text-align:center;font-size:14px;color:var(--mute)}
+.vorige b{color:var(--txt)}
+
+/* de getrokken kaart en de opdracht */
+.reveal{display:grid;justify-items:center;gap:12px;text-align:center}
+.reveal .pc{--w:min(36vw,150px);animation:flip .5s cubic-bezier(.3,.7,.2,1) both}
+@keyframes flip{0%{transform:rotateY(90deg) translateY(-18px)}100%{transform:none}}
+.screen:not(.anim) .reveal .pc{animation:none}
+.reveal h2{font-family:var(--head);font-weight:900;font-size:clamp(28px,8.5vw,38px);letter-spacing:.02em;color:var(--gold-2)}
+.reveal .rule{font-size:17px;line-height:1.5;max-width:34ch}
+.reveal .rule b{color:#fff}
+.extra{width:100%;display:grid;gap:10px;justify-items:center}
+.idee{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+.idee span{padding:8px 14px;border-radius:14px;background:var(--card-2);box-shadow:inset 0 0 0 1px rgba(243,195,75,.4);font-weight:800}
+.mini{min-height:40px;padding:0 14px;border-radius:999px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);font-weight:700;font-size:14px}
+.mini:hover{background:var(--card-2)}
+.regelin{width:100%;display:grid;gap:8px}
+.regelin textarea{width:100%;min-height:64px;padding:12px 14px;border:0;border-radius:14px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);color:var(--txt);font:16px/1.4 var(--ui);resize:vertical}
+.regelin textarea:focus{outline:2px solid var(--gold)}
+.regels{width:100%;display:grid;gap:8px;margin:0;padding:0;list-style:none;text-align:left}
+.regels li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);font-size:15px}
+.regels li span{flex:1;overflow-wrap:anywhere}
+.regels .mini{flex:none;min-height:36px;color:#ffb3b8}
+.ok{color:var(--ok);font-weight:700}
+.tel{font-family:var(--head);font-weight:900;font-size:76px;line-height:1;color:var(--gold-2);min-height:80px;animation:pop .3s cubic-bezier(.2,1.6,.4,1)}
+.tel.wijs{font-size:54px;color:#fff}
+@keyframes pop{from{transform:scale(.5);opacity:0}}
+.dots{display:flex;gap:8px;justify-content:center}
+.dots i{width:30px;height:42px;border-radius:6px;box-shadow:inset 0 0 0 2px rgba(243,195,75,.5)}
+.dots i.on{background:linear-gradient(160deg,var(--gold-2),var(--gold));box-shadow:0 4px 12px rgba(243,195,75,.35)}
+.draai{width:70px;height:70px;color:var(--gold);animation:spin .8s cubic-bezier(.3,.7,.2,1)}
+.draai.ccw{transform:scaleX(-1)}
+@keyframes spin{from{rotate:-180deg;opacity:0}}
+
+/* einde */
+.boom{display:grid;justify-items:center;text-align:center;gap:10px;padding-top:8px}
+.boom h1{font-family:var(--head);font-weight:900;font-size:clamp(34px,10vw,48px);line-height:1.05;color:var(--gold-2)}
+.boom .mega{display:inline-block;padding:8px 18px;border-radius:999px;background:linear-gradient(180deg,#ff6b6b,var(--red));color:#fff;font-weight:800;font-size:18px;box-shadow:0 10px 30px rgba(217,52,63,.4);animation:pop .4s .2s cubic-bezier(.2,1.6,.4,1) both}
+.boom p{color:var(--mute);max-width:32ch}
+.boom .pc{--w:min(32vw,130px)}
+.broken{width:150px;height:150px}
+.tally{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tally div{padding:12px 14px;border-radius:16px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.tally b{display:block;font-weight:800;font-size:26px;line-height:1}
+.tally span{font-size:12.5px;color:var(--mute)}
+@media (prefers-reduced-motion:reduce){.screen.anim,.reveal .pc,.tel,.draai,.boom .mega{animation:none}.rc{transition:none}}
+
+.sheet,.menu{position:fixed;inset:0;z-index:21;display:flex;padding:calc(62px + env(safe-area-inset-top,0px)) 16px 16px;background:rgba(8,5,18,.55)}
+.menu{align-items:flex-start;justify-content:flex-end}
+.menu nav{width:min(100%,300px);display:grid;padding:8px;border-radius:18px;background:var(--card-2);box-shadow:0 20px 60px rgba(0,0,0,.6),inset 0 0 0 1px var(--line)}
+.menu nav a,.menu nav button{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 12px;border-radius:12px;text-decoration:none;font-weight:600;text-align:left}
+.menu nav a:hover,.menu nav button:hover{background:rgba(255,255,255,.06)}
+.sheet{align-items:flex-end;justify-content:center}
+.sheet>div{width:min(100%,480px);max-height:80vh;overflow:auto;display:grid;gap:12px;padding:18px;border-radius:22px;background:var(--bg-2);box-shadow:0 20px 60px rgba(0,0,0,.6),inset 0 0 0 1px var(--line)}
+.sheet h2{font-family:var(--head);font-weight:900;font-size:22px}
+.fine{margin-top:auto;padding-top:14px;text-align:center;color:#8d80ad;font-size:12.5px;line-height:1.45}
+.fine a{color:var(--mute)}
+</style>
+<script src="/js/poort.js" defer></script>
+<script src="/js/uitleg.js" defer></script>
+<script src="/js/review.js" defer></script>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <a class="back" href="/?tab=een" aria-label="Terug naar De Spelkeet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span id="backTxt">De Spelkeet</span></a>
+    <span class="title" id="topTitle" hidden>Kingsen</span>
+    <span class="spacer" id="spacer"></span>
+    <button class="iconbtn" id="soundBtn" type="button" aria-label="Geluid uit"></button>
+    <button class="iconbtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+  </header>
+  <main id="screen" class="screen"></main>
+  <p class="fine">Wat een (mega) strafpunt is, spreken jullie samen af. Niks is verplicht, het gaat om de lol. <a href="/melden">Iets melden</a></p>
+</div>
+
+<div class="menu" id="menu" hidden>
+  <nav aria-label="Menu">
+    <button type="button" data-act="uitleg">❓ Hoe werkt het?</button>
+    <button type="button" data-act="kaarten">🃏 Alle kaarten</button>
+    <button type="button" data-act="instellingen" id="menuSet">⚙️ Nieuw spel of instellingen</button>
+    <a href="/review?spel=kingsen">⭐ Wat vind je ervan?</a>
+    <a href="/melden">🚩 Iets melden</a>
+    <a href="/?tab=een">🏠 Terug naar De Spelkeet</a>
+  </nav>
+</div>
+<div class="sheet" id="sheet" hidden><div role="dialog" aria-modal="true" aria-labelledby="sheetT" id="sheetBox"></div></div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s) => document.querySelector(s);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const kies = (l) => l[Math.floor(Math.random() * l.length)];
+
+/* ================= DE KAARTEN ================= */
+// 52 kaarten, zonder jokers. s: 0 harten, 1 ruiten, 2 klaveren, 3 schoppen; r: 2 tot en met 14 (boer 11 ... aas 14)
+const SUITS = [{ sym: '♥', red: true, naam: 'harten' }, { sym: '♦', red: true, naam: 'ruiten' }, { sym: '♣', red: false, naam: 'klaveren' }, { sym: '♠', red: false, naam: 'schoppen' }];
+const RANK = { 11: 'B', 12: 'V', 13: 'H', 14: 'A' };
+const RANKNAAM = { 11: 'boer', 12: 'vrouw', 13: 'heer', 14: 'aas' };
+const label = (c) => RANK[c.r] || String(c.r);
+const naam = (c) => `${SUITS[c.s].naam} ${RANKNAAM[c.r] || c.r}`;
+function nieuwDeck() {
+  const d = [];
+  for (let s = 0; s < 4; s++) for (let r = 2; r <= 14; r++) d.push({ r, s });
+  for (let i = d.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [d[i], d[j]] = [d[j], d[i]]; }
+  return d;
+}
+function kaartHTML(c, cls = '') {
+  const red = SUITS[c.s].red, sym = SUITS[c.s].sym, rk = label(c), court = c.r >= 11 && c.r <= 13;
+  return `<div class="pc${red ? ' red' : ''} ${cls}" role="img" aria-label="${naam(c)}"><span class="ix">${rk}<i>${sym}</i></span><span class="mid${court ? ' court' : ''}">${court ? `${rk}<i>${sym}</i>` : sym}</span><span class="ix b">${rk}<i>${sym}</i></span></div>`;
+}
+// Elke soort kaart is een opdracht. Een strafpunt en een mega strafpunt: wat dat is, spreken jullie samen af.
+const REGELS = {
+  2: { naam: 'Uitdelen', kort: 'Geef iemand een strafpunt', tekst: 'Kies iemand aan tafel. Die krijgt een <b>strafpunt</b> van jou.' },
+  3: { naam: 'Voor jou', kort: 'Zelf een strafpunt', tekst: 'Pech: jij krijgt zelf een <b>strafpunt</b>.' },
+  4: { naam: 'Categorie', kort: 'Noem om de beurt iets', tekst: 'Kies een categorie. Om de beurt noemt iedereen er iets uit. Wie niks meer weet of iets noemt dat al geweest is, krijgt een <b>strafpunt</b>.' },
+  5: { naam: 'Duimen', kort: 'Laatste duim op tafel', tekst: 'Leg op een moment dat jij kiest je duim op tafel. Wie het ziet, doet je na. Wie zijn duim als laatste neerlegt, krijgt een <b>strafpunt</b>.' },
+  6: { naam: 'Maatje', kort: 'Kies een maatje', tekst: 'Kies een maatje. Elke keer dat jij een strafpunt krijgt, krijgt je maatje er ook een. Samen uit, samen thuis.' },
+  7: { naam: 'Tafel van 7', kort: 'Tellen zonder 7', tekst: 'Tel om de beurt hardop vanaf 1. Getallen uit de tafel van 7 (7, 14, 21 …) en getallen met een 7 erin (17, 27 …) mag je niet zeggen. Wie een fout maakt, krijgt een <b>strafpunt</b>.' },
+  8: { naam: 'Regel verzinnen', kort: 'Een nieuwe regel', tekst: 'Verzin een regel die de rest van het spel geldt. Bijvoorbeeld: niemand mag nog iemands naam zeggen. Wie zich er niet aan houdt, krijgt een <b>strafpunt</b>.' },
+  9: { naam: 'Regel afschaffen', kort: 'Schaf een regel af', tekst: 'Je mag één regel die met een 8 is verzonnen weer afschaffen.' },
+  10: { naam: 'Quizmaster', kort: 'Geef geen antwoord', tekst: 'Jij bent de quizmaster. Wie antwoord geeft op een vraag van jou, krijgt een <b>strafpunt</b>. Er is maar één quizmaster: trekt iemand anders een 10, dan neemt die het over.' },
+  11: { naam: 'Wijzen', kort: 'Iedereen wijst', tekst: 'Iedereen steekt een hand in de lucht. Tel af van 5 naar 0 (de telefoon kan het voor je doen) en wijs dan tegelijk iemand aan. Wie het vaakst wordt aangewezen, krijgt een <b>strafpunt</b>.' },
+  12: { naam: 'Rise of the queen', kort: 'Hand omhoog', tekst: 'Op een moment dat jij kiest steek je je hand op en roep je <b>"Rise of the queen!"</b> Iedereen doet je na. Wie het als laatste doet, krijgt een <b>strafpunt</b>.' },
+  13: { naam: 'Op het glas', kort: 'Vierde heer: mega', tekst: 'Leg de heer op het glas in het midden. Wie de <b>vierde heer</b> oplegt, krijgt een <b>mega strafpunt</b> en dan is het spel voorbij.' },
+  14: { naam: 'Omkeren', kort: 'Andere kant op', tekst: 'Draai de beurt om: vanaf nu gaat het spel <b>de andere kant op</b>.' },
+};
+// ideeën voor als je bij een 4 niks kunt bedenken
+const CATEGORIEEN = ['Automerken', 'Snacks uit de snackbar', 'Landen in Europa', 'Voetbalclubs', 'Nederlandse rappers', 'Series op Netflix', 'Pokémon', 'Kledingmerken', 'Dieren in de dierentuin', 'Apps op je telefoon', 'IJssmaken', 'Disneyfilms', 'Sporten', 'Steden in Nederland', 'Dingen in de supermarkt', 'Fastfoodketens', 'Superhelden', 'Schoenenmerken', 'Beroepen', 'Vakken op school', 'Kaassoorten', 'Personages uit Harry Potter', 'Games', 'Groenten', 'Fruit', 'Pizzatoppings', 'Zangeressen', 'Hoofdsteden', 'Snoep', 'Dingen die je in je tas hebt', 'Bekende memes', 'Mario Kart-personages', 'Merken van frisdrank', 'Dingen op een camping', 'Woorden die rijmen op "kat"', 'Sinterklaasliedjes', 'Dingen in een badkamer', 'Talen', 'Bekende YouTubers', 'Kleuren', 'Muziekinstrumenten', 'Dingen die je op het strand vindt'];
+
+/* ================= INSTELLINGEN EN HET SPEL ================= */
+const KEY = 'spelkeet-kingsen';
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
+const saved = load();
+const S = { breken: saved.breken !== false, geluid: saved.geluid !== false };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* geen opslag */ } };
+const N = 52;
+let G = null;
+function nieuwSpel() {
+  G = {
+    deck: nieuwDeck(),
+    weg: new Array(N).fill(false),
+    // elke kaart ligt net iets anders, zoals in het echt
+    jit: Array.from({ length: N }, () => ({ r: (Math.random() - .5) * 14, d: (Math.random() - .5) * 2.4 })),
+    getrokken: 0, heren: [], richting: 1, regels: [], laatste: null, pos: -1, einde: null, idee: kies(CATEGORIEEN),
+    // de cirkel kan breken: niemand weet bij welke kaart (soms helemaal niet)
+    breekBij: S.breken ? rnd(15, 62) : 0,
+  };
+  try { fetch('/api/potje', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ spel: 'kingsen' }), keepalive: true }).catch(() => {}); } catch (e) { /* niet erg */ }
+}
+const hoek = (i) => -Math.PI / 2 + (i / N) * Math.PI * 2;
+
+/* ================= GELUID EN TRILLEN ================= */
+let ac = null;
+function audio() {
+  if (!S.geluid) return null;
+  try { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) { ac = null; }
+  return ac;
+}
+function piep(f, d, { type = 'sine', vol = .2, at = 0, naar = 0 } = {}) {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + at, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (naar) o.frequency.exponentialRampToValueAtTime(naar, t + d);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + d + .05);
+}
+function ruis(d, vol = .3, freq = 3000, at = 0) {
+  const a = audio(); if (!a) return;
+  const len = Math.ceil(a.sampleRate * d), buf = a.createBuffer(1, len, a.sampleRate), data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+  const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+  src.buffer = buf; f.type = 'bandpass'; f.frequency.value = freq; g.gain.value = vol;
+  src.connect(f).connect(g).connect(a.destination); src.start(a.currentTime + at);
+}
+const Snd = {
+  trek() { ruis(.14, .35); },
+  heer() { piep(1320, .5, { type: 'triangle', vol: .16, at: .15 }); piep(1980, .4, { type: 'sine', vol: .08, at: .17 }); },
+  // de vierde heer: een fanfare
+  vier() { [523, 659, 784, 1047].forEach((f, k) => piep(f, k === 3 ? .7 : .16, { type: 'square', vol: .1, at: .1 + k * .14 })); },
+  breek() { ruis(.5, .7, 900); ruis(.25, .4, 4000, .05); piep(160, .5, { type: 'sawtooth', vol: .15, naar: 50 }); },
+  draai() { piep(440, .3, { type: 'triangle', vol: .14, naar: 880 }); },
+  tel(laatste) { piep(laatste ? 1046 : 660, laatste ? .45 : .12, { type: 'square', vol: .1 }); },
+  klik() { piep(700, .05, { vol: .08 }); },
+};
+const tril = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* niet erg */ } };
+
+/* ================= TEKENEN ================= */
+const ICON = {
+  dir: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>',
+  draai: '<svg class="draai" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>',
+};
+const CROWN = '<svg class="crown" viewBox="0 0 120 84" aria-hidden="true"><defs><linearGradient id="kg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#d9a22c"/></linearGradient></defs><path d="M10 70 L4 18 L34 42 L60 6 L86 42 L116 18 L110 70 Z" fill="url(#kg)" stroke="#8a5a0c" stroke-width="3" stroke-linejoin="round"/><rect x="10" y="66" width="100" height="14" rx="4" fill="url(#kg)" stroke="#8a5a0c" stroke-width="3"/><circle cx="60" cy="44" r="7" fill="#d9343f"/><circle cx="32" cy="54" r="5" fill="#8b5cf6"/><circle cx="88" cy="54" r="5" fill="#8b5cf6"/></svg>';
+const GLAS = '<svg class="glass" viewBox="0 0 100 120" aria-hidden="true"><defs><linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="rgba(255,255,255,.35)"/><stop offset=".3" stop-color="rgba(255,255,255,.08)"/><stop offset="1" stop-color="rgba(255,255,255,.22)"/></linearGradient></defs><ellipse cx="50" cy="112" rx="34" ry="7" fill="rgba(0,0,0,.35)"/><path d="M18 14 L26 106 Q50 114 74 106 L82 14 Z" fill="url(#gl)" stroke="rgba(255,255,255,.55)" stroke-width="3" stroke-linejoin="round"/><path d="M24 56 L28 104 Q50 111 72 104 L76 56 Z" fill="rgba(139,92,246,.35)"/><ellipse cx="50" cy="14" rx="32" ry="7" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.6)" stroke-width="3"/><path d="M30 24 L35 92" stroke="rgba(255,255,255,.45)" stroke-width="4" stroke-linecap="round"/></svg>';
+const BROKEN = '<svg class="broken" viewBox="0 0 150 150" aria-hidden="true">' + Array.from({ length: 26 }, (_, i) => {
+  const a = -Math.PI / 2 + i / 26 * Math.PI * 2, gat = i === 0 || i === 1 || i === 25;
+  const r = 58 + (gat ? 0 : 0), x = 75 + Math.cos(a) * r, y = 75 + Math.sin(a) * r, deg = a * 180 / Math.PI + 90;
+  if (gat) return '';
+  const dx = (i === 2 ? 8 : i === 24 ? -8 : 0), dy = (i === 2 || i === 24 ? -4 : 0);
+  return `<rect x="${(x + dx - 6).toFixed(1)}" y="${(y + dy - 8.5).toFixed(1)}" width="12" height="17" rx="2" transform="rotate(${(deg + (dx ? dx * 2 : 0)).toFixed(1)} ${(x + dx).toFixed(1)} ${(y + dy).toFixed(1)})" fill="#5d37a8" stroke="#fffaf0" stroke-width="1.6"/>`;
+}).join('') + '<path d="M75 2 L68 18 L80 26 L72 40" fill="none" stroke="#ff6b6b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function ringHTML() {
+  let s = '';
+  for (let i = 0; i < N; i++) {
+    const a = hoek(i), j = G.jit[i], R = 38 + j.d;
+    const x = 50 + Math.cos(a) * R - 4.2, y = 50 + Math.sin(a) * R - 5.9;
+    const weg = G.weg[i];
+    s += `<i class="rc${weg ? ' weg' : ' dicht'}" data-i="${i}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%;transform:rotate(${(a * 180 / Math.PI + 90 + j.r).toFixed(1)}deg)${weg ? ' scale(.6)' : ''}"></i>`;
+  }
+  // de heren op het glas, schuin op elkaar
+  const kings = G.heren.map((c, k) => kaartHTML(c, '').replace('class="pc', `style="transform:rotate(${[-14, 10, -4, 16][k]}deg) translate(${[-6, 6, -2, 4][k]}px,${-k * 3}px)" class="pc`)).join('');
+  return `<div class="ringwrap" id="ring" role="button" tabindex="0" aria-label="Pak een kaart uit de cirkel. Nog ${N - G.getrokken} kaarten.">${GLAS}<div class="kings">${kings}</div>${s}</div>`;
+}
+const richtingTxt = () => (G.richting === 1 ? 'Met de klok mee' : 'Tegen de klok in');
+
+/* ================= SCHERMEN ================= */
+const SCHERM = {
+  start() {
+    return `<section class="hero">${CROWN}<h1>Kingsen</h1><p>Een cirkel kaarten rond een glas. Elke kaart is een opdracht, en de vierde heer is fataal.</p></section>
+    <section class="card">
+      <h2>Zo werkt het</h2>
+      <ol class="steps">
+        <li><span>Leg de telefoon midden op tafel. Om de beurt <b>pak je een kaart</b> uit de cirkel: tik erop.</span></li>
+        <li><span>Elke soort kaart is een <b>opdracht</b>. De telefoon laat zien wat je moet doen.</span></li>
+        <li><span>Een <b>heer</b> leg je op het glas. Wie de <b>vierde heer</b> oplegt, krijgt een <b>mega strafpunt</b> en het spel is voorbij.</span></li>
+        <li><span>Breekt de cirkel als jij een kaart pakt? Ook dan een <b>mega strafpunt</b> en is het spel voorbij.</span></li>
+      </ol>
+      <button class="howlink" type="button" data-act="uitleg">Uitleg met plaatjes ›</button>
+    </section>
+    <section class="card">
+      <h2>De kaarten</h2>
+      <ul class="cheat">${[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((r) => `<li><b>${RANK[r] || r}</b><span>${REGELS[r].naam}</span></li>`).join('')}</ul>
+      <button class="howlink" type="button" data-act="kaarten">Alles over de kaarten ›</button>
+    </section>
+    <section class="card">
+      <div class="opt"><span><b>De cirkel kan breken</b><small>Net als met echte kaarten. Niemand weet bij welke kaart: misschien vroeg, misschien nooit. Uit: alleen de vierde heer stopt het spel.</small></span><button class="sw" type="button" role="switch" data-sw="breken" aria-checked="${S.breken}" aria-label="De cirkel kan breken"></button></div>
+    </section>
+    ${G && !G.einde && G.getrokken ? '<button class="btn ghost" type="button" data-act="terug">Verder met dit spel</button>' : ''}
+    <button class="btn go" type="button" data-act="begin">${G && !G.einde && G.getrokken ? 'Nieuw spel' : 'Leg de cirkel'}</button>`;
+  },
+  ring() {
+    const over = N - G.getrokken, v = G.laatste;
+    return `<div class="status">
+        <span class="chip">Nog <b>${over}</b> kaarten</span>
+        <span class="chip">Heren op het glas <b>${G.heren.length}/4</b></span>
+        <span class="chip dir${G.richting === 1 ? '' : ' ccw'}">${ICON.dir}${richtingTxt()}</span>
+        ${G.regels.length ? `<button class="chip" type="button" data-act="regels">Regels <b>${G.regels.length}</b></button>` : ''}
+      </div>
+      ${ringHTML()}
+      <p class="hint" id="hint">${G.getrokken ? 'Volgende speler: tik op een kaart in de cirkel.' : 'Wie begint? Tik op een kaart in de cirkel.'}</p>
+      ${v ? `<p class="vorige">Vorige kaart: <b>${label(v)} · ${REGELS[v.r].naam}</b></p>` : ''}
+      <div class="grow"></div>
+      <button class="btn go stick" type="button" data-act="pak">Pak een kaart</button>`;
+  },
+  kaart() {
+    const c = G.laatste, R = REGELS[c.r];
+    let extra = '';
+    if (c.r === 4) extra = `<div class="idee"><span class="muted">Idee:</span><span id="idee">${esc(G.idee)}</span><button class="mini" type="button" data-act="idee">Ander idee</button></div>`;
+    if (c.r === 8) extra = `<div class="regelin"><label class="label" for="regel">Schrijf de regel op (hoeft niet)</label><textarea id="regel" maxlength="140" rows="2" placeholder="Bijvoorbeeld: je mag niet naar je telefoon kijken"></textarea><button class="mini" type="button" data-act="bewaar">Bewaar de regel</button><p class="ok" id="bewaard" hidden>✓ Bewaard. Je vindt hem bij Regels.</p></div>`;
+    if (c.r === 9) extra = G.regels.length ? `<ul class="regels">${G.regels.map((r, k) => `<li><span>${esc(r)}</span><button class="mini" type="button" data-schaf="${k}">Schaf af</button></li>`).join('')}</ul>` : '<p class="muted">Er zijn nog geen opgeschreven regels. Is er wel een regel afgesproken, dan mag je die nu afschaffen.</p>';
+    if (c.r === 11) extra = `<div class="tel" id="tel" aria-live="assertive"></div><button class="mini" type="button" data-act="tel">Tel af: 5, 4, 3, 2, 1</button>`;
+    if (c.r === 13) extra = `<div class="dots" aria-label="${G.heren.length} van de 4 heren liggen op het glas">${[0, 1, 2, 3].map((k) => `<i class="${k < G.heren.length ? 'on' : ''}"></i>`).join('')}</div><p class="muted">Nog ${4 - G.heren.length} ${4 - G.heren.length === 1 ? 'heer' : 'heren'} te gaan. Wie de laatste trekt, heeft pech.</p>`;
+    if (c.r === 14) extra = `${ICON.draai.replace('class="draai"', `class="draai${G.richting === 1 ? '' : ' ccw'}"`)}<p class="muted">Nu: <b>${richtingTxt().toLowerCase()}</b></p>`;
+    return `<p class="label center">Kaart ${G.getrokken} van ${N}</p>
+      <section class="reveal" aria-live="polite">
+        ${kaartHTML(c)}
+        <h2>${R.naam}</h2>
+        <p class="rule">${R.tekst}</p>
+        <div class="extra">${extra}</div>
+      </section>
+      <div class="grow"></div>
+      <button class="btn go stick" type="button" data-act="verder">Klaar, volgende speler</button>`;
+  },
+  einde() {
+    const heer = G.einde === 'heer';
+    return `<section class="boom">
+        ${heer ? kaartHTML(G.laatste) : BROKEN}
+        <h1>${heer ? 'De vierde heer!' : 'De cirkel is gebroken!'}</h1>
+        <span class="mega">Mega strafpunt voor jou</span>
+        <p>${heer ? 'Jij legde de laatste heer op het glas.' : 'Bij jouw kaart brak de cirkel.'} Het spel is voorbij.</p>
+      </section>
+      <div class="tally"><div><b>${G.getrokken}</b><span>kaarten getrokken</span></div><div><b>${G.heren.length}</b><span>heren op het glas</span></div></div>
+      <div class="grow"></div>
+      <button class="btn go" type="button" data-act="begin">Nieuw spel</button>
+      <button class="textlink" type="button" data-act="instellingen">Instellingen</button>`;
+  },
+};
+
+let nu = '';
+function toon(naam) {
+  const ander = naam !== nu;
+  nu = naam;
+  const el = $('#screen');
+  el.className = `screen${ander ? ' anim' : ''}`;
+  el.innerHTML = SCHERM[naam]();
+  if (ander) { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; scrollTo(0, 0); }
+  const start = naam === 'start';
+  $('#topTitle').hidden = start; $('#spacer').hidden = !start; $('#backTxt').hidden = !start; $('#menuSet').hidden = start;
+  // na een spel: hoe vond je het? (zie review.js)
+  if (window.SpelkeetReview) window.SpelkeetReview.stand('kingsen', start ? 'lobby' : 'spel', naam === 'einde' ? 2 : 0);
+}
+
+/* ================= EEN KAART PAKKEN ================= */
+let bezig = false;
+function pak(i) {
+  if (!G || G.einde || bezig || i < 0 || G.weg[i]) return;
+  bezig = true; audio();
+  G.weg[i] = true; G.getrokken++; G.pos = i;
+  const c = G.deck[i]; G.laatste = c;
+  const el = document.querySelector(`.rc[data-i="${i}"]`);
+  const breekt = G.breekBij && G.getrokken === G.breekBij;
+  if (el) {
+    const a = hoek(i);
+    el.style.transform += ` translate(0,${-40}%) scale(1.3)`;
+    el.style.left = `${50 + Math.cos(a) * 52 - 4.2}%`; el.style.top = `${50 + Math.sin(a) * 52 - 5.9}%`;
+    el.classList.add('weg');
+  }
+  Snd.trek();
+  if (breekt) {
+    // de kaarten naast de getrokken kaart schieten weg: de cirkel is gebroken
+    const ring = $('#ring'); if (ring) ring.classList.add('kapot');
+    for (let k = -3; k <= 3; k++) {
+      const n = (i + k + N) % N, e = document.querySelector(`.rc[data-i="${n}"]`);
+      if (e && k) e.style.transform += ` translate(${k * 18}%,${-30 - Math.abs(k) * 10}%) rotate(${k * 22}deg)`;
+    }
+    setTimeout(() => { Snd.breek(); tril([400, 100, 400]); }, 120);
+    G.einde = 'cirkel';
+    return setTimeout(() => { bezig = false; toon('einde'); }, reduce ? 300 : 1100);
+  }
+  if (c.r === 13) {
+    G.heren.push(c);
+    if (G.heren.length === 4) { G.einde = 'heer'; setTimeout(() => { Snd.vier(); tril([300, 80, 300, 80, 600]); }, 200); return setTimeout(() => { bezig = false; toon('einde'); }, reduce ? 200 : 450); }
+    Snd.heer(); tril(60);
+  } else if (c.r === 14) { G.richting *= -1; setTimeout(() => Snd.draai(), 250); tril(40); } else tril(25);
+  if (c.r === 4) G.idee = kies(CATEGORIEEN);
+  setTimeout(() => { bezig = false; toon('kaart'); }, reduce ? 150 : 420);
+}
+function pakWillekeurig() {
+  if (!G) return;
+  const vrij = []; G.weg.forEach((w, i) => { if (!w) vrij.push(i); });
+  if (vrij.length) pak(kies(vrij));
+}
+// tik op de cirkel: de kaart die het dichtst bij je vinger ligt
+function tikRing(e) {
+  const ring = $('#ring'); if (!ring || !G) return;
+  const r = ring.getBoundingClientRect(), x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2;
+  if (Math.hypot(x, y) < r.width * .22) { const h = $('#hint'); if (h) h.textContent = 'Dat is het glas. Tik op een kaart in de cirkel.'; return; }
+  const a = Math.atan2(y, x);
+  let best = -1, bd = 9;
+  for (let i = 0; i < N; i++) {
+    if (G.weg[i]) continue;
+    let d = Math.abs(a - hoek(i)) % (Math.PI * 2); if (d > Math.PI) d = Math.PI * 2 - d;
+    if (d < bd) { bd = d; best = i; }
+  }
+  pak(best);
+}
+
+/* ================= EXTRA'S: AFTELLEN, REGELS EN DE KAARTENLIJST ================= */
+let telTimer = 0;
+function aftellen() {
+  clearTimeout(telTimer);
+  let n = 5;
+  const stap = () => {
+    const el = $('#tel'); if (!el || nu !== 'kaart') return;
+    el.classList.remove('wijs'); el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+    if (n > 0) { el.textContent = n; Snd.tel(false); n--; telTimer = setTimeout(stap, 800); }
+    else { el.textContent = 'Wijs!'; el.classList.add('wijs'); Snd.tel(true); tril(200); }
+  };
+  audio(); stap();
+}
+function sheet(html) {
+  $('#sheetBox').innerHTML = `${html}<button class="btn ghost" type="button" data-act="sluit">Sluiten</button>`;
+  $('#sheet').hidden = false;
+}
+const sluitSheet = () => { $('#sheet').hidden = true; };
+function regelsSheet() {
+  sheet(`<h2 id="sheetT">Regels</h2>${G && G.regels.length ? `<ul class="regels">${G.regels.map((r) => `<li><span>${esc(r)}</span></li>`).join('')}</ul>` : '<p class="muted">Nog geen regels opgeschreven.</p>'}<p class="muted">Wie zich niet aan een regel houdt, krijgt een strafpunt. Met een 9 schaf je er een af.</p>`);
+}
+function kaartenSheet() {
+  sheet(`<h2 id="sheetT">Alle kaarten</h2><ul class="regels">${[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].map((r) => `<li><span><b style="color:var(--gold)">${RANK[r] ? `${RANK[r]} (${RANKNAAM[r]})` : r} · ${REGELS[r].naam}</b><br>${REGELS[r].tekst}</span></li>`).join('')}</ul>`);
+}
+
+function geluidKnop() {
+  $('#soundBtn').innerHTML = S.geluid
+    ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>'
+    : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9l5 6M21 9l-5 6"/></svg>';
+  $('#soundBtn').setAttribute('aria-label', S.geluid ? 'Geluid uit' : 'Geluid aan');
+}
+const sluitMenu = () => { $('#menu').hidden = true; $('#menuBtn').setAttribute('aria-expanded', 'false'); };
+
+/* ================= KNOPPEN ================= */
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#ring')) { if (!$('#menu').hidden) return sluitMenu(); return tikRing(e); }
+  const t = e.target.closest('button,[data-act]');
+  if (!t) {
+    if (!$('#menu').hidden && !e.target.closest('#menu nav')) sluitMenu();
+    if (!$('#sheet').hidden && !e.target.closest('#sheetBox')) sluitSheet();
+    return;
+  }
+  if (t.id === 'menuBtn') { const m = $('#menu'); m.hidden = !m.hidden; t.setAttribute('aria-expanded', String(!m.hidden)); return; }
+  if (t.id === 'soundBtn') { S.geluid = !S.geluid; save(); geluidKnop(); if (S.geluid) Snd.klik(); return; }
+  if (!$('#menu').hidden) sluitMenu();
+  if (t.dataset.sw) { S[t.dataset.sw] = !S[t.dataset.sw]; save(); return toon('start'); }
+  if (t.dataset.schaf !== undefined) {
+    const k = +t.dataset.schaf; G.regels.splice(k, 1); Snd.klik();
+    return toon('kaart');
+  }
+  switch (t.dataset.act) {
+    case 'uitleg': if (window.Uitleg) window.Uitleg.open('kingsen'); break;
+    case 'kaarten': kaartenSheet(); break;
+    case 'regels': regelsSheet(); break;
+    case 'sluit': sluitSheet(); break;
+    case 'begin': audio(); nieuwSpel(); toon('ring'); break;
+    case 'pak': pakWillekeurig(); break;
+    case 'terug': toon('ring'); break;
+    case 'verder': clearTimeout(telTimer); toon('ring'); break;
+    case 'idee': { G.idee = kies(CATEGORIEEN.filter((x) => x !== G.idee)); const el = $('#idee'); if (el) el.textContent = G.idee; break; }
+    case 'bewaar': {
+      const v = ($('#regel').value || '').trim().slice(0, 140);
+      if (!v) { $('#regel').focus(); break; }
+      G.regels.push(v); $('#regel').value = ''; $('#bewaard').hidden = false; Snd.klik(); break;
+    }
+    case 'tel': aftellen(); break;
+    case 'instellingen': clearTimeout(telTimer); toon('start'); break;
+  }
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { sluitMenu(); sluitSheet(); }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.id === 'ring') { e.preventDefault(); pakWillekeurig(); }
+});
+
+geluidKnop();
+toon('start');
+})();
+</script>
+</body>
+</html>
