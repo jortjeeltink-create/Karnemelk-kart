@@ -142,6 +142,8 @@ p{margin:0}
 .card.nextup::after{content:"";position:absolute;inset:-4px;border-radius:calc(var(--w,64px) * .16);box-shadow:0 0 0 2px var(--gold),0 0 22px rgba(247,197,72,.6);animation:pulse 1.4s ease-in-out infinite;pointer-events:none}
 @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
 .card.hot .front{box-shadow:inset 0 0 0 1px rgba(43,21,49,.18),0 0 0 2.5px var(--gold),0 8px 24px rgba(247,197,72,.5)}
+/* twee keer hetzelfde nummer in een rij: de andere kaart licht ook op */
+.card.twin .front{box-shadow:inset 0 0 0 1px rgba(43,21,49,.18),0 0 0 2.5px var(--gold),0 0 18px rgba(247,197,72,.45)}
 
 /* ---------- de tafel ---------- */
 .table{position:relative;min-height:0;container-type:size;margin:4px -6px 8px}
@@ -296,6 +298,7 @@ button.pickcard:active .card{transform:scale(.95)}
 .okline{font-size:var(--s2);font-weight:700;color:var(--good)}
 .pline{font-size:var(--s2);line-height:1.5;color:var(--cream)}
 .pline b{color:#fff}
+.pline b.dubbel{color:var(--gold)}
 .pop{animation:pop .35s cubic-bezier(.2,.9,.3,1.4)}
 @keyframes pop{from{transform:translateY(10px);opacity:.3}}
 .deal-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-family:var(--display);font-weight:800;font-size:27px;line-height:1.05;color:#fff}
@@ -632,7 +635,7 @@ function present(ev) {
       break;
     case 'gelegd':
       if (mine(ev.player)) { Snd.good(); buzz(60); }
-      else { Snd.chip(); toast(`${S.players[ev.player].name} legt ${B.label(ev.card)} weg`); }
+      else { Snd.chip(); toast(`${S.players[ev.player].name} legt ${B.label(ev.card)} weg${ev.vrij ? ' (twee dezelfde in de rij)' : ''}`); }
       break;
     case 'uitdelen': {
       const list = Object.entries(ev.to).map(([i, n]) => `${mine(+i) ? 'jij' : S.players[+i].name} ${n}`);
@@ -930,8 +933,8 @@ const openSlot = () => S.next ? S.pyramid[S.next - 1] : null;
 // jouw eigen kaarten groot in beeld; in de piramide tik je er een aan om hem weg te leggen
 function handHTML() {
   if (!S.hand.length) return '<p class="fine">Je hebt geen kaarten meer.</p>';
-  const can = !!openSlot();
-  return `<div class="myhand"><p class="felt-sub">Jouw kaarten${can ? ' · tik om weg te leggen' : ''}</p>
+  const can = !!openSlot(), vrij = can && B.magVrij(S.pyramid, S.next - 1, S.you);
+  return `<div class="myhand"><p class="felt-sub">Jouw kaarten${vrij ? ' · twee dezelfde in deze rij: je mag er ook één andere kaart op leggen' : can ? ' · tik om weg te leggen' : ''}</p>
     <div class="handrow">${S.hand.map((c) => `<button class="handcard" type="button" data-act="lay" data-r="${c.r}" data-s="${c.s}" aria-label="Leg ${spoken(c)} weg"${can ? '' : ' disabled'}>${cardHTML(c)}</button>`).join('')}</div></div>`;
 }
 
@@ -940,11 +943,14 @@ function vPiramide() {
   const cur = openSlot(), open = S.next;
   const going = S.phase === 'piramide';
   const canFlip = going && !S.deals.length;
+  // twee keer hetzelfde nummer in de rij van de open kaart: die kaarten lichten op
+  const twin = going && cur && B.dubbelInRij(S.pyramid, S.next - 1)
+    ? (i) => i !== S.next - 1 && S.pyramid[i].card && S.pyramid[i].row === cur.row && S.pyramid[i].card.r === cur.card.r : () => false;
   // dichte kaarten tonen wat ze waard zijn; op open kaarten staan stipjes van wie erop weglegde
   const pyr = B.pyramidRows().map((row) => `<div class="prow">${row.map((i) => {
     const s = S.pyramid[i], slot = B.PYRAMID_SLOTS[i];
     const card = s.card
-      ? cardHTML(s.card, { reveal: !!ev && i === ev.index && fresh(), cls: `mini${going && i === S.next - 1 ? ' hot' : ''}` })
+      ? cardHTML(s.card, { reveal: !!ev && i === ev.index && fresh(), cls: `mini${going && i === S.next - 1 ? ' hot' : twin(i) ? ' twin' : ''}` })
       : cardHTML(null, { cls: `mini${canFlip && i === S.next ? ' nextup' : ''}` }) + `<span class="pval">${slot.sips}</span>`;
     const dots = s.laid.length ? `<span class="laid">${s.laid.map((x) => `<i style="--pc:${PC[x.p]}"></i>`).join('')}</span>` : '';
     return `<div class="pslot${slot.dwars ? ' dwars' : ''}" title="${slotText(i)} per kaart">${card}${dots}</div>`;
@@ -962,7 +968,9 @@ function vPiramide() {
     const what = by.length
       ? `${andList(by.map((p) => `<b>${who(p)}</b>`))} ${by.length === 1 ? 'legt' : 'leggen'} weg.`
       : `Heb je een ${rankWord(cur.card)}? Tik hem aan.`;
-    line = `<p class="pline">${lbl(cur.card)} ligt open${B.PYRAMID_SLOTS[S.next - 1].dwars ? ', dwars dus dubbel' : ''}: ${slotText(S.next - 1)} uitdelen per kaart. ${what}</p>`;
+    const dubbel = B.dubbelInRij(S.pyramid, S.next - 1)
+      ? ` <b class="dubbel">Twee keer een ${rankWord(cur.card)} in deze rij!</b> Iedereen mag er ook één andere kaart op leggen, met welk nummer dan ook.` : '';
+    line = `<p class="pline">${lbl(cur.card)} ligt open${B.PYRAMID_SLOTS[S.next - 1].dwars ? ', dwars dus dubbel' : ''}: ${slotText(S.next - 1)} uitdelen per kaart. ${what}${dubbel}</p>`;
   }
   const md = myDeal();
   const hand = going ? handHTML() : '';
@@ -973,7 +981,7 @@ function vPiramide() {
     const paused = flipPaused(), more = S.next < S.pyramid.length, host = isHost();
     const btn = !host ? `<p class="waitline">${more ? `${nameOf(S.host)} draait de volgende kaart om` : `Wachten op ${nameOf(S.host)}`}</p>`
       : `<button class="cta" type="button" data-act="${more ? 'flip' : 'endpyr'}" ${paused ? 'disabled' : ''}><span>${paused ? 'Even kijken…' : more ? `Draai kaart ${S.next + 1}` : 'Klaar: wie moet de bus in?'}</span>${ARR}</button>`;
-    const intro = `<div class="ask-h"><h2>De piramide</h2></div><p class="sub">${host ? 'Jij draait' : `${nameOf(S.host)} draait`} de kaarten om, van onder naar boven. Heb je dezelfde waarde in je hand? Tik dan je kaart aan om hem weg te leggen en deel uit. Een dwarse kaart telt dubbel.</p>`;
+    const intro = `<div class="ask-h"><h2>De piramide</h2></div><p class="sub">${host ? 'Jij draait' : `${nameOf(S.host)} draait`} de kaarten om, van onder naar boven. Heb je dezelfde waarde in je hand? Tik dan je kaart aan om hem weg te leggen en deel uit. Een dwarse kaart telt dubbel. Komt hetzelfde nummer twee keer voor in één rij, dan mag iedereen er ook één andere kaart op leggen.</p>`;
     dock = `${line || intro}${hand}${btn}${more ? `<p class="fine">Volgende kaart: ${slotText(S.next)} uitdelen per kaart die je weglegt.</p>` : ''}`;
   } else dock = `${line}<p class="waitline">Wie moet de bus in</p>`;
   return `${table}<div class="dock${fresh() ? ' pop' : ''}">${dock}</div>`;
@@ -1172,7 +1180,7 @@ function rulesHTML() {
     <h3>Strafpunten: nu doen of sparen</h3>
     <p>Krijg je strafpunten, dan kies je op je telefoon: nu doen of sparen. Gespaarde strafpunten komen terug aan het eind van de vragenronde en van de piramide. Dan mag je ze weer sparen, maar aan het eind van het spel moeten ze weg. Een mega strafpunt (van de disco) kun je niet sparen. Bovenin zie je altijd hoeveel je er nog hebt staan.</p>
     <h3>2. De piramide</h3>
-    <p>Er liggen ${B.PYRAMID_SIZE} kaarten, van onder naar boven: ${andList(B.PYRAMID.map((r) => r.lay.length === 1 ? 'één' : String(r.lay.length)))}. De host draait ze één voor één om en iedereen ziet tegelijk welke kaart open ligt. Heb je dezelfde waarde in je hand? Tik dan zelf je kaart aan om hem weg te leggen, voordat de volgende kaart om gaat. Daarna deel je uit: tik aan tafel op wie ze krijgt. Elke rij is een aantal strafpunten waard, van onder naar boven ${andList(B.PYRAMID.map((r) => String(r.sips)))}. Ligt de kaart dwars, dan telt hij dubbel: de onderste is dus ${slotText(0)} en de bovenste ${slotText(B.PYRAMID_SIZE - 1)}.</p>
+    <p>Er liggen ${B.PYRAMID_SIZE} kaarten, van onder naar boven: ${andList(B.PYRAMID.map((r) => r.lay.length === 1 ? 'één' : String(r.lay.length)))}. De host draait ze één voor één om en iedereen ziet tegelijk welke kaart open ligt. Heb je dezelfde waarde in je hand? Tik dan zelf je kaart aan om hem weg te leggen, voordat de volgende kaart om gaat. Daarna deel je uit: tik aan tafel op wie ze krijgt. Gaat er in een rij een kaart open met hetzelfde nummer als een kaart die al open ligt in die rij (twee dezelfde in één rij), dan mag iedereen er ook één andere kaart op leggen, met welk nummer dan ook. Elke rij is een aantal strafpunten waard, van onder naar boven ${andList(B.PYRAMID.map((r) => String(r.sips)))}. Ligt de kaart dwars, dan telt hij dubbel: de onderste is dus ${slotText(0)} en de bovenste ${slotText(B.PYRAMID_SIZE - 1)}.</p>
     <h3>3. De bus</h3>
     <p>Wie daarna de meeste kaarten over heeft, moet de bus in. Staan er spelers gelijk, dan kiest ieder een dichte kaart: wie de laagste trekt, moet erin. Weer gelijk? Dan kiezen die spelers opnieuw.</p>
     <p>In de bus liggen ${S ? S.busLength : B.BUS_DEFAULT} kaarten op een rij en de eerste ligt open. Raad steeds of de volgende hoger of lager is. Fout of paal? Dan krijg je zoveel strafpunten als de hoeveelste gok het was en begin opnieuw met nieuwe kaarten. Haal je het eind, dan ben je uit de bus.</p>
@@ -1348,7 +1356,11 @@ const actions = {
   lay(el) {
     const cur = openSlot(), card = { r: +el.dataset.r, s: +el.dataset.s };
     if (!cur || !cur.card) return;
-    if (card.r !== cur.card.r) { Snd.bad(); buzz(40); toast(`Die past niet: er ligt een ${rankWord(cur.card)} open`); return; }
+    if (card.r !== cur.card.r && !B.magVrij(S.pyramid, S.next - 1, S.you)) {
+      Snd.bad(); buzz(40);
+      toast(B.dubbelInRij(S.pyramid, S.next - 1) ? 'Je hebt hier al een andere kaart op gelegd' : `Die past niet: er ligt een ${rankWord(cur.card)} open`);
+      return;
+    }
     Net.send({ t: 'lay', card });
   },
   endpyr() { Net.send({ t: 'endpyr' }); },

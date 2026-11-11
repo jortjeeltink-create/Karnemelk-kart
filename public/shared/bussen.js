@@ -293,20 +293,36 @@ export function flip(g) {
   return emit(g, { type: 'piramide', index, row: slot.row, card: slot.card, last: g.next >= g.pyramid.length });
 }
 
-// Een eigen kaart wegleggen op de kaart die net is omgedraaid. Alleen met dezelfde waarde, en alleen
-// zolang de volgende kaart nog niet om is: wie te laat is, heeft hem gemist.
+// Dubbel in de rij: de kaart op plek index heeft dezelfde waarde als een andere open kaart in dezelfde rij van de
+// piramide. Werkt op het potje en op wat de telefoon ziet (daar is een dichte kaart null).
+export function dubbelInRij(pyramid, index) {
+  const slot = pyramid && pyramid[index];
+  if (!slot || !slot.card) return false;
+  return pyramid.some((x, j) => j !== index && x.card && x.row === slot.row && (x.open !== false) && x.card.r === slot.card.r);
+}
+// Mag deze speler op de open kaart nog een vrije kaart (elke waarde) wegleggen? Alleen bij dubbel in de rij, één per speler.
+export function magVrij(pyramid, index, player) {
+  const slot = pyramid && pyramid[index];
+  return !!slot && dubbelInRij(pyramid, index) && !slot.laid.some((x) => x.p === player && x.vrij);
+}
+
+// Een eigen kaart wegleggen op de kaart die net is omgedraaid. Met dezelfde waarde, en alleen zolang de volgende
+// kaart nog niet om is: wie te laat is, heeft hem gemist. Ligt dezelfde waarde al open in die rij (dubbel in de rij),
+// dan mag iedereen er ook één andere kaart op leggen, met welke waarde dan ook.
 export function lay(g, player, card) {
   const p = g.players[player];
   if (g.phase !== 'piramide' || !g.next || !p || !card) return null;
   const index = g.next - 1, slot = g.pyramid[index];
   const k = p.hand.findIndex((c) => c.r === card.r && c.s === card.s);
-  if (k < 0 || p.hand[k].r !== slot.card.r) return null;
+  if (k < 0) return null;
+  const vrij = p.hand[k].r !== slot.card.r;
+  if (vrij && !magVrij(g.pyramid, index, player)) return null;
   const [c] = p.hand.splice(k, 1);
   p.laid.push(c);
-  slot.laid.push({ p: player, card: c });
+  slot.laid.push(vrij ? { p: player, card: c, vrij: true } : { p: player, card: c });
   const n = PYRAMID_SLOTS[index].sips;
   queueDeal(g, player, n);
-  return emit(g, { type: 'gelegd', player, card: c, index, row: slot.row, n });
+  return emit(g, { type: 'gelegd', player, card: c, index, row: slot.row, n, ...(vrij ? { vrij: true } : {}) });
 }
 
 // Alle kaarten liggen open en alles is uitgedeeld: wie moet de bus in?

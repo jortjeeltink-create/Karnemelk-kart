@@ -382,3 +382,49 @@ test('een heel potje met 9 spelers loopt van begin tot eind', () => {
     assert.ok(B.titles(g).length >= 2);
   }
 });
+
+test('dubbel in de rij: komt hetzelfde nummer twee keer voor in één rij, dan mag iedereen er één andere kaart op leggen', () => {
+  const g = B.newGame(['Jort', 'Meke', 'Sim'], { seed: 5 });
+  answerAll(g);
+  g.players[0].hand = [c(7, 0), c(9, 0), c(12, 0), c(3, 0)];
+  g.players[1].hand = [c(4, 1), c(6, 1), c(8, 1), c(10, 1)];
+  g.players[2].hand = [c(2, 2), c(5, 2), c(11, 2), c(13, 2)];
+  g.pyramid.forEach((s, i) => { s.card = c(2 + (i % 5), 3); });
+  g.pyramid[0].card = c(7, 3);    // onderin: een 7 (rij 1)
+  g.pyramid[1].card = c(5, 1);    // tweede rij: 5, 9, 5, ...
+  g.pyramid[2].card = c(9, 1);
+  g.pyramid[3].card = c(5, 3);
+  g.pyramid[4].card = c(14, 1);
+  g.pyramid[5].card = c(7, 1);    // derde rij: een 7, maar de andere 7 ligt in een andere rij
+  B.flip(g); dealAll(g);
+  assert.equal(B.dubbelInRij(g.pyramid, 0), false);
+  assert.equal(B.lay(g, 1, c(4, 1)), null, 'geen dubbel: alleen een 7 past');
+  B.flip(g); dealAll(g); B.flip(g); dealAll(g);
+  assert.equal(B.dubbelInRij(g.pyramid, 2), false, '5 en 9: niet dubbel');
+  B.flip(g);   // de tweede 5 in de tweede rij
+  assert.equal(B.dubbelInRij(g.pyramid, 3), true);
+  // Meke heeft geen 5, maar mag nu één andere kaart wegleggen (recht in de tweede rij: 2 strafpunten)
+  const ev = B.lay(g, 1, c(10, 1));
+  assert.deepEqual([ev.type, ev.player, ev.n, ev.vrij], ['gelegd', 1, 2, true]);
+  assert.equal(B.lay(g, 1, c(8, 1)), null, 'maar één andere kaart per speler');
+  assert.equal(B.magVrij(g.pyramid, 3, 1), false);
+  // Sim legt zijn 5 (past gewoon) en daarna nog één andere kaart
+  assert.equal(B.lay(g, 2, c(5, 2)).vrij, undefined, 'een passende kaart is geen vrije kaart');
+  assert.equal(B.lay(g, 2, c(13, 2)).vrij, true);
+  assert.equal(B.lay(g, 2, c(11, 2)), null);
+  assert.deepEqual(g.deals, [{ from: 1, n: 2 }, { from: 2, n: 4 }], 'en voor elke kaart uitdelen');
+  dealAll(g);
+  // de volgende kaart: geen dubbel meer, dus weer alleen passende kaarten
+  B.flip(g);
+  assert.equal(B.dubbelInRij(g.pyramid, 4), false);
+  assert.equal(B.lay(g, 0, c(3, 0)), null);
+  dealAll(g);
+  B.flip(g);   // de 7 in de derde rij: de andere 7 ligt onderin, dus niet dubbel in de rij
+  assert.equal(B.dubbelInRij(g.pyramid, 5), false);
+  assert.equal(B.lay(g, 0, c(9, 0)), null);
+  // wat de telefoon ziet (dichte kaarten zijn null) geeft hetzelfde antwoord
+  const view = g.pyramid.map((x) => ({ card: x.open ? x.card : null, row: x.row, laid: x.laid }));
+  assert.equal(B.dubbelInRij(view, 3), true);
+  assert.equal(B.magVrij(view, 3, 0), true, 'Jort heeft daar nog geen andere kaart op gelegd');
+  assert.equal(B.magVrij(view, 3, 2), false);
+});
