@@ -83,7 +83,7 @@ form.key button{font:800 16px/1 system-ui,sans-serif;padding:14px;border:0;borde
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const app = $('#app');
-const GAMES = { kart: ['Karnemelk Kart', '#ff7a00'], bussen: ['Bussen', '#4f8dff'], boer: ['Boer zoekt vrouw', '#ff6b8b'], mexen: ['Mexen', '#36c5d6'], dealer: ['Pak de dealer', '#a28fe3'], ftd: ['Pak de dealer', '#a28fe3'], paardenrace: ['Paardenrace', '#a6d83c'], paard: ['Paardenrace', '#a6d83c'], rotonde: ['Rotonde', '#d63bb5'], mijnenveld: ['Mijnenveld', '#c9803a'], borrelbord: ['Borrelbord', '#f2c230'], zuipbord: ['Borrelbord', '#f2c230'], toepen: ['Toepen', '#e8a33d'], bom: ['Tikkende Bom', '#ff3b3b'], alibi: ['Alibi', '#ffd23f'], bakplaten: ['Bakplaten', '#ff8a3d'] };
+const GAMES = { kart: ['Karnemelk Kart', '#ff7a00'], bussen: ['Bussen', '#4f8dff'], boer: ['Boer zoekt vrouw', '#ff6b8b'], mexen: ['Mexen', '#36c5d6'], dealer: ['Pak de dealer', '#a28fe3'], ftd: ['Pak de dealer', '#a28fe3'], paardenrace: ['Paardenrace', '#a6d83c'], paard: ['Paardenrace', '#a6d83c'], rotonde: ['Rotonde', '#d63bb5'], mijnenveld: ['Mijnenveld', '#c9803a'], borrelbord: ['Borrelbord', '#f2c230'], zuipbord: ['Borrelbord', '#f2c230'], toepen: ['Toepen', '#e8a33d'], bom: ['Tikkende Bom', '#ff3b3b'], alibi: ['Alibi', '#ffd23f'], bakplaten: ['Bakplaten', '#ff8a3d'], kingsen: ['Kingsen', '#f3c34b'] };
 const DAG = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
 const MAAND = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
 const dateOf = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
@@ -200,7 +200,7 @@ function render() {
   <section class="card">
     <h2>Spellen</h2>
     <p class="note">De laatste ${days} dagen.</p>
-    ${gameRows.length ? `<table><thead><tr><th>Spel</th><th>Bezocht</th><th>Tafels</th><th>Potjes</th></tr></thead><tbody>${gameRows.map(([name, g]) => `<tr><td style="--c:${g.c}"><i></i>${esc(name)}</td><td>${nf.format(g.pages)}</td><td>${name === 'Karnemelk Kart' || name === 'Tikkende Bom' || name === 'Alibi' || name === 'Bakplaten' ? '–' : nf.format(g.tables)}</td><td>${name === 'Karnemelk Kart' ? '–' : nf.format(g.starts)}</td></tr>`).join('')}</tbody></table>` : '<p class="empty">Nog geen spellen gespeeld in deze periode.</p>'}
+    ${gameRows.length ? `<table><thead><tr><th>Spel</th><th>Bezocht</th><th>Tafels</th><th>Potjes</th></tr></thead><tbody>${gameRows.map(([name, g]) => `<tr><td style="--c:${g.c}"><i></i>${esc(name)}</td><td>${nf.format(g.pages)}</td><td>${name === 'Karnemelk Kart' || name === 'Tikkende Bom' || name === 'Alibi' || name === 'Bakplaten' || name === 'Kingsen' ? '–' : nf.format(g.tables)}</td><td>${name === 'Karnemelk Kart' ? '–' : nf.format(g.starts)}</td></tr>`).join('')}</tbody></table>` : '<p class="empty">Nog geen spellen gespeeld in deze periode.</p>'}
   </section>
   <p class="foot">Jouw eigen bezoeken op dit apparaat tellen niet mee. Kom je ook via een andere browser of telefoon op de site, open deze link daar dan ook één keer.<br>Spelers worden geteld zonder cookies en zonder IP-adressen te bewaren: alleen tellingen per dag en per uur. Ververst elke minuut.</p>`;
   app.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => { days = +b.dataset.d; load(); }));

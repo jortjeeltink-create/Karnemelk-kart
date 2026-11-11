@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="15%" r="90%"><stop offset="0" stop-color="#4a2f8f"/><stop offset=".55" stop-color="#1f1540"/><stop offset="1" stop-color="#120c24"/></radialGradient>
+    <linearGradient id="goud" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#d9a22c"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g transform="translate(256 256)">
+    <g id="kaarten">
+      <rect x="-13" y="-176" width="26" height="38" rx="4" fill="#5d37a8" stroke="#fffaf0" stroke-width="4"/>
+    </g>
+    <use href="#kaarten" transform="rotate(20)"/><use href="#kaarten" transform="rotate(40)"/><use href="#kaarten" transform="rotate(60)"/><use href="#kaarten" transform="rotate(80)"/>
+    <use href="#kaarten" transform="rotate(100)"/><use href="#kaarten" transform="rotate(120)"/><use href="#kaarten" transform="rotate(140)"/><use href="#kaarten" transform="rotate(160)"/>
+    <use href="#kaarten" transform="rotate(180)"/><use href="#kaarten" transform="rotate(200)"/><use href="#kaarten" transform="rotate(220)"/><use href="#kaarten" transform="rotate(240)"/>
+    <use href="#kaarten" transform="rotate(260)"/><use href="#kaarten" transform="rotate(280)"/><use href="#kaarten" transform="rotate(300)"/><use href="#kaarten" transform="rotate(320)"/><use href="#kaarten" transform="rotate(340)"/>
+    <g transform="translate(-102 -73) scale(1.7)">
+      <path d="M10 70 L4 18 L34 42 L60 6 L86 42 L116 18 L110 70 Z" fill="url(#goud)" stroke="#8a5a0c" stroke-width="3" stroke-linejoin="round"/>
+      <rect x="10" y="66" width="100" height="14" rx="4" fill="url(#goud)" stroke="#8a5a0c" stroke-width="3"/>
+      <circle cx="60" cy="44" r="7" fill="#d9343f"/><circle cx="32" cy="54" r="5" fill="#8b5cf6"/><circle cx="88" cy="54" r="5" fill="#8b5cf6"/>
+    </g>
+  </g>
+</svg>

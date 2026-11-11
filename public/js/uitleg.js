@@ -87,6 +87,13 @@
       { img: 'alibi-4', t: 'Leugen!', p: 'Spreekt iemand een eerder detail tegen? Tik op <b>Leugen!</b> (één keer per ronde). Klopt het, dan krijgt de leugenaar een strafpunt; klopt het niet, dan krijgt wie riep er één.' },
       { img: 'alibi-5', t: 'Wie was het verdachtst?', p: 'Na het rondje telt de telefoon af en wijst iedereen tegelijk aan wie het verhaal het meest verdacht maakte. Die krijgt een strafpunt. De strafpunten houden jullie zelf bij.' },
     ] },
+    kingsen: { name: 'Kingsen', c: '#f3c34b', url: '/kingsen', slides: [
+      { img: 'kingsen-1', t: 'Eén telefoon op tafel', p: 'Leg de telefoon midden op tafel en tik op <b>Leg de cirkel</b>. Alle 52 kaarten (zonder jokers) liggen dan in een cirkel rond een glas.' },
+      { img: 'kingsen-2', t: 'Pak een kaart', p: 'Om de beurt <b>tik je op een kaart</b> in de cirkel. Bovenin zie je hoeveel kaarten er nog liggen, hoeveel heren er op het glas liggen en welke kant de beurt op gaat.' },
+      { img: 'kingsen-3', t: 'Elke kaart een opdracht', p: 'De telefoon draait de kaart om en laat de opdracht zien: van <b>2 uitdelen</b> tot <b>10 quizmaster</b>. Bij een boer telt de telefoon af, bij een 8 kun je de regel opschrijven. Klaar? Dan is de volgende aan de beurt.' },
+      { img: 'kingsen-4', t: 'Heren op het glas', p: 'Een heer leg je op het glas. Wie de <b>vierde heer</b> oplegt, krijgt een <b>mega strafpunt</b> en het spel is voorbij.' },
+      { img: 'kingsen-5', t: 'Pas op de cirkel', p: 'Staat <b>De cirkel kan breken</b> aan? Dan breekt de cirkel misschien bij een kaart die niemand kent. Wie hem breekt, krijgt ook een <b>mega strafpunt</b>. Wil je dat niet, zet het dan uit bij de start.' },
+    ] },
     bakplaten: { name: 'Bakplaten', c: '#ff8a3d', url: '/bakplaten', slides: [
       { img: 'bakplaten-1', t: 'Eén telefoon op tafel', p: 'Leg de telefoon midden op tafel. Kies of de azen meetellen en of rode plaatjes uitgedeeld worden, en tik op <b>Schud en begin</b>. De telefoon schudt 52 kaarten, zonder jokers.' },
       { img: 'bakplaten-2', t: 'Trek een kaart', p: 'Om de beurt tik je op de stapel en draai je een kaart om. Een gewone kaart (2 tot en met 10)? <b>Niks aan de hand</b>, de volgende is aan de beurt.' },

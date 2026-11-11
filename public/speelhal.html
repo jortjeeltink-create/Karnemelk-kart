@@ -371,7 +371,13 @@ const GAMES = [
     chips: ['Kaartspel', 'Eén telefoon'],
     text: 'Het simpelste kaartspel dat er is. Leg de telefoon op tafel en trek om de beurt een kaart van de stapel. Een gewone kaart? Niks aan de hand. Een plaatje of een aas? Mega strafpunt. Wil je het heftiger, dan deel je rode plaatjes uit.',
     facts: [['Spelers', '2 of meer'], ['Telefoons', 'één, op tafel'], ['Kaarten', '52, zonder jokers']],
-    cta: 'Speel Bakplaten' }
+    cta: 'Speel Bakplaten' },
+  { id: 'kingsen', mode: 'een', name: 'Kingsen', name2: '', short: 'Kingsen', acc: '#f3c34b', tint: '#1f1540', bg: '#120c24',
+    url: '/kingsen',
+    chips: ['Kaartspel', 'Eén telefoon'],
+    text: 'De kaarten liggen in een cirkel rond een glas. Om de beurt pak je er een en doe je de opdracht: uitdelen, duimen, quizmaster, tafel van 7. Een heer leg je op het glas. Wie de vierde oplegt of de cirkel breekt: mega strafpunt.',
+    facts: [['Spelers', '3 of meer'], ['Telefoons', 'één, op tafel'], ['Opdrachten', '13, één per kaart']],
+    cta: 'Speel Kingsen' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 // twee tabbladen: spellen waarbij ieder op zijn eigen telefoon speelt, en spellen op één telefoon die rondgaat
@@ -905,6 +911,45 @@ const PREV = {
       else T(c, s, w / 2, h * .85, size, '#9fe0b2', { f: SF, w: 800 });
     } else T(c, 'Trek een kaart…', w / 2, h * .85, Math.min(15 * k, w * .05), 'rgba(251,241,230,.7)', { f: SF, w: 700 });
     T(c, `${40 - (n % 40)} over`, w / 2, h * .1, Math.min(12 * k, w * .04), 'rgba(251,241,230,.6)', { f: SF, w: 700 });
+  },
+  // Kingsen: een cirkel kaarten rond een glas; een kaart komt eruit en draait om, een heer gaat op het glas
+  kingsen(c, w, h, t){
+    const SF = 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+    const g = c.createRadialGradient(w / 2, 0, 10, w / 2, h * .4, Math.max(w, h)); g.addColorStop(0, '#4a2f8f'); g.addColorStop(.6, '#1f1540'); g.addColorStop(1, '#120c24'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    const k = Math.min(w / 340, h / 300), cyc = reduce ? 1.8 : (t / 1000) % 3, n = reduce ? 0 : Math.floor(t / 3000);
+    // welke kaart er deze keer uitkomt; elke vierde is een heer
+    const KAART = [['7', '♣', 'Tafel van 7'], ['10', '♥', 'Quizmaster'], ['5', '♠', 'Duimen'], ['H', '♦', 'Op het glas'], ['A', '♠', 'Omkeren'], ['2', '♥', 'Uitdelen'], ['V', '♣', 'Rise of the queen'], ['H', '♠', 'Op het glas']][n % 8];
+    const heren = [0, 0, 0, 0, 1, 1, 1, 1][n % 8] + (KAART[0] === 'H' && cyc > 1.2 ? 1 : 0);
+    const cx = w * .3, cy = h * .52, R = Math.min(w * .24, h * .38), N = 32, cw = R * .2, ch = cw * 1.4, pick = (n * 11) % N;
+    // het glas met de heren erop
+    c.save(); c.translate(cx, cy);
+    c.fillStyle = 'rgba(139,92,246,.18)'; c.beginPath(); c.arc(0, 0, R * 1.15, 0, TAU); c.fill();
+    c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 2 * k; c.fillStyle = 'rgba(255,255,255,.1)';
+    c.beginPath(); c.moveTo(-R * .28, -R * .34); c.lineTo(-R * .2, R * .34); c.quadraticCurveTo(0, R * .42, R * .2, R * .34); c.lineTo(R * .28, -R * .34); c.closePath(); c.fill(); c.stroke();
+    for (let i = 0; i < heren; i++) { c.save(); c.translate((i - 1) * R * .05, -R * .4 - i * 2 * k); c.rotate([-.25, .18, -.08, .3][i]); rr(c, -cw * .7, -ch * .7, cw * 1.4, ch * 1.4, 3 * k); c.fillStyle = '#fffaf0'; c.fill(); T(c, 'H', 0, 1, cw * .9, i % 2 ? '#d9343f' : '#1b1430', { f: SF, w: 900 }); c.restore(); }
+    // de cirkel
+    for (let i = 0; i < N; i++) {
+      if (i === pick && cyc > .3) continue;
+      const a = -Math.PI / 2 + i / N * TAU; c.save(); c.translate(Math.cos(a) * R, Math.sin(a) * R); c.rotate(a + Math.PI / 2);
+      rr(c, -cw / 2, -ch / 2, cw, ch, 2 * k); c.fillStyle = '#5d37a8'; c.fill(); c.lineWidth = 1.5 * k; c.strokeStyle = '#fffaf0'; c.stroke(); c.restore();
+    }
+    c.restore();
+    // de getrokken kaart vliegt naar rechts en draait om
+    const mv = clamp((cyc - .3) / .6, 0, 1), e = 1 - Math.pow(1 - mv, 3), fl = clamp((cyc - .7) / .4, 0, 1);
+    const a0 = -Math.PI / 2 + pick / N * TAU, fx0 = cx + Math.cos(a0) * R, fy0 = cy + Math.sin(a0) * R, tx = w * .72, ty = h * .44;
+    const BW = Math.min(w * .2, h * .3), BH = BW * 1.4, s = cw + (BW - cw) * e;
+    if (cyc > .3) {
+      c.save(); c.translate(fx0 + (tx - fx0) * e, fy0 + (ty - fy0) * e); c.scale(Math.max(.04, Math.abs(Math.cos(fl * Math.PI))), 1);
+      const sw = s, sh = s * 1.4; rr(c, -sw / 2, -sh / 2, sw, sh, 6 * k);
+      if (fl < .5) { c.fillStyle = '#5d37a8'; c.fill(); c.lineWidth = 2 * k; c.strokeStyle = '#fffaf0'; c.stroke(); }
+      else { const red = KAART[1] === '♥' || KAART[1] === '♦', col = red ? '#d9343f' : '#1b1430'; c.fillStyle = '#fffaf0'; c.fill(); c.lineWidth = 3 * k; c.strokeStyle = '#f3c34b'; c.stroke(); T(c, KAART[0], -sw * .26, -sh * .34, sw * .2, col, { f: SF, w: 900 }); T(c, KAART[1], 0, sh * .04, sw * .45, col, { f: SF, w: 900 }); }
+      c.restore();
+    }
+    if (cyc > 1.2) {
+      let fs = Math.min(17 * k, w * .05); c.font = `900 ${fs}px Georgia,serif`; while (c.measureText(KAART[2]).width > w * .4 && fs > 8) { fs -= .5; c.font = `900 ${fs}px Georgia,serif`; }
+      T(c, KAART[2], tx, ty + BH / 2 + 18 * k, fs, '#ffe08a', { f: 'Georgia,serif', w: 900 });
+    }
+    T(c, `Heren op het glas ${heren}/4`, cx, h * .08, Math.min(11 * k, w * .035), 'rgba(246,241,255,.7)', { f: SF, w: 700 });
   },
   // Tikkende Bom: een opdracht bovenin, de bom tikt (steeds sneller) en dan: boem
   bom(c, w, h, t){
