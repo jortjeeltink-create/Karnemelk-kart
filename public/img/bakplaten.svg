@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="90%" r="95%"><stop offset="0" stop-color="#7a2e10"/><stop offset=".55" stop-color="#2a170d"/><stop offset="1" stop-color="#1a0f0a"/></radialGradient>
+    <linearGradient id="plaat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7b7f87"/><stop offset=".55" stop-color="#4a4d53"/><stop offset="1" stop-color="#2e2f33"/></linearGradient>
+    <linearGradient id="kaart" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffaf2"/><stop offset="1" stop-color="#efe2cd"/></linearGradient>
+    <linearGradient id="gloed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc94d"/><stop offset="1" stop-color="#ff5a2a"/></linearGradient>
+    <filter id="blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
+    <pattern id="rug" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="22" height="22" fill="#a8501f"/><rect width="11" height="22" fill="#8a3d18"/></pattern>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- de bakplaat -->
+  <rect x="56" y="300" width="400" height="120" rx="30" fill="url(#plaat)"/>
+  <rect x="76" y="316" width="360" height="86" rx="20" fill="#3c3e43"/>
+  <rect x="56" y="300" width="400" height="10" rx="5" fill="#a3a7ae" opacity=".7"/>
+  <!-- een dichte kaart en een plaatje dat net is omgedraaid -->
+  <g transform="rotate(-14 190 250)">
+    <rect x="120" y="140" width="150" height="210" rx="18" fill="#fffaf2"/>
+    <rect x="128" y="148" width="134" height="194" rx="12" fill="url(#rug)"/>
+  </g>
+  <g transform="rotate(9 320 240)">
+    <rect x="240" y="120" width="160" height="224" rx="18" fill="url(#gloed)" opacity=".8" filter="url(#blur)"/>
+    <rect x="240" y="120" width="160" height="224" rx="18" fill="url(#kaart)" stroke="#ffc94d" stroke-width="8"/>
+    <text x="320" y="254" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="96" fill="#d2343f">H</text>
+    <path transform="translate(0 16)" d="M320 318 C 296 296 282 284 282 268 C 282 256 291 248 302 248 C 310 248 316 252 320 259 C 324 252 330 248 338 248 C 349 248 358 256 358 268 C 358 284 344 296 320 318 Z" fill="#d2343f"/>
+    <path d="M282 150 l12 15 l13 -19 l13 19 l13 -19 l13 19 l12 -15 v20 h-76 z" fill="#ffc94d"/>
+  </g>
+</svg>

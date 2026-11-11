@@ -157,7 +157,7 @@ const statsKeyOk = (k) => !!k && (isMeldSleutel(k) || STATS_LINKS.has(hashOf(k))
 const beheerKeyOk = (k) => !!k && (isMeldSleutel(k) || BEHEER_LINKS.has(hashOf(k)));
 const statsTimer = stats.start();
 const stat = (kind, id) => stats.game(kind, id);
-const EEN_TELEFOON = new Set(['bom', 'alibi']);   // spellen op één telefoon (zonder server-tafel)
+const EEN_TELEFOON = new Set(['bom', 'alibi', 'bakplaten']);   // spellen op één telefoon (zonder server-tafel)
 const potjeTimes = new Map();
 const busHub = new BusHub({ log, stat, build: buildOf('/bussen.html') });
 const boerHub = new BoerHub({ log, stat, build: buildOf('/boer.html') });
@@ -179,7 +179,7 @@ const ownerCookie = (req) => `${OWNER_COOKIE}=1; Path=/; Max-Age=${365 * 86400};
 const VASTE_OPSLAG = UPSTASH || !!process.env.DATA_DIR;
 // zonder vaste opslag: blijft het bewaard bij een update doordat de nieuwe server alles overneemt?
 const OVERDRACHT = !UPSTASH && !!(OVERDRACHT_SECRET && OVERDRACHT_URL);
-const PAGE_NAMES = { '/speelhal.html': 'hoofdpagina', '/index.html': 'kart', '/bussen.html': 'bussen', '/boer.html': 'boer', '/mexen.html': 'mexen', '/dealer.html': 'dealer', '/paardenrace.html': 'paardenrace', '/rotonde.html': 'rotonde', '/mijnenveld.html': 'mijnenveld', '/zuipbord.html': 'borrelbord', '/toepen.html': 'toepen', '/bom.html': 'bom', '/alibi.html': 'alibi', '/iphone.html': 'iphone', '/privacy.html': 'privacy', '/voorwaarden.html': 'voorwaarden', '/melden.html': 'melden' };
+const PAGE_NAMES = { '/speelhal.html': 'hoofdpagina', '/index.html': 'kart', '/bussen.html': 'bussen', '/boer.html': 'boer', '/mexen.html': 'mexen', '/dealer.html': 'dealer', '/paardenrace.html': 'paardenrace', '/rotonde.html': 'rotonde', '/mijnenveld.html': 'mijnenveld', '/zuipbord.html': 'borrelbord', '/toepen.html': 'toepen', '/bom.html': 'bom', '/alibi.html': 'alibi', '/bakplaten.html': 'bakplaten', '/iphone.html': 'iphone', '/privacy.html': 'privacy', '/voorwaarden.html': 'voorwaarden', '/melden.html': 'melden' };
 const clientIp = (req) => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 
 // Een spel met een nieuwe naam (Zuipbord heet nu Borrelbord), en spellen die van de site af zijn (Weerwolven, Mega
@@ -286,7 +286,7 @@ async function melden(req, res) {
 }
 
 // ---------- reviews (Wat vind je ervan?): sterren en een opmerking ----------
-const REVIEW_SPELLEN = new Set(['kart', 'bussen', 'boer', 'mexen', 'dealer', 'paardenrace', 'rotonde', 'mijnenveld', 'borrelbord', 'toepen', 'bom', 'alibi', 'alles']);
+const REVIEW_SPELLEN = new Set(['kart', 'bussen', 'boer', 'mexen', 'dealer', 'paardenrace', 'rotonde', 'mijnenveld', 'borrelbord', 'toepen', 'bom', 'alibi', 'bakplaten', 'alles']);
 async function review(req, res) {
   const send = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)); };
   const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
@@ -386,6 +386,7 @@ const server = http.createServer((req, res) => {
   else if (path === '/mexen' || path === '/mexen/' || /^\/mexen\/[A-Za-z]{4}$/.test(path)) path = '/mexen.html';
   else if (path === '/bom' || path === '/bom/') path = '/bom.html';
   else if (path === '/alibi' || path === '/alibi/') path = '/alibi.html';
+  else if (path === '/bakplaten' || path === '/bakplaten/') path = '/bakplaten.html';
   else if (path === '/dealer' || path === '/dealer/' || /^\/dealer\/[A-Za-z]{4}$/.test(path)) path = '/dealer.html';
   else if (path === '/paardenrace' || path === '/paardenrace/' || /^\/paardenrace\/[A-Za-z]{4}$/.test(path)) path = '/paardenrace.html';
   else if (path === '/rotonde' || path === '/rotonde/' || /^\/rotonde\/[A-Za-z]{4}$/.test(path)) path = '/rotonde.html';

@@ -365,7 +365,13 @@ const GAMES = [
     chips: ['Verhaalspel', 'Eén telefoon'],
     text: 'Jullie worden ergens van verdacht en verzinnen samen een alibi. Om de beurt krijg je in het geheim een raar woord, zoals frikandel, en heb je 8 seconden om er één zin mee aan het verhaal toe te voegen. Spreekt iemand een eerder detail tegen? Leugen! En wie maakte het verhaal het meest verdacht?',
     facts: [['Spelers', '3 tot 8'], ['Telefoons', 'één, die rondgaat'], ['Per zin', '8 seconden']],
-    cta: 'Speel Alibi' }
+    cta: 'Speel Alibi' },
+  { id: 'bakplaten', mode: 'een', name: 'Bak', name2: 'platen', glue: true, short: 'Bakplaten', acc: '#ff8a3d', tint: '#2a170d', bg: '#1a0f0a',
+    url: '/bakplaten',
+    chips: ['Kaartspel', 'Eén telefoon'],
+    text: 'Het simpelste kaartspel dat er is. Leg de telefoon op tafel en trek om de beurt een kaart van de stapel. Een gewone kaart? Niks aan de hand. Een plaatje of een aas? Mega strafpunt. Wil je het heftiger, dan deel je rode plaatjes uit.',
+    facts: [['Spelers', '2 of meer'], ['Telefoons', 'één, op tafel'], ['Kaarten', '52, zonder jokers']],
+    cta: 'Speel Bakplaten' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 // twee tabbladen: spellen waarbij ieder op zijn eigen telefoon speelt, en spellen op één telefoon die rondgaat
@@ -397,7 +403,7 @@ function build(){
       <div class="prev" style="--bg:${g.bg}"><canvas data-prev="${g.id}" role="img" aria-label="Voorproefje van ${g.short}"></canvas></div>
       <div class="gbody">
         <div class="chips">${g.chips.map((c, i) => `<span class="chip${i ? ' line' : ''}">${c}</span>`).join('')}</div>
-        <h2 class="gname">${g.name}${g.name2 ? ` <em>${g.name2}</em>` : ''}</h2>
+        <h2 class="gname">${g.name}${g.name2 ? `${g.glue ? '' : ' '}<em>${g.name2}</em>` : ''}</h2>
         <p>${g.text}</p>
         ${g.facts.length ? `<dl class="facts">${g.facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>` : ''}
         ${g.url
@@ -857,6 +863,48 @@ const PREV = {
     if (cyc > 1.3) { c.strokeStyle = left < .38 ? '#ff4d4d' : '#ffd23f'; c.beginPath(); c.arc(tx, ty, r, -Math.PI / 2, -Math.PI / 2 + TAU * left); c.stroke(); }
     T(c, cyc < 1.3 ? '8' : left > 0 ? String(Math.ceil(left * 8)) : '!', tx, ty + 1, r * .8, left < .38 && cyc > 1.3 ? '#ff4d4d' : '#fff', { f: SF, w: 900 });
     if (cyc > 4.9) T(c, 'GEEF DOOR!', w / 2, h * .815, Math.min(w * .06, h * .07), '#ffd23f', { f: SF, w: 900 });
+  },
+  // Bakplaten: de stapel op de bakplaat, een kaart draait om; af en toe een plaatje en dan: mega strafpunt
+  bakplaten(c, w, h, t){
+    const SF = 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+    const g = c.createRadialGradient(w / 2, h, 10, w / 2, h * .7, Math.max(w, h)); g.addColorStop(0, '#6b2a0f'); g.addColorStop(.5, '#2a170d'); g.addColorStop(1, '#1a0f0a'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    const k = Math.min(w / 340, h / 300), cyc = reduce ? 1.6 : (t / 1000) % 2.6, n = reduce ? 1 : Math.floor(t / 2600);
+    // elke vierde kaart is raak
+    const KAART = [['7', '♣', 0], ['H', '♥', 1], ['4', '♦', 0], ['9', '♠', 0], ['A', '♠', 1], ['3', '♥', 0], ['10', '♣', 0], ['B', '♦', 1]][n % 8];
+    // de bakplaat
+    const tw = Math.min(w * .86, 320 * k), th = h * .5, tx = (w - tw) / 2, ty = h * .2;
+    const pg = c.createLinearGradient(0, ty, 0, ty + th); pg.addColorStop(0, '#6a6d74'); pg.addColorStop(1, '#2d2e32');
+    rr(c, tx, ty, tw, th, 18 * k); c.fillStyle = pg; c.fill();
+    rr(c, tx + 8 * k, ty + 8 * k, tw - 16 * k, th - 16 * k, 12 * k); c.fillStyle = '#3a3c41'; c.fill();
+    const cw = Math.min(th * .62, tw * .3), ch = cw * 1.4, cy = ty + th / 2;
+    const kaart = (x, y, rot, front, s) => {
+      c.save(); c.translate(x, y); c.rotate(rot); c.scale(s, 1);
+      rr(c, -cw / 2, -ch / 2, cw, ch, cw * .1); c.fillStyle = '#fffaf2'; c.fill();
+      if (!front) { rr(c, -cw / 2 + cw * .06, -ch / 2 + cw * .06, cw * .88, ch - cw * .12, cw * .07); c.fillStyle = '#a8501f'; c.fill(); c.save(); c.clip(); c.strokeStyle = '#8a3d18'; c.lineWidth = cw * .05; for (let i = -8; i < 8; i++) { c.beginPath(); c.moveTo(-cw / 2 + i * cw * .16, -ch / 2); c.lineTo(-cw / 2 + i * cw * .16 + ch * .6, ch / 2); c.stroke(); } c.restore(); }
+      else {
+        const red = KAART[1] === '♥' || KAART[1] === '♦', col = red ? '#d2343f' : '#24130c';
+        if (KAART[2]) { c.lineWidth = 4 * k; c.strokeStyle = '#ffc94d'; rr(c, -cw / 2, -ch / 2, cw, ch, cw * .1); c.stroke(); }
+        T(c, KAART[0], -cw * .28, -ch * .36, cw * .24, col, { f: SF, w: 900 });
+        T(c, KAART[1], 0, ch * .04, cw * .5, col, { f: SF, w: 900 });
+      }
+      c.restore();
+    };
+    // de stapel
+    const sx = w / 2 - cw * .75;
+    for (let i = 2; i >= 0; i--) kaart(sx + i * 2.5 * k, cy + i * 2.5 * k, 0, false, 1);
+    // de kaart gaat van de stapel naar rechts en draait om
+    const mv = clamp(cyc / .5, 0, 1), e = 1 - Math.pow(1 - mv, 3), fl = clamp((cyc - .25) / .4, 0, 1);
+    const fx = sx + (w / 2 + cw * .75 - sx) * e;
+    c.save(); c.beginPath(); c.rect(0, 0, w, h); c.clip();
+    if (cyc > .02) kaart(fx, cy - Math.sin(e * Math.PI) * 14 * k, .06 * e, fl >= .5, Math.max(.04, Math.abs(Math.cos(fl * Math.PI))));
+    c.restore();
+    // de uitslag
+    if (cyc > .8) {
+      const s = KAART[2] ? 'MEGA STRAFPUNT!' : 'Niks aan de hand', size = Math.min(KAART[2] ? 24 * k : 17 * k, w * .075);
+      if (KAART[2]) { const tg = c.createLinearGradient(0, h * .82, 0, h * .9); tg.addColorStop(0, '#ffc94d'); tg.addColorStop(1, '#ff5a2a'); T(c, s, w / 2, h * .85, size * Math.min(1, .7 + (cyc - .8) * 2), tg, { f: SF, w: 900 }); }
+      else T(c, s, w / 2, h * .85, size, '#9fe0b2', { f: SF, w: 800 });
+    } else T(c, 'Trek een kaart…', w / 2, h * .85, Math.min(15 * k, w * .05), 'rgba(251,241,230,.7)', { f: SF, w: 700 });
+    T(c, `${40 - (n % 40)} over`, w / 2, h * .1, Math.min(12 * k, w * .04), 'rgba(251,241,230,.6)', { f: SF, w: 700 });
   },
   // Tikkende Bom: een opdracht bovenin, de bom tikt (steeds sneller) en dan: boem
   bom(c, w, h, t){
