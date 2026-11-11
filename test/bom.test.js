@@ -57,3 +57,10 @@ test('de server: /bom, en een potje telt mee in de statistieken (niet te vaak, e
     await srv.stop();
   }
 });
+
+test('Tikkende Bom: de lont is lang genoeg (kort, normaal, lang)', () => {
+  const html = read('bom.html');
+  const tijd = JSON.parse(html.match(/const TIJD = (\{[^}]+\});/)[1].replace(/(\w+):/g, '"$1":'));
+  assert.deepEqual(tijd, { kort: [20, 40], normaal: [30, 75], lang: [60, 120] });
+  assert.ok(read('speelhal.html').includes("['Lont', '20 seconden tot 2 minuten']"));
+});
