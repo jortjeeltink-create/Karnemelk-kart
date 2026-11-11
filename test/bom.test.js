@@ -26,7 +26,7 @@ test('de speelhal: twee tabbladen, Karnemelk Kart onderaan en Tikkende Bom bij �
   const html = read('speelhal.html');
   assert.ok(html.includes('data-tab="samen"') && html.includes('data-tab="een"'), 'twee tabbladen');
   const ids = [...html.matchAll(/^ {2}\{ id: '([a-z]+)'/gm)].map((m) => m[1]);
-  assert.deepEqual(ids.slice(-3), ['kart', 'bom', 'alibi'], 'kart als laatste van de samen-spellen, daarna de spellen op één telefoon');
+  assert.deepEqual(ids.slice(-4), ['kart', 'bom', 'alibi', 'bakplaten'], 'kart als laatste van de samen-spellen, daarna de spellen op één telefoon');
   assert.match(html, /\{ id: 'bom', mode: 'een'/);
   assert.match(html, /\n {2}bom\(c, w, h, t\)\{/, 'een voorproefje van de bom');
 });

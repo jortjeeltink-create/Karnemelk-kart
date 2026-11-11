@@ -87,6 +87,12 @@
       { img: 'alibi-4', t: 'Leugen!', p: 'Spreekt iemand een eerder detail tegen? Tik op <b>Leugen!</b> (één keer per ronde). Klopt het, dan krijgt de leugenaar een strafpunt; klopt het niet, dan krijgt wie riep er één.' },
       { img: 'alibi-5', t: 'Wie was het verdachtst?', p: 'Na het rondje telt de telefoon af en wijst iedereen tegelijk aan wie het verhaal het meest verdacht maakte. Die krijgt een strafpunt. De strafpunten houden jullie zelf bij.' },
     ] },
+    bakplaten: { name: 'Bakplaten', c: '#ff8a3d', url: '/bakplaten', slides: [
+      { img: 'bakplaten-1', t: 'Eén telefoon op tafel', p: 'Leg de telefoon midden op tafel. Kies of de azen meetellen en of rode plaatjes uitgedeeld worden, en tik op <b>Schud en begin</b>. De telefoon schudt 52 kaarten, zonder jokers.' },
+      { img: 'bakplaten-2', t: 'Trek een kaart', p: 'Om de beurt tik je op de stapel en draai je een kaart om. Een gewone kaart (2 tot en met 10)? <b>Niks aan de hand</b>, de volgende is aan de beurt.' },
+      { img: 'bakplaten-3', t: 'Plaatje of aas', p: 'Trek je een boer, vrouw, heer of aas? Dan krijg je een <b>mega strafpunt</b>. Wat dat is, spreken jullie samen af. De telefoon telt hoeveel er al gevallen zijn.' },
+      { img: 'bakplaten-4', t: 'Heftiger of rustiger', p: 'Met <b>Rood is uitdelen</b> geef je een rood plaatje aan iemand anders; een zwart plaatje is voor jezelf. Tellen de azen niet mee, dan is het iets rustiger. Is de stapel op, dan schud je opnieuw.' },
+    ] },
     bom: { name: 'Tikkende Bom', c: '#ff3b3b', url: '/bom', slides: [
       { img: 'bom-1', t: 'Eén telefoon', p: 'Jullie spelen samen op één telefoon: geen namen, geen codes. Kies hoe lang de lont ongeveer is en of er ook pittige opdrachten tussen zitten, en tik op <b>Start het spel</b>.' },
       { img: 'bom-2', t: 'De opdracht', p: 'Elke ronde komt er een opdracht, zoals <b>biermerken</b>, <b>bekende memes</b> of <b>mensen met wie iemand aan deze tafel heeft gezoend</b>. Te moeilijk? Tik op Andere opdracht. Wie de telefoon heeft, tikt op <b>Start de bom</b>.' },
