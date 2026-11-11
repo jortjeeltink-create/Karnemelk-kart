@@ -377,7 +377,13 @@ const GAMES = [
     chips: ['Kaartspel', 'Eén telefoon'],
     text: 'De kaarten liggen in een cirkel rond een glas. Om de beurt pak je er een en doe je de opdracht: uitdelen, duimen, quizmaster, tafel van 7. Een heer leg je op het glas. Wie de vierde oplegt of de cirkel breekt: mega strafpunt.',
     facts: [['Spelers', '3 of meer'], ['Telefoons', 'één, op tafel'], ['Opdrachten', '13, één per kaart']],
-    cta: 'Speel Kingsen' }
+    cta: 'Speel Kingsen' },
+  { id: 'happo', mode: 'een', name: 'Hap', name2: 'po', glue: true, short: 'Happo', acc: '#b8f04a', tint: '#113a3a', bg: '#0c2a2b',
+    url: '/happo',
+    chips: ['Spanning', 'Eén telefoon'],
+    text: 'Happo de nijlpaard heeft ergens een zere kies. Om de beurt druk je een tand in. Happo trilt, bromt… en het gaat goed. Of niet: de bek klapt dicht, HAP! Wie gebeten wordt, krijgt een strafpunt. Daarna gaat de bek weer open, met een nieuwe zere kies.',
+    facts: [['Spelers', '2 of meer'], ['Telefoons', 'één, op tafel'], ['Tanden', '10, één doet zeer']],
+    cta: 'Speel Happo' }
 ];
 const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 // twee tabbladen: spellen waarbij ieder op zijn eigen telefoon speelt, en spellen op één telefoon die rondgaat
@@ -950,6 +956,43 @@ const PREV = {
       T(c, KAART[2], tx, ty + BH / 2 + 18 * k, fs, '#ffe08a', { f: 'Georgia,serif', w: 900 });
     }
     T(c, `Heren op het glas ${heren}/4`, cx, h * .08, Math.min(11 * k, w * .035), 'rgba(246,241,255,.7)', { f: SF, w: 700 });
+  },
+  // Happo: de bek staat open, tanden gaan één voor één omlaag, en dan klapt hij dicht: HAP!
+  happo(c, w, h, t){
+    const SF = 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+    const g = c.createRadialGradient(w / 2, h, 10, w / 2, h * .7, Math.max(w, h)); g.addColorStop(0, '#1d6b5e'); g.addColorStop(.6, '#0f3536'); g.addColorStop(1, '#0c2a2b'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    const cyc = reduce ? 2.2 : (t / 1000) % 6, n = reduce ? 0 : Math.floor(t / 6000);
+    const pressed = Math.min(6, Math.floor(cyc / .6)), dicht = cyc > 4.1 && cyc < 5.6;
+    const order = [[3, 7, 1, 8, 5, 2], [6, 0, 4, 9, 2, 7], [1, 5, 8, 3, 0, 6]][n % 3];
+    const s = Math.min(w, h * 1.05) * .0042, ox = w / 2 - 100 * s, oy = h * .48 - 100 * s + (dicht ? Math.sin(t / 30) * 2 : 0);
+    c.save(); c.translate(ox, oy); c.scale(s, s);
+    const huid = (a, b) => { const lg = c.createLinearGradient(0, 0, 0, 200); lg.addColorStop(0, a); lg.addColorStop(1, b); return lg; };
+    c.fillStyle = '#8f7cb3'; c.beginPath(); c.ellipse(34, 16, 11, 9, 0, 0, TAU); c.ellipse(166, 16, 11, 9, 0, 0, TAU); c.fill();
+    if (!dicht) {
+      c.fillStyle = huid('#b3a2cf', '#836fa6'); c.beginPath(); c.moveTo(12, 110); c.bezierCurveTo(8, 168, 52, 197, 100, 197); c.bezierCurveTo(148, 197, 192, 168, 188, 110); c.closePath(); c.fill();
+      c.fillStyle = '#5e1530'; c.beginPath(); c.ellipse(100, 110, 80, 58, 0, 0, TAU); c.fill();
+      c.fillStyle = '#e8577a'; c.beginPath(); c.ellipse(100, 136, 46, 21, 0, 0, TAU); c.fill();
+      c.strokeStyle = '#f29bb2'; c.lineWidth = 11; c.lineCap = 'round'; c.beginPath(); c.ellipse(100, 110, 74, 52, 0, .2, Math.PI - .2); c.stroke();
+      for (let i = 0; i < 10; i++) {
+        const a = (16 + 148 * i / 9) * Math.PI / 180, x = 100 + 69 * Math.cos(a), y = 110 + 46 * Math.sin(a), down = order.slice(0, pressed).includes(i);
+        c.save(); c.translate(x, y); c.rotate((90 - a * 180 / Math.PI) * -.5 * Math.PI / 180); if (down) c.scale(1, .5); c.translate(0, down ? 8 : 0);
+        c.fillStyle = down ? '#c9c0ad' : '#fbf6ea'; rr(c, -7, -11, 14, 21, 6); c.fill(); c.restore();
+      }
+      c.fillStyle = huid('#c0b0dc', '#9886bd'); c.beginPath(); c.moveTo(12, 110); c.bezierCurveTo(6, 40, 44, 6, 100, 6); c.bezierCurveTo(156, 6, 194, 40, 188, 110); c.lineTo(180, 110); c.ellipse(100, 110, 80, 58, 0, 0, Math.PI, true); c.lineTo(12, 110); c.fill();
+      c.fillStyle = '#f6efe0'; for (const d of [205, 228, 252, 288, 312, 335]) { const a = d * Math.PI / 180, x = 100 + 70 * Math.cos(a), y = 110 + 49 * Math.sin(a); c.beginPath(); c.moveTo(x - 6, y); c.quadraticCurveTo(x, y + 18, x + 6, y); c.fill(); }
+    } else {
+      c.fillStyle = huid('#c0b0dc', '#8a77ab'); c.beginPath(); c.moveTo(14, 104); c.bezierCurveTo(8, 36, 46, 6, 100, 6); c.bezierCurveTo(154, 6, 192, 36, 186, 104); c.bezierCurveTo(190, 160, 150, 190, 100, 190); c.bezierCurveTo(50, 190, 10, 160, 14, 104); c.fill();
+      c.strokeStyle = '#4a0f25'; c.lineWidth = 8; c.lineCap = 'round'; c.beginPath(); c.moveTo(22, 118); c.quadraticCurveTo(100, 152, 178, 118); c.stroke();
+    }
+    c.fillStyle = '#b7a6d4'; c.beginPath(); c.ellipse(100, 36, 38, 20, 0, 0, TAU); c.fill();
+    c.fillStyle = '#4a3a66'; c.beginPath(); c.ellipse(84, 34, 6, 4.5, 0, 0, TAU); c.ellipse(116, 34, 6, 4.5, 0, 0, TAU); c.fill();
+    if (dicht) { c.strokeStyle = '#1d1630'; c.lineWidth = 5; for (const x of [52, 148]) { c.beginPath(); c.moveTo(x - 12, 44); c.quadraticCurveTo(x, 32, x + 12, 44); c.stroke(); } }
+    else { const sh = cyc > 3.3 ? Math.sin(t / 40) * 1.5 : 0; c.fillStyle = '#fff'; c.beginPath(); c.arc(52, 40, 13, 0, TAU); c.arc(148, 40, 13, 0, TAU); c.fill(); c.fillStyle = '#1d1630'; c.beginPath(); c.arc(55 + sh, 42, 6.5, 0, TAU); c.arc(145 + sh, 42, 6.5, 0, TAU); c.fill(); }
+    c.restore();
+    if (dicht) {
+      const k = Math.min(1, (cyc - 4.1) * 5), size = Math.min(w * .2, h * .26) * (.5 + .5 * k);
+      c.save(); c.translate(w / 2, h * .44); c.rotate(-.1); c.lineWidth = size * .08; c.strokeStyle = '#fff'; c.font = `900 ${size}px ${SF}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.strokeText('HAP!', 0, 0); c.fillStyle = '#ff6b6b'; c.fillText('HAP!', 0, 0); c.restore();
+    } else if (cyc > 3.3 && cyc <= 4.1) T(c, 'Spannend…', w / 2, h * .93, Math.min(w * .05, 15), 'rgba(239,250,245,.75)', { f: SF, w: 700 });
   },
   // Tikkende Bom: een opdracht bovenin, de bom tikt (steeds sneller) en dan: boem
   bom(c, w, h, t){
