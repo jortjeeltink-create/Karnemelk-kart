@@ -247,7 +247,7 @@ function opdrachten(pittig){
 
 /* ================= INSTELLINGEN ================= */
 // Geen namen en geen punten: bij wie hij ontploft, heeft verloren, en wat die moet doen bepalen jullie zelf.
-const TIJD = { kort: [10, 25], normaal: [15, 45], lang: [30, 70] };
+const TIJD = { kort: [20, 40], normaal: [30, 75], lang: [60, 120] };
 const KEY = 'spelkeet-bom';
 const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
 const saved = load();
@@ -359,7 +359,7 @@ const SCHERM = {
       <button class="howlink" type="button" data-act="uitleg">Uitleg met plaatjes ›</button>
     </section>
     <section class="card set">
-      <div><span class="label">Lengte van de lont</span><div class="seg" role="group" aria-label="Lengte van de lont">${[['kort', 'Kort'], ['normaal', 'Normaal'], ['lang', 'Lang']].map(([k, t]) => `<button type="button" data-tijd="${k}" aria-pressed="${S.tijd === k}">${t}</button>`).join('')}</div><p class="muted">${{ kort: 'Tussen 10 en 25 seconden', normaal: 'Tussen 15 en 45 seconden', lang: 'Tussen 30 en 70 seconden' }[S.tijd]}, maar niemand weet precies wanneer.</p></div>
+      <div><span class="label">Lengte van de lont</span><div class="seg" role="group" aria-label="Lengte van de lont">${[['kort', 'Kort'], ['normaal', 'Normaal'], ['lang', 'Lang']].map(([k, t]) => `<button type="button" data-tijd="${k}" aria-pressed="${S.tijd === k}">${t}</button>`).join('')}</div><p class="muted">${S.tijd === 'lang' ? 'Tussen 1 en 2 minuten' : `Tussen ${TIJD[S.tijd][0]} en ${TIJD[S.tijd][1]} seconden`}, maar niemand weet precies wanneer.</p></div>
       <div><span class="label">Opdrachten</span><div class="seg" role="group" aria-label="Soort opdrachten"><button type="button" data-pittig="0" aria-pressed="${!S.pittig}">Gewoon</button><button type="button" data-pittig="1" aria-pressed="${S.pittig}">Met pittige</button></div></div>
     </section>
     <button class="btn red" type="button" data-act="begin">Start het spel</button>`;
