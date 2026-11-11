@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Happo</title>
+<meta name="description" content="Happo: een nijlpaard met een zere kies, op één telefoon. Druk om de beurt een tand in. Vind jij de zere kies, dan klapt de bek dicht: HAP!">
+<meta name="theme-color" content="#0c2a2b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Happo">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="/happo.webmanifest">
+<link rel="icon" href="/img/happo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/happo-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap">
+<style>
+:root{
+  /* Een rivier in de tropen: diep groenblauw water, limoen en koraal, en een paars nijlpaard dat breed lacht.
+     Rond en vrolijk, met grote knoppen; de bek is het spel. */
+  --bg:#0c2a2b;
+  --bg-2:#113a3a;
+  --card:#123e3f;
+  --card-2:#1a4d4e;
+  --line:rgba(255,255,255,.12);
+  --txt:#effaf5;
+  --mute:#a7c9c2;
+  --lime:#b8f04a;
+  --coral:#ff6b6b;
+  --sun:#ffd166;
+  --hippo:#a593c2;
+  --font:"Baloo 2",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg) radial-gradient(120% 60% at 50% 110%,#1d6b5e 0%,rgba(12,42,43,0) 65%) no-repeat;color:var(--txt);font:17px/1.45 var(--font);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--sun);outline-offset:3px;border-radius:12px}
+h1,h2{margin:0;line-height:1;font-weight:800}
+p{margin:0}
+
+.app{position:relative;min-height:100svh;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding:calc(10px + env(safe-area-inset-top,0px)) 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.top{display:flex;align-items:center;gap:8px;min-height:52px}
+.back{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px 0 8px;border-radius:999px;color:var(--mute);text-decoration:none;font-weight:700;font-size:16px}
+.back:hover{color:var(--txt)}
+.top .title{font-weight:800;font-size:22px;margin-right:auto}
+.top .spacer{margin-right:auto}
+.iconbtn{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);color:var(--txt)}
+.iconbtn:hover{background:var(--card-2)}
+
+.screen{flex:1;display:flex;flex-direction:column;gap:14px;padding-top:4px}
+.screen.anim{animation:in .28s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.card{padding:18px;border-radius:22px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line)}
+.card h2{font-size:24px;margin-bottom:8px}
+.muted{color:var(--mute);font-size:15px}
+.grow{flex:1}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:60px;padding:0 20px;border-radius:20px;font-weight:800;font-size:22px;text-decoration:none;text-align:center}
+.btn.go{background:linear-gradient(180deg,#d4ff7a,var(--lime) 55%,#8fcb27);color:#12300a;box-shadow:0 12px 28px rgba(184,240,74,.25),inset 0 -4px 0 rgba(0,0,0,.14)}
+.btn.go:active{transform:translateY(1px)}
+.btn.stick{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:3}
+
+/* start */
+.hero{display:grid;justify-items:center;text-align:center;gap:6px}
+.hero h1{font-size:clamp(60px,18vw,84px);letter-spacing:-.01em;color:var(--hippo);text-shadow:0 5px 0 #5b4a7d,0 12px 30px rgba(0,0,0,.35)}
+.hero h1 span{color:var(--lime);text-shadow:0 5px 0 #4f7a10,0 12px 30px rgba(0,0,0,.35)}
+.hero p{color:var(--mute);max-width:30ch}
+.hero .stage{width:min(62vw,250px)}
+.steps{display:grid;gap:10px;margin:0;padding:0;list-style:none;counter-reset:s}
+.steps li{display:grid;grid-template-columns:32px 1fr;gap:12px;align-items:start;font-size:16px;line-height:1.45}
+.steps li::before{counter-increment:s;content:counter(s);display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--lime);color:#12300a;font-weight:800;font-size:16px}
+.steps b{color:#fff}
+.howlink{display:inline-flex;align-items:center;gap:8px;margin-top:12px;min-height:40px;padding:0 14px;border-radius:999px;background:var(--card-2);font-weight:700;font-size:15px}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.opt b{display:block;font-weight:800;font-size:18px}
+.opt small{display:block;color:var(--mute);font-size:14px;line-height:1.4}
+.sw{position:relative;flex:none;width:56px;height:32px;border-radius:999px;background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px var(--line);transition:background .2s}
+.sw::after{content:"";position:absolute;left:4px;top:4px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.35);transition:transform .25s cubic-bezier(.3,1.3,.5,1)}
+.sw[aria-checked="true"]{background:var(--coral)}
+.sw[aria-checked="true"]::after{transform:translateX(24px)}
+
+/* Happo: de onderkaak met de tanden, en de kop erboven die dicht kan klappen */
+.stage{position:relative;container-type:inline-size;width:min(100%,400px);aspect-ratio:1;margin:0 auto;-webkit-user-select:none;user-select:none}
+.kaak{position:absolute;inset:0;transition:transform .55s cubic-bezier(.2,.8,.2,1)}
+.kaak svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.boven{pointer-events:none;z-index:2}
+.toe{position:absolute;inset:0;z-index:3;opacity:0;pointer-events:none}
+.toe svg{width:100%;height:100%;display:block}
+.stage.dicht .kaak{opacity:0;transition:transform .09s cubic-bezier(.7,0,.9,.5),opacity 0s .09s}
+.stage.dicht .boven{transform:translateY(14%)}
+.stage.dicht .onder{transform:translateY(-12%)}
+.stage.dicht .toe{opacity:1;animation:dicht .4s .06s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes dicht{0%{transform:scaleY(.82)}100%{transform:none}}
+.stage.trilt{animation:tril .09s linear infinite}
+@keyframes tril{0%,100%{transform:translate(0,0)}25%{transform:translate(-1.2px,.6px) rotate(-.4deg)}75%{transform:translate(1.2px,-.6px) rotate(.4deg)}}
+.stage.beet{animation:beet .45s cubic-bezier(.3,1.6,.4,1)}
+@keyframes beet{0%{transform:scale(1)}30%{transform:scale(1.06) rotate(-1.5deg)}60%{transform:scale(.98) rotate(1deg)}100%{transform:none}}
+.tanden{position:absolute;inset:0}
+.tand{position:absolute;width:8.2cqw;height:12cqw;margin:-6cqw 0 0 -4.1cqw;transform-origin:50% 90%;touch-action:manipulation}
+.tand span{position:absolute;inset:0;border-radius:46% 46% 26% 26% / 62% 62% 20% 20%;background:linear-gradient(160deg,#ffffff,#f2ead9 70%,#e2d6bf);box-shadow:inset -.4cqw -.6cqw 0 rgba(120,90,40,.12),0 .5cqw .8cqw rgba(60,0,20,.45);transition:transform .16s cubic-bezier(.3,1.4,.5,1),filter .16s}
+.tand:hover span{filter:brightness(1.04)}
+.tand:focus-visible{outline:none}
+.tand:focus-visible span{box-shadow:0 0 0 .8cqw var(--sun)}
+.tand.down span{transform:translateY(46%) scaleY(.5);filter:brightness(.82) saturate(.7)}
+.tand.down{pointer-events:none}
+.tand.zeer span{background:linear-gradient(160deg,#ffd0d0,#ff8080)}
+.stage.dicht .tand,.stage.wacht .tand{pointer-events:none}
+.stage.reset .tand span{transition-delay:calc(var(--i) * 30ms)}
+.hap{position:absolute;left:50%;top:44%;z-index:4;transform:translate(-50%,-50%) scale(.3);opacity:0;pointer-events:none;font-weight:800;font-size:22cqw;line-height:1;color:var(--coral);text-shadow:0 1.2cqw 0 #7a1d1d,0 0 6cqw rgba(255,107,107,.6);-webkit-text-stroke:.6cqw #fff}
+.stage.dicht .hap{animation:hap .5s .08s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes hap{to{transform:translate(-50%,-50%) scale(1) rotate(-6deg);opacity:1}}
+.mini .tand{pointer-events:none}
+
+.status{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.chip{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:0 10px;border-radius:999px;background:var(--card);box-shadow:inset 0 0 0 1px var(--line);font-size:14px;font-weight:700}
+.chip b{color:var(--lime);font-variant-numeric:tabular-nums}
+.chip.au b{color:var(--coral)}
+.melding{min-height:58px;text-align:center}
+.melding h2{font-size:clamp(26px,8vw,34px)}
+.melding h2.ok{color:var(--lime)}
+.melding h2.au{color:var(--coral)}
+.melding p{color:var(--mute);font-size:16px}
+.melding.pop h2{animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+@media (prefers-reduced-motion:reduce){.screen.anim,.stage.trilt,.stage.beet,.melding.pop h2{animation:none}.stage.dicht .hap{animation:none;opacity:1;transform:translate(-50%,-50%)}.kaak,.stage.dicht .kaak,.tand span{transition:none}}
+
+.menu{position:fixed;inset:0;z-index:21;display:flex;align-items:flex-start;justify-content:flex-end;padding:calc(62px + env(safe-area-inset-top,0px)) 16px 16px;background:rgba(4,16,16,.55)}
+.menu nav{width:min(100%,300px);display:grid;padding:8px;border-radius:18px;background:var(--card-2);box-shadow:0 20px 60px rgba(0,0,0,.6),inset 0 0 0 1px var(--line)}
+.menu nav a,.menu nav button{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 12px;border-radius:12px;text-decoration:none;font-weight:600;text-align:left}
+.menu nav a:hover,.menu nav button:hover{background:rgba(255,255,255,.06)}
+.fine{margin-top:auto;padding-top:14px;text-align:center;color:#7fa59d;font-size:13px;line-height:1.45}
+.fine a{color:var(--mute)}
+</style>
+<script src="/js/poort.js" defer></script>
+<script src="/js/uitleg.js" defer></script>
+<script src="/js/review.js" defer></script>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <a class="back" href="/?tab=een" aria-label="Terug naar De Spelkeet"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span id="backTxt">De Spelkeet</span></a>
+    <span class="title" id="topTitle" hidden>Happo</span>
+    <span class="spacer" id="spacer"></span>
+    <button class="iconbtn" id="soundBtn" type="button" aria-label="Geluid uit"></button>
+    <button class="iconbtn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+  </header>
+  <main id="screen" class="screen"></main>
+  <p class="fine">Wat een strafpunt is, spreken jullie samen af. Niks is verplicht, het gaat om de lol. <a href="/melden">Iets melden</a></p>
+</div>
+
+<div class="menu" id="menu" hidden>
+  <nav aria-label="Menu">
+    <button type="button" data-act="uitleg">❓ Hoe werkt het?</button>
+    <button type="button" data-act="instellingen" id="menuSet">⚙️ Instellingen</button>
+    <a href="/review?spel=happo">⭐ Wat vind je ervan?</a>
+    <a href="/melden">🚩 Iets melden</a>
+    <a href="/?tab=een">🏠 Terug naar De Spelkeet</a>
+  </nav>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s) => document.querySelector(s);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const kies = (l) => l[Math.floor(Math.random() * l.length)];
+
+/* ================= DE TANDEN ================= */
+// Happo heeft 10 tanden in zijn onderkaak. In elke ronde zit er ergens een zere kies (of twee, als het heftiger mag).
+const N = 10;
+// welke tanden zeer doen deze ronde: zoveel verschillende plekken als er zere kiezen zijn
+function zereKiezen(n, aantal) {
+  const vrij = Array.from({ length: n }, (_, i) => i);
+  const uit = [];
+  for (let k = 0; k < aantal && vrij.length; k++) uit.push(vrij.splice(Math.floor(Math.random() * vrij.length), 1)[0]);
+  return uit;
+}
+// waar elke tand staat: in een boog langs het tandvlees van de onderkaak (in procenten van de bek), met overal
+// evenveel ruimte ertussen, zodat je altijd de tand raakt die je bedoelt
+const BOOG = (() => {
+  const pts = [], L = [0];
+  for (let k = 0; k <= 400; k++) { const t = (14 + 152 * k / 400) * Math.PI / 180; pts.push([t, 100 + 69 * Math.cos(t), 110 + 46 * Math.sin(t)]); }
+  for (let k = 1; k < pts.length; k++) L.push(L[k - 1] + Math.hypot(pts[k][1] - pts[k - 1][1], pts[k][2] - pts[k - 1][2]));
+  return { pts, L };
+})();
+function plek(i, n) {
+  const want = BOOG.L[BOOG.L.length - 1] * i / (n - 1);
+  let k = BOOG.L.findIndex((l) => l >= want - 1e-9); if (k < 0) k = BOOG.L.length - 1;
+  const [t, x, y] = BOOG.pts[k];
+  return { x: x / 2, y: y / 2, rot: (90 - t * 180 / Math.PI) * -.5 };
+}
+const OPGELUCHT = ['Pfoe!', 'Gered!', 'Nog even goed gegaan', 'Happo knippert niet eens', 'Zweet je al?', 'Niks aan de hand'];
+
+/* ================= INSTELLINGEN EN HET SPEL ================= */
+const KEY = 'spelkeet-happo';
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } };
+const saved = load();
+const S = { twee: !!saved.twee, geluid: saved.geluid !== false };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* geen opslag */ } };
+let G = null;
+function nieuwSpel() {
+  G = { ronde: 0, beten: 0, zeer: [], down: [], dicht: false, bezig: false };
+  nieuweRonde();
+  try { fetch('/api/potje', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ spel: 'happo' }), keepalive: true }).catch(() => {}); } catch (e) { /* niet erg */ }
+}
+function nieuweRonde() {
+  G.ronde++; G.zeer = zereKiezen(N, S.twee ? 2 : 1); G.down = []; G.dicht = false;
+}
+const over = () => N - G.down.length;
+
+/* ================= GELUID EN TRILLEN ================= */
+let ac = null;
+function audio() {
+  if (!S.geluid) return null;
+  try { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); } catch (e) { ac = null; }
+  return ac;
+}
+function piep(f, d, { type = 'sine', vol = .2, at = 0, naar = 0 } = {}) {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + at, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t); if (naar) o.frequency.exponentialRampToValueAtTime(naar, t + d);
+  g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + d + .05);
+}
+function ruis(d, vol = .3, freq = 1200, at = 0) {
+  const a = audio(); if (!a) return;
+  const len = Math.ceil(a.sampleRate * d), buf = a.createBuffer(1, len, a.sampleRate), data = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+  const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+  src.buffer = buf; f.type = 'lowpass'; f.frequency.value = freq; g.gain.value = vol;
+  src.connect(f).connect(g).connect(a.destination); src.start(a.currentTime + at);
+}
+const Snd = {
+  klik() { piep(900, .05, { type: 'square', vol: .06 }); },
+  // spanning: Happo bromt een beetje
+  brom(d) { piep(70, d, { type: 'sawtooth', vol: .07, naar: 55 }); },
+  pfoe() { piep(700, .25, { vol: .1, naar: 300 }); },
+  hap() { ruis(.35, .9, 900); piep(140, .3, { type: 'square', vol: .25, naar: 40 }); piep(90, .4, { type: 'sine', vol: .3, naar: 35, at: .02 }); },
+  open() { piep(300, .3, { type: 'triangle', vol: .1, naar: 600 }); },
+};
+const tril = (p) => { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* niet erg */ } };
+
+/* ================= HAPPO TEKENEN ================= */
+const ONDER = `<svg viewBox="0 0 200 200" aria-hidden="true"><defs>
+  <radialGradient id="mond" cx="50%" cy="38%" r="62%"><stop offset="0" stop-color="#8a2446"/><stop offset="1" stop-color="#4a0f25"/></radialGradient>
+  <linearGradient id="huidO" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b3a2cf"/><stop offset="1" stop-color="#836fa6"/></linearGradient></defs>
+  <path d="M12 110 C 8 168, 52 197, 100 197 C 148 197, 192 168, 188 110 Z" fill="url(#huidO)"/>
+  <path d="M40 178 Q100 196 160 178" stroke="rgba(255,255,255,.18)" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <ellipse cx="100" cy="110" rx="80" ry="58" fill="url(#mond)"/>
+  <ellipse cx="100" cy="136" rx="46" ry="21" fill="#e8577a"/>
+  <path d="M100 120 L100 146" stroke="#c23e62" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M26 110 A 74 52 0 0 0 174 110" fill="none" stroke="#f29bb2" stroke-width="11" stroke-linecap="round"/>
+</svg>`;
+const BOVEN = (ogen = '') => `<svg viewBox="0 0 200 200" aria-hidden="true"><defs>
+  <linearGradient id="huidB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c0b0dc"/><stop offset="1" stop-color="#9886bd"/></linearGradient></defs>
+  <ellipse cx="34" cy="16" rx="11" ry="9" fill="#8f7cb3"/><ellipse cx="34" cy="17" rx="5" ry="4" fill="#e89ab2"/>
+  <ellipse cx="166" cy="16" rx="11" ry="9" fill="#8f7cb3"/><ellipse cx="166" cy="17" rx="5" ry="4" fill="#e89ab2"/>
+  <path d="M12 110 C 6 40 44 6 100 6 C 156 6 194 40 188 110 L180 110 A 80 58 0 0 0 20 110 Z" fill="url(#huidB)"/>
+  <ellipse cx="100" cy="36" rx="38" ry="20" fill="#b7a6d4"/>
+  <ellipse cx="84" cy="34" rx="6" ry="4.5" fill="#4a3a66"/><ellipse cx="116" cy="34" rx="6" ry="4.5" fill="#4a3a66"/>
+  <g class="ogen${ogen}">
+    <circle cx="52" cy="40" r="13" fill="#fff"/><circle cx="148" cy="40" r="13" fill="#fff"/>
+    <circle cx="55" cy="42" r="6.5" fill="#1d1630"/><circle cx="145" cy="42" r="6.5" fill="#1d1630"/>
+    <circle cx="57" cy="39.5" r="2" fill="#fff"/><circle cx="147" cy="39.5" r="2" fill="#fff"/>
+  </g>
+  <ellipse cx="36" cy="80" rx="10" ry="6" fill="#f2a5bd" opacity=".55"/><ellipse cx="164" cy="80" rx="10" ry="6" fill="#f2a5bd" opacity=".55"/>
+  <path d="M28 110 A 72 50 0 0 1 172 110" fill="none" stroke="#f29bb2" stroke-width="9" stroke-linecap="round"/>
+  ${[205, 228, 252, 288, 312, 335].map((d) => { const t = d * Math.PI / 180, x = 100 + 70 * Math.cos(t), y = 110 + 49 * Math.sin(t), r = (d - 270) * .5; return `<path transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${r.toFixed(1)})" d="M-6 0 Q-6 12 0 14 Q6 12 6 0 Z" fill="#f6efe0"/>`; }).join('')}
+</svg>`;
+// de bek dicht: ogen dichtgeknepen en de tanden op elkaar
+const TOE = (() => {
+  const q = (t, a, b, c) => (1 - t) * (1 - t) * a + 2 * t * (1 - t) * b + t * t * c;
+  const tanden = Array.from({ length: 11 }, (_, k) => {
+    const t = .1 + k * .08, x = q(t, 22, 100, 178), y = q(t, 118, 152, 118), op = k % 2 === 0;
+    return `<path transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" d="${op ? 'M-5 0 L0 -9 L5 0 Z' : 'M-5 0 L0 9 L5 0 Z'}" fill="#f6efe0"/>`;
+  }).join('');
+  return `<svg viewBox="0 0 200 200"><defs><linearGradient id="huidT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c0b0dc"/><stop offset="1" stop-color="#8a77ab"/></linearGradient></defs>
+  <ellipse cx="34" cy="16" rx="11" ry="9" fill="#8f7cb3"/><ellipse cx="34" cy="17" rx="5" ry="4" fill="#e89ab2"/>
+  <ellipse cx="166" cy="16" rx="11" ry="9" fill="#8f7cb3"/><ellipse cx="166" cy="17" rx="5" ry="4" fill="#e89ab2"/>
+  <path d="M14 104 C 8 36 46 6 100 6 C 154 6 192 36 186 104 C 190 160 150 190 100 190 C 50 190 10 160 14 104 Z" fill="url(#huidT)"/>
+  <ellipse cx="100" cy="36" rx="38" ry="20" fill="#b7a6d4"/>
+  <ellipse cx="84" cy="34" rx="6" ry="4.5" fill="#4a3a66"/><ellipse cx="116" cy="34" rx="6" ry="4.5" fill="#4a3a66"/>
+  <path d="M40 44 Q52 32 64 44" stroke="#1d1630" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M136 44 Q148 32 160 44" stroke="#1d1630" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <ellipse cx="38" cy="92" rx="12" ry="7" fill="#f2a5bd" opacity=".7"/><ellipse cx="162" cy="92" rx="12" ry="7" fill="#f2a5bd" opacity=".7"/>
+  <path d="M22 118 Q100 152 178 118" stroke="#4a0f25" stroke-width="8" fill="none" stroke-linecap="round"/>${tanden}
+  <path d="M60 170 Q100 182 140 170" stroke="rgba(255,255,255,.16)" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`;
+})();
+function stageHTML(cls = '') {
+  const tanden = Array.from({ length: N }, (_, i) => {
+    const p = plek(i, N), down = G && G.down.includes(i);
+    return `<button class="tand${down ? ' down' : ''}" type="button" data-tand="${i}" style="left:${p.x.toFixed(2)}%;top:${p.y.toFixed(2)}%;transform:rotate(${p.rot.toFixed(1)}deg);--i:${i}" aria-label="Tand ${i + 1}${down ? ', al ingedrukt' : ''}"${down ? ' disabled' : ''}><span></span></button>`;
+  }).join('');
+  return `<div class="stage ${cls}" id="stage"><div class="kaak onder">${ONDER}<div class="tanden">${tanden}</div></div><div class="kaak boven">${BOVEN()}</div><div class="toe" aria-hidden="true">${TOE}</div><div class="hap" aria-hidden="true">HAP!</div></div>`;
+}
+
+/* ================= SCHERMEN ================= */
+const SCHERM = {
+  start() {
+    return `<section class="hero"><h1>Hap<span>po</span></h1><p>Happo de nijlpaard heeft ergens een zere kies. Druk je die in? HAP!</p>${stageHTML('mini')}</section>
+    <section class="card">
+      <h2>Zo werkt het</h2>
+      <ol class="steps">
+        <li><span>Leg de telefoon midden op tafel. Ergens in de bek van Happo zit een <b>zere kies</b>, maar niemand weet welke.</span></li>
+        <li><span>Om de beurt <b>druk je één tand in</b>. Gaat het goed? Dan is de volgende aan de beurt.</span></li>
+        <li><span>Druk je de zere kies in, dan klapt de bek dicht: <b>HAP!</b> Jij krijgt een <b>strafpunt</b>. Daarna gaat de bek weer open, met een nieuwe zere kies.</span></li>
+        <li><span>Jullie spelen zo lang als jullie willen.</span></li>
+      </ol>
+      <button class="howlink" type="button" data-act="uitleg">Uitleg met plaatjes ›</button>
+    </section>
+    <section class="card">
+      <div class="opt"><span><b>Twee zere kiezen</b><small>Iets heftiger: Happo bijt eerder. Wie de eerste zere kies vindt, wordt gebeten.</small></span><button class="sw" type="button" role="switch" data-sw="twee" aria-checked="${S.twee}" aria-label="Twee zere kiezen"></button></div>
+    </section>
+    <button class="btn go" type="button" data-act="begin">Open de bek</button>`;
+  },
+  spel() {
+    return `<div class="status"><span class="chip">Ronde <b id="rondeN">${G.ronde}</b></span><span class="chip">Nog <b id="overN">${over()}</b> tanden</span><span class="chip au">Gebeten <b id="betenN">${G.beten}</b></span></div>
+      ${stageHTML(G.dicht ? 'dicht' : '')}
+      <section class="melding" id="melding" aria-live="polite">${G.dicht ? meldingHap() : `<p>${G.down.length ? 'Volgende speler: druk een tand in.' : 'Wie begint? Druk een tand in.'}</p>`}</section>
+      <div class="grow"></div>
+      <button class="btn go stick" type="button" data-act="open" id="openBtn"${G.dicht ? '' : ' hidden'}>Bek weer open</button>`;
+  },
+};
+const meldingHap = () => '<h2 class="au">Gebeten!</h2><p>Jij vond de zere kies: een strafpunt voor jou.</p>';
+
+let nu = '';
+function toon(naam) {
+  const ander = naam !== nu;
+  nu = naam;
+  const el = $('#screen');
+  el.className = `screen${ander ? ' anim' : ''}`;
+  el.innerHTML = SCHERM[naam]();
+  if (ander) { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; scrollTo(0, 0); }
+  const start = naam === 'start';
+  $('#topTitle').hidden = start; $('#spacer').hidden = !start; $('#backTxt').hidden = !start; $('#menuSet').hidden = start;
+  stand(0);
+}
+// na een tijdje spelen: hoe vond je het? (zie review.js)
+const stand = (eind) => { if (window.SpelkeetReview) window.SpelkeetReview.stand('happo', nu === 'start' ? 'lobby' : 'spel', eind); };
+function melding(html, pop = true) {
+  const m = $('#melding'); if (!m) return;
+  m.className = `melding${pop ? ' pop' : ''}`; m.innerHTML = html;
+}
+function tellers() {
+  if ($('#rondeN')) $('#rondeN').textContent = G.ronde;
+  if ($('#overN')) $('#overN').textContent = over();
+  if ($('#betenN')) $('#betenN').textContent = G.beten;
+}
+
+/* ================= EEN TAND INDRUKKEN ================= */
+function druk(i) {
+  if (!G || G.dicht || G.bezig || G.down.includes(i)) return;
+  G.bezig = true; audio();
+  G.down.push(i);
+  const st = $('#stage'), knop = document.querySelector(`.tand[data-tand="${i}"]`);
+  if (knop) { knop.classList.add('down'); knop.disabled = true; }
+  Snd.klik(); tril(15);
+  st.classList.add('wacht');
+  // even spanning: Happo trilt en bromt, en dan...
+  const zeer = G.zeer.includes(i);
+  const wacht = reduce ? 150 : 280 + Math.random() * (zeer ? 700 : 600);
+  if (!reduce) st.classList.add('trilt');
+  Snd.brom(wacht / 1000);
+  setTimeout(() => {
+    st.classList.remove('trilt', 'wacht');
+    G.bezig = false;
+    if (zeer) {
+      G.dicht = true; G.beten++;
+      st.classList.add('dicht', 'beet');
+      Snd.hap(); tril([250, 60, 120]);
+      melding(meldingHap());
+      $('#openBtn').hidden = false;
+      tellers(); stand(1);
+      return;
+    }
+    Snd.pfoe();
+    const n = over();
+    const zin = n === G.zeer.length ? (n === 1 ? 'Nog maar één tand. Die is het dus…' : 'Alleen de zere kiezen zijn nog over…')
+      : n <= 3 ? `Nog ${n} tanden. Spannend!` : 'Geef de telefoon door.';
+    melding(`<h2 class="ok">${kies(OPGELUCHT)}</h2><p>${zin}</p>`);
+    tellers(); stand(0);
+  }, wacht);
+}
+function open() {
+  if (!G || !G.dicht) return;
+  nieuweRonde();
+  const st = $('#stage');
+  st.classList.remove('beet');
+  st.classList.add('reset');
+  st.classList.remove('dicht');
+  document.querySelectorAll('.tand').forEach((t) => { t.classList.remove('down', 'zeer'); t.disabled = false; t.setAttribute('aria-label', `Tand ${+t.dataset.tand + 1}`); });
+  setTimeout(() => st.classList.remove('reset'), 800);
+  Snd.open();
+  $('#openBtn').hidden = true;
+  melding(`<h2 class="ok">Ronde ${G.ronde}</h2><p>Een nieuwe zere kies. De volgende speler mag beginnen.</p>`);
+  tellers();
+}
+
+function geluidKnop() {
+  $('#soundBtn').innerHTML = S.geluid
+    ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>'
+    : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9l5 6M21 9l-5 6"/></svg>';
+  $('#soundBtn').setAttribute('aria-label', S.geluid ? 'Geluid uit' : 'Geluid aan');
+}
+const sluitMenu = () => { $('#menu').hidden = true; $('#menuBtn').setAttribute('aria-expanded', 'false'); };
+
+/* ================= KNOPPEN ================= */
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('button,[data-act]');
+  if (!t) { if (!$('#menu').hidden && !e.target.closest('#menu nav')) sluitMenu(); return; }
+  if (t.id === 'menuBtn') { const m = $('#menu'); m.hidden = !m.hidden; t.setAttribute('aria-expanded', String(!m.hidden)); return; }
+  if (t.id === 'soundBtn') { S.geluid = !S.geluid; save(); geluidKnop(); if (S.geluid) Snd.klik(); return; }
+  if (!$('#menu').hidden) sluitMenu();
+  if (t.dataset.tand !== undefined) return druk(+t.dataset.tand);
+  if (t.dataset.sw) { S[t.dataset.sw] = !S[t.dataset.sw]; save(); return toon('start'); }
+  switch (t.dataset.act) {
+    case 'uitleg': if (window.Uitleg) window.Uitleg.open('happo'); break;
+    case 'begin': audio(); nieuwSpel(); toon('spel'); break;
+    case 'open': open(); break;
+    case 'instellingen': toon('start'); break;
+  }
+});
+addEventListener('keydown', (e) => { if (e.key === 'Escape') sluitMenu(); });
+
+geluidKnop();
+toon('start');
+})();
+</script>
+</body>
+</html>

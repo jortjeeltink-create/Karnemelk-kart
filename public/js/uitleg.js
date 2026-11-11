@@ -87,6 +87,12 @@
       { img: 'alibi-4', t: 'Leugen!', p: 'Spreekt iemand een eerder detail tegen? Tik op <b>Leugen!</b> (één keer per ronde). Klopt het, dan krijgt de leugenaar een strafpunt; klopt het niet, dan krijgt wie riep er één.' },
       { img: 'alibi-5', t: 'Wie was het verdachtst?', p: 'Na het rondje telt de telefoon af en wijst iedereen tegelijk aan wie het verhaal het meest verdacht maakte. Die krijgt een strafpunt. De strafpunten houden jullie zelf bij.' },
     ] },
+    happo: { name: 'Happo', c: '#b8f04a', url: '/happo', slides: [
+      { img: 'happo-1', t: 'Eén telefoon op tafel', p: 'Leg de telefoon midden op tafel en tik op <b>Open de bek</b>. Ergens in de bek van Happo zit een <b>zere kies</b>, maar niemand weet welke.' },
+      { img: 'happo-2', t: 'Druk een tand in', p: 'Om de beurt druk je <b>één tand</b> in. Happo trilt en bromt even… Gaat het goed? Dan is de volgende aan de beurt.' },
+      { img: 'happo-3', t: 'HAP!', p: 'Druk je de zere kies in, dan klapt de bek dicht. Jij bent gebeten en krijgt een <b>strafpunt</b>. Wat dat is, spreken jullie samen af.' },
+      { img: 'happo-4', t: 'Nieuwe ronde', p: 'Tik op <b>Bek weer open</b>: alle tanden staan weer rechtop en er is een nieuwe zere kies. Wil je het heftiger? Zet bij de start <b>Twee zere kiezen</b> aan.' },
+    ] },
     kingsen: { name: 'Kingsen', c: '#f3c34b', url: '/kingsen', slides: [
       { img: 'kingsen-1', t: 'Eén telefoon op tafel', p: 'Leg de telefoon midden op tafel en tik op <b>Leg de cirkel</b>. Alle 52 kaarten (zonder jokers) liggen dan in een cirkel rond een glas.' },
       { img: 'kingsen-2', t: 'Pak een kaart', p: 'Om de beurt <b>tik je op een kaart</b> in de cirkel. Bovenin zie je hoeveel kaarten er nog liggen, hoeveel heren er op het glas liggen en welke kant de beurt op gaat.' },
