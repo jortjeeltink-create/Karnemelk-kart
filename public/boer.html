@@ -299,6 +299,54 @@ button.seat:active .ava{transform:scale(.94)}
   .view.game{grid-template-rows:minmax(280px,1fr) auto}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* ==== THEMA: eigen tafel per spel (begin) ==== */
+/* Leesbaar: uitleg en zinnen in een gewone letter; de korte labels in hoofdletters blijven in de vaste letter. */
+:root{--read:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+.sub,.fine,.pline,.waitline,.sheet p,.sheet li,.startcard>p{font-family:var(--read);letter-spacing:0}
+.startcard>p{font-size:16px;line-height:1.5}
+.sub,.pline,.waitline{font-size:15px;line-height:1.45}
+.sub{color:rgba(243,239,219,.76)}
+.fine{font-size:12.5px;line-height:1.4;color:rgba(243,239,219,.52)}
+/* De actiebalk onderin: strak en rustig. Vlakke knoppen met dezelfde ronding, zonder dikke randen. */
+.dock{padding:20px 18px calc(16px + env(safe-area-inset-bottom,0px));border-radius:28px 28px 0 0;gap:12px;border-top:1px solid rgba(255,255,255,.1);transition:border-color .25s,box-shadow .25s}
+.dock h2{font-size:30px;line-height:1;letter-spacing:0}
+.ask-h{align-items:center}
+.stake{padding:6px 11px;background:rgba(255,255,255,.08);box-shadow:none;font-size:12px}
+.opts,.rz{gap:10px}
+.opt,.rz button{min-height:64px;border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 12px 24px -14px rgba(0,0,0,.85)}
+.opt small{font-family:var(--read);font-size:12.5px;font-weight:500;letter-spacing:0;opacity:.92}
+.opt.up{background:linear-gradient(180deg,#36d283,#17a558)}
+.opt.down{background:linear-gradient(180deg,#ffb04a,#ec8612)}
+.opt.rood,.rz .red{background:linear-gradient(180deg,#f8646e,#d2343f)}
+.opt.zwart,.rz .black{background:linear-gradient(180deg,#37343f,#1a181f);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22),0 12px 24px -14px rgba(0,0,0,.85)}
+.cta{min-height:60px;padding:8px 9px 8px 20px;border-radius:18px;font-size:25px}
+.cta .arr{width:42px;height:42px;border-radius:13px;background:rgba(255,255,255,.2)}
+.dock .cta{box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 12px 24px -14px rgba(0,0,0,.85)}
+.ghostbtn,.ghost-cta{border-radius:16px}
+.action{border-radius:16px;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.09)}
+.name{border-radius:16px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+.abtn{min-height:56px;border-radius:16px}
+.abtn small{font-family:var(--read);font-size:12px;font-weight:600;letter-spacing:0}
+.abtn.klop,.abtn.yes,.abtn.no,.abtn.gold{box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 12px 24px -14px rgba(0,0,0,.85)}
+.rk{border-radius:14px;box-shadow:0 2px 0 rgba(0,0,0,.3)}
+/* Kun jij nu iets doen? Dan licht de rand van de actiebalk op in de kleur van het spel. */
+.dock:has(.cta:not(:disabled)),.dock:has(.opt:not(:disabled)),.dock:has(.rz button:not(:disabled)),.dock:has(.rk:not(:disabled)),.dock:has(.abtn:not(:disabled)),.dock:has(.cardbtn.can),.dock:has(.handcard:not(:disabled)){border-top-color:var(--glow);box-shadow:0 -14px 40px rgba(0,0,0,.45),0 -3px 22px -6px var(--glow)}
+/* Een melding midden op tafel: wat eronder staat gaat even weg, zodat de teksten niet door elkaar lopen. */
+.table:has(.banner) .center{opacity:.08;transition:opacity .15s}
+.felt::after{content:none}
+.rail{border-radius:26px}
+.felt{border-radius:17px}
+.felt::before{inset:12px;border-radius:5px}
+html{background:#1a0c0a}
+body{background:radial-gradient(120% 90% at 50% 30%,#55241c 0%,#200e0b 55%,#0d0504 100%) fixed}
+.stars{display:none}
+.rail{background:repeating-linear-gradient(92deg,rgba(0,0,0,.1) 0 2px,transparent 2px 9px),linear-gradient(180deg,#b9793f 0%,#7a4a22 50%,#3f2410 100%)}
+.felt{background:repeating-linear-gradient(0deg,rgba(255,255,255,.13) 0 15px,transparent 15px 30px),repeating-linear-gradient(90deg,rgba(255,255,255,.13) 0 15px,transparent 15px 30px),radial-gradient(ellipse 75% 60% at 50% 42%,#cf4755 0%,#ab2f3d 46%,#701a26 100%);box-shadow:inset 0 0 0 2px rgba(255,255,255,.45),inset 0 10px 40px rgba(0,0,0,.3),inset 0 -20px 50px rgba(0,0,0,.35)}
+.felt::before{border:1.5px solid rgba(255,255,255,.2)}
+.felt-sub{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.75)}
+.dock{background:linear-gradient(180deg,#3a181c,#170a0b 70%)}
+.cta,.dock .cta{background:linear-gradient(90deg,#6a1c2e 0%,#b83a56 50%,#ff8fab 100%)}
+/* ==== THEMA (einde) ==== */
 </style>
 <script src="/js/poort.js" defer></script>
 <script src="/js/slok.js" defer></script>
@@ -706,13 +754,20 @@ function setBeer(id, f) {
 const glassesHTML = (f1, f2, id = 'g') => `<div class="glasses">${glassHTML(f1, `${id}1`)}${glassHTML(f2, `${id}2`)}</div>`;
 
 // Stoelen op gelijke afstand langs de rand van de tafel: jij onderaan, daarna met de klok mee.
+// De vorm van de tafel (zie .rail in het thema): 'ovaal', 'recht' (afgeronde rechthoek), 'acht' (achthoek) of 'rond' (cirkel).
+const TABLE_SHAPE = 'recht';
 const seatCache = new Map();
 function seatPositions(n, aspect) {
   const key = `${n}:${aspect.toFixed(2)}`;
   if (seatCache.has(key)) return seatCache.get(key);
-  // de rand in procenten van de tafel (zie .rail): zijkanten op 6% en 94%, boven- en onderkant als halve ellips
-  const rx = 44, ry = 25.5, top = 30.5, bot = 64.5, pts = [];
-  const cap = (cy, a0, a1) => { for (let k = 0; k <= 48; k++) { const a = a0 + (a1 - a0) * k / 48; pts.push([50 + rx * Math.cos(a), cy + ry * Math.sin(a)]); } };
+  // de rand in procenten van de tafel (zie .rail): zijkanten op 6% en 94%, boven- en onderkant als halve ellips.
+  // Een ronde tafel is een cirkel die in de breedte en de hoogte past. Bij een rechte of achthoekige tafel is de
+  // bocht hoekiger (bol kleiner dan 1), zodat de stoelen langs de rand blijven staan.
+  let rx = 44, ry = 25.5, top = 30.5, bot = 64.5;
+  if (TABLE_SHAPE === 'rond') { rx = Math.min(44, 42.5 / aspect); ry = rx * aspect; top = bot = 47.5; }
+  const bol = { recht: .36, acht: .62 }[TABLE_SHAPE] || 1;
+  const pts = [], rond = (v) => Math.sign(v) * Math.abs(v) ** bol;
+  const cap = (cy, a0, a1) => { for (let k = 0; k <= 48; k++) { const a = a0 + (a1 - a0) * k / 48; pts.push([50 + rx * rond(Math.cos(a)), cy + ry * rond(Math.sin(a))]); } };
   cap(bot, Math.PI / 2, Math.PI);
   cap(top, Math.PI, Math.PI * 2);
   cap(bot, 0, Math.PI / 2);

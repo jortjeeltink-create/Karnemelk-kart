@@ -815,7 +815,7 @@ const PREV = {
   },
   // Toepen: vier spelers leggen om de beurt een kaart op, de hoogste in de kleur wint de slag; soms klopt er iemand
   toepen(c, w, h, t){
-    const g = c.createRadialGradient(w / 2, h * .45, 10, w / 2, h * .5, Math.max(w, h) * .75); g.addColorStop(0, '#2f9a58'); g.addColorStop(.6, '#1c6e3a'); g.addColorStop(1, '#0f2a18'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    const g = c.createRadialGradient(w / 2, h * .45, 10, w / 2, h * .5, Math.max(w, h) * .75); g.addColorStop(0, '#a8432a'); g.addColorStop(.6, '#7a2c1b'); g.addColorStop(1, '#2a0f09'); c.fillStyle = g; c.fillRect(0, 0, w, h);
     const cyc = reduce ? 5.2 : (t / 1000) % 6.4, round = reduce ? 0 : Math.floor(t / 6400);
     const cw = Math.min(w * .12, h * .24), ch = cw * 1.4, cx = w / 2, cy = h * .52;
     const card = (x, y, rot, txt, red, glow) => {
