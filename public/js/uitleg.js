@@ -23,7 +23,7 @@
       { img: 'bussen-3', t: 'Disco', p: 'Heb je bij de vierde vraag drie verschillende vormen, dan mag je ook <b>Disco</b> kiezen. Is je vierde kaart de ontbrekende vorm, dan krijgt <b>iedereen een mega strafpunt</b>. Mis telt als fout: 4 strafpunten.' },
       { img: 'bussen-4', t: 'Nu doen of sparen', p: 'Krijg je strafpunten, dan zie je groot hoeveel en van wie. Werk ze <b>nu</b> weg, of <b>spaar</b> ze op. Aan het eind van een ronde komen gespaarde strafpunten terug, en aan het eind van het spel moeten ze weg. Een mega strafpunt kun je niet sparen.' },
       { img: 'bussen-5', t: '2. De piramide', p: 'Elf kaarten gaan één voor één open. Heb je dezelfde waarde? Tik je kaart aan om hem weg te leggen, voordat de volgende omgaat. Per kaart deel je strafpunten uit: van onder naar boven <b>1 tot 5</b>, en een dwarse kaart telt dubbel (onderin 2, bovenin 10). Komt hetzelfde nummer twee keer voor in één rij? Dan mag iedereen er ook <b>één andere kaart</b> op leggen.' },
-      { img: 'bussen-6', t: 'Uitdelen', p: 'Tik aan tafel op wie ze krijgt, tot al je strafpunten verdeeld zijn. Wie ze krijgt, ziet het meteen op zijn telefoon.' },
+      { img: 'bussen-6', t: 'Uitdelen', p: 'Tik bovenaan op wie ze krijgt, tot al je strafpunten verdeeld zijn. Wie ze krijgt, ziet het meteen op zijn telefoon.' },
       { img: 'bussen-7', t: '3. De bus', p: 'Wie de meeste kaarten overhoudt, moet de bus in (bij gelijk kiest ieder een dichte kaart; de laagste moet erin). Raad steeds hoger of lager. Fout of paal? Dan krijg je zoveel strafpunten als de hoeveelste gok het was (<b>1, 2, 3…</b>) en begin je opnieuw. Haal je het eind, dan ben je eruit.' },
     ] },
     boer: { name: 'Boer zoekt vrouw', c: '#ff6b8b', url: '/boer', slides: [

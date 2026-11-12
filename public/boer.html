@@ -762,10 +762,10 @@ function seatPositions(n, aspect) {
   const key = `${n}:${aspect.toFixed(2)}`;
   if (seatCache.has(key)) return seatCache.get(key);
   // Vult het bord het scherm (TABLE_SHAPE 'rij'), dan staan de spelers in een rij bovenaan, jij als eerste; vanaf
-  // 6 spelers in twee rijen. De hoogte is dan in pixels (zie placeSeats).
+  // 6 spelers in twee rijen. Het tweede getal is dan de rij: 0 of 1 (zie placeSeats).
   if (TABLE_SHAPE === 'rij') {
     const per = n > 5 ? Math.ceil(n / 2) : n, row = [];
-    for (let s = 0; s < n; s++) { const r = s < per ? 0 : 1, m = r ? n - per : per; row.push([((r ? s - per : s) + .5) / m * 100, 30 + r * 62]); }
+    for (let s = 0; s < n; s++) { const r = s < per ? 0 : 1, m = r ? n - per : per; row.push([((r ? s - per : s) + .5) / m * 100, r]); }
     seatCache.set(key, row);
     return row;
   }
@@ -804,13 +804,16 @@ function placeSeats() {
     if (!r.width || !r.height) continue;
     const seats = t.querySelectorAll('.seat');
     const pos = seatPositions(seats.length, r.width / r.height);
-    if (TABLE_SHAPE === 'rij') t.style.setProperty('--strook', `${seats.length > 5 ? 138 : 74}px`);   // zoveel ruimte neemt de rij spelers
+    // Bij een rij spelers: --rij is de hoogte van één rij (uit de stijl, want soms liggen er kaarten onder de
+    // spelers) en --strook de ruimte die de rijen samen innemen; het bord begint daaronder.
+    const stap = TABLE_SHAPE === 'rij' ? parseFloat(getComputedStyle(t).getPropertyValue('--rij')) || 62 : 0;
+    if (stap) t.style.setProperty('--strook', `${(seats.length > 5 ? 2 : 1) * stap + 12}px`);
     seats.forEach((el, i) => {
       const [x, y] = pos[i];
       const cx = r.left + x / 100 * r.width;
       const shift = inward(cx, el.querySelector('.plate').offsetWidth / 2);
       el.style.left = shift ? `calc(${x}% + ${shift}px)` : `${x}%`;
-      el.style.top = TABLE_SHAPE === 'rij' ? `${y}px` : `${y}%`;
+      el.style.top = stap ? `${30 + y * stap}px` : `${y}%`;
       el.classList.toggle('top', y < 50);
       const tag = el.querySelector('.tag');
       if (tag) tag.style.setProperty('--tx', `${inward(cx + shift, tag.offsetWidth / 2 + 4)}px`);
@@ -818,7 +821,7 @@ function placeSeats() {
     const d = t.querySelector('.dealer');
     if (d && pos.length) {
       const [x, y] = pos[+d.dataset.seat] || pos[0];
-      if (TABLE_SHAPE === 'rij') { d.style.left = `calc(${x}% + 17px)`; d.style.top = `${y - 15}px`; }
+      if (stap) { d.style.left = `calc(${x}% + 17px)`; d.style.top = `${15 + y * stap}px`; }
       else { d.style.left = `${x + (50 - x) * .2 + (x < 50 ? 9 : -9)}%`; d.style.top = `${y + (50 - y) * .22}%`; }
     }
   }
