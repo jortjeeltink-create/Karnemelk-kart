@@ -359,17 +359,30 @@ button.seat:active .ava{transform:scale(.94)}
 /* Een melding midden op tafel: wat eronder staat gaat even weg, zodat de teksten niet door elkaar lopen. */
 .table:has(.banner) .center{opacity:.08;transition:opacity .15s}
 .felt::after{content:none}
+/* Het bord vult het scherm; de spelers staan in een rij erboven, jij als eerste. */
+.table{--rij:62px;--strook:74px}
+.seat{--ava:40px}
+.plate{min-width:calc(var(--ava) * 1.3);width:max-content;max-width:19cqw}
+.center{top:calc(var(--strook) + (100% - var(--strook)) / 2)}
+.banner{top:var(--strook)}
+.rail{inset:calc(var(--strook) + 6px) 1.5% 2%;border-radius:34px}
+.felt{inset:calc(var(--strook) + 15px) calc(1.5% + 9px) calc(2% + 9px);border-radius:26px}
 html{background:#0a0710}
 body{background:radial-gradient(120% 90% at 50% 26%,#2b1d4d 0%,#0e0a17 55%,#050308 100%) fixed}
 .rail{background:linear-gradient(180deg,#3a3440 0%,#131016 45%,#050406 100%);box-shadow:0 26px 60px rgba(0,0,0,.7),0 0 0 1.5px #c9a24a,inset 0 2px 0 rgba(255,255,255,.22),inset 0 -4px 10px rgba(0,0,0,.6)}
 .felt{background:radial-gradient(ellipse 75% 60% at 50% 42%,#1f8a55 0%,#0f6238 46%,#06371f 100%);box-shadow:inset 0 0 0 2.5px #c9a24a,inset 0 10px 40px rgba(0,0,0,.4),inset 0 -20px 50px rgba(0,0,0,.4)}
-.felt::before{inset:6% 8%;border:1.5px solid rgba(214,178,90,.5);box-shadow:0 0 0 4px rgba(214,178,90,.14)}
+.felt::before{inset:12px;border-radius:16px;border:1.5px solid rgba(214,178,90,.5);box-shadow:0 0 0 4px rgba(214,178,90,.14)}
 .dock{background:linear-gradient(180deg,#201733,#0b0812 70%)}
 .cta,.dock .cta{background:linear-gradient(90deg,#5a4416 0%,#a8842e 50%,#f0d27a 100%)}
-/* het bord met alle kaarten: breder en groter, zodat je goed ziet welke kaarten al weg zijn */
-.board{width:min(70cqw,350px);gap:.9cqw}
-.board b{font-size:min(4.9cqw,19px)}
-.board i{width:min(2.4cqw,9px);height:min(2.4cqw,9px);background:rgba(255,255,255,.26)}
+/* de dealer herken je aan het label; zijn stapeltje hoeft niet ook nog bij zijn naam */
+.hole{display:none}
+/* alles zo groot als het veld toelaat: de stapel, en het bord waarop je ziet welke kaarten al weg zijn */
+.center{width:94cqw;gap:1.3cqh}
+.duo{--w:min(22cqw,calc((100cqh - var(--strook)) * .165),104px)}
+.callout{font-size:min(12cqw,calc((100cqh - var(--strook)) * .1),56px)}
+.board{width:min(90cqw,440px);gap:1.2cqw;padding:2.2cqw 2.4cqw}
+.board b{font-size:min(6cqw,24px)}
+.board i{width:min(3cqw,12px);height:min(3cqw,12px);background:rgba(255,255,255,.26)}
 /* ==== THEMA (einde) ==== */
 </style>
 <script src="/js/poort.js" defer></script>
@@ -681,16 +694,16 @@ function ranksHTML(busy) {
 // Stoelen op gelijke afstand langs de rand van de tafel: jij onderaan, daarna met de klok mee.
 // De vorm van de tafel (zie .rail in het thema): 'ovaal', 'recht' (afgeronde rechthoek), 'acht' (achthoek) of 'rond'
 // (cirkel). Bij 'rij' is er geen tafel om omheen te zitten: het bord vult het scherm en de spelers staan in een rij erboven.
-const TABLE_SHAPE = 'ovaal';
+const TABLE_SHAPE = 'rij';
 const seatCache = new Map();
 function seatPositions(n, aspect) {
   const key = `${n}:${aspect.toFixed(2)}`;
   if (seatCache.has(key)) return seatCache.get(key);
   // Vult het bord het scherm (TABLE_SHAPE 'rij'), dan staan de spelers in een rij bovenaan, jij als eerste; vanaf
-  // 6 spelers in twee rijen. De hoogte is dan in pixels (zie placeSeats).
+  // 6 spelers in twee rijen. Het tweede getal is dan de rij: 0 of 1 (zie placeSeats).
   if (TABLE_SHAPE === 'rij') {
     const per = n > 5 ? Math.ceil(n / 2) : n, row = [];
-    for (let s = 0; s < n; s++) { const r = s < per ? 0 : 1, m = r ? n - per : per; row.push([((r ? s - per : s) + .5) / m * 100, 30 + r * 62]); }
+    for (let s = 0; s < n; s++) { const r = s < per ? 0 : 1, m = r ? n - per : per; row.push([((r ? s - per : s) + .5) / m * 100, r]); }
     seatCache.set(key, row);
     return row;
   }
@@ -729,13 +742,16 @@ function placeSeats() {
     if (!r.width || !r.height) continue;
     const seats = t.querySelectorAll('.seat');
     const pos = seatPositions(seats.length, r.width / r.height);
-    if (TABLE_SHAPE === 'rij') t.style.setProperty('--strook', `${seats.length > 5 ? 138 : 74}px`);   // zoveel ruimte neemt de rij spelers
+    // Bij een rij spelers: --rij is de hoogte van één rij (uit de stijl, want soms liggen er kaarten onder de
+    // spelers) en --strook de ruimte die de rijen samen innemen; het bord begint daaronder.
+    const stap = TABLE_SHAPE === 'rij' ? parseFloat(getComputedStyle(t).getPropertyValue('--rij')) || 62 : 0;
+    if (stap) t.style.setProperty('--strook', `${(seats.length > 5 ? 2 : 1) * stap + 12}px`);
     seats.forEach((el, i) => {
       const [x, y] = pos[i];
       const cx = r.left + x / 100 * r.width;
       const shift = inward(cx, el.querySelector('.plate').offsetWidth / 2);
       el.style.left = shift ? `calc(${x}% + ${shift}px)` : `${x}%`;
-      el.style.top = TABLE_SHAPE === 'rij' ? `${y}px` : `${y}%`;
+      el.style.top = stap ? `${30 + y * stap}px` : `${y}%`;
       el.classList.toggle('top', y < 50);
       const tag = el.querySelector('.tag');
       if (tag) tag.style.setProperty('--tx', `${inward(cx + shift, tag.offsetWidth / 2 + 4)}px`);
@@ -743,7 +759,7 @@ function placeSeats() {
     const d = t.querySelector('.dealer');
     if (d && pos.length) {
       const [x, y] = pos[+d.dataset.seat] || pos[0];
-      if (TABLE_SHAPE === 'rij') { d.style.left = `calc(${x}% + 17px)`; d.style.top = `${y - 15}px`; }
+      if (stap) { d.style.left = `calc(${x}% + 17px)`; d.style.top = `${15 + y * stap}px`; }
       else { d.style.left = `${x + (50 - x) * .2 + (x < 50 ? 9 : -9)}%`; d.style.top = `${y + (50 - y) * .22}%`; }
     }
   }
