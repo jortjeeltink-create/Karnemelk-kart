@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const read = (f) => readFileSync(new URL(`../public/${f}`, import.meta.url), 'utf8');
-const VORM = { bussen: 'recht', boer: 'recht', mexen: 'acht', dealer: 'ovaal', paardenrace: 'recht', rotonde: 'rond', mijnenveld: 'recht', toepen: 'recht' };
+const VORM = { bussen: 'recht', boer: 'recht', mexen: 'acht', dealer: 'ovaal', paardenrace: 'rij', rotonde: 'rij', mijnenveld: 'rij', toepen: 'recht' };
 
 test('elk tafelspel heeft een eigen thema en een eigen tafelvorm', () => {
   const achtergrond = new Set();
@@ -26,7 +26,12 @@ test('elk tafelspel heeft een eigen thema en een eigen tafelvorm', () => {
     assert.match(css, /\n\.felt\{[^}]*background:/, `${spel}: eigen tafelblad`);
     assert.match(css, /\n\.rail(,\.felt)?\{/, `${spel}: eigen rand`);
     // de vorm in de stijl hoort bij de vorm in het script
-    if (vorm === 'rond') assert.match(css, /\.rail\{inset:auto;left:50%;top:47\.5%;width:min\(88cqw,85cqh\);aspect-ratio:1/, `${spel}: een cirkel`);
+    // bij 'rij' vult het bord het scherm en staan de spelers in een rij erboven
+    if (vorm === 'rij') {
+      assert.match(css, /\.table\{--strook:74px\}/, `${spel}: ruimte voor de rij spelers`);
+      assert.match(css, /\.rail\{inset:(auto|calc\(var\(--strook\))/, `${spel}: het bord begint onder de rij`);
+    }
+    assert.ok(html.includes("if (TABLE_SHAPE === 'rij') t.style.setProperty('--strook', `${seats.length > 5 ? 138 : 74}px`);"), `${spel}: twee rijen vanaf 6 spelers`);
     if (vorm === 'acht') assert.match(css, /clip-path:polygon\(/, `${spel}: een achthoek`);
   }
   assert.equal(achtergrond.size, Object.keys(VORM).length, 'geen twee spellen met dezelfde achtergrond');

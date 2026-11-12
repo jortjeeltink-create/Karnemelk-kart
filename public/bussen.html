@@ -735,12 +735,21 @@ function cardHTML(c, { down = false, cls = '', reveal = false, d = 0, extra = ''
 }
 
 // Stoelen op gelijke afstand langs de rand van de tafel: jij onderaan, daarna met de klok mee.
-// De vorm van de tafel (zie .rail in het thema): 'ovaal', 'recht' (afgeronde rechthoek), 'acht' (achthoek) of 'rond' (cirkel).
+// De vorm van de tafel (zie .rail in het thema): 'ovaal', 'recht' (afgeronde rechthoek), 'acht' (achthoek) of 'rond'
+// (cirkel). Bij 'rij' is er geen tafel om omheen te zitten: het bord vult het scherm en de spelers staan in een rij erboven.
 const TABLE_SHAPE = 'recht';
 const seatCache = new Map();
 function seatPositions(n, aspect) {
   const key = `${n}:${aspect.toFixed(2)}`;
   if (seatCache.has(key)) return seatCache.get(key);
+  // Vult het bord het scherm (TABLE_SHAPE 'rij'), dan staan de spelers in een rij bovenaan, jij als eerste; vanaf
+  // 6 spelers in twee rijen. De hoogte is dan in pixels (zie placeSeats).
+  if (TABLE_SHAPE === 'rij') {
+    const per = n > 5 ? Math.ceil(n / 2) : n, row = [];
+    for (let s = 0; s < n; s++) { const r = s < per ? 0 : 1, m = r ? n - per : per; row.push([((r ? s - per : s) + .5) / m * 100, 30 + r * 62]); }
+    seatCache.set(key, row);
+    return row;
+  }
   // de rand in procenten van de tafel (zie .rail): zijkanten op 6% en 94%, boven- en onderkant als halve ellips.
   // Een ronde tafel is een cirkel die in de breedte en de hoogte past. Bij een rechte of achthoekige tafel is de
   // bocht hoekiger (bol kleiner dan 1), zodat de stoelen langs de rand blijven staan.
@@ -776,12 +785,13 @@ function placeSeats() {
     if (!r.width || !r.height) continue;
     const seats = t.querySelectorAll('.seat');
     const pos = seatPositions(seats.length, r.width / r.height);
+    if (TABLE_SHAPE === 'rij') t.style.setProperty('--strook', `${seats.length > 5 ? 138 : 74}px`);   // zoveel ruimte neemt de rij spelers
     seats.forEach((el, i) => {
       const [x, y] = pos[i];
       const cx = r.left + x / 100 * r.width;
       const shift = inward(cx, el.querySelector('.plate').offsetWidth / 2);
       el.style.left = shift ? `calc(${x}% + ${shift}px)` : `${x}%`;
-      el.style.top = `${y}%`;
+      el.style.top = TABLE_SHAPE === 'rij' ? `${y}px` : `${y}%`;
       el.classList.toggle('top', y < 50);
       const tag = el.querySelector('.tag');
       if (tag) tag.style.setProperty('--tx', `${inward(cx + shift, tag.offsetWidth / 2 + 4)}px`);
@@ -789,7 +799,8 @@ function placeSeats() {
     const d = t.querySelector('.dealer');
     if (d && pos.length) {
       const [x, y] = pos[+d.dataset.seat] || pos[0];
-      d.style.left = `${x + (50 - x) * .2 + (x < 50 ? 9 : -9)}%`; d.style.top = `${y + (50 - y) * .22}%`;
+      if (TABLE_SHAPE === 'rij') { d.style.left = `calc(${x}% + 17px)`; d.style.top = `${y - 15}px`; }
+      else { d.style.left = `${x + (50 - x) * .2 + (x < 50 ? 9 : -9)}%`; d.style.top = `${y + (50 - y) * .22}%`; }
     }
   }
 }
