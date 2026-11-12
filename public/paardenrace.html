@@ -363,9 +363,13 @@ button.seat:active .ava{transform:scale(.94)}
 /* Een melding midden op tafel: wat eronder staat gaat even weg, zodat de teksten niet door elkaar lopen. */
 .table:has(.banner) .center{opacity:.08;transition:opacity .15s}
 .felt::after{content:none}
-.rail{border-radius:28px}
-.felt{border-radius:19px}
-.felt::before{inset:14px;border-radius:5px}
+/* Het bord vult het scherm; de spelers staan in een rij erboven, jij als eerste. */
+.table{--strook:74px}
+.seat{--ava:40px}
+.plate{min-width:calc(var(--ava) * 1.3);width:max-content;max-width:19cqw}
+.center{top:calc(var(--strook) + (100% - var(--strook)) / 2)}
+.rail{inset:calc(var(--strook) + 6px) 1.5% 2%;border-radius:24px}
+.felt{inset:calc(var(--strook) + 15px) calc(1.5% + 9px) calc(2% + 9px);border-radius:16px}
 html{background:#0a1409}
 body{background:radial-gradient(120% 90% at 50% 26%,#2c4f22 0%,#0f2010 55%,#050b05 100%) fixed}
 .rail{background:repeating-linear-gradient(90deg,rgba(0,0,0,.16) 0 2px,transparent 2px 26px),linear-gradient(180deg,#ffffff 0%,#e9e5d6 50%,#b9b29b 100%);box-shadow:0 26px 60px rgba(0,0,0,.65),0 0 0 1px rgba(0,0,0,.5),inset 0 -3px 8px rgba(0,0,0,.25)}
@@ -373,6 +377,8 @@ body{background:radial-gradient(120% 90% at 50% 26%,#2c4f22 0%,#0f2010 55%,#050b
 .felt::before{content:none}
 .lane::before{background:repeating-linear-gradient(180deg,rgba(120,82,40,.82) 0 calc(100% / 9 - 1px),rgba(255,236,200,.35) calc(100% / 9 - 1px) calc(100% / 9));box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.5),inset 0 0 12px rgba(0,0,0,.35)}
 .lane.mine::before{box-shadow:inset 0 0 0 2px var(--gold),0 0 16px rgba(247,197,72,.35)}
+/* de baan zo groot als het veld toelaat: grotere kaarten */
+.course{top:calc(var(--strook) + 26px);bottom:calc(2% + 32px);width:min(86cqw,440px);--w:min(calc((100cqh - var(--strook)) * .088),13.5cqw,62px)}
 .dock{background:linear-gradient(180deg,#1b3317,#0a140a 70%)}
 .cta,.dock .cta{background:linear-gradient(90deg,#2a5216 0%,#5a9624 50%,#a6d83c 100%)}
 /* ==== THEMA (einde) ==== */
@@ -744,12 +750,21 @@ const bettorsNow = () => S.phase === 'inzetten'
   : S.racers.map((i) => ({ player: i, horse: S.players[i].horse, ready: true }));
 
 // Stoelen op gelijke afstand langs de rand van de tafel: jij onderaan, daarna met de klok mee.
-// De vorm van de tafel (zie .rail in het thema): 'ovaal', 'recht' (afgeronde rechthoek), 'acht' (achthoek) of 'rond' (cirkel).
-const TABLE_SHAPE = 'recht';
+// De vorm van de tafel (zie .rail in het thema): 'ovaal', 'recht' (afgeronde rechthoek), 'acht' (achthoek) of 'rond'
+// (cirkel). Bij 'rij' is er geen tafel om omheen te zitten: het bord vult het scherm en de spelers staan in een rij erboven.
+const TABLE_SHAPE = 'rij';
 const seatCache = new Map();
 function seatPositions(n, aspect) {
   const key = `${n}:${aspect.toFixed(2)}`;
   if (seatCache.has(key)) return seatCache.get(key);
+  // Vult het bord het scherm (TABLE_SHAPE 'rij'), dan staan de spelers in een rij bovenaan, jij als eerste; vanaf
+  // 6 spelers in twee rijen. De hoogte is dan in pixels (zie placeSeats).
+  if (TABLE_SHAPE === 'rij') {
+    const per = n > 5 ? Math.ceil(n / 2) : n, row = [];
+    for (let s = 0; s < n; s++) { const r = s < per ? 0 : 1, m = r ? n - per : per; row.push([((r ? s - per : s) + .5) / m * 100, 30 + r * 62]); }
+    seatCache.set(key, row);
+    return row;
+  }
   // de rand in procenten van de tafel (zie .rail): zijkanten op 6% en 94%, boven- en onderkant als halve ellips.
   // Een ronde tafel is een cirkel die in de breedte en de hoogte past. Bij een rechte of achthoekige tafel is de
   // bocht hoekiger (bol kleiner dan 1), zodat de stoelen langs de rand blijven staan.
@@ -785,19 +800,21 @@ function placeSeats() {
     if (!r.width || !r.height) continue;
     const seats = t.querySelectorAll('.seat');
     const pos = seatPositions(seats.length, r.width / r.height);
+    if (TABLE_SHAPE === 'rij') t.style.setProperty('--strook', `${seats.length > 5 ? 138 : 74}px`);   // zoveel ruimte neemt de rij spelers
     seats.forEach((el, i) => {
       const [x, y] = pos[i];
       const cx = r.left + x / 100 * r.width;
       const shift = inward(cx, el.querySelector('.plate').offsetWidth / 2);
       el.style.left = shift ? `calc(${x}% + ${shift}px)` : `${x}%`;
-      el.style.top = `${y}%`;
+      el.style.top = TABLE_SHAPE === 'rij' ? `${y}px` : `${y}%`;
       const tag = el.querySelector('.tag');
       if (tag) tag.style.setProperty('--tx', `${inward(cx + shift, tag.offsetWidth / 2 + 4)}px`);
     });
     const d = t.querySelector('.dealer');
     if (d && pos.length) {
       const [x, y] = pos[+d.dataset.seat] || pos[0];
-      d.style.left = `${x + (50 - x) * .2 + (x < 50 ? 9 : -9)}%`; d.style.top = `${y + (50 - y) * .22}%`;
+      if (TABLE_SHAPE === 'rij') { d.style.left = `calc(${x}% + 17px)`; d.style.top = `${y - 15}px`; }
+      else { d.style.left = `${x + (50 - x) * .2 + (x < 50 ? 9 : -9)}%`; d.style.top = `${y + (50 - y) * .22}%`; }
     }
   }
 }
