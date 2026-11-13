@@ -80,6 +80,13 @@
       { img: 'toepen-4', t: 'Kloppen', p: 'Denk je de laatste slag te winnen? Tik op <b>Klop</b>: de inzet gaat één omhoog. De rest kiest <b>mee</b> of <b>pas</b>. Passen kost de oude inzet, en dan doe je deze ronde niet meer mee.' },
       { img: 'toepen-5', t: 'De laatste slag', p: 'Wie de vierde slag wint, wint de ronde. De rest krijgt de inzet als strafpunten. Wie de grens haalt, ligt eruit; de laatste die overblijft, wint. Vuile was en kans op toep staan in de spelregels.' },
     ] },
+    arena: { name: 'Arena', c: '#ff4d5e', url: '/arena', slides: [
+      { img: 'arena-1', t: 'De arena in', p: TAFEL(3, 10, ' Iedereen begint met <b>10 munten</b>. De host kiest 6, 10 of 14 rondes.') },
+      { img: 'arena-2', t: 'Inzetten', p: 'Elke ronde moeten twee spelers de arena in: rood tegen blauw. De rest kiest wie er wint en zet <b>1, 2 of 3 munten</b> in. Niemand ziet wat een ander inzet tot het duel begint.' },
+      { img: 'arena-3', t: 'Het duel', p: 'De twee spelen een kort minispel op hun eigen telefoon: <b>valse start</b>, <b>stop op 0</b>, <b>steen-papier-schaar</b>, een <b>tikrace</b>, een <b>snelle som</b> of <b>welke kleur?</b>. Bij valse start komen er eerst nepseintjes: tik pas bij groen.' },
+      { img: 'arena-4', t: 'De uitslag', p: 'De winnaar krijgt <b>2 munten</b>, de verliezer <b>2 strafpunten</b>. Goed gegokt: je inzet erbij. Fout: je inzet kwijt, en <b>net zoveel strafpunten</b>. Blut? Dan krijg je een <b>mega strafpunt</b> en 5 nieuwe munten.' },
+      { img: 'arena-5', t: 'De eindstand', p: 'Na de laatste ronde wint wie de meeste munten heeft. Wie de minste heeft, krijgt een <b>mega strafpunt</b>. De munten zijn alleen voor het spel.' },
+    ] },
     alibi: { name: 'Alibi', c: '#ffd23f', url: '/alibi', slides: [
       { img: 'alibi-1', t: 'Eén telefoon', p: 'Kies met hoeveel jullie zijn (3 tot 8) en hoeveel tijd iedereen per zin heeft. Er hoeft niemand een code in te voeren: de telefoon gaat rond.' },
       { img: 'alibi-2', t: 'De beschuldiging', p: 'De telefoon toont waar jullie van verdacht worden. Lees het hardop voor. Te saai? Tik op Andere beschuldiging.' },

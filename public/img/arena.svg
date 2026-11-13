@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="vloer" cx="50%" cy="40%" r="75%"><stop offset="0" stop-color="#3a3158"/><stop offset=".6" stop-color="#1c1730"/><stop offset="1" stop-color="#0c0a14"/></radialGradient>
+    <radialGradient id="rood" cx="0%" cy="50%" r="70%"><stop offset="0" stop-color="#ff4d5e" stop-opacity=".75"/><stop offset="1" stop-color="#ff4d5e" stop-opacity="0"/></radialGradient>
+    <radialGradient id="blauw" cx="100%" cy="50%" r="70%"><stop offset="0" stop-color="#4f8dff" stop-opacity=".75"/><stop offset="1" stop-color="#4f8dff" stop-opacity="0"/></radialGradient>
+    <clipPath id="vorm"><rect width="512" height="512" rx="112"/></clipPath>
+  </defs>
+  <g clip-path="url(#vorm)">
+  <rect width="512" height="512" fill="url(#vloer)"/>
+  <rect width="512" height="512" fill="url(#rood)"/>
+  <rect width="512" height="512" fill="url(#blauw)"/>
+  <rect x="26" y="26" width="460" height="460" rx="90" fill="none" stroke="#ffc94d" stroke-opacity=".55" stroke-width="6"/>
+  <!-- de rode en de blauwe speler -->
+  <circle cx="150" cy="226" r="78" fill="#ff4d5e" stroke="#0c0a14" stroke-width="12"/>
+  <circle cx="150" cy="226" r="90" fill="none" stroke="#ff4d5e" stroke-width="7"/>
+  <circle cx="362" cy="226" r="78" fill="#4f8dff" stroke="#0c0a14" stroke-width="12"/>
+  <circle cx="362" cy="226" r="90" fill="none" stroke="#4f8dff" stroke-width="7"/>
+  <path d="M118 200c10-18 30-28 50-26" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="10" stroke-linecap="round"/>
+  <path d="M330 200c10-18 30-28 50-26" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="10" stroke-linecap="round"/>
+  <!-- VS in het midden -->
+  <text x="256" y="262" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="104" fill="#ffc94d" stroke="#3a2200" stroke-width="8" paint-order="stroke">VS</text>
+  <!-- de munten van wie inzet -->
+  <g stroke="#3a2200" stroke-width="7">
+    <ellipse cx="256" cy="402" rx="74" ry="24" fill="#d99a17"/>
+    <ellipse cx="256" cy="384" rx="74" ry="24" fill="#ffc94d"/>
+    <ellipse cx="256" cy="366" rx="74" ry="24" fill="#ffe08a"/>
+  </g>
+  <ellipse cx="256" cy="366" rx="40" ry="11" fill="none" stroke="#b37a0a" stroke-width="5"/>
+  </g>
+</svg>

@@ -18,6 +18,7 @@ import { RotondeHub } from '../public/shared/rotondehub.js';
 import { MijnenveldHub } from '../public/shared/mijnenveldhub.js';
 import { ZuipbordHub } from '../public/shared/zuipbordhub.js';
 import { ToepenHub } from '../public/shared/toepenhub.js';
+import { ArenaHub } from '../public/shared/arenahub.js';
 import { createStore, randomString, loadSecret, makeSigner, makeSecretCheck, DATA_FILE } from './store.js';
 import { haalOver, overdrachtSecret, verify as overdrachtOk, PATH as OVERDRACHT_PATH } from './overdracht.js';
 import { createStats } from './stats.js';
@@ -168,6 +169,7 @@ const rotondeHub = new RotondeHub({ log, stat, build: buildOf('/rotonde.html') }
 const mijnHub = new MijnenveldHub({ log, stat, build: buildOf('/mijnenveld.html') });
 const bordHub = new ZuipbordHub({ log, stat, build: buildOf('/zuipbord.html') });
 const toepHub = new ToepenHub({ log, stat, build: buildOf('/toepen.html') });
+const arenaHub = new ArenaHub({ log, stat, build: buildOf('/arena.html') });
 // welke pagina's we tellen, met een korte naam
 // Jij als maker telt niet mee: wie de beheer- of statistiekenlink opent, krijgt op dat apparaat een cookie, en met
 // dat cookie tellen je bezoeken daar niet mee. Spelers krijgen dit cookie nooit.
@@ -179,7 +181,7 @@ const ownerCookie = (req) => `${OWNER_COOKIE}=1; Path=/; Max-Age=${365 * 86400};
 const VASTE_OPSLAG = UPSTASH || !!process.env.DATA_DIR;
 // zonder vaste opslag: blijft het bewaard bij een update doordat de nieuwe server alles overneemt?
 const OVERDRACHT = !UPSTASH && !!(OVERDRACHT_SECRET && OVERDRACHT_URL);
-const PAGE_NAMES = { '/speelhal.html': 'hoofdpagina', '/index.html': 'kart', '/bussen.html': 'bussen', '/boer.html': 'boer', '/mexen.html': 'mexen', '/dealer.html': 'dealer', '/paardenrace.html': 'paardenrace', '/rotonde.html': 'rotonde', '/mijnenveld.html': 'mijnenveld', '/zuipbord.html': 'borrelbord', '/toepen.html': 'toepen', '/bom.html': 'bom', '/alibi.html': 'alibi', '/bakplaten.html': 'bakplaten', '/kingsen.html': 'kingsen', '/happo.html': 'happo', '/iphone.html': 'iphone', '/privacy.html': 'privacy', '/voorwaarden.html': 'voorwaarden', '/melden.html': 'melden' };
+const PAGE_NAMES = { '/speelhal.html': 'hoofdpagina', '/index.html': 'kart', '/bussen.html': 'bussen', '/boer.html': 'boer', '/mexen.html': 'mexen', '/dealer.html': 'dealer', '/paardenrace.html': 'paardenrace', '/rotonde.html': 'rotonde', '/mijnenveld.html': 'mijnenveld', '/zuipbord.html': 'borrelbord', '/toepen.html': 'toepen', '/arena.html': 'arena', '/bom.html': 'bom', '/alibi.html': 'alibi', '/bakplaten.html': 'bakplaten', '/kingsen.html': 'kingsen', '/happo.html': 'happo', '/iphone.html': 'iphone', '/privacy.html': 'privacy', '/voorwaarden.html': 'voorwaarden', '/melden.html': 'melden' };
 const clientIp = (req) => String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
 
 // Een spel met een nieuwe naam (Zuipbord heet nu Borrelbord), en spellen die van de site af zijn (Weerwolven, Mega
@@ -286,7 +288,7 @@ async function melden(req, res) {
 }
 
 // ---------- reviews (Wat vind je ervan?): sterren en een opmerking ----------
-const REVIEW_SPELLEN = new Set(['kart', 'bussen', 'boer', 'mexen', 'dealer', 'paardenrace', 'rotonde', 'mijnenveld', 'borrelbord', 'toepen', 'bom', 'alibi', 'bakplaten', 'kingsen', 'happo', 'alles']);
+const REVIEW_SPELLEN = new Set(['kart', 'bussen', 'boer', 'mexen', 'dealer', 'paardenrace', 'rotonde', 'mijnenveld', 'borrelbord', 'toepen', 'arena', 'bom', 'alibi', 'bakplaten', 'kingsen', 'happo', 'alles']);
 async function review(req, res) {
   const send = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(obj)); };
   const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
@@ -362,7 +364,7 @@ const server = http.createServer((req, res) => {
   }
   if (path === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ ok: true, ...hub.stats(), bussen: busHub.stats(), boer: boerHub.stats(), mexen: mexHub.stats(), dealer: dealerHub.stats(), paardenrace: paardHub.stats(), rotonde: rotondeHub.stats(), mijnenveld: mijnHub.stats(), zuipbord: bordHub.stats(), toepen: toepHub.stats() }));
+    return res.end(JSON.stringify({ ok: true, ...hub.stats(), bussen: busHub.stats(), boer: boerHub.stats(), mexen: mexHub.stats(), dealer: dealerHub.stats(), paardenrace: paardHub.stats(), rotonde: rotondeHub.stats(), mijnenveld: mijnHub.stats(), zuipbord: bordHub.stats(), toepen: toepHub.stats(), arena: arenaHub.stats() }));
   }
   if (MOVED_TO) {
     res.writeHead(301, { Location: MOVED_TO + req.url, 'Cache-Control': 'no-cache' });
@@ -395,6 +397,7 @@ const server = http.createServer((req, res) => {
   else if (path === '/mijnenveld' || path === '/mijnenveld/' || /^\/mijnenveld\/[A-Za-z]{4}$/.test(path)) path = '/mijnenveld.html';
   else if (path === '/borrelbord' || path === '/borrelbord/' || /^\/borrelbord\/[A-Za-z]{4}$/.test(path)) path = '/zuipbord.html';
   else if (path === '/toepen' || path === '/toepen/' || /^\/toepen\/[A-Za-z]{4}$/.test(path)) path = '/toepen.html';
+  else if (path === '/arena' || path === '/arena/' || /^\/arena\/[A-Za-z]{4}$/.test(path)) path = '/arena.html';
   if (path.includes('..') || path.includes(sep + sep)) { res.writeHead(400); return res.end(); }
   const f = files.get(path);
   if (!f) {
@@ -425,9 +428,10 @@ const rotondeWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 })
 const mijnWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 const bordWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 const toepWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
+const arenaWss = new WebSocketServer({ noServer: true, maxPayload: 8 * 1024 });
 server.on('upgrade', (req, socket, head) => {
   const { pathname } = new URL(req.url, 'http://x');
-  const target = { '/ws': wss, '/ws/bussen': busWss, '/ws/boer': boerWss, '/ws/mexen': mexWss, '/ws/dealer': dealerWss, '/ws/paardenrace': paardWss, '/ws/rotonde': rotondeWss, '/ws/mijnenveld': mijnWss, '/ws/zuipbord': bordWss, '/ws/toepen': toepWss }[pathname];
+  const target = { '/ws': wss, '/ws/bussen': busWss, '/ws/boer': boerWss, '/ws/mexen': mexWss, '/ws/dealer': dealerWss, '/ws/paardenrace': paardWss, '/ws/rotonde': rotondeWss, '/ws/mijnenveld': mijnWss, '/ws/zuipbord': bordWss, '/ws/toepen': toepWss, '/ws/arena': arenaWss }[pathname];
   if (!target) { socket.destroy(); return; }
   target.handleUpgrade(req, socket, head, (ws) => target.emit('connection', ws, req));
 });
@@ -480,6 +484,7 @@ tableChannel(rotondeWss, rotondeHub);
 tableChannel(mijnWss, mijnHub);
 tableChannel(bordWss, bordHub);
 tableChannel(toepWss, toepHub);
+tableChannel(arenaWss, arenaHub);
 
 // dode verbindingen opruimen: wie twee keer op rij niet antwoordt, valt weg (en komt vanzelf terug zodra hij weer
 // verbinding heeft). Bij de tafelspellen gaat dat sneller, zodat de rest niet lang hoeft te wachten als wie aan de
@@ -491,7 +496,7 @@ function sweep(clients) {
     ws.ping();
   }
 }
-const tableChannels = [busWss, boerWss, mexWss, dealerWss, paardWss, rotondeWss, mijnWss, bordWss, toepWss];
+const tableChannels = [busWss, boerWss, mexWss, dealerWss, paardWss, rotondeWss, mijnWss, bordWss, toepWss, arenaWss];
 const heartbeat = setInterval(() => sweep(wss.clients), 15000);
 // opruimen: kort na het starten, en daarna elke dag
 const cleanupFirst = setTimeout(cleanupOld, 60 * 1000);
@@ -500,7 +505,7 @@ cleanupFirst.unref?.(); cleanupTimer.unref?.();
 const tableBeat = setInterval(() => { for (const channel of tableChannels) sweep(channel.clients); }, 4000);
 
 const tickTimer = setInterval(() => hub.tick(), 1000 / 60);
-const busTimer = setInterval(() => { busHub.tick(); boerHub.tick(); mexHub.tick(); dealerHub.tick(); paardHub.tick(); rotondeHub.tick(); mijnHub.tick(); bordHub.tick(); toepHub.tick(); }, 5000);
+const busTimer = setInterval(() => { busHub.tick(); boerHub.tick(); mexHub.tick(); dealerHub.tick(); paardHub.tick(); rotondeHub.tick(); mijnHub.tick(); bordHub.tick(); toepHub.tick(); arenaHub.tick(); }, 5000);
 
 server.listen(PORT, HOST, () => {
   log(`De Spelkeet draait op http://localhost:${PORT}`);
