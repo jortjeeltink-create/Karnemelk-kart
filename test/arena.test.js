@@ -287,14 +287,17 @@ test('de volgende ronde: anderen de arena in; na de laatste ronde wint de rijkst
     const ev = A.next(g, ALLEN);
     assert.equal(ev.type, r < 6 ? 'ronde' : 'einde');
   }
-  // de minispellen: in de eerste zes rondes allemaal één keer, en nooit twee keer achter elkaar hetzelfde
+  // de minispellen: in de eerste 17 rondes allemaal één keer, en nooit twee keer achter elkaar hetzelfde
+  const n = A.SPELLEN.length;
+  assert.equal(n, 17);
   const h = A.newGame(NAMEN, { seed: 11, rondes: 14 });
+  h.rondes = 3 * n;
   A.begin(h, ALLEN);
   const spellen = [h.spel];
-  for (let r = 2; r <= 14; r++) { h.phase = 'uitslag'; A.next(h, ALLEN); spellen.push(h.spel); }
-  assert.deepEqual([...spellen.slice(0, 6)].sort(), [...A.SPELLEN].sort());
-  assert.deepEqual([...spellen.slice(6, 12)].sort(), [...A.SPELLEN].sort());
+  for (let r = 2; r <= 3 * n; r++) { h.phase = 'uitslag'; A.next(h, ALLEN); spellen.push(h.spel); }
+  for (let k = 0; k < 3; k++) assert.deepEqual([...spellen.slice(k * n, (k + 1) * n)].sort(), [...A.SPELLEN].sort());
   for (let k = 1; k < spellen.length; k++) assert.notEqual(spellen[k], spellen[k - 1]);
+  for (const sp of A.SPELLEN) assert.ok(A.SPEL_NAAM[sp] && A.SPEL_UITLEG[sp], sp);
   // iedereen is even vaak geweest: 6 rondes, 12 plekken, 4 spelers
   assert.deepEqual(g.players.map((p) => p.duels), [3, 3, 3, 3]);
   for (let k = 1; k < paren.length; k++) assert.notEqual(paren[k], paren[k - 1], 'niet twee keer achter elkaar hetzelfde paar');
@@ -312,4 +315,105 @@ test('wie later aanschuift begint met een verse stapel munten', () => {
   assert.equal(g.players.length, 5);
   assert.equal(g.players[4].munten, A.START_MUNTEN);
   assert.notEqual(g.players[4].name, 'Jort', 'geen twee keer dezelfde naam');
+});
+
+// een duel tussen Jort (0) en Meke (1) waarin Sim en Bas al hebben ingezet
+function duel(spel, seed = 7) { const g = potje(spel, { seed }); inzetten(g, 1000); return g; }
+
+test('pak de aas: net als valse start, maar zonder nepseintjes', () => {
+  const g = duel('aas');
+  assert.equal(A.soort('aas'), 'reactie');
+  assert.deepEqual(g.duel.nep, []);
+  A.tik(g, 0, 0, true, 2000);
+  assert.equal(A.tik(g, 1, 320, false, g.duel.goAt + 330).winner, 1, 'te vroeg is verloren');
+});
+
+test('blind tellen: het doel is 3 tot 7 seconden; het dichtst bij wint, te vroeg of te laat maakt niet uit', () => {
+  for (const seed of [1, 2, 3, 4, 5]) assert.ok(A.VAST_DOELEN.includes(duel('vast', seed).duel.doel));
+  const g = duel('vast');
+  const doel = g.duel.doel, start = g.duel.startAt;
+  assert.equal(A.stop(g, 0, doel, start - 1000), null, 'nog aan het aftellen');
+  A.stop(g, 0, doel + 400, start + doel + 400);
+  const ev = A.stop(g, 1, doel - 300, start + doel);
+  assert.equal(ev.winner, 1);
+  assert.deepEqual([ev.detail.doel, ev.detail.stop[0], ev.detail.stop[1]], [doel, doel + 400, doel - 300]);
+});
+
+test('één eronder: het hoogste wint, maar precies één lager wint juist; eerst twee keer', () => {
+  const g = duel('bieden');
+  assert.equal(A.kies(g, 0, 'steen', 0), null, 'alleen 1 tot 5');
+  assert.equal(A.kies(g, 0, '6', 0), null);
+  A.kies(g, 0, '5', 0);
+  assert.equal(A.kies(g, 1, '4', 0).w, 1, '4 is één onder 5: die wint');
+  A.kies(g, 0, '5', 0);
+  assert.equal(A.kies(g, 1, '3', 0).w, 0, '5 tegen 3: de hoogste');
+  A.kies(g, 0, '2', 0);
+  assert.equal(A.kies(g, 1, '2', 0).w, -1, 'gelijk telt niet');
+  A.kies(g, 0, '1', 0);
+  const ev = A.kies(g, 1, '2', 0);
+  assert.deepEqual([ev.type, ev.winner], ['uitslag', 0], '1 is één onder 2');
+});
+
+test('tel de stippen, hoogste getal, pijlen, zoek de vreemde en meeste kleur: het goede antwoord klopt altijd', () => {
+  for (let seed = 1; seed <= 25; seed++) {
+    let d = duel('stippen', seed).duel;
+    assert.ok(d.vraag.stippen.length >= 9 && d.vraag.stippen.length <= 16);
+    assert.equal(d.vraag.opties[d.goed], d.vraag.stippen.length);
+    assert.equal(new Set(d.vraag.opties).size, 3);
+    for (const [i, p] of d.vraag.stippen.entries()) for (const q of d.vraag.stippen.slice(i + 1)) assert.ok(Math.hypot(p[0] - q[0], p[1] - q[1]) >= .14, 'stippen niet over elkaar');
+
+    d = duel('hoogste', seed).duel;
+    assert.equal(d.vraag.opties.length, 4);
+    assert.equal(new Set(d.vraag.opties).size, 4);
+    assert.equal(d.vraag.opties[d.goed], Math.max(...d.vraag.opties));
+
+    d = duel('pijl', seed).duel;
+    assert.deepEqual(d.vraag.opties, A.RICHTINGEN);
+    assert.equal(d.vraag.opties[d.goed], d.vraag.andersom ? A.TEGEN[d.vraag.pijl] : d.vraag.pijl);
+
+    d = duel('vreemd', seed).duel;
+    assert.equal(d.vraag.opties.length, 16);
+    const anders = d.vraag.opties[d.goed];
+    assert.equal(d.vraag.opties.filter((x) => x === anders).length, 1, 'precies één is anders');
+    assert.equal(new Set(d.vraag.opties).size, 2);
+
+    d = duel('meeste', seed).duel;
+    const tel = {};
+    for (const k of d.vraag.kleuren) tel[k] = (tel[k] || 0) + 1;
+    const max = Math.max(...Object.values(tel));
+    assert.equal(Object.values(tel).filter((x) => x === max).length, 1, 'één kleur komt het vaakst voor');
+    assert.equal(tel[d.vraag.opties[d.goed]], max);
+  }
+});
+
+test('onthoud het getal: je mag pas antwoorden als het getal weg is', () => {
+  for (let seed = 1; seed <= 25; seed++) {
+    const d = duel('geheugen', seed).duel;
+    assert.match(d.vraag.toon, /^[1-9]\d{4}$/);
+    assert.equal(new Set(d.vraag.opties).size, 3);
+    assert.equal(d.vraag.opties[d.goed], d.vraag.toon);
+    for (const o of d.vraag.opties) assert.match(o, /^[1-9]\d{4}$/);
+  }
+  const g = duel('geheugen');
+  const open = g.duel.startAt + A.GEHEUGEN_MS;
+  assert.equal(A.antwoord(g, 0, g.duel.goed, 500, open - 1000), null, 'het getal staat er nog');
+  A.antwoord(g, 0, g.duel.goed, 900, open + 900);
+  assert.equal(A.antwoord(g, 1, g.duel.goed, 700, open + 700).winner, 1);
+});
+
+test('1 tot 9 en raak de doelen: het veld, en de snelste wint', () => {
+  for (let seed = 1; seed <= 10; seed++) {
+    const v = duel('volgorde', seed).duel.veld;
+    assert.equal(v.length, 16);
+    assert.deepEqual(v.filter((x) => x).sort(), [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    const doelen = duel('doelen', seed).duel.veld;
+    assert.equal(doelen.length, A.DOELEN);
+    for (let k = 1; k < doelen.length; k++) assert.ok(Math.hypot(doelen[k][0] - doelen[k - 1][0], doelen[k][1] - doelen[k - 1][1]) >= .3);
+  }
+  const g = duel('volgorde');
+  assert.equal(A.race(g, 0, 4000, g.duel.startAt - 1000), null, 'nog aan het aftellen');
+  A.race(g, 0, 300, g.duel.startAt + 5000);
+  assert.equal(g.duel.res[0], 1200, 'onmogelijk snel wordt afgerond');
+  const ev = A.race(g, 1, 4100, g.duel.startAt + 5100);
+  assert.deepEqual([ev.winner, ev.detail.race], [0, true]);
 });

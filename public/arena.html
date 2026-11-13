@@ -186,6 +186,71 @@ button.fighter[aria-pressed="true"]{background:color-mix(in srgb,var(--kant) 34%
 .ans.sel:disabled{opacity:1;box-shadow:0 0 0 3px #fff,0 12px 24px -14px rgba(0,0,0,.85)}
 .dock:has(.quiz:not(.dicht):not(.klaar)){border-top-color:var(--glow);box-shadow:0 -14px 40px rgba(0,0,0,.45),0 -3px 22px -6px var(--glow)}
 
+/* Pak de aas: een kaart op het vilt */
+.pad.kaart{background:radial-gradient(ellipse 75% 60% at 50% 42%,#2a9d5c 0%,#16703c 55%,#0b4424 100%)}
+.pad.kaart b{display:grid;place-items:center;width:min(40cqw,calc((100cqh - var(--strook)) * .34),170px);aspect-ratio:.7;border-radius:16px;background:linear-gradient(160deg,#fffdf4,#efe7cc);color:#24132a;font-size:min(16cqw,calc((100cqh - var(--strook)) * .14),68px);letter-spacing:-.02em;text-shadow:none;box-shadow:0 10px 26px rgba(0,0,0,.45)}
+.pad.kaart.rood b{color:#d2343f}
+.pad.kaart.go b{box-shadow:0 0 0 5px var(--gold),0 0 40px rgba(255,201,77,.8)}
+.dbig.kaartje{display:inline-grid;place-items:center;min-width:1.6em;padding:.12em .2em;border-radius:12px;background:#fffdf4;color:#24132a;text-shadow:none}
+.dbig.kaartje.rood{color:#d2343f}
+.dbig.kaartje.go{box-shadow:0 0 0 4px var(--gold)}
+/* Blind tellen: zolang je vasthoudt, ademt het vlak */
+.pad.hold{background:linear-gradient(180deg,#6d3fd0,#3a1d86);animation:adem 1.6s ease-in-out infinite}
+@keyframes adem{50%{filter:brightness(1.18)}}
+/* 1 tot 9 en Raak de doelen */
+.pad.race{place-content:stretch;grid-template-rows:auto auto auto minmax(0,1fr);gap:2px;background:linear-gradient(180deg,#2f2a48,#16132a)}
+.pad.race b{font-size:min(12cqw,calc((100cqh - var(--strook)) * .1),52px)}
+.pad.race.count{place-content:center;grid-template-rows:none}
+.pad.race.count b{font-size:min(30cqw,calc((100cqh - var(--strook)) * .34),150px)}
+.pad.race.flash{background:linear-gradient(180deg,#a31c2e,#4a0b14)}
+.pad.race.done{place-content:center;grid-template-rows:none}
+.pad.race.done b{font-size:min(20cqw,calc((100cqh - var(--strook)) * .2),96px)}
+.pad .veld,.pad .veld *{pointer-events:auto}
+.veld{position:relative;width:100%;min-height:0;margin-top:6px}
+.veld.volgorde{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-content:center;justify-self:center;width:min(100%,calc(100cqh - var(--strook) - 160px))}
+.cel{display:grid;place-items:center;aspect-ratio:1;border-radius:14px;font-family:var(--display);font-weight:900;font-size:min(10cqw,44px);line-height:1;color:var(--plum);background:linear-gradient(180deg,#fffdf4,#e4dec2);box-shadow:inset 0 -3px 0 rgba(29,22,48,.2),0 8px 16px -8px rgba(0,0,0,.7);touch-action:manipulation}
+.cel.weg{background:rgba(62,224,127,.2);color:rgba(62,224,127,.7);box-shadow:none}
+.cel.leeg{background:rgba(255,255,255,.05);box-shadow:none}
+.doel{position:absolute;display:grid;place-items:center;width:min(19cqw,82px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,#fff 0 18%,#ff4d5e 19% 38%,#fff 39% 56%,#ff4d5e 57% 76%,#fff 77%);box-shadow:0 0 0 3px #0c0a14,0 10px 24px rgba(0,0,0,.5);touch-action:manipulation;animation:doelin .18s cubic-bezier(.2,.9,.3,1.4)}
+.doel span{position:absolute;right:-6px;top:-6px;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--gold);color:#2a1600;font-family:var(--display);font-weight:900;font-size:15px}
+@keyframes doelin{from{transform:translate(-50%,-50%) scale(.3)}}
+/* de vragen */
+.vraag .stipveld{position:relative;display:block;width:min(62cqw,calc(100cqh - var(--strook) - 150px),300px);aspect-ratio:1;border-radius:22px;background:rgba(0,0,0,.3);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.12)}
+.vraag.klein .stipveld{width:min(38cqw,calc((100cqh - var(--strook)) * .3),180px);border-radius:14px}
+.stipveld i{position:absolute;width:11%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.vraag .kleurveld{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:min(2.4cqw,12px);width:min(66cqw,calc((100cqh - var(--strook) - 150px) * 1.4),330px);padding:min(3cqw,14px);border-radius:22px;background:rgba(0,0,0,.3)}
+.vraag.klein .kleurveld{width:min(40cqw,200px);gap:5px;padding:7px;border-radius:14px}
+.kleurveld i{aspect-ratio:1;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.vraag .pijlvak{display:grid;justify-items:center;gap:6px;color:#fff}
+.vraag .pijlvak .pijlsvg{width:min(36cqw,calc((100cqh - var(--strook)) * .3),170px);height:auto;color:var(--gold);filter:drop-shadow(0 5px 0 rgba(0,0,0,.35))}
+.vraag.klein .pijlvak .pijlsvg{width:min(20cqw,90px)}
+.pijlvak em{font-style:normal;font-size:min(12cqw,calc((100cqh - var(--strook)) * .1),54px);line-height:1;color:var(--good)}
+.pijlvak.anders em{color:#ff8f5a}
+.vraag.klein .pijlvak em{font-size:min(7cqw,28px)}
+.vraag .cijfers{letter-spacing:.06em;font-size:min(20cqw,calc((100cqh - var(--strook)) * .2),100px)}
+.vraag.klein .cijfers{font-size:inherit}
+.vraag .klein{font-size:min(12cqw,56px)}
+.vraag .raster{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;width:min(80cqw,calc(100cqh - var(--strook) - 150px),360px)}
+.vraag.klein .raster{width:min(46cqw,200px);gap:4px}
+.rcel{display:grid;place-items:center;aspect-ratio:1;min-height:0;border-radius:12px;padding:0;font-family:var(--display);font-weight:900;font-size:min(9cqw,40px);font-style:normal;line-height:1;text-transform:none;color:var(--plum);background:linear-gradient(180deg,#fffdf4,#e4dec2);box-shadow:inset 0 -3px 0 rgba(29,22,48,.2)}
+.raster.kijk .rcel{font-size:min(5cqw,20px);border-radius:7px}
+.quiz.vier{grid-template-columns:repeat(2,minmax(0,1fr))}
+.quiz.hoogste{grid-template-columns:repeat(2,minmax(0,1fr))}
+.quiz.geheugen .ans{font-size:30px;letter-spacing:.02em}
+.quiz.pijl{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-areas:". o ." "l n r"}
+.quiz.pijl .ans:nth-child(1){grid-area:o}
+.quiz.pijl .ans:nth-child(2){grid-area:l}
+.quiz.pijl .ans:nth-child(3){grid-area:r}
+.quiz.pijl .ans:nth-child(4){grid-area:n}
+.quiz.pijl .ans{min-height:58px}
+.quiz.pijl .ans .pijlsvg{width:40px;height:40px}
+.quiz .ans .pijlsvg{display:block;margin:auto}
+/* één eronder: vijf getallen */
+.rpsrow.vijf{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.rpsrow.vijf .rps{min-height:72px;align-content:center}
+.rps .cijfer{font-family:var(--display);font-weight:900;font-size:40px;line-height:1}
+.fighter small .getal{font-family:var(--display);font-weight:900;font-size:24px;color:#fff}
+
 /* de eindstand */
 .rank{display:grid;gap:3px;width:min(86cqw,360px);margin-top:2px}
 .rank div{display:grid;grid-template-columns:22px 14px minmax(0,1fr) auto;align-items:center;gap:6px;padding:0 12px;height:min(calc((100cqh - var(--strook)) * .068),30px);border-radius:10px;background:rgba(0,0,0,.34);font-size:12px;font-weight:700;text-align:left}
@@ -389,11 +454,17 @@ const ICO = {
 };
 const INKT = { rood: '#ff4d5e', blauw: '#4f8dff', groen: '#3ee07f', geel: '#ffd23f' };
 const NEP_TEKST = ['TIK!', 'NU!', 'JA!'];   // de nepseintjes doen alsof, maar alleen groen telt
+// de kaarten die bij Pak de aas voorbij flitsen (de aas zit er niet tussen)
+const NEP_KAART = ['K♥', '7♣', 'V♠', '2♦', 'B♣', '10♥', '5♠', '9♦', 'H♣', '3♥', '8♠', 'V♦', '4♣', '6♥'];
+// een pijl die de goede kant op wijst
+const PIJL_HOEK = { omhoog: -90, rechts: 0, omlaag: 90, links: 180 };
+const PIJL = (r) => `<svg class="pijlsvg" viewBox="0 0 48 48" aria-hidden="true"><path transform="rotate(${PIJL_HOEK[r]} 24 24)" d="M6 19h20V9l16 15-16 15V29H6z" fill="currentColor"/></svg>`;
 const SPS_NAAM = { steen: 'Steen', papier: 'Papier', schaar: 'Schaar' };
 const munten = (n) => `${n} ${n === 1 ? 'munt' : 'munten'}`;
 const straf = (n) => `${n} ${n === 1 ? 'strafpunt' : 'strafpunten'}`;
 const sec = (ms) => (ms / 1000).toFixed(2).replace('.', ',');
 // Stop op 0: wat stond er op de klok toen je stopte (na de 0 loopt hij door in de min)
+const sec1 = (ms) => (ms / 1000).toFixed(1).replace('.', ',');
 const klok = (ms) => { const r = A.STOP_DOEL - ms; return r < 0 ? `−${sec(-r)}` : sec(r); };
 
 /* ================= OPSLAG (alleen gemak, per telefoon) ================= */
@@ -740,66 +811,126 @@ function versus({ sub = () => '', cls = () => '', pick = false, chips = false, m
 // De klok van de server en die van je telefoon lopen niet gelijk. De server stuurt daarom alleen "over zoveel
 // milliseconden"; de telefoon rekent dat om naar zijn eigen klok en meet zelf hoe snel je bent. De server bepaalt
 // daarna wie er wint.
-const D = { key: '', born: 0, t0: 0, end: 0, done: false, early: false, ms: null, n: 0, sentN: 0, lastSend: 0, msg: null, sentAt: 0, tries: 0, tijdSent: 0, tel: '', keuze: -1 };
+const soort = (spel) => A.soort(spel);
+const NIEUW = { done: false, early: false, ms: null, n: 0, sentN: 0, lastSend: 0, msg: null, sentAt: 0, tries: 0, tijdSent: 0, tel: '', keuze: -1, hold: null, next: 1, straf: 0, idx: 0, flash: 0 };
+const D = { key: '', born: 0, t0: 0, end: 0, ...NIEUW };
 
 function duelSync() {
   if (!S || S.phase !== 'duel' || !S.duel) { D.key = ''; return; }
   const now = performance.now(), key = `${S.code}:${S.ronde}:${S.duel.poging}`;
   D.end = now + S.duel.om;
   if (key === D.key) return;
-  Object.assign(D, { key, born: now, t0: now + (S.duel.over ?? 0), done: false, early: false, ms: null, n: 0, sentN: 0, lastSend: 0, msg: null, sentAt: 0, tries: 0, tijdSent: 0, tel: '', keuze: -1 });
+  Object.assign(D, { key, born: now, t0: now + (S.duel.over ?? 0), ...NIEUW });
 }
 
 function duelSend(msg) {
   D.done = true; D.msg = msg; D.sentAt = performance.now(); D.tries = 1;
   Net.send(msg);
 }
+const magNog = () => S && S.phase === 'duel' && S.duel && inArena(S.you) && !D.done && !S.duel.klaar[S.you];
+// wanneer mag je antwoorden? Bij Onthoud het getal pas als het getal weg is
+const openOp = () => D.t0 + ((S.duel.vraag && S.duel.vraag.wacht) || 0);
 
-// een tik op het grote vlak
+// een tik op het grote vlak (bij het aanraken, niet pas bij het loslaten)
 function padTap() {
-  if (!S || S.phase !== 'duel' || !S.duel || !inArena(S.you) || D.done || S.duel.klaar[S.you]) return;
-  const now = performance.now(), spel = S.duel.spel;
+  if (!magNog()) return;
+  const now = performance.now(), d = S.duel, s = soort(d.spel);
   if (now < D.born + 600) return;   // het vlak staat er net: nog even niks, zodat je niet per ongeluk tikt
   Snd.ac();
-  if (spel === 'reactie') {
+  if (s === 'reactie') {
     if (now < D.t0) { D.early = true; duelSend({ t: 'tik', early: true }); Snd.bad(); buzz(140); }
     else { D.ms = now - D.t0; duelSend({ t: 'tik', ms: Math.round(D.ms) }); Snd.af(); buzz(30); }
-  } else if (spel === 'tikken') {
+  } else if (s === 'tikken') {
     if (now < D.t0 || now > D.t0 + A.TIK_MS) return;
     D.n++; Snd.tik();
-  } else if (spel === 'stop') {
+  } else if (d.spel === 'stop') {
     if (now < D.t0) return;
     D.ms = now - D.t0; duelSend({ t: 'stop', ms: Math.round(D.ms) }); Snd.af(); buzz(30);
+  } else if (d.spel === 'vast') {
+    // blind tellen: de tijd loopt zolang je vinger erop ligt
+    if (now < D.t0 || D.hold != null) return;
+    D.hold = now; Snd.tik(); buzz(20);
   }
   duelPaint();
 }
+// de vinger gaat van het scherm: bij Blind tellen is dat het moment
+function padLos() {
+  if (!magNog() || S.duel.spel !== 'vast' || D.hold == null) return;
+  D.ms = performance.now() - D.hold;
+  duelSend({ t: 'stop', ms: Math.round(D.ms) }); Snd.af(); buzz(30);
+  duelPaint();
+}
 
-// een antwoord aantikken bij Snelle som en Welke kleur?
-function ansTap(k) {
-  if (!S || S.phase !== 'duel' || !S.duel || !A.QUIZ.includes(S.duel.spel) || !inArena(S.you) || D.done || S.duel.klaar[S.you]) return;
+// 1 tot 9: een vakje aantikken
+function celTap(i) {
+  if (!magNog() || S.duel.spel !== 'volgorde') return;
+  const now = performance.now(), v = S.duel.veld[i];
+  if (now < D.t0 || !v || v < D.next) return;
+  if (v === D.next) {
+    D.next++; Snd.chip(); buzz(15);
+    if (D.next > 9) { D.ms = now - D.t0 + D.straf; duelSend({ t: 'race', ms: Math.round(D.ms) }); Snd.af(); }
+  } else { D.straf += A.STRAF_MS; D.flash = now; Snd.bad(); buzz(90); }
+  duelPaint();
+}
+// Raak de doelen: het doel aantikken
+function doelTap() {
+  if (!magNog() || S.duel.spel !== 'doelen') return;
   const now = performance.now();
-  if (now < D.t0) return;
+  if (now < D.t0 || D.idx >= A.DOELEN) return;
+  D.idx++; Snd.tik(); buzz(15);
+  if (D.idx >= A.DOELEN) { D.ms = now - D.t0; duelSend({ t: 'race', ms: Math.round(D.ms) }); Snd.af(); }
+  duelPaint();
+}
+
+// een antwoord aantikken bij de minispellen met een vraag
+function ansTap(k) {
+  if (!magNog() || soort(S.duel.spel) !== 'quiz') return;
+  const now = performance.now(), open = openOp();
+  if (now < open) return;
   Snd.ac(); Snd.chip(); buzz(30);
   D.keuze = k;
-  duelSend({ t: 'antw', k, ms: Math.round(now - D.t0) });
+  duelSend({ t: 'antw', k, ms: Math.round(now - open) });
   render();
 }
 
 const put = (el, txt) => { if (el && el.textContent !== txt) el.textContent = txt; };
 const setCls = (el, cls) => { if (el && el.className !== cls) el.className = cls; };
+const setHTML = (el, html) => { if (el && el.dataset.h !== html) { el.dataset.h = html; el.innerHTML = html; } };
+// een kaart die voorbij flitst bij Pak de aas: steeds een andere, nooit de aas
+const flits = (now) => NEP_KAART[(Math.floor((now - D.born) / 650) * 5 + D.key.length) % NEP_KAART.length];
+const isRood = (k) => /[♥♦]/.test(k);
+
+// wat er bij een vraag in het midden staat
+function vraagHTML(d, open, now, voorMij) {
+  const v = d.vraag;
+  if (d.spel === 'som') return `${esc(v.tekst)} = ?`;
+  if (d.spel === 'kleur') return `<span style="color:${INKT[v.inkt]}">${esc(v.woord)}</span>`;
+  if (d.spel === 'stippen') return `<span class="stipveld">${v.stippen.map(([x, y]) => `<i style="left:${(x * 100).toFixed(1)}%;top:${(y * 100).toFixed(1)}%"></i>`).join('')}</span>`;
+  if (d.spel === 'hoogste') return 'Hoogste?';
+  if (d.spel === 'pijl') return `<span class="pijlvak${v.andersom ? ' anders' : ''}">${PIJL(v.pijl)}<em>${v.andersom ? 'Andersom' : 'Zelfde'}</em></span>`;
+  if (d.spel === 'geheugen') return now < openOp() ? `<span class="cijfers">${esc(v.toon)}</span>` : '<span class="klein">Welk getal?</span>';
+  if (d.spel === 'meeste') return `<span class="kleurveld">${v.kleuren.map((k) => `<i style="background:${INKT[k]}"></i>`).join('')}</span>`;
+  if (d.spel === 'vreemd') {
+    const klaar = D.done || !!d.klaar[S.you];
+    return `<span class="raster${voorMij ? '' : ' kijk'}" id="${voorMij ? 'quiz' : 'quizKijk'}">${v.opties.map((o, k) => voorMij
+      ? `<button class="ans rcel${D.keuze === k ? ' sel' : ''}" type="button" data-ans="${k}" ${klaar ? 'disabled' : ''}>${esc(o)}</button>`
+      : `<i class="rcel">${esc(o)}</i>`).join('')}</span>`;
+  }
+  return '';
+}
 
 // Alles wat met de klok meeloopt: het aftellen, het groene scherm, de teller. Dit draait bij elk beeldje en na elke
 // keer tekenen, zodat het scherm ook klopt als de server tussendoor een nieuwe stand stuurt.
 function duelPaint() {
   if (!S || S.phase !== 'duel' || !S.duel || !D.key) return;
-  const d = S.duel, now = performance.now(), el = now - D.t0, mine = inArena(S.you);
+  const d = S.duel, now = performance.now(), el = now - D.t0, mine = inArena(S.you), s = soort(d.spel);
   // de tijd is om: elke telefoon mag dat melden, de server kijkt zelf op de klok
   if (now > D.end + 400 && now - D.tijdSent > 2500) { D.tijdSent = now; Net.send({ t: 'tijd' }); }
   // kwam mijn uitslag niet aan? Dan nog een keer
   if (mine && D.done && D.msg && !d.klaar[S.you] && now - D.sentAt > 1500 && D.tries < 4) { D.sentAt = now; D.tries++; Net.send(D.msg); }
   const done = D.done || !!d.klaar[S.you];
   const tel = el < 0 ? (el < -3000 ? 'Klaar?' : String(Math.ceil(-el / 1000))) : '';
-  if (d.spel !== 'reactie' && d.spel !== 'sps' && tel !== D.tel) {
+  if (s !== 'reactie' && s !== 'kies' && tel !== D.tel) {
     if (D.tel && !tel) Snd.af(); else if (/^\d$/.test(tel)) Snd.tel();
     D.tel = tel;
   }
@@ -815,7 +946,17 @@ function duelPaint() {
       put(sub, st === 'wait' || st === 'nep' ? 'Tik alleen bij groen' : st === 'go' ? 'Nu!' : d.klaar[tegen(S.you)] ? '' : wacht);
     }
     if (spec) { setCls(spec, `dbig ${el < 0 ? (nep ? 'nep' : 'wait') : 'go'}`); put(spec, el < 0 ? (nep ? 'Nepseintje!' : 'Wacht…') : 'Groen!'); }
-  } else if (d.spel === 'tikken') {
+  } else if (d.spel === 'aas') {
+    // de kaarten flitsen voorbij tot de aas komt
+    const kaart = el < 0 ? flits(now) : 'A♠';
+    if (pad) {
+      const st = done ? (D.early ? 'early' : 'done') : `kaart${el >= 0 ? ' go' : ''}${isRood(kaart) ? ' rood' : ''}`;
+      setCls(pad, `pad ${st}`);
+      put(big, !done ? kaart : D.early ? 'Te vroeg' : D.ms != null ? `${Math.round(D.ms)} ms` : 'Getikt');
+      put(sub, !done ? (el < 0 ? 'Tik alleen bij de aas' : 'De aas! Tik!') : d.klaar[tegen(S.you)] ? '' : wacht);
+    }
+    if (spec) { setCls(spec, `dbig kaartje${isRood(kaart) ? ' rood' : ''}${el >= 0 ? ' go' : ''}`); put(spec, kaart); }
+  } else if (s === 'tikken') {
     const bezig = el >= 0 && el < A.TIK_MS;
     if (mine && !done) {
       if (bezig && D.n !== D.sentN && now - D.lastSend > 300) { D.sentN = D.n; D.lastSend = now; Net.send({ t: 'tikken', n: D.n }); }
@@ -836,15 +977,40 @@ function duelPaint() {
       put(sub, el < 0 ? 'Stop de klok op 0' : done ? (d.klaar[tegen(S.you)] ? '' : wacht) : el < A.STOP_ZICHT ? 'De klok verdwijnt zo' : 'Tik als je denkt dat hij op 0 staat');
     }
     // wie toekijkt ziet de klok wel doorlopen
-    if (spec) { setCls(spec, 'dbig'); put(spec, el < 0 ? tel : klok(Math.min(el, A.STOP_DOEL + 6000))); }
-  } else if (A.QUIZ.includes(d.spel)) {
+    if (spec) { setCls(spec, 'dbig'); put(spec, el < 0 ? tel : klok(Math.min(el, A.STOP_MAX))); }
+  } else if (d.spel === 'vast') {
+    // te lang vastgehouden: dan laat de telefoon zelf los
+    if (mine && D.hold != null && !D.done && now - D.hold > d.doel + 6000) padLos();
+    if (pad) {
+      const st = el < 0 ? 'count' : done ? 'done' : D.hold != null ? 'hold' : 'go';
+      setCls(pad, `pad ${st}`);
+      put(big, el < 0 ? tel : done ? (D.ms != null ? `${sec(D.ms)} s` : 'Losgelaten') : D.hold != null ? '…' : `${sec1(d.doel)} s`);
+      put(sub, el < 0 ? `Straks: hou ${sec1(d.doel)} seconden vast` : done ? (d.klaar[tegen(S.you)] ? `Het doel was ${sec1(d.doel)} s` : wacht) : D.hold != null ? `Laat los na ${sec1(d.doel)} seconden` : 'Leg je vinger op het scherm en tel');
+    }
+    // wie toekijkt ziet de tijd lopen (en mag meetellen)
+    if (spec) { setCls(spec, 'dbig'); put(spec, el < 0 ? tel : `${sec(Math.min(el, d.doel + 6000))} / ${sec1(d.doel)}`); }
+  } else if (s === 'race') {
+    if (pad) {
+      setCls(pad, `pad race${el < 0 ? ' count' : ''}${done ? ' done' : ''}${now - D.flash < 260 ? ' flash' : ''}`);
+      put(big, el < 0 ? tel : done ? (D.ms != null ? `${sec(D.ms)} s` : 'Klaar!') : `${sec(el + D.straf)}`);
+      put(sub, el < 0 ? (d.spel === 'volgorde' ? 'Tik 1 tot 9 op volgorde' : `Tik ${A.DOELEN} doelen weg`) : done ? (d.klaar[tegen(S.you)] ? '' : wacht)
+        : d.spel === 'volgorde' ? `Volgende: ${D.next}${D.straf ? ` · +${D.straf / 1000} s straf` : ''}` : `${D.idx} van ${A.DOELEN}`);
+      const veld = $('#veld');
+      if (veld) {
+        let html = '';
+        if (el >= 0 && !done && d.spel === 'volgorde') html = d.veld.map((v, i) => (v ? `<button class="cel${v < D.next ? ' weg' : ''}" type="button" data-cel="${i}">${v}</button>` : '<i class="cel leeg"></i>')).join('');
+        else if (el >= 0 && !done) { const [x, y] = d.veld[D.idx] || [.5, .5]; html = `<button class="doel" type="button" data-doel style="left:${x * 100}%;top:${y * 100}%"><span>${D.idx + 1}</span></button>`; }
+        setCls(veld, `veld ${d.spel}`);
+        setHTML(veld, html);
+      }
+    }
+    if (spec) { setCls(spec, 'dbig'); put(spec, el < 0 ? tel : `${sec(Math.min(el, 30000))} s`); }
+  } else if (s === 'quiz') {
     // de vraag komt pas in beeld als het aftellen klaar is, bij allebei tegelijk
     const q = $('#qBig'), quiz = $('#quiz'), open = el >= 0;
-    if (q) {
-      const html = !open ? tel : d.spel === 'som' ? `${esc(d.vraag.tekst)} = ?` : `<span style="color:${INKT[d.vraag.inkt]}">${esc(d.vraag.woord)}</span>`;
-      if (q.dataset.h !== html) { q.dataset.h = html; q.innerHTML = html; }
-    }
-    if (quiz) quiz.classList.toggle('dicht', !open);
+    if (q) setHTML(q, !open ? tel : vraagHTML(d, open, now, mine));
+    const dock = $('#ansDock');
+    if (dock) dock.classList.toggle('dicht', now < openOp());
   } else if (spec) {
     const over = D.end - now;
     setCls(spec, 'dbig klein');
@@ -933,45 +1099,54 @@ function inzetDock() {
 }
 
 function vDuel() {
-  const d = S.duel, you = S.you, mine = inArena(you);
+  const d = S.duel, you = S.you, mine = inArena(you), s = soort(d.spel);
   let center, over = '';
-  const quiz = A.QUIZ.includes(d.spel);
-  if (d.spel === 'sps') {
+  if (s === 'kies') {
     // de stand en het laatste rondje: wat koos wie?
     const laatste = d.rondjes[d.rondjes.length - 1];
-    const sub = (i) => d.gekozen[i] ? 'Heeft gekozen' : laatste ? `${ICO[laatste[i]]}` : 'Kiest…';
+    const sub = (i) => d.gekozen[i] ? 'Heeft gekozen' : laatste ? (d.spel === 'sps' ? ICO[laatste[i]] : `<b class="getal">${esc(laatste[i])}</b>`) : 'Kiest…';
     center = `${potHTML()}${versus({ sub, chips: true, mid: `${d.score[S.a]} – ${d.score[S.b]}` })}<div class="dbig klein" id="dBig"></div>`;
-  } else if (mine && quiz) {
-    center = `${potHTML()}<div class="vraag" id="qBig"></div><p class="felt-sub">Tegen ${nameOf(tegen(you))}</p>`;
+  } else if (mine && s === 'quiz') {
+    center = `${potHTML()}<div class="vraag ${d.spel}" id="qBig"></div><p class="felt-sub">Tegen ${nameOf(tegen(you))}</p>`;
   } else if (mine) {
     center = '';
-    over = `<button class="pad count" id="pad" type="button" data-pad aria-label="${A.SPEL_NAAM[d.spel]}: tik hier"><span class="padk">${A.SPEL_NAAM[d.spel]} · tegen ${nameOf(tegen(you))}</span><b id="padBig"></b><span class="ps" id="padSub"></span>${d.spel === 'tikken' ? '<i class="padbar"><u id="padBar"></u></i>' : ''}</button>`;
+    const race = s === 'race';
+    // bij 1 tot 9 en Raak de doelen tik je op de vakjes in het vlak, niet op het vlak zelf
+    over = `<${race ? 'div' : 'button'} class="pad count" id="pad"${race ? '' : ' type="button" data-pad'} aria-label="${A.SPEL_NAAM[d.spel]}${race ? '' : ': tik hier'}"><span class="padk">${A.SPEL_NAAM[d.spel]} · tegen ${nameOf(tegen(you))}</span><b id="padBig"></b><span class="ps" id="padSub"></span>${d.spel === 'tikken' ? '<i class="padbar"><u id="padBar"></u></i>' : ''}${race ? '<div class="veld" id="veld"></div>' : ''}</${race ? 'div' : 'button'}>`;
   } else {
-    const sub = (i) => d.spel === 'tikken' ? `${d.n[i]} tikken` : d.klaar[i] ? (d.spel === 'stop' ? 'Gestopt' : quiz ? 'Antwoord gegeven' : 'Getikt') : quiz ? 'Denkt na…' : '…';
-    center = `${potHTML()}${versus({ sub, chips: true })}${quiz ? '<div class="vraag klein" id="qBig"></div>' : '<div class="dbig" id="dBig"></div>'}`;
+    const klaarTekst = { stop: d.spel === 'vast' ? 'Losgelaten' : 'Gestopt', race: 'Klaar!', quiz: 'Antwoord gegeven' }[s] || 'Getikt';
+    const bezigTekst = { quiz: 'Denkt na…', race: 'Bezig…' }[s] || '…';
+    const sub = (i) => s === 'tikken' ? `${d.n[i]} tikken` : d.klaar[i] ? klaarTekst : bezigTekst;
+    center = `${potHTML()}${versus({ sub, chips: true })}${s === 'quiz' ? `<div class="vraag klein ${d.spel}" id="qBig"></div>` : '<div class="dbig" id="dBig"></div>'}`;
   }
   const seat = (i) => hoek(i) || (S.bets[i] && S.bets[i].n ? { cls: S.bets[i].op === S.a ? 'rood' : 'blauw' } : { dim: true });
   return `${gameTable(center, seat, over)}<div class="dock${ui.dockPop ? ' pop' : ''}">${duelDock()}</div>`;
 }
 
+// de vraag bij de antwoorden, en een regel uitleg eronder
+const QVRAAG = { som: 'Wat komt eruit?', kleur: 'Welke kleur hebben de letters?', stippen: 'Hoeveel stippen?', hoogste: 'Welke is het hoogst?', pijl: 'Welke kant?', geheugen: 'Welk getal was het?', vreemd: 'Welke is anders?', meeste: 'Welke kleur het meest?' };
+const QUITLEG = { kleur: 'Niet het woord, maar de kleur van de letters. Fout is verloren.', pijl: 'Zelfde: de kant van de pijl. Andersom: juist de andere kant. Fout is verloren.', geheugen: 'Onthoud het getal: zo gaat het weg. Fout is verloren.', vreemd: 'Tik hierboven het teken aan dat anders is. Fout is verloren.' };
+
 function duelDock() {
-  const d = S.duel, you = S.you, host = isHost();
+  const d = S.duel, you = S.you, host = isHost(), s = soort(d.spel);
   // de host geeft op voor wie weg is, anders wacht iedereen tot de tijd om is
   const weg = host ? [S.a, S.b].filter((i) => i !== you && !S.players[i].connected).map((i) => `<button class="linkbtn warn" type="button" data-act="opgeven" data-for="${i}">${nameOf(i)} is weg: geef op</button>`).join('') : '';
   const opnieuw = d.poging > 1 ? '<p class="fine" style="display:block;color:var(--gold)">Het was gelijk: nog een keer.</p>' : '';
   if (inArena(you)) {
-    if (d.spel === 'sps') {
-      const koos = d.mijn;
-      return `<div class="ask-h"><h2>${koos ? `Jij koos ${SPS_NAAM[koos].toLowerCase()}` : 'Steen, papier of schaar?'}</h2><span class="stake">${d.score[you]} – ${d.score[tegen(you)]}</span></div>
-        <div class="rpsrow">${A.SPS.map((k) => `<button class="rps${koos === k ? ' sel' : ''}" type="button" data-act="kies" data-k="${k}" ${koos ? 'disabled' : ''}>${ICO[k]}<span>${SPS_NAAM[k]}</span></button>`).join('')}</div>
-        ${koos ? `<p class="waitline">Wachten op ${nameOf(tegen(you))}</p>` : `<p class="sub">Wie het eerst ${A.SPS_WINS} keer wint, wint het duel.</p>`}${opnieuw}${weg}`;
+    if (s === 'kies') {
+      const koos = d.mijn, sps = d.spel === 'sps';
+      const knop = (k) => `<button class="rps${koos === k ? ' sel' : ''}" type="button" data-act="kies" data-k="${k}" ${koos ? 'disabled' : ''}>${sps ? `${ICO[k]}<span>${SPS_NAAM[k]}</span>` : `<b class="cijfer">${k}</b>`}</button>`;
+      return `<div class="ask-h"><h2>${koos ? `Jij koos ${sps ? SPS_NAAM[koos].toLowerCase() : koos}` : sps ? 'Steen, papier of schaar?' : 'Kies 1 tot 5'}</h2><span class="stake">${d.score[you]} – ${d.score[tegen(you)]}</span></div>
+        <div class="rpsrow${sps ? '' : ' vijf'}">${A.KEUZES[d.spel].map(knop).join('')}</div>
+        ${koos ? `<p class="waitline">Wachten op ${nameOf(tegen(you))}</p>` : `<p class="sub">${sps ? '' : 'Het hoogste wint, maar precies één eronder wint juist. '}Wie het eerst ${A.SPS_WINS} keer wint, wint het duel.</p>`}${opnieuw}${weg}`;
     }
-    if (A.QUIZ.includes(d.spel)) {
-      const klaar = D.done || !!d.klaar[you], open = performance.now() >= D.t0;
-      const knop = (o, k) => `<button class="ans${D.keuze === k ? ' sel' : ''}${o === 'geel' ? ' licht' : ''}" type="button" data-ans="${k}" ${klaar ? 'disabled' : ''}${d.spel === 'kleur' ? ` style="--k:${INKT[o]}"` : ''}><span>${esc(o)}</span></button>`;
-      return `<div class="ask-h"><h2>${klaar ? 'Antwoord gegeven' : d.spel === 'som' ? 'Wat komt eruit?' : 'Welke kleur hebben de letters?'}</h2></div>
-        <div class="quiz ${d.spel}${open ? '' : ' dicht'}${klaar ? ' klaar' : ''}" id="quiz">${d.vraag.opties.map(knop).join('')}</div>
-        ${klaar ? (d.klaar[tegen(you)] ? '' : `<p class="waitline">Wachten op ${nameOf(tegen(you))}</p>`) : `<p class="sub">${d.spel === 'som' ? 'De snelste met het goede antwoord wint. Fout is verloren.' : 'Niet het woord, maar de kleur van de letters. Fout is verloren.'}</p>`}${opnieuw}${weg}`;
+    if (s === 'quiz') {
+      const klaar = D.done || !!d.klaar[you], dicht = performance.now() < openOp();
+      const kleur = d.spel === 'kleur' || d.spel === 'meeste';
+      const knop = (o, k) => `<button class="ans${D.keuze === k ? ' sel' : ''}${o === 'geel' ? ' licht' : ''}" type="button" data-ans="${k}" ${klaar ? 'disabled' : ''}${kleur ? ` style="--k:${INKT[o]}"` : ''} aria-label="${esc(o)}"><span>${d.spel === 'pijl' ? PIJL(o) : esc(o)}</span></button>`;
+      const knoppen = d.spel === 'vreemd' ? '' : `<div class="quiz ${d.spel}${kleur ? ' kleur' : ''}${dicht ? ' dicht' : ''}${klaar ? ' klaar' : ''}" id="ansDock">${d.vraag.opties.map(knop).join('')}</div>`;
+      return `<div class="ask-h"><h2>${klaar ? 'Antwoord gegeven' : QVRAAG[d.spel]}</h2></div>${knoppen}
+        ${klaar ? (d.klaar[tegen(you)] ? '' : `<p class="waitline">Wachten op ${nameOf(tegen(you))}</p>`) : `<p class="sub">${QUITLEG[d.spel] || 'De snelste met het goede antwoord wint. Fout is verloren.'}</p>`}${opnieuw}${weg}`;
     }
     return `<div class="ask-h"><h2>${A.SPEL_NAAM[d.spel]}</h2></div><p class="sub">${A.SPEL_UITLEG[d.spel]}</p>${opnieuw}${weg}`;
   }
@@ -986,11 +1161,12 @@ function detailText(L) {
   if (d.opgegeven != null) return `${nameOf(d.opgegeven)} was weg`;
   if (d.tijdOm) return d.loot ? 'De tijd was om: het lot besliste' : `De tijd was om voor ${nameOf(L.loser)}`;
   if (d.loot) return `${esc(d.gelijk || 'Steeds gelijk')}: het lot besliste`;
-  const ms = (v) => (d.quiz ? (v < 0 ? 'fout' : `${sec(v)} s`) : v < 0 ? 'te vroeg' : `${v} ms`);
+  const ms = (v) => (d.quiz || d.race ? (v < 0 ? 'fout' : `${sec(v)} s`) : v < 0 ? 'te vroeg' : `${v} ms`);
   if (d.ms) return `${d.quiz ? `${esc(d.quiz)} · ` : ''}${nameOf(a)} ${ms(d.ms[a])} · ${nameOf(b)} ${ms(d.ms[b])}`;
   if (d.tikken) return `${nameOf(a)} ${d.tikken[a]} tikken · ${nameOf(b)} ${d.tikken[b]} tikken`;
+  if (d.stop && L.spel === 'vast') return `Doel ${sec1(d.doel)} s · ${nameOf(a)} ${sec(d.stop[a])} s · ${nameOf(b)} ${sec(d.stop[b])} s`;
   if (d.stop) return `${nameOf(a)} stopte op ${klok(d.stop[a])} · ${nameOf(b)} op ${klok(d.stop[b])}`;
-  if (d.score) return `Steen, papier, schaar: ${d.score[L.winner]} – ${d.score[L.loser]}`;
+  if (d.score) return `${A.SPEL_NAAM[L.spel]}: ${d.score[L.winner]} – ${d.score[L.loser]}`;
   return '';
 }
 
@@ -1266,9 +1442,17 @@ document.addEventListener('click', (e) => {
 // het tikvlak reageert meteen bij het aanraken (niet pas bij het loslaten): dat scheelt tijd, en zo telt elke vinger
 document.addEventListener('pointerdown', (e) => {
   if (e.target.closest('[data-pad]')) { e.preventDefault(); padTap(); return; }
+  const cel = e.target.closest('[data-cel]');
+  if (cel) { e.preventDefault(); celTap(+cel.dataset.cel); return; }
+  if (e.target.closest('[data-doel]')) { e.preventDefault(); doelTap(); return; }
   const a = e.target.closest('[data-ans]');
   if (a && !a.disabled) { e.preventDefault(); ansTap(+a.dataset.ans); }
 });
+// Blind tellen: loslaten telt, waar je vinger ook is
+document.addEventListener('pointerup', padLos);
+document.addEventListener('pointercancel', padLos);
+// lang drukken op het vlak: geen menu of tekst selecteren
+document.addEventListener('contextmenu', (e) => { if (e.target.closest && e.target.closest('[data-pad], #pad')) e.preventDefault(); });
 document.addEventListener('submit', (e) => { if (e.target.id === 'joinForm') { e.preventDefault(); joinWith($('#codeIn').value); } });
 document.addEventListener('input', (e) => {
   if (e.target.id === 'codeIn') { const v = e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4); if (v !== e.target.value) e.target.value = v; }

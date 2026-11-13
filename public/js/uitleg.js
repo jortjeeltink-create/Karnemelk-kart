@@ -83,7 +83,7 @@
     arena: { name: 'Arena', c: '#ff4d5e', url: '/arena', slides: [
       { img: 'arena-1', t: 'De arena in', p: TAFEL(3, 10, ' Iedereen begint met <b>10 munten</b>. De host kiest 6, 10 of 14 rondes.') },
       { img: 'arena-2', t: 'Inzetten', p: 'Elke ronde moeten twee spelers de arena in: rood tegen blauw. De rest kiest wie er wint en zet <b>1, 2 of 3 munten</b> in. Niemand ziet wat een ander inzet tot het duel begint.' },
-      { img: 'arena-3', t: 'Het duel', p: 'De twee spelen een kort minispel op hun eigen telefoon: <b>valse start</b>, <b>stop op 0</b>, <b>steen-papier-schaar</b>, een <b>tikrace</b>, een <b>snelle som</b> of <b>welke kleur?</b>. Bij valse start komen er eerst nepseintjes: tik pas bij groen.' },
+      { img: 'arena-3', t: 'Het duel', p: 'De twee spelen een kort minispel op hun eigen telefoon. Er zijn er <b>17</b>, zoals <b>valse start</b> (tik pas bij groen, niet bij de nepseintjes), <b>pak de aas</b>, <b>stop op 0</b>, <b>blind tellen</b>, <b>één eronder</b>, <b>onthoud het getal</b>, <b>zoek de vreemde</b> en <b>1 tot 9</b>. Gelijk? Dan nog een keer.' },
       { img: 'arena-4', t: 'De uitslag', p: 'De winnaar krijgt <b>2 munten</b>, de verliezer <b>2 strafpunten</b>. Goed gegokt: je inzet erbij. Fout: je inzet kwijt, en <b>net zoveel strafpunten</b>. Blut? Dan krijg je een <b>mega strafpunt</b> en 5 nieuwe munten.' },
       { img: 'arena-5', t: 'De eindstand', p: 'Na de laatste ronde wint wie de meeste munten heeft. Wie de minste heeft, krijgt een <b>mega strafpunt</b>. De munten zijn alleen voor het spel.' },
     ] },
