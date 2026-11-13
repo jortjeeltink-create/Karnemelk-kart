@@ -348,6 +348,12 @@ const GAMES = [
     text: 'Het kroegspel met 32 kaarten. Iedereen krijgt vier kaarten op zijn eigen telefoon; wie de laatste slag wint, wint de ronde en de rest krijgt strafpunten. Durf je te kloppen? Dan gaat de inzet omhoog en kiest de rest: mee, of passen. Met vuile was en kans op toep.',
     facts: [['Spelers', '2 tot 8'], ['Kaarten', '32, van 7 tot aas'], ['Meedoen', 'met een code']],
     cta: 'Speel Toepen' },
+  { id: 'arena', name: 'Arena', name2: '', short: 'Arena', acc: '#ff4d5e', tint: '#2a0f18', bg: '#0c0a14',
+    url: '/arena',
+    chips: ['Wedspel', 'Online met vrienden'],
+    text: 'Iedereen krijgt 10 munten. Elke ronde moeten twee spelers de arena in voor een kort duel op hun eigen telefoon: valse start, stop de klok op 0, steen-papier-schaar, een tikrace, een snelle som of welke kleur. De rest zet stiekem munten in op wie er wint. Fout gegokt of verloren? Strafpunten. Ben je blut, dan is het een mega strafpunt.',
+    facts: [['Spelers', '3 tot 10'], ['Minispellen', '6 duels'], ['Meedoen', 'met een code']],
+    cta: 'Speel Arena' },
   { id: 'kart', name: 'Karnemelk', name2: 'Kart', short: 'Karnemelk Kart', acc: '#ff7a00', tint: '#2c1410', bg: '#9fd8ff',
     url: '/kart',
     chips: ['Racen', 'Online met vrienden'],
@@ -841,6 +847,38 @@ const PREV = {
     if (cyc > 3.9 && cyc < 5.8) T(c, round % 2 ? 'SLAG!' : 'KLOP!', cx, h * .13, Math.min(w * .09, h * .16), round % 2 ? '#f7c548' : '#ffb35c', { w: 900 });
     c.fillStyle = 'rgba(0,0,0,.28)'; rr(c, cx - w * .17, h * .9 - h * .05, w * .34, h * .09, h * .045); c.fill();
     T(c, `slag ${(round % 4) + 1} van 4`, cx, h * .9, Math.min(w * .04, h * .07), 'rgba(243,239,219,.85)', { f: MF, w: 700 });
+  },
+  // Arena: rood tegen blauw onder de schijnwerpers, het minispel wisselt en de munten vliegen naar de winnaar
+  arena(c, w, h, t){
+    const g = c.createRadialGradient(w / 2, h * .4, 10, w / 2, h * .5, Math.max(w, h) * .8); g.addColorStop(0, '#3a3158'); g.addColorStop(.6, '#1c1730'); g.addColorStop(1, '#0c0a14'); c.fillStyle = g; c.fillRect(0, 0, w, h);
+    const zij = (x, col) => { const z = c.createRadialGradient(x, h / 2, 0, x, h / 2, w * .55); z.addColorStop(0, col); z.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = z; c.fillRect(0, 0, w, h); };
+    zij(0, 'rgba(255,77,94,.45)'); zij(w, 'rgba(79,141,255,.45)');
+    const cyc = reduce ? 3.4 : (t / 1000) % 5, round = reduce ? 0 : Math.floor(t / 5000);
+    const spel = ['VALSE START', 'STOP OP 0', 'STEEN PAPIER SCHAAR', 'TIKRACE', 'SNELLE SOM', 'WELKE KLEUR?'][round % 6];
+    const win = round % 2, r = Math.min(w * .13, h * .2), cy = h * .5, xa = w * .27, xb = w * .73;
+    T(c, spel, w / 2, h * .14, Math.min(w * .07, h * .12), '#ffc94d', { w: 900 });
+    const speler = (x, col, letter, k) => {
+      const klaar = cyc > 3, won = klaar && k === win, sc = won ? 1 + .06 * Math.sin(t / 120) : klaar ? .9 : 1;
+      c.save(); c.translate(x, cy); c.scale(sc, sc); c.globalAlpha = klaar && !won ? .55 : 1;
+      c.shadowColor = won ? 'rgba(255,201,77,.9)' : col; c.shadowBlur = won ? 30 : 18;
+      c.beginPath(); c.arc(0, 0, r, 0, TAU); c.fillStyle = col; c.fill();
+      c.shadowColor = 'transparent'; c.lineWidth = r * .1; c.strokeStyle = won ? '#ffc94d' : '#0c0a14'; c.stroke();
+      T(c, letter, 0, 2, r * 1.05, '#fff', { w: 900 });
+      c.restore();
+    };
+    speler(xa, '#ff4d5e', 'R', 0); speler(xb, '#4f8dff', 'B', 1);
+    // VS, en tijdens het duel een klok of een tik
+    T(c, 'VS', w / 2, cy + 2, Math.min(w * .1, h * .16), '#ffc94d', { w: 900 });
+    if (cyc > 1 && cyc < 3) { const p = (cyc - 1) / 2; c.lineWidth = 4; c.strokeStyle = 'rgba(255,255,255,.5)'; c.beginPath(); c.arc(w / 2, cy, Math.min(w, h) * .11, -Math.PI / 2, -Math.PI / 2 + TAU * p); c.stroke(); }
+    // munten van de kant naar de winnaar
+    const munt = (x, y, s) => { c.beginPath(); c.ellipse(x, y, s, s * .8, 0, 0, TAU); c.fillStyle = '#ffc94d'; c.fill(); c.lineWidth = 2; c.strokeStyle = '#7a4d00'; c.stroke(); };
+    for (let k = 0; k < 5; k++) {
+      const sx = w * (.15 + k * .175), sy = h * .9, tx = win ? xb : xa;
+      const p = clamp((cyc - 3.1 - k * .12) / .6, 0, 1), e = 1 - Math.pow(1 - p, 3);
+      if (cyc < 3.1) munt(sx, sy, Math.min(w, h) * .03);
+      else if (p < 1) munt(sx + (tx - sx) * e, sy + (cy - sy) * e - Math.sin(e * Math.PI) * h * .15, Math.min(w, h) * .03);
+    }
+    if (cyc > 3.4) T(c, win ? 'BLAUW WINT' : 'ROOD WINT', w / 2, h * .8, Math.min(w * .055, h * .09), '#fff', { w: 900 });
   },
   // Alibi: het dossier met de beschuldiging, een geheim woord dat omdraait en de tijd die wegloopt
   alibi(c, w, h, t){

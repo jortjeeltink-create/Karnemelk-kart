@@ -54,7 +54,7 @@ h1 small{display:block;font-size:13px;letter-spacing:.14em;text-transform:upperc
   const app = document.getElementById('app');
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const key = (location.pathname.match(/^\/beheer\/([A-Za-z0-9_-]{20,64})$/) || [])[1] || '';
-  const NAMES = { kart: 'Karnemelk Kart', bussen: 'Bussen', boer: 'Boer zoekt vrouw', mexen: 'Mexen', dealer: 'Pak de dealer', paardenrace: 'Paardenrace', rotonde: 'Rotonde', mijnenveld: 'Mijnenveld', borrelbord: 'Borrelbord', toepen: 'Toepen', bom: 'Tikkende Bom', alibi: 'Alibi', bakplaten: 'Bakplaten', kingsen: 'Kingsen', happo: 'Happo', anders: 'Iets anders', alles: 'Meerdere spellen' };
+  const NAMES = { kart: 'Karnemelk Kart', bussen: 'Bussen', boer: 'Boer zoekt vrouw', mexen: 'Mexen', dealer: 'Pak de dealer', paardenrace: 'Paardenrace', rotonde: 'Rotonde', mijnenveld: 'Mijnenveld', borrelbord: 'Borrelbord', toepen: 'Toepen', arena: 'Arena', bom: 'Tikkende Bom', alibi: 'Alibi', bakplaten: 'Bakplaten', kingsen: 'Kingsen', happo: 'Happo', anders: 'Iets anders', alles: 'Meerdere spellen' };
   const when = (iso) => { try { return new Date(iso).toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return iso; } };
   const starsOf = (n) => `<span class="stars" aria-label="${n} van de 5 sterren">${'★'.repeat(n)}<i>${'★'.repeat(5 - n)}</i></span>`;
   let data = null, tab = location.hash === '#reviews' ? 'reviews' : 'meldingen';
