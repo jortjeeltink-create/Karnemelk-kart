@@ -129,6 +129,31 @@ test('snelle som: iedereen ziet de vraag, niemand het goede antwoord', () => {
   assert.match(s.last.detail.quiz, / = \d+$/);
 });
 
+test('de nieuwe minispellen: wat je telefoon nodig heeft, zonder het goede antwoord', () => {
+  for (const spel of ['vast', 'volgorde', 'doelen', 'stippen', 'geheugen', 'vreemd', 'meeste', 'pijl', 'hoogste']) {
+    const { phones, g, klok } = arena(['Jort', 'Meke', 'Sim'], spel);
+    phones[2].say({ t: 'bet', op: 0, n: 1 });
+    const d = phones[1].state().duel;
+    assert.equal(d.over, g.duel.startAt - klok.t, spel);
+    if (spel === 'vast') assert.equal(d.doel, g.duel.doel);
+    else if (A.soort(spel) === 'race') assert.deepEqual(d.veld, g.duel.veld);
+    else { assert.deepEqual(d.vraag, g.duel.vraag); assert.ok(!('goed' in d)); }
+  }
+  // 1 tot 9 via de telefoon
+  const { phones, g, klok } = arena(['Jort', 'Meke', 'Sim'], 'volgorde');
+  phones[2].say({ t: 'bet', op: 1, n: 2 });
+  klok.t = g.duel.startAt + 6000;
+  phones[0].say({ t: 'race', ms: 5200 });
+  phones[1].say({ t: 'race', ms: 4800 });
+  assert.equal(phones[2].state().last.winner, 1);
+  // één eronder via de telefoon
+  const b = arena(['Jort', 'Meke', 'Sim'], 'bieden');
+  b.phones[2].say({ t: 'bet', op: 0, n: 1 });
+  b.phones[0].say({ t: 'kies', k: '3' });
+  b.phones[1].say({ t: 'kies', k: '5' });
+  assert.deepEqual(b.phones[2].state().duel.rondjes[0], { 0: '3', 1: '5', w: 1 });
+});
+
 test('de tijd is om: elke telefoon mag het melden, maar pas als het echt zo is', () => {
   const { phones, klok, g } = arena(['Jort', 'Meke', 'Sim'], 'stop');
   phones[2].say({ t: 'bet', op: 0, n: 1 });

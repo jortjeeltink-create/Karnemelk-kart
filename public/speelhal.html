@@ -351,8 +351,8 @@ const GAMES = [
   { id: 'arena', name: 'Arena', name2: '', short: 'Arena', acc: '#ff4d5e', tint: '#2a0f18', bg: '#0c0a14',
     url: '/arena',
     chips: ['Wedspel', 'Online met vrienden'],
-    text: 'Iedereen krijgt 10 munten. Elke ronde moeten twee spelers de arena in voor een kort duel op hun eigen telefoon: valse start, stop de klok op 0, steen-papier-schaar, een tikrace, een snelle som of welke kleur. De rest zet stiekem munten in op wie er wint. Fout gegokt of verloren? Strafpunten. Ben je blut, dan is het een mega strafpunt.',
-    facts: [['Spelers', '3 tot 10'], ['Minispellen', '6 duels'], ['Meedoen', 'met een code']],
+    text: 'Iedereen krijgt 10 munten. Elke ronde moeten twee spelers de arena in voor een kort duel op hun eigen telefoon, uit 17 minispellen: van valse start, stop de klok op 0 en pak de aas tot blind tellen, onthoud het getal en zoek de vreemde. De rest zet stiekem munten in op wie er wint. Fout gegokt of verloren? Strafpunten. Ben je blut, dan is het een mega strafpunt.',
+    facts: [['Spelers', '3 tot 10'], ['Minispellen', '17 duels'], ['Meedoen', 'met een code']],
     cta: 'Speel Arena' },
   { id: 'kart', name: 'Karnemelk', name2: 'Kart', short: 'Karnemelk Kart', acc: '#ff7a00', tint: '#2c1410', bg: '#9fd8ff',
     url: '/kart',
@@ -854,7 +854,7 @@ const PREV = {
     const zij = (x, col) => { const z = c.createRadialGradient(x, h / 2, 0, x, h / 2, w * .55); z.addColorStop(0, col); z.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = z; c.fillRect(0, 0, w, h); };
     zij(0, 'rgba(255,77,94,.45)'); zij(w, 'rgba(79,141,255,.45)');
     const cyc = reduce ? 3.4 : (t / 1000) % 5, round = reduce ? 0 : Math.floor(t / 5000);
-    const spel = ['VALSE START', 'STOP OP 0', 'STEEN PAPIER SCHAAR', 'TIKRACE', 'SNELLE SOM', 'WELKE KLEUR?'][round % 6];
+    const spel = ['VALSE START', 'PAK DE AAS', 'STOP OP 0', 'BLIND TELLEN', 'EÉN ERONDER', 'TIKRACE', 'ZOEK DE VREEMDE', '1 TOT 9'][round % 8];
     const win = round % 2, r = Math.min(w * .13, h * .2), cy = h * .5, xa = w * .27, xb = w * .73;
     T(c, spel, w / 2, h * .14, Math.min(w * .07, h * .12), '#ffc94d', { w: 900 });
     const speler = (x, col, letter, k) => {

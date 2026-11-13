@@ -46,6 +46,7 @@ const arena = {
       case 'kies': return A.kies(g, me, msg.k, now);
       case 'stop': return A.stop(g, me, msg.ms, now);
       case 'antw': return A.antwoord(g, me, msg.k, msg.ms, now);
+      case 'race': return A.race(g, me, msg.ms, now);
       // elke telefoon mag melden dat de tijd om is; de server kijkt zelf op de klok
       case 'tijd': return A.tijd(g, now);
       // de host geeft op voor iemand die weg is
@@ -77,11 +78,16 @@ const arena = {
     const d = g.duel;
     if (d) {
       const v = { spel: d.spel, poging: d.poging, om: Math.max(0, d.deadline - now), klaar: { [g.a]: d.res[g.a] != null, [g.b]: d.res[g.b] != null } };
-      if (d.spel === 'reactie') { v.over = d.goAt - now; v.nep = d.nep; }   // over zoveel ms wordt het scherm groen
-      else if (d.spel === 'tikken') { v.over = d.startAt - now; v.n = d.n; }
-      else if (d.spel === 'stop') v.over = d.startAt - now;
-      else if (d.spel === 'sps') { v.score = d.score; v.rondjes = d.rondjes; v.gekozen = { [g.a]: !!d.keuze[g.a], [g.b]: !!d.keuze[g.b] }; v.mijn = d.keuze[me] || null; }
-      else { v.over = d.startAt - now; v.vraag = d.vraag; }                 // de vraag, zonder het goede antwoord
+      const s = A.soort(d.spel);
+      if (s === 'reactie') { v.over = d.goAt - now; v.nep = d.nep; }   // over zoveel ms komt het seintje
+      else if (s === 'kies') { v.score = d.score; v.rondjes = d.rondjes; v.gekozen = { [g.a]: !!d.keuze[g.a], [g.b]: !!d.keuze[g.b] }; v.mijn = d.keuze[me] || null; }
+      else {
+        v.over = d.startAt - now;
+        if (s === 'tikken') v.n = d.n;
+        else if (s === 'stop') v.doel = d.doel;
+        else if (s === 'race') v.veld = d.veld;
+        else v.vraag = d.vraag;                                           // de vraag, zonder het goede antwoord
+      }
       out.duel = v;
     }
     out.last = g.last;
