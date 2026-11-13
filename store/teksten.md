@@ -27,7 +27,7 @@ Eén iemand maakt een tafel en deelt de code van vier letters of de link. De res
 • Bussen: het bekende kaartspel. Rood of zwart, hoger of lager, binnen of buiten, de piramide, en wie de meeste kaarten overhoudt moet de bus in.
 • Mexen: het dobbelspel. Wie het laagst gooit krijgt strafpunten, en elke Mex verdubbelt de inzet.
 • Toepen: het kaartspel uit de kroeg met 32 kaarten. Durf je te kloppen?
-• Arena: twee spelers vechten een duel uit in een van 17 minispellen (valse start, stop de klok, steen-papier-schaar, blind tellen en meer), de rest zet munten in op de winnaar.
+• Arena: twee spelers vechten een duel uit in een van 20 minispellen (lef met een bom, ballon, valse start, kleurgeheugen en meer). De rest zet zelf munten in op de winnaar, en de winnaar deelt een mega strafpunt uit.
 • Borrelbord: het partyspel als ganzenbord, met de gans, de brug en de put. Licht, middel of extreem.
 • Pak de dealer: raad de kaart die alleen de dealer ziet. Hoger of lager?
 • Paardenrace: de vier azen racen tegen elkaar. Op welk paard zet jij?

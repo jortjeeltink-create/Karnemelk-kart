@@ -33,12 +33,12 @@ test('een nieuw potje: iedereen 10 munten, twee spelers in de arena en een minis
   assert.deepEqual(A.wachtOp(g, ALLEN).sort(), ALLEN.filter((i) => !A.inArena(g, i)));
 });
 
-test('inzetten: alleen wie niet in de arena staat, 1 tot 3 munten, één keer; daarna begint het duel', () => {
+test('inzetten: alleen wie niet in de arena staat, zelf kiezen hoeveel (tot al je munten), één keer; daarna begint het duel', () => {
   const g = potje('sps');
   assert.equal(A.bet(g, 0, 1, 1, ALLEN, 0), null, 'wie zelf de arena in moet, zet niet in');
   assert.equal(A.bet(g, 2, 3, 1, ALLEN, 0), null, 'alleen op een van de twee in de arena');
   assert.equal(A.bet(g, 2, 0, 0, ALLEN, 0), null);
-  assert.equal(A.bet(g, 2, 0, 4, ALLEN, 0), null, 'hooguit 3');
+  assert.equal(A.bet(g, 2, 0, A.START_MUNTEN + 1, ALLEN, 0), null, 'niet meer dan je hebt');
   assert.equal(A.bet(g, 2, 0, 1.5, ALLEN, 0), null);
   g.players[3].munten = 2;
   assert.equal(A.bet(g, 3, 1, 3, ALLEN, 0), null, 'niet meer dan je hebt');
@@ -78,7 +78,7 @@ test('de uitbetaling: winnaar munten, verliezer strafpunten, goed gegokt erbij, 
   assert.deepEqual([meke.munten, meke.duels, meke.straf], [A.START_MUNTEN, 1, A.VERLIES_STRAF]);
   assert.deepEqual([sim.munten, sim.goed, sim.straf], [A.START_MUNTEN + 2, 1, 0]);
   assert.deepEqual([bas.munten, bas.goed, bas.straf], [A.START_MUNTEN - 3, 0, 3], 'fout: inzet kwijt en net zoveel strafpunten');
-  assert.deepEqual(ev.bets, [{ p: 2, op: 0, n: 2, ok: true }, { p: 3, op: 1, n: 3, ok: false }]);
+  assert.deepEqual(ev.bets, [{ p: 2, op: 0, n: 2, ok: true, straf: 0 }, { p: 3, op: 1, n: 3, ok: false, straf: 3 }]);
   assert.equal(g.phase, 'uitslag');
 });
 
@@ -289,7 +289,7 @@ test('de volgende ronde: anderen de arena in; na de laatste ronde wint de rijkst
   }
   // de minispellen: in de eerste 17 rondes allemaal één keer, en nooit twee keer achter elkaar hetzelfde
   const n = A.SPELLEN.length;
-  assert.equal(n, 17);
+  assert.equal(n, 20);
   const h = A.newGame(NAMEN, { seed: 11, rondes: 14 });
   h.rondes = 3 * n;
   A.begin(h, ALLEN);
@@ -416,4 +416,100 @@ test('1 tot 9 en raak de doelen: het veld, en de snelste wint', () => {
   assert.equal(g.duel.res[0], 1200, 'onmogelijk snel wordt afgerond');
   const ev = A.race(g, 1, 4100, g.duel.startAt + 5100);
   assert.deepEqual([ev.winner, ev.detail.race], [0, true]);
+});
+
+test('alles inzetten mag; fout gegokt kost je inzet, maar hooguit 5 strafpunten', () => {
+  const g = potje('sps');
+  A.bet(g, 2, 0, A.START_MUNTEN, ALLEN, 0);   // Sim: alles op Jort
+  A.bet(g, 3, 0, 7, ALLEN, 0);                // Bas: 7 op Jort
+  A.opgeven(g, 0);                            // Jort verliest
+  const [, , sim, bas] = g.players;
+  assert.deepEqual([sim.straf, sim.mega, sim.munten], [A.STRAF_MAX, 1, A.BLUT_MUNTEN], 'alles kwijt: blut, mega strafpunt en nieuwe munten');
+  assert.deepEqual([bas.straf, bas.munten], [A.STRAF_MAX, A.START_MUNTEN - 7]);
+  assert.deepEqual(g.last.bets.map((b) => b.straf), [A.STRAF_MAX, A.STRAF_MAX]);
+});
+
+test('mega strafpunt uitdelen: aan het eind de winnaar, of (als de host dat kiest) na elk duel de winnaar van het duel', () => {
+  // standaard: alleen aan het eind
+  const g = A.newGame(NAMEN, { seed: 5, rondes: 6 });
+  assert.equal(g.mega, 'eind');
+  A.begin(g, ALLEN);
+  for (let r = 1; r <= 6; r++) {
+    for (const i of A.wachtOp(g, ALLEN)) A.bet(g, i, g.a, 1, ALLEN, r * 1e5);
+    A.opgeven(g, g.b);
+    assert.equal(g.geef, null, 'na een duel niks uitdelen');
+    A.next(g, ALLEN);
+  }
+  assert.equal(g.phase, 'klaar');
+  const win = g.eind.rijkste[0], niet = [0, 1, 2, 3].find((i) => !g.eind.rijkste.includes(i));
+  assert.deepEqual(A.geefOpen(g), g.eind.rijkste);
+  assert.equal(A.geef(g, win, win), null, 'niet aan jezelf');
+  assert.equal(A.geef(g, niet, win), null, 'alleen de winnaar');
+  const voor = g.players[niet].mega;
+  const ev = A.geef(g, win, niet);
+  assert.deepEqual([ev.type, ev.van, ev.aan], ['mega', win, niet]);
+  assert.equal(g.players[niet].mega, voor + 1);
+  assert.equal(g.players[win].gegeven, 1);
+  assert.equal(A.geef(g, win, niet), null, 'één keer');
+  // na elk duel
+  const h = A.newGame(NAMEN, { seed: 5, rondes: 6, mega: 'duel' });
+  A.begin(h, ALLEN);
+  for (const i of A.wachtOp(h, ALLEN)) A.bet(h, i, h.a, 1, ALLEN, 0);
+  A.opgeven(h, h.b);
+  assert.deepEqual(A.geefOpen(h), [h.a]);
+  assert.equal(A.next(h, ALLEN), null, 'eerst uitdelen');
+  assert.equal(A.geef(h, h.b, 3), null, 'de verliezer niet');
+  A.geef(h, h.a, h.b);
+  assert.equal(A.next(h, ALLEN).type, 'ronde');
+  assert.equal(h.geef, null);
+  // de host slaat het over voor wie weg is
+  for (const i of A.wachtOp(h, ALLEN)) A.bet(h, i, h.a, 1, ALLEN, 0);
+  A.opgeven(h, h.b);
+  A.skipGeef(h, h.a);
+  assert.equal(A.next(h, ALLEN).type, 'ronde');
+});
+
+test('lef: wie het langst vasthoudt zonder te ontploffen wint; wie nog vasthoudt als de bom afgaat, ontploft', () => {
+  for (const seed of [1, 2, 3, 4, 5]) { const b = duel('lef', seed).duel.boem; assert.ok(b >= A.LEF_MIN && b <= A.LEF_MAX); }
+  const g = duel('lef');
+  const { boem, startAt } = g.duel;
+  assert.equal(A.lef(g, 0, 1000, startAt - 2000), null, 'nog aan het aftellen');
+  A.lef(g, 0, boem - 2000, startAt + boem - 2000);
+  assert.equal(g.phase, 'duel', 'Meke houdt nog vast');
+  assert.equal(A.tijd(g, startAt + boem - 1), null, 'de bom is nog niet af');
+  const ev = A.tijd(g, startAt + boem);
+  assert.deepEqual([ev.winner, ev.detail.lef[1], ev.detail.boem], [0, -1, boem], 'Meke ontploft');
+  // allebei op tijd: de langste wint
+  const h = duel('lef');
+  A.lef(h, 0, 1500, h.duel.startAt + 1500);
+  assert.equal(A.lef(h, 1, 2500, h.duel.startAt + 2500).winner, 1);
+  // te laat losgelaten telt als ontploft
+  const k = duel('lef');
+  A.lef(k, 0, k.duel.boem + 100, k.duel.startAt + k.duel.boem + 100);
+  assert.equal(A.lef(k, 1, 900, k.duel.startAt + 900).winner, 1);
+});
+
+test('ballon: de grootste wint, geknapt is verloren', () => {
+  for (const seed of [1, 2, 3, 4, 5]) { const k = duel('ballon', seed).duel.knal; assert.ok(k >= A.BALLON_MIN && k <= A.BALLON_MAX); }
+  const g = duel('ballon');
+  const { knal, startAt } = g.duel;
+  assert.equal(A.ballon(g, 0, 5, startAt - 2000), null, 'nog aan het aftellen');
+  A.ballon(g, 0, knal - 2, startAt + 3000);
+  assert.equal(A.ballon(g, 1, knal, startAt + 3500).winner, 0, 'Meke pompte hem kapot');
+  const h = duel('ballon');
+  A.ballon(h, 0, 4, h.duel.startAt + 3000);
+  assert.equal(A.ballon(h, 1, 9, h.duel.startAt + 3000).winner, 1);
+});
+
+test('kleurgeheugen: vijf kleuren, nooit twee keer dezelfde na elkaar; antwoorden pas als ze getoond zijn', () => {
+  for (const seed of [1, 2, 3, 4, 5, 6]) {
+    const v = duel('simon', seed).duel.veld;
+    assert.equal(v.length, A.SIMON_LEN);
+    for (let k = 0; k < v.length; k++) { assert.ok(v[k] >= 0 && v[k] <= 3); if (k) assert.notEqual(v[k], v[k - 1]); }
+  }
+  const g = duel('simon');
+  const open = g.duel.startAt + g.duel.toon;
+  assert.equal(A.race(g, 0, 2000, open - 1000), null, 'de kleuren lichten nog op');
+  A.race(g, 0, 2600, open + 2600);
+  assert.equal(A.race(g, 1, 2100, open + 2100).winner, 1);
 });

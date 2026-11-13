@@ -15,11 +15,12 @@ const arena = {
   maxPlayers: A.MAX_PLAYERS,
   cleanNames: A.cleanNames,
 
-  setup(t) { t.rondes = A.LENGTE_DEFAULT; },
+  setup(t) { t.rondes = A.LENGTE_DEFAULT; t.mega = A.MEGA_DEFAULT; },
   settings(t, msg) {
-    if (t.g || !A.LENGTES.includes(msg.rondes)) return false;
-    t.rondes = msg.rondes;
-    return true;
+    if (t.g) return false;
+    if (A.LENGTES.includes(msg.rondes)) { t.rondes = msg.rondes; return true; }
+    if (A.MEGA.includes(msg.mega)) { t.mega = msg.mega; return true; }
+    return false;
   },
 
   // nieuwe spelers mogen altijd aanschuiven: ze beginnen met een verse stapel munten
@@ -29,7 +30,7 @@ const arena = {
   presence(t) { A.fixBets(t.g, live(t), t.hub.now()); },
 
   start(t, seed) {
-    const g = A.newGame(t.players.map((p) => p.name), { seed, rondes: t.rondes });
+    const g = A.newGame(t.players.map((p) => p.name), { seed, rondes: t.rondes, mega: t.mega });
     return A.begin(g, live(t)) ? g : null;
   },
 
@@ -47,6 +48,11 @@ const arena = {
       case 'stop': return A.stop(g, me, msg.ms, now);
       case 'antw': return A.antwoord(g, me, msg.k, msg.ms, now);
       case 'race': return A.race(g, me, msg.ms, now);
+      case 'lef': return A.lef(g, me, msg.ms, now);
+      case 'ballon': return A.ballon(g, me, msg.n, now);
+      // een mega strafpunt uitdelen; de host slaat het over voor iemand die weg is
+      case 'geef': return A.geef(g, me, msg.aan);
+      case 'skipgeef': return Number.isInteger(msg.for) && msg.for !== me ? A.skipGeef(g, t.actorFor(s, msg.for)) : null;
       // elke telefoon mag melden dat de tijd om is; de server kijkt zelf op de klok
       case 'tijd': return A.tijd(g, now);
       // de host geeft op voor iemand die weg is
@@ -58,6 +64,7 @@ const arena = {
 
   view(t, me, out) {
     out.rondes = t.rondes;
+    out.mega = t.mega;
     const g = t.g;
     if (!g) return;
     const now = t.hub.now();
@@ -66,7 +73,7 @@ const arena = {
     out.ronde = g.ronde;
     out.players = out.players.map((base, i) => {
       const p = g.players[i];
-      return { ...base, munten: p.munten, straf: p.straf, mega: p.mega, duels: p.duels, gewonnen: p.gewonnen, goed: p.goed, blut: p.blut };
+      return { ...base, munten: p.munten, straf: p.straf, mega: p.mega, duels: p.duels, gewonnen: p.gewonnen, goed: p.goed, blut: p.blut, gegeven: p.gegeven };
     });
     out.a = g.a; out.b = g.b;
     out.spel = g.spel;
@@ -85,13 +92,17 @@ const arena = {
         v.over = d.startAt - now;
         if (s === 'tikken') v.n = d.n;
         else if (s === 'stop') v.doel = d.doel;
-        else if (s === 'race') v.veld = d.veld;
+        else if (s === 'race') { v.veld = d.veld; v.toon = d.toon || 0; }
+        else if (s === 'ballon') v.knal = d.knal;   // de telefoon laat de ballon zelf knappen
+        else if (s === 'lef') { /* het moment van de bom blijft geheim */ }
         else v.vraag = d.vraag;                                           // de vraag, zonder het goede antwoord
       }
       out.duel = v;
     }
     out.last = g.last;
     out.eind = g.eind;
+    out.mega = g.mega;
+    out.geef = g.geef;
     out.seq = g.seq;
     out.log = g.log;
   },
