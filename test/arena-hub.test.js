@@ -154,6 +154,53 @@ test('de nieuwe minispellen: wat je telefoon nodig heeft, zonder het goede antwo
   assert.deepEqual(b.phones[2].state().duel.rondjes[0], { 0: '3', 1: '5', w: 1 });
 });
 
+test('de host kiest wie een mega strafpunt uitdeelt; de winnaar deelt uit via zijn telefoon', () => {
+  const { phones, t } = table(['Jort', 'Meke', 'Sim']);
+  assert.equal(phones[1].state().mega, A.MEGA_DEFAULT);
+  phones[1].say({ t: 'settings', mega: 'duel' });
+  assert.equal(phones[0].state().mega, A.MEGA_DEFAULT, 'alleen de host');
+  phones[0].say({ t: 'settings', mega: 'duel' });
+  assert.equal(phones[2].state().mega, 'duel');
+  phones[0].say({ t: 'start' });
+  const g = t.g;
+  g.a = 0; g.b = 1; g.spel = 'sps';
+  phones[2].say({ t: 'bet', op: 0, n: 8 });
+  assert.equal(phones[2].state().bets[2].n, 8, 'zelf de inzet bepalen');
+  phones[1].say({ t: 'opgeven' });   // mag niet: zij is er nog
+  phones[0].say({ t: 'opgeven', for: 1 });
+  assert.equal(g.phase, 'duel');
+  t.hub.disconnect(phones[1].conn);
+  phones[0].say({ t: 'opgeven', for: 1 });
+  assert.equal(g.phase, 'uitslag');
+  assert.deepEqual(phones[2].state().geef, { van: [0], aan: {} });
+  phones[0].say({ t: 'next' });
+  assert.equal(g.phase, 'uitslag', 'eerst uitdelen');
+  phones[2].say({ t: 'geef', aan: 1 });
+  assert.deepEqual(g.geef.aan, {}, 'alleen de winnaar');
+  phones[0].say({ t: 'geef', aan: 2 });
+  assert.equal(phones[2].state().players[2].mega, 1);
+  assert.equal(phones[2].last.state.log.at(-1).type, 'mega');
+  phones[0].say({ t: 'next' });
+  assert.equal(g.phase, 'inzet');
+});
+
+test('lef en ballon: het moment van de bom blijft geheim, de ballon knapt op de telefoon', () => {
+  const l = arena(['Jort', 'Meke', 'Sim'], 'lef');
+  l.phones[2].say({ t: 'bet', op: 0, n: 1 });
+  assert.ok(!('boem' in l.phones[0].state().duel));
+  l.klok.t = l.g.duel.startAt + 2000;
+  l.phones[0].say({ t: 'lef', ms: 2000 });
+  l.phones[1].say({ t: 'lef', ms: 1500 });
+  assert.equal(l.phones[2].state().last.winner, 0);
+  const b = arena(['Jort', 'Meke', 'Sim'], 'ballon');
+  b.phones[2].say({ t: 'bet', op: 0, n: 1 });
+  assert.equal(b.phones[0].state().duel.knal, b.g.duel.knal);
+  b.klok.t = b.g.duel.startAt + 3000;
+  b.phones[0].say({ t: 'ballon', n: 3 });
+  b.phones[1].say({ t: 'ballon', n: b.g.duel.knal });
+  assert.equal(b.phones[2].state().last.winner, 0);
+});
+
 test('de tijd is om: elke telefoon mag het melden, maar pas als het echt zo is', () => {
   const { phones, klok, g } = arena(['Jort', 'Meke', 'Sim'], 'stop');
   phones[2].say({ t: 'bet', op: 0, n: 1 });

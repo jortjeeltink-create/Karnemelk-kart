@@ -251,6 +251,41 @@ button.fighter[aria-pressed="true"]{background:color-mix(in srgb,var(--kant) 34%
 .rps .cijfer{font-family:var(--display);font-weight:900;font-size:40px;line-height:1}
 .fighter small .getal{font-family:var(--display);font-weight:900;font-size:24px;color:#fff}
 
+/* zelf je inzet bepalen */
+.inzet{display:grid;grid-template-columns:52px minmax(0,1fr) 52px auto;align-items:center;gap:8px}
+.inzet .stap{height:52px;border-radius:16px;background:rgba(255,255,255,.1);color:#fff;font-family:var(--display);font-weight:900;font-size:32px;line-height:1}
+.inzet .stap:disabled{opacity:.3}
+.inzetn{display:flex;align-items:center;justify-content:center;gap:8px;height:52px;border-radius:16px;background:rgba(0,0,0,.3);box-shadow:inset 0 0 0 1px rgba(255,201,77,.35);color:var(--gold)}
+.inzetn svg{width:22px;height:22px}
+.inzetn b{font-family:var(--display);font-weight:900;font-size:36px;line-height:1;color:#fff;font-variant-numeric:tabular-nums}
+.inzet .alles{height:52px;padding:0 16px;border-radius:16px;background:rgba(255,201,77,.14);color:var(--gold);font-weight:700;box-shadow:inset 0 0 0 1.5px rgba(255,201,77,.5)}
+.inzet .alles.on{background:var(--gold);color:#2a1600}
+/* een mega strafpunt uitdelen */
+.geefrij{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;max-height:38vh;overflow:auto}
+.geefknop{display:flex;align-items:center;gap:8px;min-height:52px;padding:0 12px;border-radius:16px;background:linear-gradient(180deg,#ff6b78,#c9283a);color:#fff;font-family:var(--display);font-weight:900;font-size:22px;line-height:1;text-align:left;box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 10px 20px -12px rgba(0,0,0,.8)}
+.geefknop i{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:50%;background:var(--pc);font-style:normal;font-size:17px;box-shadow:0 0 0 2px rgba(255,255,255,.5)}
+.geefknop span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dock:has(.geefknop){border-top-color:var(--red);box-shadow:0 -14px 40px rgba(0,0,0,.45),0 -3px 22px -6px var(--red)}
+/* Lef: de bom */
+.pad.boem{background:radial-gradient(circle at 50% 45%,#ffd23f 0%,#ff6a1a 30%,#a3121e 70%,#3a0509 100%);animation:schud .4s linear 2}
+@keyframes schud{25%{transform:translate(-6px,3px)}50%{transform:translate(5px,-4px)}75%{transform:translate(-3px,-2px)}}
+.pad.count.hold{background:linear-gradient(180deg,#5b3fa0,#2b1d5a)}
+/* Ballon */
+.pad.ballon,.pad.knal{background:linear-gradient(180deg,#2c6fd6,#173b85)}
+.pad .ballon{position:absolute;left:50%;top:52%;width:min(70cqw,calc((100cqh - var(--strook)) * .62));aspect-ratio:.86;transform:translate(-50%,-50%) scale(var(--s,.35));border-radius:50% 50% 47% 47%/56% 56% 44% 44%;background:radial-gradient(circle at 34% 28%,rgba(255,255,255,.7) 0 8%,transparent 22%),radial-gradient(circle at 50% 50%,#ff6b78,#c9283a 70%);box-shadow:inset -14px -18px 40px rgba(0,0,0,.25);transition:transform .12s cubic-bezier(.2,.9,.3,1.4);z-index:0}
+.pad .ballon::after{content:"";position:absolute;left:50%;bottom:-6%;width:10%;height:8%;transform:translateX(-50%);border-radius:30%;background:#c9283a}
+.pad.ballon b,.pad.ballon .ps,.pad.ballon .padk{position:relative;z-index:1}
+.pad.knal .ballon{transform:translate(-50%,-50%) scale(0);transition:transform .08s}
+.pad.knal{background:radial-gradient(circle,#ffd23f,#c9283a 60%,#3a0509)}
+.stopknop:disabled{opacity:.6}
+/* Kleurgeheugen */
+.veld.simon{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:center;justify-self:center;width:min(100%,calc(100cqh - var(--strook) - 170px))}
+.sp{aspect-ratio:1;border-radius:22px;opacity:.38;box-shadow:inset 0 -6px 0 rgba(0,0,0,.25);transition:opacity .08s,transform .08s;touch-action:manipulation}
+.sp.k0{background:#ff4d5e}.sp.k1{background:#4f8dff}.sp.k2{background:#3ee07f}.sp.k3{background:#ffd23f}
+.veld.simon:not(.toon) .sp{opacity:.92}
+.sp.aan{opacity:1;transform:scale(1.04);box-shadow:0 0 0 4px #fff,0 0 36px rgba(255,255,255,.6)}
+.veld.simon:not(.toon) .sp:active{transform:scale(.95);opacity:1}
+
 /* de eindstand */
 .rank{display:grid;gap:3px;width:min(86cqw,360px);margin-top:2px}
 .rank div{display:grid;grid-template-columns:22px 14px minmax(0,1fr) auto;align-items:center;gap:6px;padding:0 12px;height:min(calc((100cqh - var(--strook)) * .068),30px);border-radius:10px;background:rgba(0,0,0,.34);font-size:12px;font-weight:700;text-align:left}
@@ -667,10 +702,16 @@ function present(ev) {
       const goed = ev.winner === you || (b && b.ok), fout = ev.loser === you || (b && !b.ok);
       if (goed) { Snd.good(); celebrate(); } else if (fout) { Snd.bad(); buzz([90, 50, 90]); } else Snd.flip();
       if (ev.loser === you) window.Slok?.drink(A.VERLIES_STRAF, `Je verloor het duel van ${name(ev.winner)}.`, { delay: 1200 });
-      if (b && !b.ok) window.Slok?.drink(b.n, `Je zette ${munten(b.n)} op ${name(b.op)}, maar ${name(ev.winner)} won.`, { delay: 1200 });
+      if (b && !b.ok) window.Slok?.drink(b.straf, `Je zette ${munten(b.n)} op ${name(b.op)}, maar ${name(ev.winner)} won.`, { delay: 1200 });
       if (ev.blut.includes(you)) window.Slok?.bak(`Je bent blut. Je krijgt ${A.BLUT_MUNTEN} nieuwe munten.`, { delay: 1500 });
       break;
     }
+    case 'mega':
+      if (ev.aan < 0) break;
+      Snd.horn();
+      if (ev.aan === you) { buzz([200, 80, 200]); window.Slok?.bak(`${name(ev.van)} gaf jou een mega strafpunt.`, { delay: 300 }); }
+      else toast(`${ev.van === you ? 'Jij gaf' : `${name(ev.van)} gaf`} ${name(ev.aan)} een mega strafpunt`);
+      break;
     case 'einde':
       Snd.win();
       if (ev.rijkste.includes(you)) celebrate();
@@ -812,7 +853,7 @@ function versus({ sub = () => '', cls = () => '', pick = false, chips = false, m
 // milliseconden"; de telefoon rekent dat om naar zijn eigen klok en meet zelf hoe snel je bent. De server bepaalt
 // daarna wie er wint.
 const soort = (spel) => A.soort(spel);
-const NIEUW = { done: false, early: false, ms: null, n: 0, sentN: 0, lastSend: 0, msg: null, sentAt: 0, tries: 0, tijdSent: 0, tel: '', keuze: -1, hold: null, next: 1, straf: 0, idx: 0, flash: 0 };
+const NIEUW = { done: false, early: false, ms: null, n: 0, sentN: 0, lastSend: 0, msg: null, sentAt: 0, tries: 0, tijdSent: 0, tel: '', keuze: -1, hold: null, next: 1, straf: 0, idx: 0, flash: 0, knal: false, boem: false, sec: -1, lit: -1 };
 const D = { key: '', born: 0, t0: 0, end: 0, ...NIEUW };
 
 function duelSync() {
@@ -850,12 +891,48 @@ function padTap() {
     // blind tellen: de tijd loopt zolang je vinger erop ligt
     if (now < D.t0 || D.hold != null) return;
     D.hold = now; Snd.tik(); buzz(20);
+  } else if (d.spel === 'lef') {
+    // lef: vinger erop (mag al tijdens het aftellen); loslaten telt (zie padLos)
+    if (D.hold != null || now >= D.end) return;
+    D.hold = now; buzz(20);
+  } else if (d.spel === 'ballon') {
+    // ballon: elke tik pompt; te ver is knal
+    if (now < D.t0) return;
+    D.n++; Snd.tik(); buzz(8);
+    if (D.n >= d.knal) { D.knal = true; duelSend({ t: 'ballon', n: D.n }); Snd.noise(.35, { vol: .6, freq: 900 }); buzz([180, 60, 120]); }
   }
+  duelPaint();
+}
+// ballon: stoppen voor hij knapt
+function ballonStop() {
+  if (!magNog() || S.duel.spel !== 'ballon' || performance.now() < D.t0) return;
+  duelSend({ t: 'ballon', n: D.n }); Snd.af(); buzz(30);
+  render();
+}
+// kleurgeheugen: een kleur aantikken
+const SIMON_TOON = [392, 494, 587, 698];
+function simonTap(k) {
+  if (!magNog() || S.duel.spel !== 'simon') return;
+  const now = performance.now(), open = D.t0 + (S.duel.toon || 0);
+  if (now < open) return;
+  if (k === S.duel.veld[D.idx]) {
+    D.idx++; Snd.tone(SIMON_TOON[k], .18, { type: 'triangle', vol: .12 }); buzz(15);
+    if (D.idx >= S.duel.veld.length) { D.ms = now - open + D.straf; duelSend({ t: 'race', ms: Math.round(D.ms) }); Snd.af(); }
+  } else { D.straf += A.STRAF_MS; D.flash = now; Snd.bad(); buzz(90); }
   duelPaint();
 }
 // de vinger gaat van het scherm: bij Blind tellen is dat het moment
 function padLos() {
-  if (!magNog() || S.duel.spel !== 'vast' || D.hold == null) return;
+  if (!magNog() || D.hold == null) return;
+  if (S.duel.spel === 'lef') {
+    const now = performance.now();
+    if (now < D.t0) { D.hold = null; return; }   // tijdens het aftellen mag je nog loslaten en opnieuw beginnen
+    D.ms = now - D.t0;
+    duelSend({ t: 'lef', ms: Math.round(D.ms) }); Snd.af(); buzz(30);
+    duelPaint();
+    return;
+  }
+  if (S.duel.spel !== 'vast') return;
   D.ms = performance.now() - D.hold;
   duelSend({ t: 'stop', ms: Math.round(D.ms) }); Snd.af(); buzz(30);
   duelPaint();
@@ -989,6 +1066,42 @@ function duelPaint() {
     }
     // wie toekijkt ziet de tijd lopen (en mag meetellen)
     if (spec) { setCls(spec, 'dbig'); put(spec, el < 0 ? tel : `${sec(Math.min(el, d.doel + 6000))} / ${sec1(d.doel)}`); }
+  } else if (d.spel === 'lef') {
+    const boem = now >= D.end && el >= 0, holding = D.hold != null && !done;
+    if (boem && !D.boem) { D.boem = true; if (holding || (mine && !done)) { Snd.noise(.6, { vol: .7, freq: 500 }); Snd.bad(); buzz([300, 80, 300]); } }
+    if (holding && el >= 0 && Math.floor(el / 1000) !== D.sec) { D.sec = Math.floor(el / 1000); Snd.tik(); }
+    if (pad) {
+      const st = el < 0 ? (holding ? 'count hold' : 'count') : done ? (D.boem && D.ms == null ? 'boem' : 'done') : boem ? 'boem' : holding ? 'hold' : 'go';
+      setCls(pad, `pad ${st}`);
+      put(big, el < 0 ? tel : done ? (D.ms != null ? `${sec(D.ms)} s` : 'BOEM!') : boem ? 'BOEM!' : holding ? sec(el) : 'Vinger erop!');
+      put(sub, el < 0 ? (holding ? 'Goed zo, blijf vasthouden' : 'Leg je vinger op het scherm en hou vast') : done ? (D.ms != null ? (d.klaar[tegen(S.you)] ? 'Losgelaten' : wacht) : 'Te laat losgelaten') : boem ? 'Te laat losgelaten' : holding ? 'Laat los voor hij ontploft' : 'Hoe langer je vasthoudt, hoe beter');
+    }
+    if (spec) { setCls(spec, `dbig${boem ? ' wait' : ''}`); put(spec, el < 0 ? tel : boem ? 'BOEM!' : sec(el)); }
+  } else if (d.spel === 'ballon') {
+    if (pad) {
+      const st = el < 0 ? 'count' : D.knal ? 'knal' : done ? 'done' : 'ballon';
+      setCls(pad, `pad ${st}`);
+      put(big, el < 0 ? tel : D.knal ? 'KNAL!' : String(D.n));
+      put(sub, el < 0 ? 'Tik om de ballon op te blazen' : D.knal ? 'Geknapt…' : done ? (d.klaar[tegen(S.you)] ? 'Gestopt' : wacht) : D.n ? 'Durf je nog?' : 'Tik om te pompen');
+      const bal = $('#bal');
+      if (bal) bal.style.setProperty('--s', (D.knal ? 0 : .35 + .65 * Math.min(1, D.n / A.BALLON_MAX)).toFixed(3));
+    }
+    if (spec) { setCls(spec, 'dbig klein'); put(spec, el < 0 ? tel : 'Pompen…'); }
+  } else if (d.spel === 'simon') {
+    const toon = d.toon || 0, kijk = el >= 0 && el < toon, stap = kijk ? Math.floor(el / A.SIMON_STAP) : -1;
+    const lit = kijk && el - stap * A.SIMON_STAP < A.SIMON_STAP * .72 ? d.veld[stap] : -1;
+    if (lit !== D.lit) { D.lit = lit; if (lit >= 0 && pad) Snd.tone(SIMON_TOON[lit], .3, { type: 'triangle', vol: .12 }); }
+    if (pad) {
+      setCls(pad, `pad race${el < 0 ? ' count' : ''}${done ? ' done' : ''}${now - D.flash < 260 ? ' flash' : ''}`);
+      put(big, el < 0 ? tel : done ? (D.ms != null ? `${sec(D.ms)} s` : 'Klaar!') : kijk ? 'Kijk goed!' : sec(el - toon + D.straf));
+      put(sub, el < 0 ? 'Onthoud de kleuren' : done ? (d.klaar[tegen(S.you)] ? '' : wacht) : kijk ? `${stap + 1} van ${d.veld.length}` : `Tik na: ${D.idx} van ${d.veld.length}${D.straf ? ` · +${D.straf / 1000} s straf` : ''}`);
+      const veld = $('#veld');
+      if (veld) {
+        setCls(veld, `veld simon${kijk ? ' toon' : ''}`);
+        setHTML(veld, el < 0 || done ? '' : [0, 1, 2, 3].map((k) => `<button class="sp k${k}${lit === k ? ' aan' : ''}" type="button" data-simon="${k}" data-k="${k}" ${kijk ? 'disabled' : ''} aria-label="${['Rood', 'Blauw', 'Groen', 'Geel'][k]}"></button>`).join(''));
+      }
+    }
+    if (spec) { setCls(spec, 'dbig'); put(spec, el < 0 ? tel : kijk ? 'Kijk goed!' : `${sec(Math.min(el - toon, 30000))} s`); }
   } else if (s === 'race') {
     if (pad) {
       setCls(pad, `pad race${el < 0 ? ' count' : ''}${done ? ' done' : ''}${now - D.flash < 260 ? ' flash' : ''}`);
@@ -1051,9 +1164,10 @@ function vLobby() {
     seat: (i) => ({ kick: host && i !== S.you, now: i === S.host }),
   });
   const dock = `<div class="ask-h"><h2>${host ? 'Jij bent de host' : 'Je staat klaar'}</h2><button class="sharebtn" type="button" data-act="share">${SHARE}Uitnodigen</button></div>
-    <p class="sub">Vrienden doen mee met code <b>${S.code}</b> of met de link. Iedereen begint met ${A.START_MUNTEN} munten.</p>
+    <p class="sub">Vrienden doen mee met code <b>${S.code}</b> of met de link. Iedereen begint met ${A.START_MUNTEN} munten. ${S.mega === 'duel' ? 'Wie een duel wint, deelt een mega strafpunt uit.' : 'Wie aan het eind de meeste munten heeft, deelt een mega strafpunt uit.'}</p>
     ${host
       ? `<div class="optrow"><span>Aantal rondes</span><div class="seg" role="group" aria-label="Aantal rondes">${A.LENGTES.map((r) => `<button type="button" data-act="rondes" data-n="${r}" aria-pressed="${S.rondes === r}">${r}</button>`).join('')}</div></div>
+        <div class="optrow"><span>Mega uitdelen</span><div class="seg" role="group" aria-label="Wie deelt een mega strafpunt uit">${[['duel', 'Na elk duel'], ['eind', 'Aan het eind']].map(([k, t]) => `<button type="button" data-act="megaset" data-k="${k}" aria-pressed="${S.mega === k}">${t}</button>`).join('')}</div></div>
         <button class="cta" type="button" data-act="start" ${short > 0 ? 'disabled' : ''}><span>${short > 0 ? `Wacht op ${short} ${short === 1 ? 'speler' : 'spelers'}` : 'Open de arena'}</span>${ARR}</button>
         ${n > 1 ? '<p class="fine">Tik op een speler om die van tafel te halen.</p>' : ''}`
       : `<p class="waitline">Wachten tot ${nameOf(S.host)} de arena opent</p>`}
@@ -1086,16 +1200,21 @@ function inzetDock() {
   const b = S.bets[you];
   if (b) {
     return `<div class="ask-h"><h2>${b.n ? `Jij zet ${b.n} op ${nameOf(b.op)}` : 'Je slaat deze ronde over'}</h2><span class="stake">${MUNT}${ik.munten}</span></div>
-      <p class="sub">${b.n ? `Wint ${nameOf(b.op)}? Dan krijg je er ${munten(b.n)} bij. Anders ben je ze kwijt en krijg je ${straf(b.n)}.` : 'Je doet de volgende ronde weer mee.'}</p>
+      <p class="sub">${b.n ? `Wint ${nameOf(b.op)}? Dan krijg je er ${munten(b.n)} bij. Anders ben je ze kwijt en krijg je ${straf(Math.min(b.n, A.STRAF_MAX))}.` : 'Je doet de volgende ronde weer mee.'}</p>
       <p class="waitline">${wachten.length ? `Wachten op ${lijst(wachten)}` : 'Het duel begint zo'}</p>${weg}`;
   }
-  const max = Math.min(A.MAX_INZET, ik.munten), n = Math.min(ui.bet.n, max), op = ui.bet.op;
+  const max = ik.munten, n = Math.max(1, Math.min(ui.bet.n, max)), op = ui.bet.op;
   const knop = (i) => `<button class="opt ${i === S.a ? 'rood' : 'blauw'}" type="button" data-act="pickop" data-op="${i}" aria-pressed="${op === i}"><span>${nameOf(i)}</span></button>`;
   return `<div class="ask-h"><h2>Wie wint er?</h2><span class="stake">${MUNT}${ik.munten}</span></div>
     <div class="opts${inArena(op) ? ' has' : ''}">${knop(S.a)}${knop(S.b)}</div>
-    <div class="optrow"><span>Inzet</span><div class="seg" role="group" aria-label="Inzet">${[1, 2, 3].map((k) => `<button type="button" data-act="stake" data-n="${k}" aria-pressed="${n === k}" ${k > max ? 'disabled' : ''}>${k}</button>`).join('')}</div></div>
+    <div class="inzet" role="group" aria-label="Inzet">
+      <button class="stap" type="button" data-act="stake" data-n="${n - 1}" ${n <= 1 ? 'disabled' : ''} aria-label="Eén minder">−</button>
+      <output class="inzetn">${MUNT}<b>${n}</b></output>
+      <button class="stap" type="button" data-act="stake" data-n="${n + 1}" ${n >= max ? 'disabled' : ''} aria-label="Eén meer">+</button>
+      <button class="alles${n === max ? ' on' : ''}" type="button" data-act="stake" data-n="${max}">Alles</button>
+    </div>
     <button class="cta" type="button" data-act="bet" ${inArena(op) ? '' : 'disabled'}><span>${inArena(op) ? `Zet ${munten(n)} op ${nameOf(op)}` : 'Kies rood of blauw'}</span>${ARR}</button>
-    <p class="fine">Goed gegokt: je inzet erbij. Fout: je inzet kwijt en net zoveel strafpunten.</p>${weg}`;
+    <p class="fine" style="display:block">Goed gegokt: ${munten(n)} erbij. Fout: ${munten(n)} kwijt en ${straf(Math.min(n, A.STRAF_MAX))}.</p>${weg}`;
 }
 
 function vDuel() {
@@ -1112,10 +1231,10 @@ function vDuel() {
     center = '';
     const race = s === 'race';
     // bij 1 tot 9 en Raak de doelen tik je op de vakjes in het vlak, niet op het vlak zelf
-    over = `<${race ? 'div' : 'button'} class="pad count" id="pad"${race ? '' : ' type="button" data-pad'} aria-label="${A.SPEL_NAAM[d.spel]}${race ? '' : ': tik hier'}"><span class="padk">${A.SPEL_NAAM[d.spel]} · tegen ${nameOf(tegen(you))}</span><b id="padBig"></b><span class="ps" id="padSub"></span>${d.spel === 'tikken' ? '<i class="padbar"><u id="padBar"></u></i>' : ''}${race ? '<div class="veld" id="veld"></div>' : ''}</${race ? 'div' : 'button'}>`;
+    over = `<${race ? 'div' : 'button'} class="pad count" id="pad"${race ? '' : ' type="button" data-pad'} aria-label="${A.SPEL_NAAM[d.spel]}${race ? '' : ': tik hier'}"><span class="padk">${A.SPEL_NAAM[d.spel]} · tegen ${nameOf(tegen(you))}</span><b id="padBig"></b><span class="ps" id="padSub"></span>${d.spel === 'tikken' ? '<i class="padbar"><u id="padBar"></u></i>' : ''}${d.spel === 'ballon' ? '<i class="ballon" id="bal"></i>' : ''}${race ? '<div class="veld" id="veld"></div>' : ''}</${race ? 'div' : 'button'}>`;
   } else {
-    const klaarTekst = { stop: d.spel === 'vast' ? 'Losgelaten' : 'Gestopt', race: 'Klaar!', quiz: 'Antwoord gegeven' }[s] || 'Getikt';
-    const bezigTekst = { quiz: 'Denkt na…', race: 'Bezig…' }[s] || '…';
+    const klaarTekst = { stop: d.spel === 'vast' ? 'Losgelaten' : 'Gestopt', race: 'Klaar!', quiz: 'Antwoord gegeven', lef: 'Losgelaten', ballon: 'Klaar met pompen' }[s] || 'Getikt';
+    const bezigTekst = { quiz: 'Denkt na…', race: 'Bezig…', lef: 'Houdt vast…', ballon: 'Pompt…' }[s] || '…';
     const sub = (i) => s === 'tikken' ? `${d.n[i]} tikken` : d.klaar[i] ? klaarTekst : bezigTekst;
     center = `${potHTML()}${versus({ sub, chips: true })}${s === 'quiz' ? `<div class="vraag klein ${d.spel}" id="qBig"></div>` : '<div class="dbig" id="dBig"></div>'}`;
   }
@@ -1148,6 +1267,12 @@ function duelDock() {
       return `<div class="ask-h"><h2>${klaar ? 'Antwoord gegeven' : QVRAAG[d.spel]}</h2></div>${knoppen}
         ${klaar ? (d.klaar[tegen(you)] ? '' : `<p class="waitline">Wachten op ${nameOf(tegen(you))}</p>`) : `<p class="sub">${QUITLEG[d.spel] || 'De snelste met het goede antwoord wint. Fout is verloren.'}</p>`}${opnieuw}${weg}`;
     }
+    if (d.spel === 'ballon') {
+      const klaar = D.done || !!d.klaar[you];
+      return `<div class="ask-h"><h2>Ballon</h2></div>
+        <button class="cta stopknop" type="button" data-act="ballonstop" ${klaar ? 'disabled' : ''}><span>${klaar ? (D.knal ? 'Geknapt!' : `Gestopt op ${D.n}`) : 'Stop! Ik durf niet meer'}</span>${ARR}</button>
+        <p class="sub">Tik op het vlak om te pompen. De grootste ballon wint, maar knapt hij, dan heb je verloren.</p>${opnieuw}${weg}`;
+    }
     return `<div class="ask-h"><h2>${A.SPEL_NAAM[d.spel]}</h2></div><p class="sub">${A.SPEL_UITLEG[d.spel]}</p>${opnieuw}${weg}`;
   }
   const b = S.bets[you];
@@ -1167,6 +1292,8 @@ function detailText(L) {
   if (d.stop && L.spel === 'vast') return `Doel ${sec1(d.doel)} s · ${nameOf(a)} ${sec(d.stop[a])} s · ${nameOf(b)} ${sec(d.stop[b])} s`;
   if (d.stop) return `${nameOf(a)} stopte op ${klok(d.stop[a])} · ${nameOf(b)} op ${klok(d.stop[b])}`;
   if (d.score) return `${A.SPEL_NAAM[L.spel]}: ${d.score[L.winner]} – ${d.score[L.loser]}`;
+  if (d.lef) { const t = (v) => (v < 0 ? 'ontplofte' : `liet los na ${sec(v)} s`); return `De bom ging af na ${sec1(d.boem)} s · ${nameOf(a)} ${t(d.lef[a])} · ${nameOf(b)} ${t(d.lef[b])}`; }
+  if (d.ballon) { const t = (v) => (v < 0 ? 'knapte' : `${v} keer gepompt`); return `De ballon knapt bij ${d.knal} · ${nameOf(a)} ${t(d.ballon[a])} · ${nameOf(b)} ${t(d.ballon[b])}`; }
   return '';
 }
 
@@ -1179,7 +1306,7 @@ function vUitslag() {
     if (i === L.winner) return { cls: i === S.a ? 'rood' : 'blauw', tag: ['', `+${A.WIN_MUNTEN}`] };
     if (i === L.loser) return { cls: i === S.a ? 'rood' : 'blauw', tag: ['bad', `Straf ${A.VERLIES_STRAF}`] };
     const b = L.bets.find((x) => x.p === i);
-    return b ? { tag: b.ok ? ['', `+${b.n}`] : ['bad', `Straf ${b.n}`] } : { dim: true };
+    return b ? { tag: b.ok ? ['', `+${b.n}`] : ['bad', `Straf ${b.straf}`] } : { dim: true };
   };
   return `${gameTable(center, seat)}<div class="dock${ui.dockPop ? ' pop' : ''}">${uitslagDock()}</div>`;
 }
@@ -1190,13 +1317,31 @@ function uitslagDock() {
   if (L.winner === you) { kop = 'Gewonnen!'; soort = 'good'; regel = `Je wint het duel van ${nameOf(L.loser)}.`; act = `<div class="action">${MUNT}<span>Jij krijgt ${munten(A.WIN_MUNTEN)}</span></div>`; }
   else if (L.loser === you) { kop = 'Verloren'; soort = 'bad'; regel = `${nameOf(L.winner)} was beter.`; act = `<div class="action bad">${STRAF}<span>Jij krijgt ${straf(A.VERLIES_STRAF)}</span></div>`; }
   else if (b && b.ok) { kop = 'Goed gegokt!'; soort = 'good'; regel = `Je zette op ${nameOf(b.op)}.`; act = `<div class="action">${MUNT}<span>Jij krijgt ${munten(b.n)}</span></div>`; }
-  else if (b) { kop = 'Mis gegokt'; soort = 'bad'; regel = `Je zette op ${nameOf(b.op)}. Je bent ${munten(b.n)} kwijt.`; act = `<div class="action bad">${STRAF}<span>Jij krijgt ${straf(b.n)}</span></div>`; }
+  else if (b) { kop = 'Mis gegokt'; soort = 'bad'; regel = `Je zette op ${nameOf(b.op)}. Je bent ${munten(b.n)} kwijt.`; act = `<div class="action bad">${STRAF}<span>Jij krijgt ${straf(b.straf)}</span></div>`; }
   else { kop = `${nameOf(L.winner)} wint`; regel = 'Jij had deze ronde niks ingezet.'; }
   const blut = L.blut.includes(you) ? `<div class="action bad">${STRAF}<span>Blut: een mega strafpunt en ${A.BLUT_MUNTEN} nieuwe munten</span></div>` : '';
+  const open = geefOpen();
+  // mag ik een mega strafpunt uitdelen? Dan is dat het belangrijkste
+  if (open.includes(you)) return `${geefBlok()}${act}${blut}`;
   const verder = isHost()
-    ? `<button class="cta" type="button" data-act="next"><span>${laatste ? 'Naar de eindstand' : 'Volgende ronde'}</span>${ARR}</button>`
+    ? `<button class="cta" type="button" data-act="next" ${open.length ? 'disabled' : ''}><span>${open.length ? `Wacht op ${nameOf(open[0])}` : laatste ? 'Naar de eindstand' : 'Volgende ronde'}</span>${ARR}</button>`
     : `<p class="waitline">Wachten tot ${nameOf(S.host)} doorgaat</p>`;
-  return `<div class="res-h ${soort}"><span class="verdict">${kop}</span><span class="sub">${regel}</span></div>${act}${blut}${verder}`;
+  return `<div class="res-h ${soort}"><span class="verdict">${kop}</span><span class="sub">${regel}</span></div>${act}${blut}${geefBlok()}${verder}`;
+}
+
+// Het mega strafpunt van de winnaar: wie mag er uitdelen, en aan wie ging het?
+const geefOpen = () => (S.geef ? S.geef.van.filter((i) => S.geef.aan[i] == null) : []);
+function geefBlok() {
+  if (!S.geef) return '';
+  const you = S.you, open = geefOpen(), gedaan = S.geef.van.filter((i) => S.geef.aan[i] != null && S.geef.aan[i] >= 0);
+  const klaar = gedaan.map((i) => `<div class="action bad">${STRAF}<span>${i === you ? 'Jij gaf' : `${nameOf(i)} gaf`} ${S.geef.aan[i] === you ? 'jou' : nameOf(S.geef.aan[i])} een mega strafpunt</span></div>`).join('');
+  if (open.includes(you)) {
+    const kies = S.players.map((p, i) => (i === you ? '' : `<button class="geefknop" type="button" data-act="geef" data-aan="${i}" style="--pc:${PC[i % PC.length]}"><i>${esc(initial(p.name))}</i><span>${esc(p.name)}</span></button>`)).join('');
+    return `<div class="ask-h"><h2>${S.phase === 'klaar' ? 'Jij wint!' : 'Jij won het duel!'}</h2></div>
+      <p class="sub">Je mag een <b>mega strafpunt</b> uitdelen. Aan wie?</p><div class="geefrij">${kies}</div>${klaar}`;
+  }
+  const wacht = open.map((i) => `<p class="waitline">${nameOf(i)} deelt een mega strafpunt uit</p>${isHost() && !S.players[i].connected ? `<button class="linkbtn warn" type="button" data-act="skipgeef" data-for="${i}">${nameOf(i)} is weg: sla over</button>` : ''}`).join('');
+  return `${klaar}${wacht}`;
 }
 
 function vKlaar() {
@@ -1209,11 +1354,13 @@ function vKlaar() {
     return `<div class="${E.rijkste.includes(i) ? 'top' : E.armste.includes(i) ? 'low' : ''}${i === you ? ' me' : ''}" style="--pc:${PC[i % PC.length]}"><em>${plek}</em><i></i><b>${esc(p.name)}</b><span>${MUNT}${p.munten}</span></div>`;
   }).join('');
   const center = `<p class="felt-sub">Eindstand na ${S.rondes} rondes</p><div class="bigword gold">${winnaar}</div><div class="rank">${lijstje}</div>`;
-  const seat = (i) => (E.rijkste.includes(i) ? { now: true, tag: ['', 'Rijkste'] } : E.armste.includes(i) ? { tag: ['bad', 'Mega'] } : {});
+  const kreeg = (i) => S.geef && Object.values(S.geef.aan).includes(i);
+  const seat = (i) => (E.rijkste.includes(i) ? { now: true, tag: ['', 'Rijkste'] } : E.armste.includes(i) || kreeg(i) ? { tag: ['bad', 'Mega'] } : {});
   const ik = S.players[you];
   const kop = E.rijkste.includes(you) ? 'Jij bent de rijkste!' : E.armste.includes(you) ? 'Jij bent de armste' : 'Het zit erop';
   const act = E.armste.includes(you) ? `<div class="action bad">${STRAF}<span>Jij krijgt een mega strafpunt</span></div>` : '';
-  const dock = `<div class="res-h ${E.rijkste.includes(you) ? 'good' : E.armste.includes(you) ? 'bad' : ''}"><span class="verdict">${kop}</span><span class="sub">Je eindigt met ${munten(ik.munten)}, ${straf(ik.straf)}${ik.mega ? ` en ${ik.mega} mega ${ik.mega === 1 ? 'strafpunt' : 'strafpunten'}` : ''}.${E.armste.length ? ` Minste munten: ${lijst(E.armste)}.` : ''}</span></div>${act}
+  const open = geefOpen();
+  const dock = open.includes(you) ? `${geefBlok()}${act}` : `<div class="res-h ${E.rijkste.includes(you) ? 'good' : E.armste.includes(you) ? 'bad' : ''}"><span class="verdict">${kop}</span><span class="sub">Je eindigt met ${munten(ik.munten)}, ${straf(ik.straf)}${ik.mega ? ` en ${ik.mega} mega ${ik.mega === 1 ? 'strafpunt' : 'strafpunten'}` : ''}.${E.armste.length ? ` Minste munten: ${lijst(E.armste)}.` : ''}</span></div>${act}${geefBlok()}
     ${isHost() ? `<button class="cta" type="button" data-act="again"><span>Nog een potje</span>${ARR}</button>` : `<p class="waitline">Wachten tot ${nameOf(S.host)} een nieuw potje start</p>`}
     <button class="linkbtn" type="button" data-act="score">Bekijk de hele stand</button>`;
   return `${gameTable(center, seat)}<div class="dock${ui.dockPop ? ' pop' : ''}">${dock}</div>`;
@@ -1254,9 +1401,10 @@ function rulesHTML() {
     <p>Iedereen speelt op zijn eigen telefoon. Maak een arena en deel de code, of doe mee met de code van een ander. Iedereen begint met ${A.START_MUNTEN} munten.</p>
     <ol>
       <li><b>De arena in.</b> Elke ronde wijst het spel twee spelers aan: de rode en de blauwe hoek. Iedereen komt even vaak aan de beurt.</li>
-      <li><b>Inzetten.</b> De rest kiest wie er gaat winnen en zet 1, 2 of 3 munten in. Niemand ziet wat een ander inzet tot het duel begint.</li>
+      <li><b>Inzetten.</b> De rest kiest wie er gaat winnen en bepaalt zelf de inzet: van 1 munt tot alles wat je hebt. Niemand ziet wat een ander inzet tot het duel begint.</li>
       <li><b>Het duel.</b> De twee spelen een kort minispel op hun eigen telefoon. De rest kijkt mee.</li>
-      <li><b>De uitslag.</b> De winnaar krijgt ${munten(A.WIN_MUNTEN)}, de verliezer ${straf(A.VERLIES_STRAF)}. Goed gegokt: je inzet erbij. Fout gegokt: je inzet kwijt, en net zoveel strafpunten.</li>
+      <li><b>De uitslag.</b> De winnaar krijgt ${munten(A.WIN_MUNTEN)}, de verliezer ${straf(A.VERLIES_STRAF)}. Goed gegokt: je inzet erbij. Fout gegokt: je inzet kwijt, en net zoveel strafpunten (hooguit ${A.STRAF_MAX}).</li>
+      <li><b>Mega strafpunt uitdelen.</b> De host kiest vooraf: wie een duel wint, of wie aan het eind de meeste munten heeft, mag een mega strafpunt uitdelen aan wie hij wil.</li>
       <li><b>Blut.</b> Heb je geen munten meer? Dan krijg je een mega strafpunt en ${A.BLUT_MUNTEN} nieuwe munten.</li>
       <li><b>Het einde.</b> Na de laatste ronde wint wie de meeste munten heeft. Wie de minste heeft, krijgt een mega strafpunt.</li>
     </ol>
@@ -1398,9 +1546,13 @@ const actions = {
   kick(el) { Net.send({ t: 'kick', seat: +el.dataset.seat }); closeSheet(); },
   // inzetten: eerst rood of blauw, dan hoeveel, dan vastzetten
   pickop(el) { Snd.ac(); Snd.chip(); ui.bet.op = +el.dataset.op; render(); },
-  stake(el) { Snd.chip(); ui.bet.n = +el.dataset.n; render(); },
+  stake(el) { Snd.chip(); ui.bet.n = Math.max(1, Math.min(+el.dataset.n, S.players[S.you].munten)); render(); },
+  megaset(el) { Net.send({ t: 'settings', mega: el.dataset.k }); },
+  geef(el) { Snd.ac(); buzz(40); Net.send({ t: 'geef', aan: +el.dataset.aan }); },
+  skipgeef(el) { Net.send({ t: 'skipgeef', for: +el.dataset.for }); },
+  ballonstop() { ballonStop(); },
   bet() {
-    const max = Math.min(A.MAX_INZET, S.players[S.you].munten);
+    const max = S.players[S.you].munten;
     Snd.ac(); buzz(30);
     Net.send({ t: 'bet', op: ui.bet.op, n: Math.min(ui.bet.n, max) });
   },
@@ -1445,6 +1597,8 @@ document.addEventListener('pointerdown', (e) => {
   const cel = e.target.closest('[data-cel]');
   if (cel) { e.preventDefault(); celTap(+cel.dataset.cel); return; }
   if (e.target.closest('[data-doel]')) { e.preventDefault(); doelTap(); return; }
+  const sp = e.target.closest('[data-simon]');
+  if (sp && !sp.disabled) { e.preventDefault(); simonTap(+sp.dataset.simon); return; }
   const a = e.target.closest('[data-ans]');
   if (a && !a.disabled) { e.preventDefault(); ansTap(+a.dataset.ans); }
 });

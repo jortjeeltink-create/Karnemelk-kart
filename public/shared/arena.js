@@ -12,7 +12,9 @@ export { cleanNames, NAME_MAX };
 export const MIN_PLAYERS = 3;        // twee in de arena en minstens één die inzet
 export const MAX_PLAYERS = 10;
 export const START_MUNTEN = 10;
-export const MAX_INZET = 3;          // zoveel munten mag je hooguit op een duel zetten
+export const STRAF_MAX = 5;          // fout gegokt: je inzet kwijt, en net zoveel strafpunten, maar hooguit dit aantal
+export const MEGA = ['duel', 'eind'];  // wie deelt er een mega strafpunt uit: de winnaar van elk duel, of alleen aan het eind
+export const MEGA_DEFAULT = 'eind';
 export const WIN_MUNTEN = 2;         // voor wie het duel wint
 export const VERLIES_STRAF = 2;      // strafpunten voor wie het duel verliest
 export const BLUT_MUNTEN = 5;        // zoveel munten krijg je terug als je blut bent (samen met een mega strafpunt)
@@ -21,11 +23,12 @@ export const LENGTE_DEFAULT = 10;
 const LOG_SIZE = 12;
 
 // De minispellen. Elk duurt maar een paar seconden en is op de telefoon van de twee spelers te spelen.
-export const SPELLEN = ['reactie', 'stop', 'sps', 'tikken', 'som', 'kleur', 'aas', 'vast', 'bieden', 'stippen', 'hoogste', 'pijl', 'geheugen', 'vreemd', 'meeste', 'volgorde', 'doelen'];
+export const SPELLEN = ['reactie', 'stop', 'sps', 'tikken', 'som', 'kleur', 'aas', 'vast', 'bieden', 'stippen', 'hoogste', 'pijl', 'geheugen', 'vreemd', 'meeste', 'volgorde', 'doelen', 'lef', 'ballon', 'simon'];
 export const SPEL_NAAM = {
   reactie: 'Valse start', stop: 'Stop op 0', sps: 'Steen, papier, schaar', tikken: 'Tikrace', som: 'Snelle som', kleur: 'Welke kleur?',
   aas: 'Pak de aas', vast: 'Blind tellen', bieden: 'Eén eronder', stippen: 'Tel de stippen', hoogste: 'Hoogste getal', pijl: 'Pijlen',
   geheugen: 'Onthoud het getal', vreemd: 'Zoek de vreemde', meeste: 'Meeste kleur', volgorde: '1 tot 9', doelen: 'Raak de doelen',
+  lef: 'Lef', ballon: 'Ballon', simon: 'Kleurgeheugen',
 };
 export const SPEL_UITLEG = {
   reactie: 'Tik zodra het scherm groen wordt. Let op: eerst komen er nepseintjes in een andere kleur. Te vroeg getikt is verloren.',
@@ -45,6 +48,9 @@ export const SPEL_UITLEG = {
   meeste: 'Een veld vol gekleurde stippen. Welke kleur komt het meest voor? Fout is verloren.',
   volgorde: 'De cijfers 1 tot 9 staan door elkaar. Tik ze zo snel mogelijk op volgorde aan. Een verkeerde tik kost een seconde.',
   doelen: 'Er verschijnen tien doelen, één voor één. Tik ze zo snel mogelijk weg. De snelste wint.',
+  lef: 'Hou je vinger op het scherm: de bom gaat ergens tussen 3 en 12 seconden af. Laat op tijd los. Wie het langst durft vast te houden zonder te ontploffen, wint.',
+  ballon: 'Tik om de ballon op te blazen en tik op Stop als je niet meer durft. De grootste ballon wint, maar knapt hij, dan heb je verloren.',
+  simon: 'Er lichten vijf kleuren op, één voor één. Tik ze daarna in dezelfde volgorde na. Een foute tik kost een seconde. De snelste wint.',
 };
 // Soorten minispellen: ze werken hetzelfde, alleen ziet het er anders uit.
 //   reactie: wacht op het seintje en tik zo snel je kunt (te vroeg is verloren)
@@ -53,7 +59,7 @@ export const SPEL_UITLEG = {
 //   kies:    allebei stiekem kiezen, wie het eerst twee keer wint
 //   race:    een opdracht zo snel mogelijk afmaken
 //   quiz:    een vraag; de snelste met het goede antwoord wint, fout is verloren
-const SOORT = { reactie: 'reactie', aas: 'reactie', stop: 'stop', vast: 'stop', tikken: 'tikken', sps: 'kies', bieden: 'kies', volgorde: 'race', doelen: 'race' };
+const SOORT = { reactie: 'reactie', aas: 'reactie', stop: 'stop', vast: 'stop', tikken: 'tikken', sps: 'kies', bieden: 'kies', volgorde: 'race', doelen: 'race', simon: 'race', lef: 'lef', ballon: 'ballon' };
 export const soort = (spel) => SOORT[spel] || 'quiz';
 export const QUIZ = SPELLEN.filter((s) => soort(s) === 'quiz');  // de minispellen met een vraag en antwoorden om aan te tikken
 export const KLEUREN = ['rood', 'blauw', 'groen', 'geel'];
@@ -77,11 +83,15 @@ const REACTIE_MIN = 3000, REACTIE_EXTRA = 4000, REACTIE_MAX = 5000;
 const STOP_LAAT = 6000;              // wie zoveel na het doel nog niet gestopt heeft, is te laat
 export const STOP_MAX = STOP_DOEL + STOP_LAAT;
 const QUIZ_MAX = 10000;              // zo lang mag je over een antwoord doen
-const RACE_MIN = { volgorde: 1200, doelen: 1500 };   // sneller kan een mens het niet
+const RACE_MIN = { volgorde: 1200, doelen: 1500, simon: 1200 };   // sneller kan een mens het niet
+export const LEF_MIN = 3000, LEF_MAX = 12000;         // tussen deze tijden gaat de bom af
+export const BALLON_MIN = 12, BALLON_MAX = 32;        // na zoveel keer pompen knapt de ballon
+export const SIMON_LEN = 5;                           // kleurgeheugen: zoveel kleuren
+export const SIMON_STAP = 700;                        // zo lang (ms) licht elke kleur op, met een korte pauze erna
 const RACE_MAX = 30000;
 const TIK_MAX = 90;                  // meer tikken dan dit in 5 seconden kan een mens niet
 
-const newPlayer = (name) => ({ name, munten: START_MUNTEN, straf: 0, mega: 0, duels: 0, gewonnen: 0, goed: 0, blut: 0 });
+const newPlayer = (name) => ({ name, munten: START_MUNTEN, straf: 0, mega: 0, duels: 0, gewonnen: 0, goed: 0, blut: 0, gegeven: 0 });
 
 function emit(g, ev) {
   ev.seq = ++g.seq;
@@ -90,13 +100,15 @@ function emit(g, ev) {
   return ev;
 }
 
-export function newGame(names, { seed = Date.now(), rondes = LENGTE_DEFAULT } = {}) {
+export function newGame(names, { seed = Date.now(), rondes = LENGTE_DEFAULT, mega = MEGA_DEFAULT } = {}) {
   return {
     seed: seed >>> 0,
     players: cleanNames(names).map(newPlayer),
     phase: 'inzet',         // inzet → duel → uitslag → (volgende ronde) … → klaar
     ronde: 0,
     rondes: LENGTES.includes(rondes) ? rondes : LENGTE_DEFAULT,
+    mega: MEGA.includes(mega) ? mega : MEGA_DEFAULT,
+    geef: null,             // wie er een mega strafpunt mag uitdelen: { van: [spelers], aan: { speler: aan of -1 } }
     a: -1, b: -1,           // de twee in de arena
     spel: null,             // het minispel van deze ronde
     zak: [],                // de minispellen die nog moeten komen
@@ -149,11 +161,12 @@ export const inArena = (g, p) => p === g.a || p === g.b;
 export const wachtOp = (g, live) => live.filter((i) => !inArena(g, i) && !g.bets[i]);
 
 /* ---------- inzetten ---------- */
-// Zet n munten op speler `op` (een van de twee in de arena). Heeft iedereen ingezet, dan begint het duel.
+// Zet n munten op speler `op` (een van de twee in de arena): zoveel als je wilt, tot al je munten. Heeft iedereen
+// ingezet, dan begint het duel.
 export function bet(g, player, op, n, live, now) {
   const p = g.players[player];
   if (g.phase !== 'inzet' || !p || inArena(g, player) || g.bets[player]) return null;
-  if (!inArena(g, op) || !Number.isInteger(n) || n < 1 || n > Math.min(MAX_INZET, p.munten)) return null;
+  if (!inArena(g, op) || !Number.isInteger(n) || n < 1 || n > p.munten) return null;
   g.bets[player] = { op, n };
   const ev = emit(g, { type: 'inzet', player });
   startAlsKlaar(g, live, now);
@@ -212,8 +225,18 @@ function startDuel(g, now, poging) {
     d.deadline = d.startAt + d.doel + STOP_LAAT + 1000;
   } else if (s === 'race') {
     d.startAt = now + AFTEL_MS;
-    d.veld = g.spel === 'volgorde' ? maakVolgorde(g) : maakDoelen(g);
-    d.deadline = d.startAt + RACE_MAX + 1500;
+    d.veld = g.spel === 'volgorde' ? maakVolgorde(g) : g.spel === 'doelen' ? maakDoelen(g) : maakSimon(g);
+    if (g.spel === 'simon') d.toon = SIMON_LEN * SIMON_STAP + 300;   // zo lang laten we de kleuren zien
+    d.deadline = d.startAt + (d.toon || 0) + RACE_MAX + 1500;
+  } else if (s === 'lef') {
+    // De bom gaat af op een geheim moment. Wie dan nog vasthoudt, ontploft (zie tijd()).
+    d.startAt = now + AFTEL_MS;
+    d.boem = Math.round(LEF_MIN + rand(g) * (LEF_MAX - LEF_MIN));
+    d.deadline = d.startAt + d.boem;
+  } else if (s === 'ballon') {
+    d.startAt = now + AFTEL_MS;
+    d.knal = tussen(g, BALLON_MIN, BALLON_MAX);
+    d.deadline = d.startAt + 25000;
   } else {
     d.startAt = now + AFTEL_MS;
     Object.assign(d, MAAK[g.spel](g));
@@ -321,6 +344,12 @@ const MAAK = { som: maakSom, kleur: maakKleur, stippen: maakStippen, hoogste: ma
 
 // 1 tot 9: zestien vakjes, waarvan negen met een cijfer (0 is leeg).
 const maakVolgorde = (g) => schud(g, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0, 0]);
+// Kleurgeheugen: vijf kleuren (0 tot 3), nooit twee keer dezelfde achter elkaar.
+function maakSimon(g) {
+  const uit = [];
+  while (uit.length < SIMON_LEN) { const k = tussen(g, 0, 3); if (k !== uit[uit.length - 1]) uit.push(k); }
+  return uit;
+}
 // Raak de doelen: tien plekken, steeds een eind van de vorige vandaan.
 function maakDoelen(g) {
   const uit = [];
@@ -414,7 +443,7 @@ export function antwoord(g, player, k, ms, now) {
 export function race(g, player, ms, now) {
   const d = g.duel;
   if (g.phase !== 'duel' || soort(d.spel) !== 'race' || !inArena(g, player) || d.res[player] != null) return null;
-  if (now < d.startAt - 250 || !Number.isFinite(ms)) return null;
+  if (now < d.startAt + (d.toon || 0) - 250 || !Number.isFinite(ms)) return null;
   d.res[player] = Math.max(RACE_MIN[d.spel], Math.min(RACE_MAX, Math.round(ms)));
   if (!beide(g)) return emit(g, { type: 'getikt', player });
   return snelste(g, now, { race: true }, '');
@@ -433,10 +462,40 @@ export function stop(g, player, ms, now) {
   return resolve(g, da < db ? g.a : g.b, { stop: { ...d.res }, doel: d.doel });
 }
 
+// Lef: na hoeveel milliseconden liet je los (gemeten op je eigen telefoon)? Liet je los nadat de bom afging, dan ben
+// je ontploft (-1). Wie het langst vasthield zonder te ontploffen, wint.
+export function lef(g, player, ms, now) {
+  const d = g.duel;
+  if (g.phase !== 'duel' || d.spel !== 'lef' || !inArena(g, player) || d.res[player] != null) return null;
+  if (now < d.startAt - 250 || !Number.isFinite(ms)) return null;
+  d.res[player] = ms >= d.boem ? -1 : Math.max(0, Math.round(ms));
+  if (!beide(g)) return emit(g, { type: 'getikt', player });
+  return lefUitslag(g, now);
+}
+function lefUitslag(g, now) {
+  const d = g.duel, ra = d.res[g.a], rb = d.res[g.b];
+  if (ra === rb) return gelijk(g, now, ra < 0 ? 'Allebei ontploft' : 'Precies even lang', ra === 0);
+  return resolve(g, ra > rb ? g.a : g.b, { lef: { [g.a]: ra, [g.b]: rb }, boem: d.boem });
+}
+
+// Ballon: hoe vaak pompte je? Is dat meer dan de ballon aankan, dan is hij geknapt (-1). De grootste ballon wint.
+export function ballon(g, player, n, now) {
+  const d = g.duel;
+  if (g.phase !== 'duel' || d.spel !== 'ballon' || !inArena(g, player) || d.res[player] != null) return null;
+  if (now < d.startAt - 250 || !Number.isInteger(n) || n < 0) return null;
+  d.res[player] = n >= d.knal ? -1 : n;
+  if (!beide(g)) return emit(g, { type: 'getikt', player, knal: d.res[player] < 0 });
+  const ra = d.res[g.a], rb = d.res[g.b];
+  if (ra === rb) return gelijk(g, now, ra < 0 ? 'Allebei geknapt' : ra ? `Allebei ${ra} keer gepompt` : 'Niemand pompte', ra === 0);
+  return resolve(g, ra > rb ? g.a : g.b, { ballon: { [g.a]: ra, [g.b]: rb }, knal: d.knal });
+}
+
 // De tijd is om en er mist nog iemand: wie niks deed, verliest. Deden ze allebei niks, dan beslist het lot.
 export function tijd(g, now) {
   const d = g.duel;
   if (g.phase !== 'duel' || now < d.deadline) return null;
+  // Lef: de bom is af. Wie nog vasthield, is ontploft.
+  if (d.spel === 'lef') { for (const p of [g.a, g.b]) if (d.res[p] == null) d.res[p] = -1; return lefUitslag(g, now); }
   const klaar = (p) => (soort(d.spel) === 'kies' ? !!d.keuze[p] : d.res[p] != null);
   const ka = klaar(g.a), kb = klaar(g.b);
   const winner = ka && !kb ? g.a : kb && !ka ? g.b : rand(g) < .5 ? g.a : g.b;
@@ -459,8 +518,9 @@ function resolve(g, winner, detail) {
     const i = Number(key), p = g.players[i];
     if (!b.n) continue;
     const ok = b.op === winner;
-    if (ok) { p.munten += b.n; p.goed++; } else { p.munten -= b.n; p.straf += b.n; }
-    bets.push({ p: i, op: b.op, n: b.n, ok });
+    const straf = ok ? 0 : Math.min(b.n, STRAF_MAX);
+    if (ok) { p.munten += b.n; p.goed++; } else { p.munten -= b.n; p.straf += straf; }
+    bets.push({ p: i, op: b.op, n: b.n, ok, straf });
   }
   // blut: een mega strafpunt en nieuwe munten, zodat je mee kunt blijven doen
   const blut = [];
@@ -468,12 +528,15 @@ function resolve(g, winner, detail) {
   g.phase = 'uitslag';
   g.duel = null;
   g.last = { ronde: g.ronde, spel: g.spel, a: g.a, b: g.b, winner, loser, detail, bets, blut };
+  // de winnaar van het duel mag een mega strafpunt uitdelen (als de host dat zo heeft ingesteld)
+  g.geef = g.mega === 'duel' ? { van: [winner], aan: {} } : null;
   return emit(g, { type: 'uitslag', ...g.last });
 }
 
 // De host gaat door: de volgende ronde, of na de laatste ronde de eindstand.
 export function next(g, live) {
-  if (g.phase !== 'uitslag') return null;
+  if (g.phase !== 'uitslag' || geefOpen(g).length) return null;   // eerst het mega strafpunt uitdelen
+  g.geef = null;
   if (g.ronde < g.rondes) return nieuweRonde(g, live);
   const max = Math.max(...g.players.map((p) => p.munten)), min = Math.min(...g.players.map((p) => p.munten));
   const rijkste = g.players.flatMap((p, i) => (p.munten === max ? [i] : []));
@@ -481,5 +544,28 @@ export function next(g, live) {
   armste.forEach((i) => { g.players[i].mega++; });
   g.phase = 'klaar';
   g.eind = { rijkste, armste };
+  // wie wint, mag nog een mega strafpunt uitdelen
+  g.geef = { van: rijkste.slice(), aan: {} };
   return emit(g, { type: 'einde', rijkste, armste });
+}
+
+/* ---------- een mega strafpunt uitdelen ---------- */
+// wie er nog een mega strafpunt moet uitdelen
+export const geefOpen = (g) => (g.geef ? g.geef.van.filter((i) => g.geef.aan[i] == null) : []);
+
+// `van` geeft een mega strafpunt aan `aan` (niet aan zichzelf).
+export function geef(g, van, aan) {
+  if (!['uitslag', 'klaar'].includes(g.phase) || !geefOpen(g).includes(van)) return null;
+  if (!Number.isInteger(aan) || aan === van || !g.players[aan]) return null;
+  g.geef.aan[van] = aan;
+  g.players[aan].mega++;
+  g.players[van].gegeven++;
+  return emit(g, { type: 'mega', van, aan });
+}
+
+// De host slaat het uitdelen over voor iemand die weg is.
+export function skipGeef(g, van) {
+  if (!geefOpen(g).includes(van)) return null;
+  g.geef.aan[van] = -1;
+  return emit(g, { type: 'mega', van, aan: -1 });
 }

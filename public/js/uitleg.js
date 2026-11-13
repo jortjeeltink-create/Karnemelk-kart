@@ -82,10 +82,10 @@
     ] },
     arena: { name: 'Arena', c: '#ff4d5e', url: '/arena', slides: [
       { img: 'arena-1', t: 'De arena in', p: TAFEL(3, 10, ' Iedereen begint met <b>10 munten</b>. De host kiest 6, 10 of 14 rondes.') },
-      { img: 'arena-2', t: 'Inzetten', p: 'Elke ronde moeten twee spelers de arena in: rood tegen blauw. De rest kiest wie er wint en zet <b>1, 2 of 3 munten</b> in. Niemand ziet wat een ander inzet tot het duel begint.' },
-      { img: 'arena-3', t: 'Het duel', p: 'De twee spelen een kort minispel op hun eigen telefoon. Er zijn er <b>17</b>, zoals <b>valse start</b> (tik pas bij groen, niet bij de nepseintjes), <b>pak de aas</b>, <b>stop op 0</b>, <b>blind tellen</b>, <b>één eronder</b>, <b>onthoud het getal</b>, <b>zoek de vreemde</b> en <b>1 tot 9</b>. Gelijk? Dan nog een keer.' },
-      { img: 'arena-4', t: 'De uitslag', p: 'De winnaar krijgt <b>2 munten</b>, de verliezer <b>2 strafpunten</b>. Goed gegokt: je inzet erbij. Fout: je inzet kwijt, en <b>net zoveel strafpunten</b>. Blut? Dan krijg je een <b>mega strafpunt</b> en 5 nieuwe munten.' },
-      { img: 'arena-5', t: 'De eindstand', p: 'Na de laatste ronde wint wie de meeste munten heeft. Wie de minste heeft, krijgt een <b>mega strafpunt</b>. De munten zijn alleen voor het spel.' },
+      { img: 'arena-2', t: 'Inzetten', p: 'Elke ronde moeten twee spelers de arena in: rood tegen blauw. De rest kiest wie er wint en bepaalt <b>zelf de inzet</b>: van 1 munt tot <b>alles</b>. Niemand ziet wat een ander inzet tot het duel begint.' },
+      { img: 'arena-3', t: 'Het duel', p: 'De twee spelen een kort minispel op hun eigen telefoon. Er zijn er <b>20</b>, zoals <b>lef</b> (hou vast tot vlak voor de bom afgaat), <b>ballon</b> (pomp, maar niet te ver), <b>kleurgeheugen</b>, <b>valse start</b> (tik pas bij groen), <b>pak de aas</b>, <b>stop op 0</b> en <b>één eronder</b>. Gelijk? Dan nog een keer.' },
+      { img: 'arena-4', t: 'De uitslag', p: 'De winnaar krijgt <b>2 munten</b>, de verliezer <b>2 strafpunten</b>. Goed gegokt: je inzet erbij. Fout: je inzet kwijt, en <b>net zoveel strafpunten</b> (hooguit 5). Blut? Dan krijg je een <b>mega strafpunt</b> en 5 nieuwe munten.' },
+      { img: 'arena-5', t: 'De eindstand', p: 'Na de laatste ronde wint wie de meeste munten heeft, en die deelt een <b>mega strafpunt</b> uit aan wie hij wil. Wie de minste heeft, krijgt er ook een. Kiest de host <b>Na elk duel</b>, dan deelt ook de winnaar van elk duel er een uit.' },
     ] },
     alibi: { name: 'Alibi', c: '#ffd23f', url: '/alibi', slides: [
       { img: 'alibi-1', t: 'Eén telefoon', p: 'Kies met hoeveel jullie zijn (3 tot 8) en hoeveel tijd iedereen per zin heeft. Er hoeft niemand een code in te voeren: de telefoon gaat rond.' },
@@ -289,9 +289,9 @@
 .u-tip .u-tip-go{padding:0 14px;background:#2b1531;color:#f3efdb}
 .u-tip .u-tip-x{width:40px;background:transparent;color:#6a4570;font-size:18px}
 @media (prefers-reduced-motion:reduce){.u-tip{animation:none}}`;
-  let tip = null, tipTimer = 0;
-  function weg() { clearTimeout(tipTimer); if (tip) { tip.remove(); tip = null; } }
-  function tipVoor(key) {
+  let tip = null, tipTimer = 0, tipKijk = 0;
+  function weg() { clearTimeout(tipTimer); clearInterval(tipKijk); if (tip) { tip.remove(); tip = null; } }
+  function tipVoor(key, bron = null) {
     const g = GAMES[key], l = gezienLijst();
     if (!g || !l || l.includes(key) || tip) return;
     if (!document.getElementById('u-tip-css')) { const st = document.createElement('style'); st.id = 'u-tip-css'; st.textContent = TIP_CSS; document.head.appendChild(st); }
@@ -304,12 +304,15 @@
     tip.querySelector('.u-tip-x').addEventListener('click', () => { markeer(key); weg(); });
     document.body.appendChild(tip);
     tipTimer = setTimeout(weg, 15000);   // vanzelf weer weg; de volgende keer komt hij terug
+    // zit je inmiddels aan tafel (de uitlegknop is uit beeld)? Dan is de tip niet meer nodig
+    // (de pagina tekent de knop soms opnieuw, dus we zoeken hem elke keer op)
+    if (bron) tipKijk = setInterval(() => { if (![...document.querySelectorAll(`[data-uitleg="${key}"]`)].some((el) => el.getClientRects().length && !el.closest('.uitleg'))) weg(); }, 500);
   }
   // alleen op een speelpagina met een uitlegknop in beeld (dus niet in de speelhal, en niet midden in een potje)
   addEventListener('load', () => setTimeout(() => {
     if (document.getElementById('spellen')) return;
     const b = [...document.querySelectorAll('[data-uitleg]')].find((el) => el.getClientRects().length && !el.closest('.uitleg'));
-    if (b) { tipVoor(b.dataset.uitleg); return; }
+    if (b) { tipVoor(b.dataset.uitleg, b); return; }
     // de spellen op één telefoon openen de uitleg met een eigen knop; die beginnen altijd op het startscherm
     const pad = location.pathname.split('/')[1];
     if (['bom', 'alibi', 'bakplaten', 'kingsen', 'happo'].includes(pad)) tipVoor(pad);
