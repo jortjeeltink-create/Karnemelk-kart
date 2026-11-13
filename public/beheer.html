@@ -57,7 +57,7 @@ h1 small{display:block;font-size:13px;letter-spacing:.14em;text-transform:upperc
   const NAMES = { kart: 'Karnemelk Kart', bussen: 'Bussen', boer: 'Boer zoekt vrouw', mexen: 'Mexen', dealer: 'Pak de dealer', paardenrace: 'Paardenrace', rotonde: 'Rotonde', mijnenveld: 'Mijnenveld', borrelbord: 'Borrelbord', toepen: 'Toepen', arena: 'Arena', bom: 'Tikkende Bom', alibi: 'Alibi', bakplaten: 'Bakplaten', kingsen: 'Kingsen', happo: 'Happo', anders: 'Iets anders', alles: 'Meerdere spellen' };
   const when = (iso) => { try { return new Date(iso).toLocaleString('nl-NL', { timeZone: 'Europe/Amsterdam', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return iso; } };
   const starsOf = (n) => `<span class="stars" aria-label="${n} van de 5 sterren">${'★'.repeat(n)}<i>${'★'.repeat(5 - n)}</i></span>`;
-  let data = null, tab = location.hash === '#reviews' ? 'reviews' : 'meldingen';
+  let data = null, tab = ['#reviews', '#fouten'].includes(location.hash) ? location.hash.slice(1) : 'meldingen';
 
   async function load() {
     if (!key) { app.innerHTML = '<header><h1><small>De Spelkeet</small>Beheer</h1></header><p class="empty">Deze pagina werkt alleen met je geheime link.</p>'; return; }
@@ -81,10 +81,16 @@ h1 small{display:block;font-size:13px;letter-spacing:.14em;text-transform:upperc
     return `<article class="item"><div class="meta">${starsOf(Math.max(1, Math.min(5, r.sterren | 0)))}${chips}<span>${esc(when(r.at))}</span></div>${parts || '<p class="text none">Geen tekst, alleen sterren.</p>'}</article>`;
   }
 
+  // een fout in de code op iemands telefoon (zie /api/fout in de server)
+  function fout(f) {
+    const chips = [f.pagina && `<span class="chip">${esc(f.pagina)}</span>`, `<span class="chip">${esc(f.toestel || '?')}${f.app === 'app' ? ', app' : ''}</span>`].join('');
+    return `<article class="item"><div class="meta">${chips}<span>${esc(when(f.at))}</span></div><p class="text">${esc(f.msg)}</p>${f.waar ? `<p class="text none">${esc(f.waar)}</p>` : ''}</article>`;
+  }
+
   function render() {
-    const M = data.meldingen || [], R = data.reviews || [];
+    const M = data.meldingen || [], R = data.reviews || [], F = data.fouten || [];
     const avg = R.length ? (R.reduce((s, r) => s + (r.sterren | 0), 0) / R.length).toFixed(1).replace('.', ',') : '–';
-    const list = tab === 'reviews' ? R : M;
+    const list = tab === 'reviews' ? R : tab === 'fouten' ? F : M;
     app.innerHTML = `<header><h1><small>De Spelkeet</small>Beheer</h1>
         <div class="actions"><button class="btn" type="button" id="again">Vernieuwen</button><a class="btn" href="/statistieken/${esc(key)}">Statistieken →</a></div></header>
       <div class="tiles">
@@ -97,11 +103,12 @@ h1 small{display:block;font-size:13px;letter-spacing:.14em;text-transform:upperc
       <div class="tabs" role="tablist">
         <button type="button" role="tab" data-tab="meldingen" aria-selected="${tab === 'meldingen'}">Meldingen (${M.length})</button>
         <button type="button" role="tab" data-tab="reviews" aria-selected="${tab === 'reviews'}">Reviews (${R.length})</button>
+        <button type="button" role="tab" data-tab="fouten" aria-selected="${tab === 'fouten'}">Fouten (${F.length})</button>
       </div>
-      <section class="list">${list.length ? list.map(tab === 'reviews' ? review : melding).join('') : `<p class="empty">${tab === 'reviews' ? 'Nog geen reviews. Ze komen binnen via spelkeet.onrender.com/review.' : 'Nog geen meldingen. Mooi zo.'}</p>`}</section>
+      <section class="list">${list.length ? list.map(tab === 'reviews' ? review : tab === 'fouten' ? fout : melding).join('') : `<p class="empty">${tab === 'reviews' ? 'Nog geen reviews. Ze komen binnen via spelkeet.onrender.com/review.' : tab === 'fouten' ? 'Geen fouten van telefoons gemeld. Mooi zo.' : 'Nog geen meldingen. Mooi zo.'}</p>`}</section>
       <p class="empty" style="margin-top:14px;font-size:13px">Meldingen en reviews blijven hooguit 90 dagen bewaard.</p>`;
     document.getElementById('again').addEventListener('click', load);
-    app.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => { tab = b.dataset.tab; history.replaceState(null, '', tab === 'reviews' ? '#reviews' : location.pathname); render(); }));
+    app.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => { tab = b.dataset.tab; history.replaceState(null, '', tab === 'meldingen' ? location.pathname : `#${tab}`); render(); }));
   }
   load();
 })();

@@ -239,6 +239,8 @@
   function open(key, o = {}) {
     const g = GAMES[key];
     if (!g) return false;
+    markeer(key);
+    weg();
     mount();
     game = g; at = 0; opts = o;
     back = document.activeElement;
@@ -268,6 +270,50 @@
     e.preventDefault();
     open(b.dataset.uitleg, { play: b.dataset.play || '' });
   });
+
+  // Eerste keer bij een spel? Dan bovenin een tip om de uitleg te bekijken (één keer per spel; wegtikken mag).
+  const GEZIEN = 'spelkeet-uitleg-gezien';
+  const gezienLijst = () => { try { return JSON.parse(localStorage.getItem(GEZIEN)) || []; } catch (e) { return null; } };
+  function markeer(key) {
+    const l = gezienLijst();
+    if (!l || l.includes(key)) return;
+    l.push(key);
+    try { localStorage.setItem(GEZIEN, JSON.stringify(l.slice(-40))); } catch (e) { /* privémodus */ }
+  }
+  const TIP_CSS = `
+.u-tip{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));z-index:2147481500;display:flex;align-items:center;gap:10px;width:min(440px,calc(100vw - 20px));padding:10px 8px 10px 14px;border-radius:18px;background:#f3efdb;color:#2b1531;box-shadow:0 16px 40px rgba(0,0,0,.5),0 0 0 2px var(--tc,#d690c9);font:15px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;transform:translateX(-50%);animation:uTip .35s cubic-bezier(.2,.8,.2,1) both}
+@keyframes uTip{from{opacity:0;transform:translate(-50%,-14px)}}
+.u-tip p{flex:1;margin:0}
+.u-tip b{display:block;font-size:15.5px}
+.u-tip button{flex:none;min-height:44px;border:0;border-radius:12px;font:800 14px/1 system-ui,sans-serif;cursor:pointer}
+.u-tip .u-tip-go{padding:0 14px;background:#2b1531;color:#f3efdb}
+.u-tip .u-tip-x{width:40px;background:transparent;color:#6a4570;font-size:18px}
+@media (prefers-reduced-motion:reduce){.u-tip{animation:none}}`;
+  let tip = null, tipTimer = 0;
+  function weg() { clearTimeout(tipTimer); if (tip) { tip.remove(); tip = null; } }
+  function tipVoor(key) {
+    const g = GAMES[key], l = gezienLijst();
+    if (!g || !l || l.includes(key) || tip) return;
+    if (!document.getElementById('u-tip-css')) { const st = document.createElement('style'); st.id = 'u-tip-css'; st.textContent = TIP_CSS; document.head.appendChild(st); }
+    tip = document.createElement('div');
+    tip.className = 'u-tip';
+    tip.setAttribute('role', 'status');
+    tip.style.setProperty('--tc', g.c);
+    tip.innerHTML = `<p><b>Eerste keer ${g.name}?</b>Bekijk in een halve minuut hoe het werkt.</p><button type="button" class="u-tip-go">Uitleg</button><button type="button" class="u-tip-x" aria-label="Nee, dankje">✕</button>`;
+    tip.querySelector('.u-tip-go').addEventListener('click', () => open(key));
+    tip.querySelector('.u-tip-x').addEventListener('click', () => { markeer(key); weg(); });
+    document.body.appendChild(tip);
+    tipTimer = setTimeout(weg, 15000);   // vanzelf weer weg; de volgende keer komt hij terug
+  }
+  // alleen op een speelpagina met een uitlegknop in beeld (dus niet in de speelhal, en niet midden in een potje)
+  addEventListener('load', () => setTimeout(() => {
+    if (document.getElementById('spellen')) return;
+    const b = [...document.querySelectorAll('[data-uitleg]')].find((el) => el.getClientRects().length && !el.closest('.uitleg'));
+    if (b) { tipVoor(b.dataset.uitleg); return; }
+    // de spellen op één telefoon openen de uitleg met een eigen knop; die beginnen altijd op het startscherm
+    const pad = location.pathname.split('/')[1];
+    if (['bom', 'alibi', 'bakplaten', 'kingsen', 'happo'].includes(pad)) tipVoor(pad);
+  }, 1600));
 
   window.Uitleg = { open, close, games: GAMES };
 })();

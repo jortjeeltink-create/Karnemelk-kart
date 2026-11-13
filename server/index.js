@@ -310,11 +310,32 @@ async function review(req, res) {
   return send(200, { ok: true });
 }
 
+// Foutmeldingen van telefoons: gaat er in een spel iets mis in de browser (een fout in de code), dan stuurt
+// /js/poort.js een kort bericht. Zo zie je in het beheer of er ergens iets stuk is. Hooguit 20 per uur per adres, en
+// alleen de foutmelding zelf: geen namen of andere gegevens.
+const FOUT_MAX = 200;
+const foutTimes = new Map();
+async function fout(req, res) {
+  const ip = clientIp(req), now = Date.now(), recent = (foutTimes.get(ip) || []).filter((t) => now - t < 3600_000);
+  const b = await readJson(req);
+  res.writeHead(204, { 'Cache-Control': 'no-store' }); res.end();
+  if (!b || !clip(b.msg, 300) || recent.length >= 20 || isOwner(req)) return;
+  recent.push(now); foutTimes.set(ip, recent);
+  if (foutTimes.size > 5000) foutTimes.clear();
+  const ua = String(req.headers['user-agent'] || '');
+  const f = { at: new Date().toISOString(), pagina: clip(b.pagina, 60), msg: clip(b.msg, 300), waar: clip(b.waar, 120), app: /SpelkeetApp\//.test(ua) ? 'app' : 'web', toestel: /iPhone|iPad/.test(ua) ? 'iPhone' : /Android/.test(ua) ? 'Android' : 'computer' };
+  const list = recentMeldingen((await store.kv.get('fouten')) || []);
+  list.unshift(f);
+  await store.kv.set('fouten', list.slice(0, FOUT_MAX));
+  log(`fout op ${f.pagina || '?'} (${f.toestel}, ${f.app}): ${f.msg.slice(0, 140)}`);
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://x');
   let path = decodeURIComponent(url.pathname);
   if (path === '/api/melden' && req.method === 'POST') { melden(req, res); return; }
   if (path === '/api/review' && req.method === 'POST') { review(req, res); return; }
+  if (path === '/api/fout' && req.method === 'POST') { fout(req, res).catch(() => {}); return; }
   // een spel op één telefoon (zoals Tikkende Bom) draait helemaal op de telefoon zelf; die meldt alleen dat er een
   // potje begint, voor de statistieken. Hooguit 60 per uur per adres, en jij als maker telt niet mee.
   if (path === '/api/potje' && req.method === 'POST') {
@@ -328,9 +349,9 @@ const server = http.createServer((req, res) => {
   }
   if (path === '/api/beheer') {
     if (!beheerKeyOk(url.searchParams.get('sleutel'))) { res.writeHead(404); return res.end(); }
-    Promise.all([store.kv.get('meldingen'), store.kv.get('reviews')]).then(([m, r]) => {
+    Promise.all([store.kv.get('meldingen'), store.kv.get('reviews'), store.kv.get('fouten')]).then(([m, r, f]) => {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Set-Cookie': ownerCookie(req) });
-      res.end(JSON.stringify({ meldingen: recentMeldingen(m || []), reviews: recentMeldingen(r || []), mail: !!MAIL_KEY, vast: VASTE_OPSLAG, overdracht: OVERDRACHT }));
+      res.end(JSON.stringify({ meldingen: recentMeldingen(m || []), reviews: recentMeldingen(r || []), fouten: recentMeldingen(f || []), mail: !!MAIL_KEY, vast: VASTE_OPSLAG, overdracht: OVERDRACHT }));
     });
     return;
   }

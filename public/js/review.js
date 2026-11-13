@@ -60,7 +60,7 @@
 #srv label small{font-weight:400;color:#cfc4d2}
 #srv textarea{width:100%;min-height:64px;padding:10px 12px;border:0;border-radius:14px;background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);color:#f3efdb;font:16px/1.4 system-ui,sans-serif;resize:vertical;box-sizing:border-box}
 #srv textarea:focus,#srv button:focus-visible{outline:3px solid #f2c230;outline-offset:1px}
-#srv .srv-go{min-height:52px;border:0;border-radius:16px;background:#2fbf71;color:#fff;font:800 17px/1 system-ui,sans-serif;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18);cursor:pointer}
+#srv .srv-go{width:100%;min-height:52px;border:0;border-radius:16px;background:#2fbf71;color:#fff;font:800 17px/1 system-ui,sans-serif;box-shadow:inset 0 -4px 0 rgba(0,0,0,.18);cursor:pointer}
 #srv .srv-go:disabled{opacity:.6}
 #srv .srv-later{display:block;width:100%;min-height:44px;margin-top:8px;border:0;background:transparent;color:#cfc4d2;font:700 15px system-ui,sans-serif;cursor:pointer}
 #srv .srv-msg{margin:0;padding:10px 12px;border-radius:12px;font-weight:700;background:rgba(229,72,59,.18);box-shadow:inset 0 0 0 1px rgba(229,72,59,.6)}
@@ -111,6 +111,18 @@
         const j = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(j.msg || 'Versturen lukte niet. Probeer het later nog eens.');
         const o = load(); o.gedaan = { ...(o.gedaan || {}), [spel]: now() }; save(o);
+        // Blij? Vraag dan (op Android) of je de sterren ook in de Play Store wilt zetten. Nee is ook goed.
+        const S = window.Spelkeet;
+        if (sterren >= 4 && S && S.android && !o.store) {
+          $('.srv-card').innerHTML = `<p class="srv-dank" role="status">Dankjewel! 🙌</p>
+            <p class="srv-sub" style="text-align:center">Wil je je sterren ook in de Play Store zetten? Daar helpt het andere spelers De Spelkeet te vinden.</p>
+            <button type="button" class="srv-go srv-store">Naar de Play Store ★</button>
+            <button type="button" class="srv-later srv-nee">Nee, dankje</button>`;
+          $('.srv-store').addEventListener('click', () => { const x = load(); x.store = now(); save(x); close(); S.beoordeel(); });
+          $('.srv-nee').addEventListener('click', () => { const x = load(); x.store = now(); save(x); close(); });
+          try { $('.srv-store').focus({ preventScroll: true }); } catch (e) { /* niet erg */ }
+          return;
+        }
         $('.srv-card').innerHTML = '<p class="srv-dank" role="status">Dankjewel! 🙌</p>';
         setTimeout(close, 1400);
       } catch (e) {

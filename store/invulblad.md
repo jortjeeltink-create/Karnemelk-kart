@@ -66,7 +66,7 @@ Wijzigt Google ooit de sleutel (*Sleutel wijzigen*), download dan de certificate
 | Volledige beschrijving | uit `teksten.md` |
 | App-icoon | `icoon-512.png` |
 | Feature graphic | `banner-1024x500.png` |
-| Screenshots telefoon | de 6 bestanden `screenshot-1-…` t/m `screenshot-6-…` |
+| Screenshots telefoon | de 8 bestanden `screenshot-1-…` t/m `screenshot-8-…`, in die volgorde (haal de oude eerst weg) |
 
 *Groei → Store-presence → **Store-instellingen***
 - App-categorie: **Game → Casual**
